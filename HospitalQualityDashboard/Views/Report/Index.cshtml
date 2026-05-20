@@ -1,0 +1,35 @@
+@model HospitalQualityDashboard.Models.ViewModels.ReportListViewModel
+@{
+    ViewBag.Title = "Bao cao";
+}
+<h2>Bao cao</h2>
+@using (Html.BeginForm("Index", "Report", FormMethod.Get, new { @class = "row g-2 mb-3" }))
+{
+    <div class="col-md-3">@Html.DropDownListFor(m => m.KyBaoCaoId, Model.KyBaoCaoOptions, "Tat ca ky", new { @class = "form-select" })</div>
+    <div class="col-md-3">@Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "Tat ca khoa phong", new { @class = "form-select" })</div>
+    <div class="col-md-4">@Html.DropDownListFor(m => m.ChiSoChatLuongId, Model.ChiSoOptions, "Tat ca chi so", new { @class = "form-select" })</div>
+    <div class="col-md-2"><button class="btn btn-outline-primary" type="submit">Loc</button></div>
+}
+<p>@Html.ActionLink("Xuat CSV", "Reports", "Export", new { kyBaoCaoId = Model.KyBaoCaoId, khoaPhongId = Model.KhoaPhongId, chiSoChatLuongId = Model.ChiSoChatLuongId }, new { @class = "btn btn-outline-secondary" })</p>
+<table class="table table-striped table-sm">
+    <thead><tr><th>Ky</th><th>Khoa phong</th><th>Chi so</th><th>Ket qua</th><th>Trang thai</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var item in Model.Items)
+    {
+        <tr>
+            <td>@item.TenKyBaoCao</td>
+            <td>@item.TenKhoaPhong</td>
+            <td>@item.MaChiSo - @item.TenChiSo</td>
+            <td>@item.KetQua</td>
+            <td>@item.TrangThai</td>
+            <td class="text-end">
+                @Html.ActionLink("Sua/Xem", "Edit", new { id = item.BaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
+                @using (Html.BeginForm("Submit", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                { @Html.AntiForgeryToken() <button class="btn btn-sm btn-outline-success" type="submit">Gui</button> }
+                @using (Html.BeginForm("Lock", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                { @Html.AntiForgeryToken() <button class="btn btn-sm btn-outline-warning" type="submit">Khoa</button> }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

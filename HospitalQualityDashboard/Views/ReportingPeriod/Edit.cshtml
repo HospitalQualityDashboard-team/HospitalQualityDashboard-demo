@@ -1,0 +1,21 @@
+@model HospitalQualityDashboard.Models.ViewModels.KyBaoCaoViewModel
+@{
+    ViewBag.Title = Model.KyBaoCaoId == 0 ? "Them ky bao cao" : "Sua ky bao cao";
+}
+<h2>@ViewBag.Title</h2>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.KyBaoCaoId)
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="mb-3">@Html.LabelFor(m => m.TenKyBaoCao, new { @class = "form-label" }) @Html.TextBoxFor(m => m.TenKyBaoCao, new { @class = "form-control" })</div>
+    <div class="row">
+        <div class="col-md-3 mb-3">@Html.LabelFor(m => m.LoaiKyBaoCao, new { @class = "form-label" }) @Html.EnumDropDownListFor(m => m.LoaiKyBaoCao, new { @class = "form-select" })</div>
+        <div class="col-md-3 mb-3">@Html.LabelFor(m => m.TuNgay, new { @class = "form-label" }) @Html.TextBoxFor(m => m.TuNgay, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })</div>
+        <div class="col-md-3 mb-3">@Html.LabelFor(m => m.DenNgay, new { @class = "form-label" }) @Html.TextBoxFor(m => m.DenNgay, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })</div>
+        <div class="col-md-3 mb-3">@Html.LabelFor(m => m.HanNop, new { @class = "form-label" }) @Html.TextBoxFor(m => m.HanNop, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })</div>
+    </div>
+    <div class="mb-3">@Html.LabelFor(m => m.TrangThai, new { @class = "form-label" }) @Html.EnumDropDownListFor(m => m.TrangThai, new { @class = "form-select" })</div>
+    <button class="btn btn-primary" type="submit">Luu</button>
+    @Html.ActionLink("Quay lai", "Index", null, new { @class = "btn btn-outline-secondary" })
+}

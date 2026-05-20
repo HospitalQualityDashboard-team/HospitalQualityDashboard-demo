@@ -1,0 +1,15 @@
+@model HospitalQualityDashboard.Models.ViewModels.CreateUserAccountViewModel
+@{
+    ViewBag.Title = "Tao tai khoan User";
+}
+<h2>Tao tai khoan User cho @Model.HoTen</h2>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.NhanVienId)
+    @Html.HiddenFor(m => m.HoTen)
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="mb-3">@Html.LabelFor(m => m.TenDangNhap, new { @class = "form-label" }) @Html.TextBoxFor(m => m.TenDangNhap, new { @class = "form-control" })</div>
+    <div class="mb-3">@Html.LabelFor(m => m.MatKhau, new { @class = "form-label" }) @Html.PasswordFor(m => m.MatKhau, new { @class = "form-control" })</div>
+    <button class="btn btn-primary" type="submit">Tao tai khoan</button>
+}

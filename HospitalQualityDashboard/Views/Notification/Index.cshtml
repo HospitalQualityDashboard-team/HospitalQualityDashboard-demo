@@ -1,0 +1,24 @@
+@model IEnumerable<HospitalQualityDashboard.Models.ViewModels.NotificationViewModel>
+@{
+    ViewBag.Title = "Thong bao";
+}
+<h2>Thong bao</h2>
+<p>@Html.ActionLink("Gui thong bao", "Create", null, new { @class = "btn btn-primary" })</p>
+<table class="table table-striped table-sm">
+    <thead><tr><th>Tieu de</th><th>Loai</th><th>Ngay tao</th><th>Da doc</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td><strong>@item.TieuDe</strong><br />@item.NoiDung</td>
+            <td>@item.LoaiThongBao</td>
+            <td>@item.NgayTao</td>
+            <td>@(item.DaDoc ? "Co" : "Chua")</td>
+            <td>
+                @using (Html.BeginForm("MarkAsRead", "Notification", new { id = item.ThongBaoId }, FormMethod.Post))
+                { @Html.AntiForgeryToken() <button class="btn btn-sm btn-outline-primary" type="submit">Da doc</button> }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

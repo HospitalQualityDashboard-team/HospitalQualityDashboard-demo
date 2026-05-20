@@ -1,0 +1,33 @@
+@model IEnumerable<HospitalQualityDashboard.Models.ViewModels.ChiSoViewModel>
+@{
+    ViewBag.Title = "Chi so chat luong";
+}
+<h2>Chi so chat luong</h2>
+<div class="mb-3">
+    @Html.ActionLink("Them chi so", "Create", null, new { @class = "btn btn-primary" })
+    @Html.ActionLink("Xuat CSV", "Indicators", "Export", null, new { @class = "btn btn-outline-secondary" })
+</div>
+<table class="table table-striped table-sm">
+    <thead><tr><th>Ma</th><th>Ten chi so</th><th>Tan suat</th><th>Cong thuc</th><th>Trang thai</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.MaChiSo</td>
+            <td>@item.TenChiSo</td>
+            <td>@item.TanSuatBaoCao</td>
+            <td>@item.LoaiCongThuc</td>
+            <td>@(item.DangHoatDong ? "Hoat dong" : "Da khoa")</td>
+            <td class="text-end">
+                @Html.ActionLink("Chi tiet", "Details", new { id = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-outline-secondary" })
+                @Html.ActionLink("Sua", "Edit", new { id = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-outline-primary" })
+                @using (Html.BeginForm(item.DangHoatDong ? "Lock" : "Unlock", "Indicator", new { id = item.ChiSoChatLuongId }, FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-sm btn-outline-warning" type="submit">@(item.DangHoatDong ? "Khoa" : "Mo khoa")</button>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

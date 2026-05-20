@@ -17,7 +17,17 @@
             </button>
             <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
                 <ul class="navbar-nav flex-grow-1">
-                    <li>@Html.ActionLink("Trang chu", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+                    <li>@Html.ActionLink("Dashboard", "Index", "Dashboard", new { area = "" }, new { @class = "nav-link" })</li>
+                    @if (Session["TaiKhoanId"] != null)
+                    {
+                        <li>@Html.ActionLink("Khoa phong", "Index", "Department", new { area = "" }, new { @class = "nav-link" })</li>
+                        <li>@Html.ActionLink("Nhan vien", "Index", "Employee", new { area = "" }, new { @class = "nav-link" })</li>
+                        <li>@Html.ActionLink("Chi so", "Index", "Indicator", new { area = "" }, new { @class = "nav-link" })</li>
+                        <li>@Html.ActionLink("Phan cong", "Index", "Assignment", new { area = "" }, new { @class = "nav-link" })</li>
+                        <li>@Html.ActionLink("Ky bao cao", "Index", "ReportingPeriod", new { area = "" }, new { @class = "nav-link" })</li>
+                        <li>@Html.ActionLink("Bao cao", "Index", "Report", new { area = "" }, new { @class = "nav-link" })</li>
+                        <li>@Html.ActionLink("Thong bao", "Index", "Notification", new { area = "" }, new { @class = "nav-link" })</li>
+                    }
                 </ul>
                 <ul class="navbar-nav">
                     @if (Session["TaiKhoanId"] == null)

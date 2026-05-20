@@ -1,0 +1,29 @@
+@model IEnumerable<HospitalQualityDashboard.Models.ViewModels.KyBaoCaoViewModel>
+@{
+    ViewBag.Title = "Ky bao cao";
+}
+<h2>Ky bao cao</h2>
+<p>@Html.ActionLink("Them ky bao cao", "Create", null, new { @class = "btn btn-primary" })</p>
+<table class="table table-striped table-sm">
+    <thead><tr><th>Ten ky</th><th>Tu ngay</th><th>Den ngay</th><th>Han nop</th><th>Trang thai</th><th>Tien do</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.TenKyBaoCao</td>
+            <td>@item.TuNgay.ToString("yyyy-MM-dd")</td>
+            <td>@item.DenNgay.ToString("yyyy-MM-dd")</td>
+            <td>@item.HanNop.ToString("yyyy-MM-dd")</td>
+            <td>@item.TrangThai</td>
+            <td>@item.DaGui / @item.TongBaoCao</td>
+            <td class="text-end">
+                @Html.ActionLink("Sua", "Edit", new { id = item.KyBaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
+                @using (Html.BeginForm("Open", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                { @Html.AntiForgeryToken() <button class="btn btn-sm btn-outline-success" type="submit">Mo</button> }
+                @using (Html.BeginForm("Lock", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                { @Html.AntiForgeryToken() <button class="btn btn-sm btn-outline-warning" type="submit">Khoa</button> }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
