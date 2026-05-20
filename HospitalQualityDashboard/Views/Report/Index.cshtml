@@ -11,6 +11,10 @@
     <div class="col-md-2"><button class="btn btn-outline-primary" type="submit">Loc</button></div>
 }
 <p>@Html.ActionLink("Xuat CSV", "Reports", "Export", new { kyBaoCaoId = Model.KyBaoCaoId, khoaPhongId = Model.KhoaPhongId, chiSoChatLuongId = Model.ChiSoChatLuongId }, new { @class = "btn btn-outline-secondary" })</p>
+@if (Model.KyBaoCaoId.HasValue)
+{
+    <p>@Html.ActionLink("Nhap bao cao cho ky da chon", "Nhap", new { kyBaoCaoId = Model.KyBaoCaoId.Value }, new { @class = "btn btn-primary" })</p>
+}
 <table class="table table-striped table-sm">
     <thead><tr><th>Ky</th><th>Khoa phong</th><th>Chi so</th><th>Ket qua</th><th>Trang thai</th><th></th></tr></thead>
     <tbody>
