@@ -1,0 +1,38 @@
+@model HospitalQualityDashboard.Models.ViewModels.ChiSoViewModel
+@using HospitalQualityDashboard.Models.Enums
+@{
+    ViewBag.Title = Model.ChiSoChatLuongId == 0 ? "Them chi so" : "Sua chi so";
+}
+<h2>@ViewBag.Title</h2>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.ChiSoChatLuongId)
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="row">
+        <div class="col-md-3 mb-3">@Html.LabelFor(m => m.MaChiSo, new { @class = "form-label" }) @Html.TextBoxFor(m => m.MaChiSo, new { @class = "form-control" })</div>
+        <div class="col-md-2 mb-3">@Html.LabelFor(m => m.SoThuTu, new { @class = "form-label" }) @Html.TextBoxFor(m => m.SoThuTu, new { @class = "form-control" })</div>
+        <div class="col-md-7 mb-3">@Html.LabelFor(m => m.TenChiSo, new { @class = "form-label" }) @Html.TextBoxFor(m => m.TenChiSo, new { @class = "form-control" })</div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 mb-3">@Html.LabelFor(m => m.TanSuatBaoCao, new { @class = "form-label" }) @Html.EnumDropDownListFor(m => m.TanSuatBaoCao, new { @class = "form-select" })</div>
+        <div class="col-md-4 mb-3">@Html.LabelFor(m => m.LoaiCongThuc, new { @class = "form-label" }) @Html.EnumDropDownListFor(m => m.LoaiCongThuc, new { @class = "form-select" })</div>
+        <div class="col-md-4 mb-3">@Html.LabelFor(m => m.DonViTinh, new { @class = "form-label" }) @Html.TextBoxFor(m => m.DonViTinh, new { @class = "form-control" })</div>
+    </div>
+    <div class="mb-3">@Html.LabelFor(m => m.DinhNghia, new { @class = "form-label" }) @Html.TextAreaFor(m => m.DinhNghia, new { @class = "form-control", rows = 2 })</div>
+    <div class="mb-3">@Html.LabelFor(m => m.PhuongPhapTinh, new { @class = "form-label" }) @Html.TextAreaFor(m => m.PhuongPhapTinh, new { @class = "form-control", rows = 2 })</div>
+    <div class="row">
+        <div class="col-md-6 mb-3">@Html.LabelFor(m => m.TuSoMoTa, new { @class = "form-label" }) @Html.TextAreaFor(m => m.TuSoMoTa, new { @class = "form-control", rows = 2 })</div>
+        <div class="col-md-6 mb-3">@Html.LabelFor(m => m.MauSoMoTa, new { @class = "form-label" }) @Html.TextAreaFor(m => m.MauSoMoTa, new { @class = "form-control", rows = 2 })</div>
+    </div>
+    <div class="mb-3">@Html.LabelFor(m => m.NguonSoLieu, new { @class = "form-label" }) @Html.TextAreaFor(m => m.NguonSoLieu, new { @class = "form-control", rows = 2 })</div>
+    <div class="row">
+        <div class="col-md-2 mb-3">@Html.LabelFor(m => m.NamMucTieu, new { @class = "form-label" }) @Html.TextBoxFor(m => m.NamMucTieu, new { @class = "form-control" })</div>
+        <div class="col-md-2 mb-3">@Html.LabelFor(m => m.ToanTuSoSanh, new { @class = "form-label" }) @Html.TextBoxFor(m => m.ToanTuSoSanh, new { @class = "form-control", placeholder = ">=" })</div>
+        <div class="col-md-3 mb-3">@Html.LabelFor(m => m.GiaTriMucTieu, new { @class = "form-label" }) @Html.TextBoxFor(m => m.GiaTriMucTieu, new { @class = "form-control" })</div>
+        <div class="col-md-5 mb-3">@Html.LabelFor(m => m.MoTaMucTieu, new { @class = "form-label" }) @Html.TextBoxFor(m => m.MoTaMucTieu, new { @class = "form-control" })</div>
+    </div>
+    <div class="form-check mb-3">@Html.CheckBoxFor(m => m.DangHoatDong, new { @class = "form-check-input" }) @Html.LabelFor(m => m.DangHoatDong, "Dang hoat dong", new { @class = "form-check-label" })</div>
+    <button class="btn btn-primary" type="submit">Luu</button>
+    @Html.ActionLink("Quay lai", "Index", null, new { @class = "btn btn-outline-secondary" })
+}

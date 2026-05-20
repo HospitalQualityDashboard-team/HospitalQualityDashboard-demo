@@ -1,0 +1,33 @@
+@model HospitalQualityDashboard.Models.ViewModels.AssignmentViewModel
+@{
+    ViewBag.Title = "Phan cong chi so";
+}
+<h2>Phan cong chi so</h2>
+@using (Html.BeginForm("Assign", "Assignment", FormMethod.Post, new { @class = "row g-3 mb-4" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="col-md-4">@Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "-- Chon khoa phong --", new { @class = "form-select" })</div>
+    <div class="col-md-6">@Html.ListBoxFor(m => m.SelectedChiSoIds, Model.ChiSoOptions, new { @class = "form-select", size = 8 })</div>
+    <div class="col-md-2"><button class="btn btn-primary" type="submit">Phan cong</button></div>
+}
+<table class="table table-striped table-sm">
+    <thead><tr><th>Khoa phong</th><th>Ma chi so</th><th>Ten chi so</th><th>Trang thai</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var item in Model.Items)
+    {
+        <tr>
+            <td>@item.TenKhoaPhong</td>
+            <td>@item.MaChiSo</td>
+            <td>@item.TenChiSo</td>
+            <td>@(item.DangHoatDong ? "Dang phan cong" : "Da huy")</td>
+            <td class="text-end">
+                @using (Html.BeginForm("Deactivate", "Assignment", new { id = item.PhanCongChiSoId }, FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-sm btn-outline-warning" type="submit">Huy phan cong</button>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

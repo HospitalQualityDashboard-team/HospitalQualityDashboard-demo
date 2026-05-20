@@ -1,0 +1,56 @@
+@model HospitalQualityDashboard.Models.ViewModels.KhoaPhongIndexViewModel
+@{
+    ViewBag.Title = "Khoa phong";
+}
+
+<h2>Khoa phong</h2>
+<div class="mb-3">
+    @Html.ActionLink("Them khoa phong", "Create", null, new { @class = "btn btn-primary" })
+    @Html.ActionLink("Xuat CSV", "Departments", "Export", null, new { @class = "btn btn-outline-secondary" })
+</div>
+
+@using (Html.BeginForm("Index", "Department", FormMethod.Get, new { @class = "row g-2 mb-3" }))
+{
+    <div class="col-md-4">@Html.TextBoxFor(m => m.Search, new { @class = "form-control", placeholder = "Tim ten hoac ma" })</div>
+    <div class="col-auto"><button class="btn btn-outline-primary" type="submit">Loc</button></div>
+}
+
+@using (Html.BeginForm("Import", "Department", FormMethod.Post, new { enctype = "multipart/form-data", @class = "mb-3" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="input-group">
+        <input type="file" name="File" class="form-control" />
+        <button class="btn btn-outline-primary" type="submit">Import DM_KHOA_PHONG</button>
+    </div>
+}
+
+@if (Model.ImportResult != null)
+{
+    <div class="alert alert-info">Thanh cong: @Model.ImportResult.SoDongThanhCong, loi: @Model.ImportResult.SoDongLoi</div>
+    foreach (var error in Model.ImportResult.Errors)
+    {
+        <div class="text-danger">@error</div>
+    }
+}
+
+<table class="table table-striped table-sm">
+    <thead><tr><th>Ma nguon</th><th>Ten khoa phong</th><th>Trang thai</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var item in Model.Items)
+    {
+        <tr>
+            <td>@item.IdKhoaPhongNguon</td>
+            <td>@item.TenKhoaPhong</td>
+            <td>@(item.Used ? "Dang dung" : "Da khoa")</td>
+            <td class="text-end">
+                @Html.ActionLink("Sua", "Edit", new { id = item.KhoaPhongId }, new { @class = "btn btn-sm btn-outline-primary" })
+                @using (Html.BeginForm(item.Used ? "Lock" : "Unlock", "Department", new { id = item.KhoaPhongId }, FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-sm btn-outline-warning" type="submit">@(item.Used ? "Khoa" : "Mo khoa")</button>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -45,9 +45,7 @@ namespace HospitalQualityDashboard.Controllers
 
             _authService.UpdateLastLogin(user.TaiKhoanId);
 
-            return user.LoaiTaiKhoan == LoaiTaiKhoan.Admin
-                ? RedirectToAction("Index", "Home")
-                : RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Dashboard");
         }
 
         [HttpPost]

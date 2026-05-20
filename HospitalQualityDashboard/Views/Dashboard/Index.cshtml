@@ -1,0 +1,32 @@
+@model HospitalQualityDashboard.Models.ViewModels.DashboardViewModel
+@using System.Web
+@{
+    ViewBag.Title = "Dashboard";
+}
+<h2>Dashboard</h2>
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="border rounded p-3"><div>Tong chi so</div><strong>@Model.TongChiSo</strong></div></div>
+    <div class="col-md-3"><div class="border rounded p-3"><div>Da gui</div><strong>@Model.BaoCaoDaGui</strong></div></div>
+    <div class="col-md-3"><div class="border rounded p-3"><div>Thieu</div><strong>@Model.BaoCaoThieu</strong></div></div>
+    <div class="col-md-3"><div class="border rounded p-3"><div>Qua han</div><strong>@Model.BaoCaoQuaHan</strong></div></div>
+</div>
+<canvas id="progressChart" height="90"></canvas>
+<table class="table table-sm mt-4">
+    <thead><tr><th>Khoa phong</th><th>Da gui</th><th>Tong</th></tr></thead>
+    <tbody>
+    @foreach (var item in Model.DepartmentProgress)
+    {
+        <tr><td>@item.TenKhoaPhong</td><td>@item.DaGui</td><td>@item.Tong</td></tr>
+    }
+    </tbody>
+</table>
+@section scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+var labels = [@Html.Raw(string.Join(",", Model.DepartmentProgress.Select(x => "\"" + HttpUtility.JavaScriptStringEncode(x.TenKhoaPhong) + "\"")))];
+var values = [@string.Join(",", Model.DepartmentProgress.Select(x => x.DaGui))];
+if (labels.length) {
+    new Chart(document.getElementById('progressChart'), { type: 'bar', data: { labels: labels, datasets: [{ label: 'Bao cao da gui', data: values }] } });
+}
+</script>
+}
