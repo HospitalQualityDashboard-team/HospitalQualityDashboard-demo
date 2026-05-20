@@ -1,5 +1,4 @@
 using System.Web.Mvc;
-using HospitalQualityDashboard.Filters;
 using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Models.ViewModels;
 using HospitalQualityDashboard.Services;
@@ -42,12 +41,7 @@ namespace HospitalQualityDashboard.Controllers
                 return View(model);
             }
 
-            Session["TaiKhoanId"] = user.TaiKhoanId;
-            Session["TenDangNhap"] = user.TenDangNhap;
-            Session["LoaiTaiKhoan"] = user.LoaiTaiKhoan;
-            Session["NhanVienId"] = user.NhanVienId;
-            Session["KhoaPhongId"] = user.KhoaPhongId;
-            Session["TenKhoaPhong"] = user.TenKhoaPhong;
+            SessionUserAccessor.SetLoginSession(Session, user);
 
             _authService.UpdateLastLogin(user.TaiKhoanId);
 
@@ -60,29 +54,36 @@ namespace HospitalQualityDashboard.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Logout()
         {
-            Session.Clear();
-            Session.Abandon();
+            SessionUserAccessor.ClearLoginSession(Session);
             return RedirectToAction("Login");
         }
 
         [HttpGet]
-        [RequireLogin]
         public ActionResult ChangePassword()
         {
+            if (!SessionUserAccessor.IsAuthenticated(Session))
+            {
+                return RedirectToAction("Login");
+            }
+
             return View(new ChangePasswordViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [RequireLogin]
         public ActionResult ChangePassword(ChangePasswordViewModel model)
         {
+            if (!SessionUserAccessor.IsAuthenticated(Session))
+            {
+                return RedirectToAction("Login");
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var taiKhoanId = (int)Session["TaiKhoanId"];
+            var taiKhoanId = SessionUserAccessor.GetInt(Session, SessionUserAccessor.TaiKhoanIdKey).Value;
             if (!_authService.ChangePassword(taiKhoanId, model.MatKhauCu, model.MatKhauMoi))
             {
                 ModelState.AddModelError("", "Mat khau hien tai khong dung.");
