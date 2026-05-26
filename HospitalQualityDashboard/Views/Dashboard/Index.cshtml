@@ -1,18 +1,82 @@
-@model HospitalQualityDashboard.Models.ViewModels.DashboardViewModel
+﻿@model HospitalQualityDashboard.Models.ViewModels.DashboardViewModel
 @using System.Web
 @{
-    ViewBag.Title = "Dashboard";
+    ViewBag.Title = "Tổng quan";
 }
-<h2>Dashboard</h2>
+<div class="page-header">
+    <div>
+        <h1>Tổng quan</h1>
+        <p>Theo dõi tiến độ báo cáo chất lượng theo khoa/phòng.</p>
+    </div>
+</div>
+@if (!Model.IsAdmin && Model.MissingReports != null && Model.MissingReports.Any())
+{
+    <div class="alert alert-warning missing-report-alert shadow-sm border-0 mb-4" role="alert">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h5 class="alert-heading mb-2">Bạn có @Model.MissingReports.Count chỉ số chưa báo cáo</h5>
+                <div>
+                    <span class="badge bg-danger me-2">@Model.OverdueMissingReportCount quá hạn chưa nộp</span>
+                    <span class="badge bg-warning text-dark">@Model.DueSoonReportCount sắp đến hạn</span>
+                </div>
+            </div>
+            <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#missingReportDetails" aria-expanded="false" aria-controls="missingReportDetails">
+                Xem chi tiết
+            </button>
+        </div>
+        <div class="collapse mt-3" id="missingReportDetails">
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0 bg-white">
+                    <thead>
+                        <tr>
+                            <th>Kỳ báo cáo</th>
+                            <th>Hạn nộp</th>
+                            <th>Chỉ số</th>
+                            <th>Trạng thái</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.MissingReports)
+                    {
+                        <tr>
+                            <td>@item.TenKyBaoCao</td>
+                            <td>@item.HanNop.ToString("dd/MM/yyyy")</td>
+                            <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
+                            <td>
+                                @if (item.IsOverdue)
+                                {
+                                    <span class="badge bg-danger">Quá hạn chưa nộp @Math.Abs(item.DaysUntilDue) ngày</span>
+                                }
+                                else if (item.IsDueSoon)
+                                {
+                                    <span class="badge bg-warning text-dark">Còn @item.DaysUntilDue ngày</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Chưa gửi</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @Html.ActionLink("Nhập báo cáo", "Edit", "Report", new { kyBaoCaoId = item.KyBaoCaoId, chiSoChatLuongId = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-primary" })
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
 <div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="border rounded p-3"><div>Tong chi so</div><strong>@Model.TongChiSo</strong></div></div>
-    <div class="col-md-3"><div class="border rounded p-3"><div>Da gui</div><strong>@Model.BaoCaoDaGui</strong></div></div>
-    <div class="col-md-3"><div class="border rounded p-3"><div>Thieu</div><strong>@Model.BaoCaoThieu</strong></div></div>
-    <div class="col-md-3"><div class="border rounded p-3"><div>Qua han</div><strong>@Model.BaoCaoQuaHan</strong></div></div>
+    <div class="col-md-3"><div class="metric-card"><div>@(Model.IsAdmin ? "Tổng chỉ số" : "Chỉ số được phân công")</div><strong>@Model.TongChiSo</strong></div></div>
+    <div class="col-md-3"><div class="metric-card"><div>Đã gửi</div><strong>@Model.BaoCaoDaGui</strong></div></div>
+    <div class="col-md-3"><div class="metric-card"><div>Còn thiếu</div><strong>@Model.BaoCaoThieu</strong></div></div>
+    <div class="col-md-3"><div class="metric-card"><div>Quá hạn</div><strong>@Model.BaoCaoQuaHan</strong></div></div>
 </div>
 <canvas id="progressChart" height="90"></canvas>
 <table class="table table-sm mt-4">
-    <thead><tr><th>Khoa phong</th><th>Da gui</th><th>Tong</th></tr></thead>
+    <thead><tr><th>Khoa/phòng</th><th>Đã gửi</th><th>Tổng</th></tr></thead>
     <tbody>
     @foreach (var item in Model.DepartmentProgress)
     {
@@ -26,7 +90,9 @@
 var labels = [@Html.Raw(string.Join(",", Model.DepartmentProgress.Select(x => "\"" + HttpUtility.JavaScriptStringEncode(x.TenKhoaPhong) + "\"")))];
 var values = [@string.Join(",", Model.DepartmentProgress.Select(x => x.DaGui))];
 if (labels.length) {
-    new Chart(document.getElementById('progressChart'), { type: 'bar', data: { labels: labels, datasets: [{ label: 'Bao cao da gui', data: values }] } });
+    new Chart(document.getElementById('progressChart'), { type: 'bar', data: { labels: labels, datasets: [{ label: 'Báo cáo đã gửi', data: values }] } });
 }
 </script>
 }
+
+

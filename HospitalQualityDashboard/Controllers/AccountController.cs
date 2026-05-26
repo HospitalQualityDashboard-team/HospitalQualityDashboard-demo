@@ -22,23 +22,53 @@ namespace HospitalQualityDashboard.Controllers
         [HttpGet]
         public ActionResult Login()
         {
+            return RedirectToAction("UserLogin");
+        }
+
+        [HttpGet]
+        public ActionResult AdminLogin()
+        {
             return View(new LoginViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(LoginViewModel model)
+        public ActionResult AdminLogin(LoginViewModel model)
+        {
+            return LoginForRole(model, LoaiTaiKhoan.Admin, "AdminLogin", "Tai khoan nay khong phai tai khoan Admin.");
+        }
+
+        [HttpGet]
+        public ActionResult UserLogin()
+        {
+            return View(new LoginViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult UserLogin(LoginViewModel model)
+        {
+            return LoginForRole(model, LoaiTaiKhoan.User, "UserLogin", "Tai khoan nay khong phai tai khoan User.");
+        }
+
+        private ActionResult LoginForRole(LoginViewModel model, LoaiTaiKhoan expectedRole, string viewName, string wrongRoleMessage)
         {
             if (!ModelState.IsValid)
             {
-                return View(model);
+                return View(viewName, model);
             }
 
             var user = _authService.Authenticate(model.TenDangNhap, model.MatKhau);
             if (user == null)
             {
                 ModelState.AddModelError("", "Ten dang nhap hoac mat khau khong dung.");
-                return View(model);
+                return View(viewName, model);
+            }
+
+            if (user.LoaiTaiKhoan != expectedRole)
+            {
+                ModelState.AddModelError("", wrongRoleMessage);
+                return View(viewName, model);
             }
 
             SessionUserAccessor.SetLoginSession(Session, user);
@@ -53,7 +83,7 @@ namespace HospitalQualityDashboard.Controllers
         public ActionResult Logout()
         {
             SessionUserAccessor.ClearLoginSession(Session);
-            return RedirectToAction("Login");
+            return RedirectToAction("UserLogin");
         }
 
         [HttpGet]
@@ -61,7 +91,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             if (!SessionUserAccessor.IsAuthenticated(Session))
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("UserLogin");
             }
 
             return View(new ChangePasswordViewModel());
@@ -73,7 +103,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             if (!SessionUserAccessor.IsAuthenticated(Session))
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("UserLogin");
             }
 
             if (!ModelState.IsValid)

@@ -1,14 +1,16 @@
-@model HospitalQualityDashboard.Models.ViewModels.NotificationViewModel
+﻿@model HospitalQualityDashboard.Models.ViewModels.NotificationViewModel
 @{
-    ViewBag.Title = "Gui thong bao";
+    ViewBag.Title = "Gửi thông báo";
 }
-<h2>Gui thong bao</h2>
+<h2>Gửi thông báo</h2>
 @using (Html.BeginForm())
 {
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     <div class="mb-3">@Html.LabelFor(m => m.TieuDe, new { @class = "form-label" }) @Html.TextBoxFor(m => m.TieuDe, new { @class = "form-control" })</div>
     <div class="mb-3">@Html.LabelFor(m => m.NoiDung, new { @class = "form-label" }) @Html.TextAreaFor(m => m.NoiDung, new { @class = "form-control", rows = 4 })</div>
-    <div class="mb-3">@Html.Label("Khoa phong nhan", new { @class = "form-label" }) @Html.ListBoxFor(m => m.SelectedKhoaPhongIds, Model.KhoaPhongOptions, new { @class = "form-select", size = 8 })</div>
-    <button class="btn btn-primary" type="submit">Gui</button>
+    <div class="mb-3">@Html.Label("Khoa/phòng nhận", new { @class = "form-label" }) @Html.ListBoxFor(m => m.SelectedKhoaPhongIds, Model.KhoaPhongOptions, new { @class = "form-select", size = 8 })</div>
+    <button class="btn btn-primary" type="submit">Gửi</button>
 }
+
+

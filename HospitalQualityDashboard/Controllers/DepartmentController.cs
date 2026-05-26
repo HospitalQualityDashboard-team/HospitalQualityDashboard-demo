@@ -65,6 +65,24 @@ namespace HospitalQualityDashboard.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public ActionResult Delete(int id)
+        {
+            var admin = RequireAdmin();
+            if (admin != null) return admin;
+            try
+            {
+                _service.Delete(id);
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Import(ImportFileViewModel model)
         {
             var admin = RequireAdmin();

@@ -50,7 +50,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             if (!SessionUserAccessor.IsAuthenticated(Session))
             {
-                filterContext.Result = RedirectToAction("Login", "Account");
+                filterContext.Result = RedirectToAction("UserLogin", "Account");
                 return;
             }
 

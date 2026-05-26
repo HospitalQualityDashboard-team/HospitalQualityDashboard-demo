@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml.Linq;
 
@@ -30,6 +32,22 @@ namespace HospitalQualityDashboard.Services
             }
 
             return ReadXlsx(file.InputStream);
+        }
+
+        public IList<IDictionary<string, string>> ReadIndicatorDocxTables(HttpPostedFileBase file)
+        {
+            if (file == null || file.ContentLength == 0)
+            {
+                throw new InvalidOperationException("Vui long chon file import.");
+            }
+
+            var extension = Path.GetExtension(file.FileName);
+            if (!string.Equals(extension, ".docx", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Chi ho tro file .docx cho import tu dinh nghia chi so.");
+            }
+
+            return ReadIndicatorDocxTables(file.InputStream);
         }
 
         public byte[] CreateCsv<T>(IEnumerable<T> items, IList<KeyValuePair<string, Func<T, object>>> columns)
@@ -110,14 +128,26 @@ namespace HospitalQualityDashboard.Services
                     return rows;
                 }
 
-                var headers = rawRows[0].OrderBy(k => ColumnIndex(k.Key)).Select(k => k.Value).ToList();
+                var headerColumns = new List<KeyValuePair<string, string>>();
+                var seenHeaders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var header in rawRows[0].OrderBy(k => ColumnIndex(k.Key)))
+                {
+                    var headerName = (header.Value ?? string.Empty).Trim();
+                    if (string.IsNullOrWhiteSpace(headerName) || !seenHeaders.Add(headerName))
+                    {
+                        continue;
+                    }
+
+                    headerColumns.Add(new KeyValuePair<string, string>(header.Key, headerName));
+                }
+
                 foreach (var rawRow in rawRows.Skip(1))
                 {
                     var row = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                    for (var i = 0; i < headers.Count; i++)
+                    foreach (var header in headerColumns)
                     {
-                        var columnName = ColumnName(i + 1);
-                        row[headers[i]] = rawRow.ContainsKey(columnName) ? rawRow[columnName] : string.Empty;
+                        string value;
+                        row[header.Value] = rawRow.TryGetValue(header.Key, out value) ? value : string.Empty;
                     }
 
                     if (row.Values.Any(v => !string.IsNullOrWhiteSpace(v)))
@@ -128,6 +158,179 @@ namespace HospitalQualityDashboard.Services
             }
 
             return rows;
+        }
+
+        private static IList<IDictionary<string, string>> ReadIndicatorDocxTables(Stream stream)
+        {
+            var rows = new List<IDictionary<string, string>>();
+            using (var archive = new ZipArchive(stream, ZipArchiveMode.Read, true))
+            {
+                var documentEntry = archive.GetEntry("word/document.xml");
+                if (documentEntry == null)
+                {
+                    throw new InvalidOperationException("Khong tim thay noi dung document.xml trong file Word.");
+                }
+
+                XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+                XDocument document;
+                using (var documentStream = documentEntry.Open())
+                {
+                    document = XDocument.Load(documentStream);
+                }
+
+                foreach (var table in document.Descendants(w + "tbl"))
+                {
+                    var row = ReadIndicatorTable(table, w);
+                    string name;
+                    if (row.TryGetValue("TenChiSo", out name) && !string.IsNullOrWhiteSpace(name))
+                    {
+                        rows.Add(row);
+                    }
+                }
+            }
+
+            return rows;
+        }
+
+        private static IDictionary<string, string> ReadIndicatorTable(XElement table, XNamespace w)
+        {
+            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var tableRow in table.Elements(w + "tr"))
+            {
+                var cells = tableRow.Elements(w + "tc").Select(c => ReadWordCellText(c, w)).ToList();
+                if (cells.Count < 2)
+                {
+                    continue;
+                }
+
+                var label = cells[0];
+                var value = string.Join("\n", cells.Skip(1).Where(c => !string.IsNullOrWhiteSpace(c))).Trim();
+                if (cells.Count >= 3 && IsDetailLabel(cells[1]) && IsMethodOrBlank(label))
+                {
+                    label = cells[1];
+                    value = string.Join("\n", cells.Skip(2).Where(c => !string.IsNullOrWhiteSpace(c))).Trim();
+                }
+
+                var key = MapIndicatorDocxLabel(label);
+                if (key == null)
+                {
+                    continue;
+                }
+
+                if (string.Equals(key, "MucTieuDatDuoc", StringComparison.OrdinalIgnoreCase))
+                {
+                    var year = FindYear(label);
+                    if (year.HasValue)
+                    {
+                        result["NamMucTieu"] = year.Value.ToString(CultureInfo.InvariantCulture);
+                    }
+                }
+
+                AddOrAppend(result, key, value);
+            }
+
+            return result;
+        }
+
+        private static string ReadWordCellText(XElement cell, XNamespace w)
+        {
+            var paragraphs = cell.Elements(w + "p")
+                .Select(p => string.Concat(p.Descendants(w + "t").Select(t => t.Value)).Trim())
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .ToList();
+
+            if (paragraphs.Count > 0)
+            {
+                return string.Join("\n", paragraphs);
+            }
+
+            return string.Concat(cell.Descendants(w + "t").Select(t => t.Value)).Trim();
+        }
+
+        private static string MapIndicatorDocxLabel(string label)
+        {
+            var normalized = NormalizeLabel(label);
+            if (normalized == "ten chi so") return "TenChiSo";
+            if (normalized == "chi so") return "TenChiSo";
+            if (normalized == "dinh nghia chi so") return "DinhNghia";
+            if (normalized == "linh vuc ap dung") return "LinhVucApDung";
+            if (normalized == "khia canh chat luong") return "KhiaCanhChatLuong";
+            if (normalized == "thanh to chat luong") return "ThanhToChatLuong";
+            if (normalized == "ly do lua chon") return "LyDoLuaChon";
+            if (normalized == "phuong phap tinh") return "PhuongPhapTinh";
+            if (normalized == "tu so") return "TuSoMoTa";
+            if (normalized == "mau so") return "MauSoMoTa";
+            if (normalized == "nguon so lieu") return "NguonSoLieu";
+            if (normalized == "thu thap va tong hop so lieu") return "ThuThapTongHop";
+            if (normalized == "gia tri cua so lieu") return "GiaTriSoLieu";
+            if (normalized == "tan suat bao cao") return "TanSuatBaoCao";
+            if (normalized.StartsWith("muc tieu dat duoc")) return "MucTieuDatDuoc";
+            return null;
+        }
+
+        private static bool IsDetailLabel(string label)
+        {
+            var normalized = NormalizeLabel(label);
+            return normalized == "tu so" || normalized == "mau so";
+        }
+
+        private static bool IsMethodOrBlank(string label)
+        {
+            var normalized = NormalizeLabel(label);
+            return string.IsNullOrWhiteSpace(normalized) || normalized == "phuong phap tinh";
+        }
+
+        private static void AddOrAppend(IDictionary<string, string> row, string key, string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            string existing;
+            if (row.TryGetValue(key, out existing) && !string.IsNullOrWhiteSpace(existing))
+            {
+                row[key] = existing + "\n" + value;
+                return;
+            }
+
+            row[key] = value;
+        }
+
+        private static int? FindYear(string value)
+        {
+            var match = Regex.Match(value ?? string.Empty, @"(19|20)\d{2}");
+            int year;
+            return match.Success && int.TryParse(match.Value, out year) ? year : (int?)null;
+        }
+
+        private static string NormalizeLabel(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            var normalized = value.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormD);
+            var builder = new StringBuilder();
+            foreach (var ch in normalized)
+            {
+                var category = CharUnicodeInfo.GetUnicodeCategory(ch);
+                if (category == UnicodeCategory.NonSpacingMark)
+                {
+                    continue;
+                }
+
+                if (ch == '\u0111')
+                {
+                    builder.Append('d');
+                    continue;
+                }
+
+                builder.Append(char.IsLetterOrDigit(ch) ? ch : ' ');
+            }
+
+            return Regex.Replace(builder.ToString(), @"\s+", " ").Trim();
         }
 
         private static IList<string> ReadSharedStrings(ZipArchive archive)
@@ -149,6 +352,12 @@ namespace HospitalQualityDashboard.Services
 
         private static string ReadCellValue(XElement cell, XNamespace ns, IList<string> sharedStrings)
         {
+            var type = (string)cell.Attribute("t");
+            if (type == "inlineStr")
+            {
+                return string.Concat(cell.Descendants(ns + "t").Select(t => t.Value));
+            }
+
             var valueElement = cell.Element(ns + "v");
             if (valueElement == null)
             {
@@ -156,7 +365,6 @@ namespace HospitalQualityDashboard.Services
             }
 
             var value = valueElement.Value;
-            var type = Convert.ToString(cell.Attribute("t"));
             if (type == "s")
             {
                 int index;
@@ -224,17 +432,5 @@ namespace HospitalQualityDashboard.Services
             return index;
         }
 
-        private static string ColumnName(int index)
-        {
-            var name = string.Empty;
-            while (index > 0)
-            {
-                var modulo = (index - 1) % 26;
-                name = Convert.ToChar('A' + modulo) + name;
-                index = (index - modulo) / 26;
-            }
-
-            return name;
-        }
     }
 }

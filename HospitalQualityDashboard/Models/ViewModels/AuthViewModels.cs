@@ -4,33 +4,33 @@ namespace HospitalQualityDashboard.Models.ViewModels
 {
     public class LoginViewModel
     {
-        [Required(ErrorMessage = "Vui long nhap ten dang nhap.")]
-        [Display(Name = "Ten dang nhap")]
+        [Required(ErrorMessage = "Vui lòng nhập tên đăng nhập.")]
+        [Display(Name = "Tên đăng nhập")]
         public string TenDangNhap { get; set; }
 
-        [Required(ErrorMessage = "Vui long nhap mat khau.")]
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
         [DataType(DataType.Password)]
-        [Display(Name = "Mat khau")]
+        [Display(Name = "Mật khẩu")]
         public string MatKhau { get; set; }
     }
 
     public class ChangePasswordViewModel
     {
-        [Required(ErrorMessage = "Vui long nhap mat khau hien tai.")]
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu hiện tại.")]
         [DataType(DataType.Password)]
-        [Display(Name = "Mat khau hien tai")]
+        [Display(Name = "Mật khẩu hiện tại")]
         public string MatKhauCu { get; set; }
 
-        [Required(ErrorMessage = "Vui long nhap mat khau moi.")]
-        [MinLength(6, ErrorMessage = "Mat khau moi phai co it nhat 6 ky tu.")]
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu mới.")]
+        [MinLength(6, ErrorMessage = "Mật khẩu mới phải có ít nhất 6 ký tự.")]
         [DataType(DataType.Password)]
-        [Display(Name = "Mat khau moi")]
+        [Display(Name = "Mật khẩu mới")]
         public string MatKhauMoi { get; set; }
 
-        [Required(ErrorMessage = "Vui long xac nhan mat khau moi.")]
-        [Compare("MatKhauMoi", ErrorMessage = "Mat khau xac nhan khong khop.")]
+        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu mới.")]
+        [Compare("MatKhauMoi", ErrorMessage = "Mật khẩu xác nhận không khớp.")]
         [DataType(DataType.Password)]
-        [Display(Name = "Xac nhan mat khau moi")]
+        [Display(Name = "Xác nhận mật khẩu mới")]
         public string XacNhanMatKhauMoi { get; set; }
     }
 }

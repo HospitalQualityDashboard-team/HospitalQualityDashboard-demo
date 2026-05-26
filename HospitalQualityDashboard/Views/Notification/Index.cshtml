@@ -1,22 +1,45 @@
-@model IEnumerable<HospitalQualityDashboard.Models.ViewModels.NotificationViewModel>
+﻿@model IEnumerable<HospitalQualityDashboard.Models.ViewModels.NotificationViewModel>
 @{
-    ViewBag.Title = "Thong bao";
+    ViewBag.Title = "Thông báo";
+    var isAdmin = Convert.ToString(Session["LoaiTaiKhoan"]) == "Admin";
 }
-<h2>Thong bao</h2>
-<p>@Html.ActionLink("Gui thong bao", "Create", null, new { @class = "btn btn-primary" })</p>
+<div class="page-header">
+    <div>
+        <h1>Thông báo</h1>
+        <p>Theo dõi và gửi thông báo cho các khoa/phòng.</p>
+    </div>
+</div>
+@if (isAdmin)
+{
+    <div class="d-flex gap-2 flex-wrap mb-3">
+        @Html.ActionLink("Gửi thông báo", "Create", null, new { @class = "btn btn-primary" })
+        @using (Html.BeginForm("RunAutomation", "Notification", FormMethod.Post, new { @class = "d-inline" }))
+        {
+            @Html.AntiForgeryToken()
+            <button class="btn btn-outline-success" type="submit">Chạy kiểm tra thông báo tự động</button>
+        }
+    </div>
+}
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
 <table class="table table-striped table-sm">
-    <thead><tr><th>Tieu de</th><th>Loai</th><th>Ngay tao</th><th>Da doc</th><th></th></tr></thead>
+    <thead><tr><th>Tiêu đề</th><th>Loại</th><th>Ngày tạo</th><th>Đã đọc</th><th></th></tr></thead>
     <tbody>
     @foreach (var item in Model)
     {
+        var detailUrl = Url.Action("Details", new { id = item.ThongBaoId });
         <tr>
-            <td><strong>@item.TieuDe</strong><br />@item.NoiDung</td>
+            <td>
+                <strong>@Html.ActionLink(item.TieuDe, "Details", new { id = item.ThongBaoId }, new { @class = "text-dark text-decoration-none" })</strong><br />
+                <a href="@detailUrl" class="text-body text-decoration-none">@item.NoiDung</a>
+            </td>
             <td>@item.LoaiThongBao</td>
             <td>@item.NgayTao</td>
-            <td>@(item.DaDoc ? "Co" : "Chua")</td>
+            <td>@(item.DaDoc ? "Có" : "Chưa")</td>
             <td>
-                @using (Html.BeginForm("MarkAsRead", "Notification", new { id = item.ThongBaoId }, FormMethod.Post))
-                { @Html.AntiForgeryToken() <button class="btn btn-sm btn-outline-primary" type="submit">Da doc</button> }
+                @Html.ActionLink("Xem chi tiết", "Details", new { id = item.ThongBaoId }, new { @class = "btn btn-sm btn-outline-primary" })
             </td>
         </tr>
     }

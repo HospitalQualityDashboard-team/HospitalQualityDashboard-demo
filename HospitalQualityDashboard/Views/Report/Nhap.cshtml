@@ -1,20 +1,28 @@
-@model IEnumerable<HospitalQualityDashboard.Models.ViewModels.ReportEntryViewModel>
+﻿@model IEnumerable<HospitalQualityDashboard.Models.ViewModels.ReportEntryViewModel>
 @{
-    ViewBag.Title = "Nhap bao cao";
+    ViewBag.Title = "Nhập báo cáo";
 }
-<h2>Nhap bao cao</h2>
+<div class="page-header">
+    <div>
+        <h1>Nhập báo cáo</h1>
+        <p>Danh sách chỉ số được phân công cho khoa/phòng của bạn.</p>
+    </div>
+</div>
 <table class="table table-striped table-sm">
-    <thead><tr><th>Chi so</th><th>Cong thuc</th><th>Ket qua</th><th>Trang thai</th><th></th></tr></thead>
+    <thead><tr><th>Chỉ số</th><th>Công thức</th><th>Kết quả</th><th>Trạng thái</th><th></th></tr></thead>
     <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@item.MaChiSo - @item.TenChiSo</td>
-            <td>@item.LoaiCongThuc</td>
-            <td>@item.KetQua</td>
-            <td>@item.TrangThai</td>
-            <td class="text-end">@Html.ActionLink("Nhap", "Edit", new { id = item.BaoCaoId, kyBaoCaoId = item.KyBaoCaoId, khoaPhongId = item.KhoaPhongId, chiSoChatLuongId = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-primary" })</td>
-        </tr>
-    }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.MaChiSo - @item.TenChiSo</td>
+                <td>@item.LoaiCongThuc</td>
+                <td>@item.KetQua</td>
+                <td>@item.TrangThai</td>
+                <td class="text-end">@Html.ActionLink("Nhập", "Edit", new { id = item.BaoCaoId, kyBaoCaoId = item.KyBaoCaoId, khoaPhongId = item.KhoaPhongId, chiSoChatLuongId = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-primary" })</td>
+            </tr>
+        }
+        @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn btn-outline-secondary" })
     </tbody>
 </table>
+
+

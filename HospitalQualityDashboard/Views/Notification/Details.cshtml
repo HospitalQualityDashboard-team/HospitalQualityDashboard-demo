@@ -1,0 +1,80 @@
+@using System.Linq
+@using HospitalQualityDashboard.Models.Enums
+@model HospitalQualityDashboard.Models.ViewModels.NotificationDetailViewModel
+@{
+    ViewBag.Title = "Chi tiết thông báo";
+    var notification = Model.Notification;
+    var isOverdueNotification = notification.LoaiThongBao == LoaiThongBao.QuaHan;
+}
+
+<div class="page-header">
+    <div>
+        <h1>Chi tiết thông báo</h1>
+        <p>@notification.TieuDe</p>
+    </div>
+    <div>
+        @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn btn-outline-secondary" })
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between gap-3 flex-wrap">
+            <div>
+                <h2 class="h5 mb-2">@notification.TieuDe</h2>
+                <p class="mb-0">@notification.NoiDung</p>
+            </div>
+            <div class="text-muted text-end">
+                <div>@notification.LoaiThongBao</div>
+                <div>@notification.NgayTao</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (notification.KyBaoCaoId.HasValue)
+{
+    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-2">
+        <h2 class="h5 mb-0">@(isOverdueNotification ? "Quá hạn chưa nộp" : "Chỉ số chưa báo cáo")</h2>
+        <span class="text-muted">@Model.MissingReports.Count chỉ số</span>
+    </div>
+
+    if (Model.MissingReports.Any())
+    {
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th>Kỳ</th>
+                    <th>Hạn nộp</th>
+                    <th>Chỉ số</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.MissingReports)
+            {
+                var statusText = item.IsOverdue ? "Quá hạn chưa nộp" : (item.IsDueSoon ? "Gần đến hạn" : "Chưa báo cáo");
+                var statusClass = item.IsOverdue ? "badge bg-danger" : (item.IsDueSoon ? "badge bg-warning text-dark" : "badge bg-secondary");
+                <tr>
+                    <td>@item.TenKyBaoCao</td>
+                    <td>@item.HanNop.ToString("dd/MM/yyyy")</td>
+                    <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
+                    <td><span class="@statusClass">@statusText</span></td>
+                    <td>
+                        @Html.ActionLink("Nhập báo cáo", "Edit", "Report", new { kyBaoCaoId = item.KyBaoCaoId, chiSoChatLuongId = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-outline-primary" })
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-success">Không còn chỉ số chưa báo cáo cho kỳ này.</div>
+    }
+}
+else
+{
+    <div class="alert alert-info">Thông báo này không gắn với kỳ báo cáo cụ thể.</div>
+}

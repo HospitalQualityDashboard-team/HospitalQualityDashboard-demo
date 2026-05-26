@@ -69,11 +69,35 @@ namespace HospitalQualityDashboard.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(int id)
+        {
+            var admin = RequireAdmin();
+            if (admin != null) return admin;
+            try
+            {
+                _service.Delete(id);
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
+
         public ActionResult CreateAccount(int id)
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
             var employee = _service.Get(id);
+            if (employee.HasAccount)
+            {
+                TempData["Error"] = "Nhân viên này đã có tài khoản trong hệ thống.";
+                return RedirectToAction("Index");
+            }
+
             return View(new CreateUserAccountViewModel { NhanVienId = id, HoTen = employee.HoTen, TenDangNhap = employee.MaNhanVien });
         }
 
@@ -84,6 +108,19 @@ namespace HospitalQualityDashboard.Controllers
             var admin = RequireAdmin();
             if (admin != null) return admin;
             if (!ModelState.IsValid) return View(model);
+
+            if (_service.HasAccount(model.NhanVienId))
+            {
+                ModelState.AddModelError("", "Nhân viên này đã có tài khoản trong hệ thống.");
+                return View(model);
+            }
+
+            if (_service.IsUsernameExists(model.TenDangNhap))
+            {
+                ModelState.AddModelError("TenDangNhap", "Tên đăng nhập đã tồn tại trong hệ thống. Vui lòng chọn tên khác.");
+                return View(model);
+            }
+
             _service.CreateUserAccount(model);
             return RedirectToAction("Index");
         }

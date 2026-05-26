@@ -1,20 +1,291 @@
-﻿/* Set padding to keep content from hitting the edges */
+:root {
+    --app-bg: #f5f7fb;
+    --app-surface: #ffffff;
+    --app-surface-soft: #f9fbff;
+    --app-border: #dce3ef;
+    --app-text: #172033;
+    --app-muted: #667085;
+    --app-primary: #2563eb;
+    --app-primary-dark: #1d4ed8;
+    --app-success: #0f9f6e;
+    --app-warning: #c47f00;
+    --app-danger: #dc2626;
+    --app-shadow: 0 14px 36px rgba(15, 23, 42, .08);
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    color: var(--app-text);
+    background: var(--app-bg);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.navbar {
+    border-bottom: 1px solid rgba(255, 255, 255, .12);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, .18);
+}
+
+.navbar.bg-dark {
+    background: #111827 !important;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.navbar .nav-link {
+    border-radius: 6px;
+    color: rgba(255, 255, 255, .78) !important;
+    margin: 0 2px;
+    padding: .55rem .7rem;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    background: rgba(255, 255, 255, .1);
+    color: #fff !important;
+}
+
 .body-content {
-    margin-top: 15px;
-    padding-left: 15px;
-    padding-right: 15px;
+    max-width: 1360px;
+    margin-top: 24px;
+    padding: 0 18px 30px;
 }
 
-/* Override the default bootstrap behavior where horizontal description lists 
-   will truncate terms that are too long to fit in the left column 
-*/
-.dl-horizontal dt {
-    white-space: normal;
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
 }
 
-/* Set width on the form input elements since they're 100% wide by default */
-input,
-select,
-textarea {
-    max-width: 280px;
+.page-header h1 {
+    margin: 0;
+    font-size: 1.85rem;
+    font-weight: 750;
+}
+
+.page-header p {
+    margin: 6px 0 0;
+    color: var(--app-muted);
+}
+
+.page-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.metric-card,
+.table,
+form.row,
+.input-group,
+canvas {
+    background: var(--app-surface);
+}
+
+.metric-card {
+    min-height: 116px;
+    padding: 18px;
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    box-shadow: var(--app-shadow);
+}
+
+.metric-card div {
+    color: var(--app-muted);
+    font-weight: 600;
+}
+
+.metric-card strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 2rem;
+    line-height: 1;
+}
+
+form.row,
+.input-group {
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    padding: 14px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
+}
+
+.form-control,
+.form-select {
+    max-width: none;
+    border-color: #cfd8e6;
+    border-radius: 7px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 .2rem rgba(37, 99, 235, .14);
+}
+
+.btn {
+    border-radius: 7px;
+    font-weight: 650;
+}
+
+.btn-primary {
+    background: var(--app-primary);
+    border-color: var(--app-primary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background: var(--app-primary-dark);
+    border-color: var(--app-primary-dark);
+}
+
+.table {
+    overflow: hidden;
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    box-shadow: var(--app-shadow);
+}
+
+.table thead th {
+    background: var(--app-surface-soft);
+    border-bottom: 1px solid var(--app-border);
+    color: #344054;
+    font-size: .82rem;
+    text-transform: uppercase;
+}
+
+.table tbody tr:hover {
+    background: #eef5ff;
+}
+
+.table td,
+.table th {
+    vertical-align: middle;
+    padding: .72rem .85rem;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .82rem;
+    font-weight: 700;
+}
+
+.status-active {
+    background: #e8f8f1;
+    color: var(--app-success);
+}
+
+.status-muted {
+    background: #f2f4f7;
+    color: #667085;
+}
+
+.alert {
+    border-radius: 8px;
+}
+
+footer {
+    color: var(--app-muted);
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        display: block;
+    }
+
+    .page-actions {
+        margin-top: 12px;
+    }
+
+    .table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+/* Phân công chỉ số redesign additional styles */
+.cursor-pointer {
+    cursor: pointer !important;
+}
+
+.user-select-none {
+    user-select: none !important;
+}
+
+.transition-transform {
+    transition: transform 0.2s ease-in-out;
+}
+
+[aria-expanded="true"] .transition-transform {
+    transform: rotate(180deg);
+}
+
+.hover-up {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-up:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important;
+}
+
+.bg-indigo-subtle {
+    background-color: #6366f115 !important;
+}
+
+.text-indigo {
+    color: #6366f1 !important;
+}
+
+/* Scrollbar styling for selection lists */
+.scroll-bar::-webkit-scrollbar {
+    width: 6px;
+}
+.scroll-bar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+.scroll-bar::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+.scroll-bar::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+/* Floating Bulk Action Bar */
+.bulk-action-bar {
+    width: 90%;
+    max-width: 800px;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    transform: translate(-50%, 100%);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+.bulk-action-bar:not(.d-none) {
+    transform: translate(-50%, 0) !important;
+    opacity: 1 !important;
+}
+
+/* Smaller button sizes */
+.btn-xs {
+    padding: 0.125rem 0.4rem;
+    font-size: 0.75rem;
 }

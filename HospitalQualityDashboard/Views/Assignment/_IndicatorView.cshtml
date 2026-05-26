@@ -1,0 +1,124 @@
+@model HospitalQualityDashboard.Models.ViewModels.AssignmentViewModel
+
+<div class="row g-4">
+    @if (Model.IndicatorGroups == null || Model.IndicatorGroups.Count == 0)
+    {
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="bi bi-clipboard-data fs-2 d-block mb-2"></i>
+            Không tìm thấy chỉ số nào phù hợp.
+        </div>
+    }
+    else
+    {
+        foreach (var group in Model.IndicatorGroups)
+        {
+            var cardBorderClass = group.ChuaPhanCong ? "border-danger border-2 shadow-sm" : "border-light-subtle shadow-sm";
+            var headerBgClass = group.ChuaPhanCong ? "bg-danger-subtle text-danger-emphasis" : "bg-light";
+            
+            <div class="col-12">
+                <div class="card @cardBorderClass rounded-3 overflow-hidden">
+                    <div class="card-header @headerBgClass border-0 d-flex justify-content-between align-items-center py-3 px-4 cursor-pointer" 
+                         data-bs-toggle="collapse" data-bs-target="#ind-collapse-@group.ChiSoChatLuongId" aria-expanded="true">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                <span class="badge bg-secondary font-monospace">@group.MaChiSo</span>
+                                <h5 class="mb-0 fw-bold text-dark d-inline">@group.TenChiSo</h5>
+                                @if (group.ChuaPhanCong)
+                                {
+                                    <span class="badge bg-danger px-2 py-1 rounded-pill small ms-2"><i class="bi bi-exclamation-triangle-fill me-1"></i>Chưa phân công</span>
+                                }
+                            </div>
+                            <div class="text-muted small">
+                                <span class="me-3"><strong>Tần suất:</strong> @group.TanSuatBaoCaoText</span>
+                                <span><strong>Công thức:</strong> @group.LoaiCongThucText</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            @if (!group.ChuaPhanCong)
+                            {
+                                <span class="badge bg-primary-subtle text-primary px-2 py-1 rounded-pill small">@group.SoKhoaPhong khoa/phòng</span>
+                            }
+                            <i class="bi bi-chevron-down text-muted transition-transform"></i>
+                        </div>
+                    </div>
+                    <div class="collapse show" id="ind-collapse-@group.ChiSoChatLuongId">
+                        <div class="card-body p-0">
+                            @if (group.ChuaPhanCong)
+                            {
+                                <div class="p-4 text-center bg-white">
+                                    <p class="text-danger mb-3 fw-medium">Chỉ số này chưa được giao cho bất kỳ khoa/phòng nào báo cáo.</p>
+                                    <button class="btn btn-danger btn-sm rounded-pill px-4 assign-now-btn" data-id="@group.ChiSoChatLuongId">
+                                        <i class="bi bi-plus-circle me-1"></i> Giao việc ngay
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="ps-4" style="width: 40px;"></th>
+                                                <th>Khoa/phòng phụ trách</th>
+                                                <th>Ngày phân công</th>
+                                                <th class="text-center">Trạng thái</th>
+                                                <th class="pe-4 text-end">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach (var item in group.Items)
+                                        {
+                                            <tr class="assignment-row" data-id="@item.PhanCongChiSoId">
+                                                <td class="ps-4">
+                                                    <input class="form-check-input cursor-pointer bulk-checkbox" type="checkbox" value="@item.PhanCongChiSoId" />
+                                                </td>
+                                                <td class="fw-semibold text-dark">@item.TenKhoaPhong</td>
+                                                <td class="text-muted small">@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
+                                                <td class="text-center">
+                                                    @if (item.DangHoatDong)
+                                                    {
+                                                        <span class="badge bg-success-subtle text-success px-2 py-1 rounded-pill small">Hoạt động</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-warning-subtle text-warning px-2 py-1 rounded-pill small">Tạm dừng</span>
+                                                    }
+                                                </td>
+                                                <td class="pe-4 text-end">
+                                                    <div class="d-flex gap-2 justify-content-end">
+                                                        @if (item.DangHoatDong)
+                                                        {
+                                                            using (Html.BeginForm("Deactivate", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
+                                                            {
+                                                                @Html.AntiForgeryToken()
+                                                                <button class="btn btn-sm btn-outline-warning rounded-pill px-3" type="submit">Tạm dừng</button>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            using (Html.BeginForm("Activate", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
+                                                            {
+                                                                @Html.AntiForgeryToken()
+                                                                <button class="btn btn-sm btn-outline-success rounded-pill px-3" type="submit">Kích hoạt</button>
+                                                            }
+                                                        }
+                                                        @using (Html.BeginForm("Delete", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
+                                                        {
+                                                            @Html.AntiForgeryToken()
+                                                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" type="submit" onclick="return confirm('Bạn có chắc chắn muốn xóa phân công này không?')">Xóa</button>
+                                                        }
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

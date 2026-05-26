@@ -25,7 +25,8 @@ namespace HospitalQualityDashboard.Models.Enums
         SauThang = 5,
         HangNam = 6,
         KhiPhatSinh = 7,
-        TruocSauKhiThucHien = 8
+        TruocSauKhiThucHien = 8,
+        ChinThang = 9
     }
 
     public enum TrangThaiKyBaoCao : byte
@@ -40,16 +41,9 @@ namespace HospitalQualityDashboard.Models.Enums
         Nhap = 1,
         DaGui = 2,
         QuaHan = 3,
-        DaKhoa = 4
-    }
-
-    public enum LoaiThongBao : byte
-    {
-        ThuCong = 1,
-        SapDenHan = 2,
-        QuaHan = 3,
-        BaoCaoDaGui = 4,
-        BaoCaoDaKhoa = 5
+        DaKhoa = 4,
+        DaDuyet = 5,
+        TraLai = 6
     }
 
     public enum LoaiImport : byte
@@ -57,5 +51,15 @@ namespace HospitalQualityDashboard.Models.Enums
         KhoaPhong = 1,
         NhanVien = 2,
         ChiSoChatLuong = 3
+    }
+
+    public enum LoaiThongBao : byte
+    {
+        ThuCong = 1,
+        KyBaoCaoMo = 2,
+        NhacHan = 3,
+        QuaHan = 4,
+        TongHopAdmin = 5,
+        TuDong = 6
     }
 }

@@ -1,6 +1,7 @@
-@model HospitalQualityDashboard.Models.ViewModels.KyBaoCaoViewModel
+﻿@model HospitalQualityDashboard.Models.ViewModels.KyBaoCaoViewModel
+@using HospitalQualityDashboard.Models.Enums
 @{
-    ViewBag.Title = Model.KyBaoCaoId == 0 ? "Them ky bao cao" : "Sua ky bao cao";
+    ViewBag.Title = Model.KyBaoCaoId == 0 ? "Thêm kỳ báo cáo" : "Sửa kỳ báo cáo";
 }
 <h2>@ViewBag.Title</h2>
 @using (Html.BeginForm())
@@ -10,12 +11,14 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     <div class="mb-3">@Html.LabelFor(m => m.TenKyBaoCao, new { @class = "form-label" }) @Html.TextBoxFor(m => m.TenKyBaoCao, new { @class = "form-control" })</div>
     <div class="row">
-        <div class="col-md-3 mb-3">@Html.LabelFor(m => m.LoaiKyBaoCao, new { @class = "form-label" }) @Html.EnumDropDownListFor(m => m.LoaiKyBaoCao, new { @class = "form-select" })</div>
+        <div class="col-md-3 mb-3">@Html.LabelFor(m => m.LoaiKyBaoCao, new { @class = "form-label" }) @Html.DropDownListFor(m => m.LoaiKyBaoCao, new SelectList(Enum.GetValues(typeof(TanSuatBaoCao)), Model.LoaiKyBaoCao), new { @class = "form-select" })</div>
         <div class="col-md-3 mb-3">@Html.LabelFor(m => m.TuNgay, new { @class = "form-label" }) @Html.TextBoxFor(m => m.TuNgay, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })</div>
         <div class="col-md-3 mb-3">@Html.LabelFor(m => m.DenNgay, new { @class = "form-label" }) @Html.TextBoxFor(m => m.DenNgay, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })</div>
         <div class="col-md-3 mb-3">@Html.LabelFor(m => m.HanNop, new { @class = "form-label" }) @Html.TextBoxFor(m => m.HanNop, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })</div>
     </div>
-    <div class="mb-3">@Html.LabelFor(m => m.TrangThai, new { @class = "form-label" }) @Html.EnumDropDownListFor(m => m.TrangThai, new { @class = "form-select" })</div>
-    <button class="btn btn-primary" type="submit">Luu</button>
-    @Html.ActionLink("Quay lai", "Index", null, new { @class = "btn btn-outline-secondary" })
+    <div class="mb-3">@Html.LabelFor(m => m.TrangThai, new { @class = "form-label" }) @Html.DropDownListFor(m => m.TrangThai, new SelectList(Enum.GetValues(typeof(TrangThaiKyBaoCao)), Model.TrangThai), new { @class = "form-select" })</div>
+    <button class="btn btn-primary" type="submit">Lưu</button>
+    @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn btn-outline-secondary" })
 }
+
+

@@ -64,6 +64,24 @@ namespace HospitalQualityDashboard.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(int id)
+        {
+            var admin = RequireAdmin();
+            if (admin != null) return admin;
+            try
+            {
+                _service.Delete(id);
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
+
         private ActionResult Save(KyBaoCaoViewModel model)
         {
             var admin = RequireAdmin();

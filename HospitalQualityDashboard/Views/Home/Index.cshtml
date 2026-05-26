@@ -1,16 +1,18 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "Trang chủ";
 }
 
 <main class="py-4">
-    <h1>Hospital Quality Dashboard</h1>
-    <p class="lead">He thong quan ly chi so chat luong, phan cong khoa phong va bao cao dinh ky.</p>
+    <h1>Bảng điều khiển chất lượng bệnh viện</h1>
+    <p class="lead">Hệ thống quản lý chỉ số chất lượng, phân công khoa/phòng và báo cáo định kỳ.</p>
     @if (Session["TaiKhoanId"] == null)
     {
-        @Html.ActionLink("Dang nhap", "Login", "Account", null, new { @class = "btn btn-primary" })
+        @Html.ActionLink("Đăng nhập User", "UserLogin", "Account", null, new { @class = "btn btn-primary" })
+        @Html.ActionLink("Đăng nhập Admin", "AdminLogin", "Account", null, new { @class = "btn btn-outline-dark ms-2" })
     }
     else
     {
-        @Html.ActionLink("Vao dashboard", "Index", "Dashboard", null, new { @class = "btn btn-primary" })
+        @Html.ActionLink("Vào tổng quan", "Index", "Dashboard", null, new { @class = "btn btn-primary" })
     }
 </main>
+

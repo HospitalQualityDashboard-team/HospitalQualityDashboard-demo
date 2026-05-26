@@ -68,6 +68,23 @@ WHERE KhoaPhongId = @KhoaPhongId",
             Execute("UPDATE dbo.KhoaPhong SET Used = @Used, NgayCapNhat = GETDATE() WHERE KhoaPhongId = @Id", Param("@Used", used), Param("@Id", id));
         }
 
+        public void Delete(int id)
+        {
+            var dependentCount = Convert.ToInt32(Scalar(@"
+SELECT
+    (SELECT COUNT(*) FROM dbo.NhanVien WHERE KhoaPhongId=@Id) +
+    (SELECT COUNT(*) FROM dbo.TaiKhoan WHERE KhoaPhongId=@Id) +
+    (SELECT COUNT(*) FROM dbo.PhanCongChiSo WHERE KhoaPhongId=@Id) +
+    (SELECT COUNT(*) FROM dbo.BaoCao WHERE KhoaPhongId=@Id)",
+                Param("@Id", id)));
+            if (dependentCount > 0)
+            {
+                throw new InvalidOperationException("Khoa/phong da co du lieu lien quan, vui long khoa thay vi xoa.");
+            }
+
+            Execute("DELETE FROM dbo.KhoaPhong WHERE KhoaPhongId=@Id", Param("@Id", id));
+        }
+
         public ImportResultViewModel Import(HttpPostedFileBase file, int userId)
         {
             var rows = _excel.ReadWorksheet(file);
@@ -162,7 +179,12 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
         {
             const string sql = @"
 SELECT nv.NhanVienId, nv.MaNhanVien, nv.HoTen, nv.NgaySinh, nv.GioiTinh, nv.ChucVu, nv.Email, nv.SoDienThoai,
-       nv.KhoaPhongId, kp.TenKhoaPhong, nv.DangHoatDong
+       nv.KhoaPhongId, kp.TenKhoaPhong, nv.DangHoatDong,
+       CAST(CASE WHEN EXISTS (
+           SELECT 1
+           FROM dbo.TaiKhoan tk
+           WHERE tk.NhanVienId = nv.NhanVienId OR tk.TenDangNhap = nv.MaNhanVien
+       ) THEN 1 ELSE 0 END AS BIT) AS HasAccount
 FROM dbo.NhanVien nv
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = nv.KhoaPhongId
 WHERE (@KhoaPhongId IS NULL OR nv.KhoaPhongId = @KhoaPhongId)
@@ -174,7 +196,12 @@ ORDER BY kp.TenKhoaPhong, nv.HoTen";
         {
             const string sql = @"
 SELECT nv.NhanVienId, nv.MaNhanVien, nv.HoTen, nv.NgaySinh, nv.GioiTinh, nv.ChucVu, nv.Email, nv.SoDienThoai,
-       nv.KhoaPhongId, kp.TenKhoaPhong, nv.DangHoatDong
+       nv.KhoaPhongId, kp.TenKhoaPhong, nv.DangHoatDong,
+       CAST(CASE WHEN EXISTS (
+           SELECT 1
+           FROM dbo.TaiKhoan tk
+           WHERE tk.NhanVienId = nv.NhanVienId OR tk.TenDangNhap = nv.MaNhanVien
+       ) THEN 1 ELSE 0 END AS BIT) AS HasAccount
 FROM dbo.NhanVien nv
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = nv.KhoaPhongId
 WHERE nv.NhanVienId = @Id";
@@ -202,6 +229,17 @@ WHERE NhanVienId=@NhanVienId", parameters);
             Execute("UPDATE dbo.NhanVien SET DangHoatDong = @Active, NgayCapNhat = GETDATE() WHERE NhanVienId = @Id", Param("@Active", active), Param("@Id", id));
         }
 
+        public void Delete(int id)
+        {
+            var accountCount = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.TaiKhoan WHERE NhanVienId=@Id", Param("@Id", id)));
+            if (accountCount > 0)
+            {
+                throw new InvalidOperationException("Nhan vien da co tai khoan, vui long khoa thay vi xoa.");
+            }
+
+            Execute("DELETE FROM dbo.NhanVien WHERE NhanVienId=@Id", Param("@Id", id));
+        }
+
         public void CreateUserAccount(CreateUserAccountViewModel model)
         {
             var employee = Get(model.NhanVienId);
@@ -212,6 +250,18 @@ VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)"
                 Param("@LoaiTaiKhoan", (byte)LoaiTaiKhoan.User),
                 Param("@NhanVienId", model.NhanVienId),
                 Param("@KhoaPhongId", employee.KhoaPhongId));
+        }
+
+        public bool IsUsernameExists(string username)
+        {
+            var count = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.TaiKhoan WHERE TenDangNhap = @TenDangNhap", Param("@TenDangNhap", username)));
+            return count > 0;
+        }
+
+        public bool HasAccount(int nhanVienId)
+        {
+            var count = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.TaiKhoan WHERE NhanVienId = @NhanVienId", Param("@NhanVienId", nhanVienId)));
+            return count > 0;
         }
 
         public ImportResultViewModel Import(HttpPostedFileBase file, int? selectedKhoaPhongId, int userId)
@@ -264,14 +314,47 @@ VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)"
                     model.KhoaPhongId = Convert.ToInt32(khoaPhongId);
                 }
 
-                Execute(@"
+                var nvId = Scalar(@"
 IF EXISTS (SELECT 1 FROM dbo.NhanVien WHERE MaNhanVien = @MaNhanVien)
-    UPDATE dbo.NhanVien SET HoTen=@HoTen, GioiTinh=@GioiTinh, ChucVu=@ChucVu, Email=@Email, SoDienThoai=@SoDienThoai, KhoaPhongId=@KhoaPhongId, NgayCapNhat=GETDATE() WHERE MaNhanVien=@MaNhanVien
+BEGIN
+    UPDATE dbo.NhanVien SET HoTen=@HoTen, GioiTinh=@GioiTinh, ChucVu=@ChucVu, Email=@Email, SoDienThoai=@SoDienThoai, KhoaPhongId=@KhoaPhongId, NgayCapNhat=GETDATE() WHERE MaNhanVien=@MaNhanVien;
+    SELECT NhanVienId FROM dbo.NhanVien WHERE MaNhanVien=@MaNhanVien;
+END
 ELSE
-    INSERT INTO dbo.NhanVien(MaNhanVien, HoTen, GioiTinh, ChucVu, Email, SoDienThoai, KhoaPhongId, DangHoatDong) VALUES(@MaNhanVien, @HoTen, @GioiTinh, @ChucVu, @Email, @SoDienThoai, @KhoaPhongId, 1)",
-                    EmployeeParams(model));
+BEGIN
+    INSERT INTO dbo.NhanVien(MaNhanVien, HoTen, GioiTinh, ChucVu, Email, SoDienThoai, KhoaPhongId, DangHoatDong)
+    OUTPUT INSERTED.NhanVienId
+    VALUES(@MaNhanVien, @HoTen, @GioiTinh, @ChucVu, @Email, @SoDienThoai, @KhoaPhongId, 1);
+END", EmployeeParams(model));
+
+                int employeeId = Convert.ToInt32(nvId);
+
+                var hasAccount = Scalar("SELECT 1 FROM dbo.TaiKhoan WHERE NhanVienId=@EmployeeId OR TenDangNhap=@TenDangNhap",
+                    Param("@EmployeeId", employeeId),
+                    Param("@TenDangNhap", model.MaNhanVien));
+
+                if (hasAccount == null)
+                {
+                    Execute(@"INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, LoaiTaiKhoan, NhanVienId, KhoaPhongId, DangHoatDong)
+VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)",
+                        Param("@TenDangNhap", model.MaNhanVien),
+                        Param("@MatKhauHash", PasswordHasher.Hash(model.MaNhanVien)),
+                        Param("@LoaiTaiKhoan", (byte)LoaiTaiKhoan.User),
+                        Param("@NhanVienId", employeeId),
+                        Param("@KhoaPhongId", model.KhoaPhongId));
+                }
+
                 result.SoDongThanhCong++;
             }
+
+            Execute(@"INSERT INTO dbo.LichSuImport(LoaiImport, TenFile, TongSoDong, SoDongThanhCong, SoDongLoi, NguoiImportId)
+VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiImportId)",
+                Param("@LoaiImport", (byte)LoaiImport.NhanVien),
+                Param("@TenFile", file == null ? null : file.FileName),
+                Param("@TongSoDong", result.TongSoDong),
+                Param("@SoDongThanhCong", result.SoDongThanhCong),
+                Param("@SoDongLoi", result.SoDongLoi),
+                Param("@NguoiImportId", userId));
 
             return result;
         }
@@ -306,7 +389,8 @@ ELSE
                 SoDienThoai = String(reader, "SoDienThoai"),
                 KhoaPhongId = Int(reader, "KhoaPhongId"),
                 TenKhoaPhong = String(reader, "TenKhoaPhong"),
-                DangHoatDong = reader.GetBoolean(reader.GetOrdinal("DangHoatDong"))
+                DangHoatDong = reader.GetBoolean(reader.GetOrdinal("DangHoatDong")),
+                HasAccount = reader.GetBoolean(reader.GetOrdinal("HasAccount"))
             };
         }
     }

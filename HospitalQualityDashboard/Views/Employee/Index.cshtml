@@ -1,18 +1,23 @@
-@model HospitalQualityDashboard.Models.ViewModels.NhanVienIndexViewModel
+﻿@model HospitalQualityDashboard.Models.ViewModels.NhanVienIndexViewModel
 @{
-    ViewBag.Title = "Nhan vien";
+    ViewBag.Title = "Nhân viên";
 }
 
-<h2>Nhan vien</h2>
+<div class="page-header">
+    <div>
+        <h1>Nhân viên</h1>
+        <p>Quản lý hồ sơ nhân viên và liên kết tài khoản sử dụng hệ thống.</p>
+    </div>
+</div>
 <div class="mb-3">
-    @Html.ActionLink("Them nhan vien", "Create", null, new { @class = "btn btn-primary" })
-    @Html.ActionLink("Xuat CSV", "Employees", "Export", new { khoaPhongId = Model.KhoaPhongId }, new { @class = "btn btn-outline-secondary" })
+    @Html.ActionLink("Thêm nhân viên", "Create", null, new { @class = "btn btn-primary" })
+    @Html.ActionLink("Xuất CSV", "Employees", "Export", new { khoaPhongId = Model.KhoaPhongId }, new { @class = "btn btn-outline-secondary" })
 </div>
 
 @using (Html.BeginForm("Index", "Employee", FormMethod.Get, new { @class = "row g-2 mb-3" }))
 {
-    <div class="col-md-4">@Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "Tat ca khoa phong", new { @class = "form-select" })</div>
-    <div class="col-auto"><button class="btn btn-outline-primary" type="submit">Loc</button></div>
+    <div class="col-md-4">@Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "Tất cả khoa/phòng", new { @class = "form-select" })</div>
+    <div class="col-auto"><button class="btn btn-outline-primary" type="submit">Lọc</button></div>
 }
 
 @using (Html.BeginForm("Import", "Employee", FormMethod.Post, new { enctype = "multipart/form-data", @class = "mb-3" }))
@@ -21,17 +26,22 @@
     @Html.HiddenFor(m => m.KhoaPhongId)
     <div class="input-group">
         <input type="file" name="File" class="form-control" />
-        <button class="btn btn-outline-primary" type="submit">Import nhan vien</button>
+        <button class="btn btn-outline-primary" type="submit">Import nhân viên</button>
     </div>
 }
 
 @if (Model.ImportResult != null)
 {
-    <div class="alert alert-info">Thanh cong: @Model.ImportResult.SoDongThanhCong, loi: @Model.ImportResult.SoDongLoi</div>
+    <div class="alert alert-info">Thành công: @Model.ImportResult.SoDongThanhCong, lỗi: @Model.ImportResult.SoDongLoi</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
 <table class="table table-striped table-sm">
-    <thead><tr><th>Ma</th><th>Ho ten</th><th>Khoa phong</th><th>Email</th><th>Trang thai</th><th></th></tr></thead>
+    <thead><tr><th>Mã</th><th>Họ tên</th><th>Khoa/phòng</th><th>Email</th><th>Trạng thái</th><th></th></tr></thead>
     <tbody>
     @foreach (var item in Model.Items)
     {
@@ -40,17 +50,27 @@
             <td>@item.HoTen</td>
             <td>@item.TenKhoaPhong</td>
             <td>@item.Email</td>
-            <td>@(item.DangHoatDong ? "Hoat dong" : "Da khoa")</td>
+            <td><span class="status-pill @(item.DangHoatDong ? "status-active" : "status-muted")">@(item.DangHoatDong ? "Hoạt động" : "Đã khóa")</span></td>
             <td class="text-end">
-                @Html.ActionLink("Sua", "Edit", new { id = item.NhanVienId }, new { @class = "btn btn-sm btn-outline-primary" })
-                @Html.ActionLink("Tao user", "CreateAccount", new { id = item.NhanVienId }, new { @class = "btn btn-sm btn-outline-secondary" })
+                @Html.ActionLink("Sửa", "Edit", new { id = item.NhanVienId }, new { @class = "btn btn-sm btn-outline-primary" })
+                @if (!item.HasAccount)
+                {
+                    @Html.ActionLink("Tạo tài khoản", "CreateAccount", new { id = item.NhanVienId }, new { @class = "btn btn-sm btn-outline-secondary" })
+                }
                 @using (Html.BeginForm(item.DangHoatDong ? "Lock" : "Unlock", "Employee", new { id = item.NhanVienId }, FormMethod.Post, new { @class = "d-inline" }))
                 {
                     @Html.AntiForgeryToken()
-                    <button class="btn btn-sm btn-outline-warning" type="submit">@(item.DangHoatDong ? "Khoa" : "Mo khoa")</button>
+                    <button class="btn btn-sm btn-outline-warning" type="submit">@(item.DangHoatDong ? "Khóa" : "Mở khóa")</button>
+                }
+                @using (Html.BeginForm("Delete", "Employee", new { id = item.NhanVienId }, FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xóa nhân viên này?')">Xóa</button>
                 }
             </td>
         </tr>
     }
     </tbody>
 </table>
+
+

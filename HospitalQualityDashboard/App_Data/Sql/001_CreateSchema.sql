@@ -80,6 +80,14 @@ CREATE TABLE dbo.ChiSoMucTieu (
     CONSTRAINT UQ_ChiSoMucTieu_ChiSo_Nam UNIQUE (ChiSoChatLuongId, Nam)
 );
 
+CREATE TABLE dbo.ChiSoTanSuatBaoCao (
+    ChiSoTanSuatBaoCaoId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_ChiSoTanSuatBaoCao PRIMARY KEY,
+    ChiSoChatLuongId INT NOT NULL,
+    TanSuatBaoCao TINYINT NOT NULL,
+    CONSTRAINT FK_ChiSoTanSuatBaoCao_ChiSo FOREIGN KEY (ChiSoChatLuongId) REFERENCES dbo.ChiSoChatLuong(ChiSoChatLuongId),
+    CONSTRAINT UQ_ChiSoTanSuatBaoCao UNIQUE (ChiSoChatLuongId, TanSuatBaoCao)
+);
+
 CREATE TABLE dbo.PhanCongChiSo (
     PhanCongChiSoId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_PhanCongChiSo PRIMARY KEY,
     ChiSoChatLuongId INT NOT NULL,
@@ -92,7 +100,8 @@ CREATE TABLE dbo.PhanCongChiSo (
     CONSTRAINT FK_PhanCongChiSo_ChiSo FOREIGN KEY (ChiSoChatLuongId) REFERENCES dbo.ChiSoChatLuong(ChiSoChatLuongId),
     CONSTRAINT FK_PhanCongChiSo_KhoaPhong FOREIGN KEY (KhoaPhongId) REFERENCES dbo.KhoaPhong(KhoaPhongId),
     CONSTRAINT FK_PhanCongChiSo_NguoiTao FOREIGN KEY (NguoiTaoId) REFERENCES dbo.TaiKhoan(TaiKhoanId),
-    CONSTRAINT CK_PhanCongChiSo_DateRange CHECK (DenNgay IS NULL OR TuNgay IS NULL OR TuNgay <= DenNgay)
+    CONSTRAINT CK_PhanCongChiSo_DateRange CHECK (DenNgay IS NULL OR TuNgay IS NULL OR TuNgay <= DenNgay),
+    CONSTRAINT UQ_PhanCongChiSo_ChiSo_KhoaPhong UNIQUE (ChiSoChatLuongId, KhoaPhongId)
 );
 
 CREATE TABLE dbo.KyBaoCao (
@@ -171,6 +180,19 @@ CREATE TABLE dbo.ThongBaoNguoiNhan (
     CONSTRAINT UQ_ThongBaoNguoiNhan UNIQUE (ThongBaoId, TaiKhoanId)
 );
 
+CREATE TABLE dbo.ThongBaoTuDongLog (
+    ThongBaoTuDongLogId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_ThongBaoTuDongLog PRIMARY KEY,
+    DedupKey NVARCHAR(255) NOT NULL,
+    LoaiThongBao TINYINT NOT NULL,
+    KyBaoCaoId INT NULL,
+    KhoaPhongId INT NULL,
+    NgayMoc DATE NULL,
+    NgayTao DATETIME NOT NULL CONSTRAINT DF_ThongBaoTuDongLog_NgayTao DEFAULT (GETDATE()),
+    CONSTRAINT UQ_ThongBaoTuDongLog_DedupKey UNIQUE (DedupKey),
+    CONSTRAINT FK_ThongBaoTuDongLog_KyBaoCao FOREIGN KEY (KyBaoCaoId) REFERENCES dbo.KyBaoCao(KyBaoCaoId),
+    CONSTRAINT FK_ThongBaoTuDongLog_KhoaPhong FOREIGN KEY (KhoaPhongId) REFERENCES dbo.KhoaPhong(KhoaPhongId)
+);
+
 CREATE TABLE dbo.LichSuImport (
     LichSuImportId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_LichSuImport PRIMARY KEY,
     LoaiImport TINYINT NOT NULL,
@@ -210,6 +232,7 @@ CREATE INDEX IX_KhoaPhong_TenKhoaPhong ON dbo.KhoaPhong(TenKhoaPhong);
 CREATE INDEX IX_NhanVien_KhoaPhongId ON dbo.NhanVien(KhoaPhongId);
 CREATE INDEX IX_TaiKhoan_KhoaPhongId ON dbo.TaiKhoan(KhoaPhongId);
 CREATE INDEX IX_PhanCongChiSo_KhoaPhongId ON dbo.PhanCongChiSo(KhoaPhongId);
+CREATE INDEX IX_ChiSoTanSuatBaoCao_ChiSoChatLuongId ON dbo.ChiSoTanSuatBaoCao(ChiSoChatLuongId);
 CREATE INDEX IX_PhanCongChiSo_ChiSoChatLuongId ON dbo.PhanCongChiSo(ChiSoChatLuongId);
 CREATE INDEX IX_BaoCao_KyBaoCaoId ON dbo.BaoCao(KyBaoCaoId);
 CREATE INDEX IX_BaoCao_KhoaPhongId ON dbo.BaoCao(KhoaPhongId);

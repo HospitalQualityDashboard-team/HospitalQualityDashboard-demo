@@ -11,21 +11,47 @@ namespace HospitalQualityDashboard.Controllers
 
         public ActionResult Index()
         {
-            var admin = RequireAdmin();
-            if (admin != null) return admin;
-            return View(_service.GetAll());
+            if (IsAdmin)
+            {
+                return View(new ChiSoIndexViewModel { Items = _service.GetAll() });
+            }
+            else
+            {
+                return View(new ChiSoIndexViewModel { Items = _service.GetAll(includeInactive: false, filterKhoaPhongId: CurrentKhoaPhongId) });
+            }
         }
 
         public ActionResult Details(int id)
         {
-            return View(_service.Get(id));
+            var model = _service.Get(id);
+            if (model == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!IsAdmin)
+            {
+                if (!CurrentKhoaPhongId.HasValue || !_service.IsAssigned(id, CurrentKhoaPhongId.Value))
+                {
+                    return new HttpUnauthorizedResult("Bạn không có quyền xem chi tiết chỉ số này.");
+                }
+            }
+
+            return View(model);
         }
 
         public ActionResult Create()
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            return View("Edit", new ChiSoViewModel { DangHoatDong = true, TanSuatBaoCao = TanSuatBaoCao.HangThang, LoaiCongThuc = LoaiCongThuc.TyLe });
+            return View("Edit", Prepare(new ChiSoViewModel
+            {
+                DangHoatDong = true,
+                TanSuatBaoCao = TanSuatBaoCao.HangThang,
+                TanSuatBaoCaos = new[] { TanSuatBaoCao.HangThang },
+                SelectedTanSuatBaoCaoValues = new[] { (int)TanSuatBaoCao.HangThang },
+                LoaiCongThuc = LoaiCongThuc.TyLe
+            }));
         }
 
         [HttpPost]
@@ -39,7 +65,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            return View(_service.Get(id));
+            return View(Prepare(_service.Get(id)));
         }
 
         [HttpPost]
@@ -69,13 +95,47 @@ namespace HospitalQualityDashboard.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(int id)
+        {
+            var admin = RequireAdmin();
+            if (admin != null) return admin;
+            try
+            {
+                _service.Delete(id);
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Import(ImportFileViewModel model)
+        {
+            var admin = RequireAdmin();
+            if (admin != null) return admin;
+            var result = _service.Import(model.File, CurrentTaiKhoanId.Value);
+            return View("Index", new ChiSoIndexViewModel { Items = _service.GetAll(), ImportResult = result });
+        }
+
         private ActionResult Save(ChiSoViewModel model)
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            if (!ModelState.IsValid) return View("Edit", model);
+            if (!ModelState.IsValid) return View("Edit", Prepare(model));
             _service.Save(model);
             return RedirectToAction("Index");
+        }
+
+        private ChiSoViewModel Prepare(ChiSoViewModel model)
+        {
+            model.TanSuatBaoCaoOptions = IndicatorService.GetFrequencyOptions(model.TanSuatBaoCaos ?? new[] { model.TanSuatBaoCao });
+            return model;
         }
     }
 }
