@@ -144,6 +144,7 @@
     <Compile Include="Models\ViewModels\AuthViewModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AuthService.cs" />
+    <Compile Include="Services\DatabaseBootstrapper.cs" />
     <Compile Include="Services\DbServiceBase.cs" />
     <Compile Include="Services\ExcelImportExportService.cs" />
     <Compile Include="Services\IndicatorPeriodServices.cs" />
