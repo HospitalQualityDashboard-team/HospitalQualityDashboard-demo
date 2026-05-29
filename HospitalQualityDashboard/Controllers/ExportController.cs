@@ -26,6 +26,23 @@ namespace HospitalQualityDashboard.Controllers
             return File(_service.ExportIndicators(), "text/csv", "chi-so-chat-luong.csv");
         }
 
+        public ActionResult Assignments(
+            int? khoaPhongId,
+            int? chiSoId,
+            string trangThai,
+            string trangThaiPhanCong,
+            string search,
+            string[] columns)
+        {
+            var admin = RequireAdmin();
+            if (admin != null) return admin;
+
+            return File(
+                _service.ExportAssignments(khoaPhongId, chiSoId, trangThai, trangThaiPhanCong, search, columns),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "phan-cong-chi-so.xlsx");
+        }
+
         public ActionResult Reports(int? kyBaoCaoId, int? khoaPhongId, int? chiSoChatLuongId)
         {
             var effectiveDepartmentId = IsAdmin ? khoaPhongId : CurrentKhoaPhongId;

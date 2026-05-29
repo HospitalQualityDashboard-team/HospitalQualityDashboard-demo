@@ -71,6 +71,12 @@ namespace HospitalQualityDashboard.Controllers
                 return View(viewName, model);
             }
 
+            if (user.IsLocked)
+            {
+                ModelState.AddModelError("", "Tài khoản của bạn đã bị khóa");
+                return View(viewName, model);
+            }
+
             SessionUserAccessor.SetLoginSession(Session, user);
 
             _authService.UpdateLastLogin(user.TaiKhoanId);

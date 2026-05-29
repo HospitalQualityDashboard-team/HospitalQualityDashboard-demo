@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository is an ASP.NET MVC5 web application targeting .NET Framework 4.7.2. Core server code lives in `Controllers/`, `Models/`, and `Views/`. MVC startup configuration is in `App_Start/`, with application entry points in `Global.asax` and `Global.asax.cs`. Static assets are under `Content/` for CSS and `Scripts/` for JavaScript libraries. Domain reference documents for the hospital quality indicator system are stored in `Tai_Lieu/`. `App_Data/` is reserved for local application data; avoid committing generated or private database files unless explicitly required.
+This repository is an ASP.NET MVC4 web application targeting .NET Framework 4.7.2. Core server code lives in `Controllers/`, `Models/`, and `Views/`. MVC startup configuration is in `App_Start/`, with application entry points in `Global.asax` and `Global.asax.cs`. Static assets are under `Content/` for CSS and `Scripts/` for JavaScript libraries. Domain reference documents for the hospital quality indicator system are stored in `Tai_Lieu/`. `App_Data/` is reserved for local application data; avoid committing generated or private database files unless explicitly required.
 
 ## Build, Test, and Development Commands
 

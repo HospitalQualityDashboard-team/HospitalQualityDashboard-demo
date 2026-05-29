@@ -11,6 +11,9 @@
             <p class="text-muted mb-0">Giao phó chỉ số chất lượng cho các khoa/phòng chịu trách nhiệm thu thập và báo cáo số liệu.</p>
         </div>
         <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-success px-3 rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#assignmentExportModal">
+                <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
+            </button>
             @using (Html.BeginForm("SyncFromIndicators", "Assignment", new { viewMode = Model.ViewMode }, FormMethod.Post, new { @class = "d-inline" }))
             {
                 @Html.AntiForgeryToken()
@@ -365,6 +368,88 @@
     }
 </div>
 
+<div class="modal fade" id="assignmentExportModal" tabindex="-1" aria-labelledby="assignmentExportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-3">
+            @using (Html.BeginForm("Assignments", "Export", FormMethod.Get, new { id = "assignmentExportForm" }))
+            {
+                <div class="modal-header border-0 pb-2">
+                    <h5 class="modal-title fw-bold text-secondary" id="assignmentExportModalLabel">
+                        <i class="bi bi-file-earmark-excel me-1 text-success"></i> Xuất Excel phân công
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <input type="hidden" name="khoaPhongId" value="@Model.FilterKhoaPhongId" />
+                    <input type="hidden" name="chiSoId" value="@Model.FilterChiSoId" />
+                    <input type="hidden" name="trangThai" value="@Model.FilterTrangThai" />
+                    <input type="hidden" name="trangThaiPhanCong" value="@Model.FilterTrangThaiPhanCong" />
+                    <input type="hidden" name="search" value="@Model.Search" />
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted small fw-semibold">Cột xuất file</span>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-3" id="assignment-export-select-all">Chọn tất cả</button>
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-3" id="assignment-export-clear">Bỏ chọn</button>
+                        </div>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <div class="form-check py-1">
+                                <input class="form-check-input assignment-export-column" type="checkbox" name="columns" value="TenChiSo" id="export_TenChiSo" checked />
+                                <label class="form-check-label" for="export_TenChiSo">Tên Chỉ số</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check py-1">
+                                <input class="form-check-input assignment-export-column" type="checkbox" name="columns" value="TanSuatBaoCao" id="export_TanSuatBaoCao" checked />
+                                <label class="form-check-label" for="export_TanSuatBaoCao">Tần suất báo cáo</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check py-1">
+                                <input class="form-check-input assignment-export-column" type="checkbox" name="columns" value="PhuongPhapTinh" id="export_PhuongPhapTinh" checked />
+                                <label class="form-check-label" for="export_PhuongPhapTinh">Phương pháp tính</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check py-1">
+                                <input class="form-check-input assignment-export-column" type="checkbox" name="columns" value="TuSo" id="export_TuSo" checked />
+                                <label class="form-check-label" for="export_TuSo">Tử số</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check py-1">
+                                <input class="form-check-input assignment-export-column" type="checkbox" name="columns" value="MauSo" id="export_MauSo" checked />
+                                <label class="form-check-label" for="export_MauSo">Mẫu số</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check py-1">
+                                <input class="form-check-input assignment-export-column" type="checkbox" name="columns" value="ThuThapTongHop" id="export_ThuThapTongHop" checked />
+                                <label class="form-check-label" for="export_ThuThapTongHop">Thu thập và tổng hợp số liệu</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check py-1">
+                                <input class="form-check-input assignment-export-column" type="checkbox" name="columns" value="KhoaPhongDuocPhanCong" id="export_KhoaPhongDuocPhanCong" checked />
+                                <label class="form-check-label" for="export_KhoaPhongDuocPhanCong">Khoa/Phòng được phân công</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4" id="assignment-export-submit">
+                        <i class="bi bi-download me-1"></i> Xuất Excel
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
 <!-- Bulk Action Floating Bar -->
 <div class="bulk-action-bar border shadow-lg rounded-3 p-3 bg-white d-flex align-items-center justify-content-between position-fixed bottom-0 start-50 translate-middle-x mb-4 w-75 z-3 transition-all d-none" id="bulkActionBar">
     <div class="d-flex align-items-center gap-2">
@@ -410,6 +495,38 @@
                 document.getElementById('filterForm').submit();
             });
         });
+
+        // Assignment Excel export columns
+        var exportColumnCheckboxes = document.querySelectorAll('.assignment-export-column');
+        var exportSubmitBtn = document.getElementById('assignment-export-submit');
+
+        function updateAssignmentExportSubmit() {
+            if (!exportSubmitBtn) return;
+            var selectedCount = Array.from(exportColumnCheckboxes).filter(cb => cb.checked).length;
+            exportSubmitBtn.disabled = selectedCount === 0;
+        }
+
+        exportColumnCheckboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', updateAssignmentExportSubmit);
+        });
+
+        var exportSelectAll = document.getElementById('assignment-export-select-all');
+        if (exportSelectAll) {
+            exportSelectAll.addEventListener('click', function() {
+                exportColumnCheckboxes.forEach(cb => cb.checked = true);
+                updateAssignmentExportSubmit();
+            });
+        }
+
+        var exportClear = document.getElementById('assignment-export-clear');
+        if (exportClear) {
+            exportClear.addEventListener('click', function() {
+                exportColumnCheckboxes.forEach(cb => cb.checked = false);
+                updateAssignmentExportSubmit();
+            });
+        }
+
+        updateAssignmentExportSubmit();
 
         // Search Khoa/Phòng
         var searchKp = document.getElementById('search-khoaphong');

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace HospitalQualityDashboard.Services
@@ -61,6 +62,47 @@ namespace HospitalQualityDashboard.Services
             }
 
             return Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(builder.ToString())).ToArray();
+        }
+
+        public byte[] CreateXlsx<T>(IEnumerable<T> items, IList<KeyValuePair<string, Func<T, object>>> columns)
+        {
+            items = items ?? Enumerable.Empty<T>();
+            columns = columns ?? new List<KeyValuePair<string, Func<T, object>>>();
+
+            using (var stream = new MemoryStream())
+            {
+                using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, true))
+                {
+                    AddTextEntry(archive, "[Content_Types].xml", @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<Types xmlns=""http://schemas.openxmlformats.org/package/2006/content-types"">
+  <Default Extension=""rels"" ContentType=""application/vnd.openxmlformats-package.relationships+xml""/>
+  <Default Extension=""xml"" ContentType=""application/xml""/>
+  <Override PartName=""/xl/workbook.xml"" ContentType=""application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml""/>
+  <Override PartName=""/xl/worksheets/sheet1.xml"" ContentType=""application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml""/>
+</Types>");
+
+                    AddTextEntry(archive, "_rels/.rels", @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<Relationships xmlns=""http://schemas.openxmlformats.org/package/2006/relationships"">
+  <Relationship Id=""rId1"" Type=""http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"" Target=""xl/workbook.xml""/>
+</Relationships>");
+
+                    AddTextEntry(archive, "xl/workbook.xml", @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<workbook xmlns=""http://schemas.openxmlformats.org/spreadsheetml/2006/main"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"">
+  <sheets>
+    <sheet name=""Sheet1"" sheetId=""1"" r:id=""rId1""/>
+  </sheets>
+</workbook>");
+
+                    AddTextEntry(archive, "xl/_rels/workbook.xml.rels", @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<Relationships xmlns=""http://schemas.openxmlformats.org/package/2006/relationships"">
+  <Relationship Id=""rId1"" Type=""http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"" Target=""worksheets/sheet1.xml""/>
+</Relationships>");
+
+                    WriteWorksheetEntry(archive, "xl/worksheets/sheet1.xml", items, columns);
+                }
+
+                return stream.ToArray();
+            }
         }
 
         private static IList<IDictionary<string, string>> ReadCsv(Stream stream)
@@ -257,11 +299,13 @@ namespace HospitalQualityDashboard.Services
             if (normalized == "khia canh chat luong") return "KhiaCanhChatLuong";
             if (normalized == "thanh to chat luong") return "ThanhToChatLuong";
             if (normalized == "ly do lua chon") return "LyDoLuaChon";
+            if (normalized == "ly do chon lua") return "LyDoLuaChon";
             if (normalized == "phuong phap tinh") return "PhuongPhapTinh";
             if (normalized == "tu so") return "TuSoMoTa";
             if (normalized == "mau so") return "MauSoMoTa";
             if (normalized == "nguon so lieu") return "NguonSoLieu";
             if (normalized == "thu thap va tong hop so lieu") return "ThuThapTongHop";
+            if (normalized == "thu nhap va tong hop so lieu") return "ThuThapTongHop";
             if (normalized == "gia tri cua so lieu") return "GiaTriSoLieu";
             if (normalized == "tan suat bao cao") return "TanSuatBaoCao";
             if (normalized.StartsWith("muc tieu dat duoc")) return "MucTieuDatDuoc";
@@ -414,6 +458,107 @@ namespace HospitalQualityDashboard.Services
         {
             value = value ?? string.Empty;
             return "\"" + value.Replace("\"", "\"\"") + "\"";
+        }
+
+        private static void AddTextEntry(ZipArchive archive, string name, string content)
+        {
+            var entry = archive.CreateEntry(name);
+            using (var writer = new StreamWriter(entry.Open(), new UTF8Encoding(false)))
+            {
+                writer.Write(content);
+            }
+        }
+
+        private static void WriteWorksheetEntry<T>(
+            ZipArchive archive,
+            string name,
+            IEnumerable<T> items,
+            IList<KeyValuePair<string, Func<T, object>>> columns)
+        {
+            const string spreadsheetNamespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+            var settings = new XmlWriterSettings
+            {
+                Encoding = new UTF8Encoding(false),
+                OmitXmlDeclaration = false,
+                Indent = false
+            };
+
+            var entry = archive.CreateEntry(name);
+            using (var entryStream = entry.Open())
+            using (var writer = XmlWriter.Create(entryStream, settings))
+            {
+                writer.WriteStartDocument();
+                writer.WriteStartElement("worksheet", spreadsheetNamespace);
+                writer.WriteStartElement("sheetData", spreadsheetNamespace);
+
+                var rowNumber = 1;
+                writer.WriteStartElement("row", spreadsheetNamespace);
+                writer.WriteAttributeString("r", rowNumber.ToString(CultureInfo.InvariantCulture));
+                for (var i = 0; i < columns.Count; i++)
+                {
+                    WriteInlineStringCell(writer, rowNumber, i + 1, columns[i].Key);
+                }
+                writer.WriteEndElement();
+
+                foreach (var item in items)
+                {
+                    rowNumber++;
+                    writer.WriteStartElement("row", spreadsheetNamespace);
+                    writer.WriteAttributeString("r", rowNumber.ToString(CultureInfo.InvariantCulture));
+                    for (var i = 0; i < columns.Count; i++)
+                    {
+                        WriteInlineStringCell(writer, rowNumber, i + 1, Convert.ToString(columns[i].Value(item)));
+                    }
+                    writer.WriteEndElement();
+                }
+
+                writer.WriteEndElement();
+                writer.WriteEndElement();
+                writer.WriteEndDocument();
+            }
+        }
+
+        private static void WriteInlineStringCell(XmlWriter writer, int rowNumber, int columnNumber, string value)
+        {
+            const string spreadsheetNamespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+            writer.WriteStartElement("c", spreadsheetNamespace);
+            writer.WriteAttributeString("r", GetExcelColumnName(columnNumber) + rowNumber.ToString(CultureInfo.InvariantCulture));
+            writer.WriteAttributeString("t", "inlineStr");
+            writer.WriteStartElement("is", spreadsheetNamespace);
+            writer.WriteStartElement("t", spreadsheetNamespace);
+            writer.WriteString(SanitizeXmlText(value));
+            writer.WriteEndElement();
+            writer.WriteEndElement();
+            writer.WriteEndElement();
+        }
+
+        private static string SanitizeXmlText(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            var builder = new StringBuilder(value.Length);
+            foreach (var ch in value)
+            {
+                builder.Append(XmlConvert.IsXmlChar(ch) ? ch : ' ');
+            }
+
+            return builder.ToString();
+        }
+
+        private static string GetExcelColumnName(int columnNumber)
+        {
+            var builder = new StringBuilder();
+            while (columnNumber > 0)
+            {
+                columnNumber--;
+                builder.Insert(0, (char)('A' + (columnNumber % 26)));
+                columnNumber /= 26;
+            }
+
+            return builder.ToString();
         }
 
         private static string GetColumnName(string cellReference)

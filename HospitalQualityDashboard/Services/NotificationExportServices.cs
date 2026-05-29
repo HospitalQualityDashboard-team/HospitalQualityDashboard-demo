@@ -357,6 +357,7 @@ WHERE tk.LoaiTaiKhoan=@AdminType
         private readonly DepartmentService _departments = new DepartmentService();
         private readonly EmployeeService _employees = new EmployeeService();
         private readonly IndicatorService _indicators = new IndicatorService();
+        private readonly AssignmentService _assignments = new AssignmentService();
         private readonly ReportService _reports = new ReportService();
         private readonly ExcelImportExportService _excel = new ExcelImportExportService();
 
@@ -409,6 +410,59 @@ WHERE tk.LoaiTaiKhoan=@AdminType
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("TrangThai", x => x.TrangThai),
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("DatMucTieu", x => x.DatMucTieu)
             });
+        }
+
+        public byte[] ExportAssignments(
+            int? departmentId,
+            int? indicatorId,
+            string status,
+            string assignmentStatus,
+            string search,
+            string[] selectedColumnKeys)
+        {
+            var rows = _assignments.GetExportRows(departmentId, indicatorId, status, assignmentStatus, search);
+            var columns = ResolveAssignmentExportColumns(selectedColumnKeys)
+                .Select(x => new KeyValuePair<string, Func<AssignmentExportRow, object>>(x.Header, x.Value))
+                .ToList();
+
+            return _excel.CreateXlsx(rows, columns);
+        }
+
+        private static IList<AssignmentExportColumn> ResolveAssignmentExportColumns(string[] selectedColumnKeys)
+        {
+            if (selectedColumnKeys == null || selectedColumnKeys.Length == 0)
+            {
+                return AssignmentExportColumns.ToList();
+            }
+
+            var selected = new HashSet<string>(selectedColumnKeys.Where(x => !string.IsNullOrWhiteSpace(x)), StringComparer.OrdinalIgnoreCase);
+            var columns = AssignmentExportColumns.Where(x => selected.Contains(x.Key)).ToList();
+            return columns.Count == 0 ? AssignmentExportColumns.ToList() : columns;
+        }
+
+        private static readonly IList<AssignmentExportColumn> AssignmentExportColumns = new List<AssignmentExportColumn>
+        {
+            new AssignmentExportColumn("TenChiSo", "T\u00ean Ch\u1ec9 s\u1ed1", x => x.TenChiSo),
+            new AssignmentExportColumn("TanSuatBaoCao", "T\u1ea7n su\u1ea5t b\u00e1o c\u00e1o", x => x.TanSuatBaoCaoText),
+            new AssignmentExportColumn("PhuongPhapTinh", "Ph\u01b0\u01a1ng ph\u00e1p t\u00ednh", x => x.PhuongPhapTinh),
+            new AssignmentExportColumn("TuSo", "T\u1eed s\u1ed1", x => x.TuSoMoTa),
+            new AssignmentExportColumn("MauSo", "M\u1eabu s\u1ed1", x => x.MauSoMoTa),
+            new AssignmentExportColumn("ThuThapTongHop", "Thu th\u1eadp v\u00e0 t\u1ed5ng h\u1ee3p s\u1ed1 li\u1ec7u", x => x.ThuThapTongHop),
+            new AssignmentExportColumn("KhoaPhongDuocPhanCong", "Khoa/Ph\u00f2ng \u0111\u01b0\u1ee3c ph\u00e2n c\u00f4ng", x => x.TenKhoaPhong)
+        };
+
+        private class AssignmentExportColumn
+        {
+            public AssignmentExportColumn(string key, string header, Func<AssignmentExportRow, object> value)
+            {
+                Key = key;
+                Header = header;
+                Value = value;
+            }
+
+            public string Key { get; private set; }
+            public string Header { get; private set; }
+            public Func<AssignmentExportRow, object> Value { get; private set; }
         }
     }
 }

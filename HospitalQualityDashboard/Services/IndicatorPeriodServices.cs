@@ -281,7 +281,12 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
 
             if (model.LoaiCongThuc == 0)
             {
-                model.LoaiCongThuc = string.IsNullOrWhiteSpace(model.MauSoMoTa) ? LoaiCongThuc.GiaTriTrucTiep : LoaiCongThuc.TyLe;
+                model.LoaiCongThuc = InferFormulaType(model);
+            }
+
+            if (string.IsNullOrWhiteSpace(model.DonViTinh))
+            {
+                model.DonViTinh = InferUnit(model);
             }
 
             return model;
@@ -838,6 +843,202 @@ END");
             return LoaiCongThuc.GiaTriTrucTiep;
         }
 
+        private static LoaiCongThuc InferFormulaType(ChiSoViewModel model)
+        {
+            var name = NormalizeIndicatorName(model == null ? null : model.TenChiSo);
+            var method = NormalizeKey(model == null ? null : model.PhuongPhapTinh);
+            var numerator = NormalizeKey(model == null ? null : model.TuSoMoTa);
+            var denominator = NormalizeKey(model == null ? null : model.MauSoMoTa);
+
+            if (StartsWithWord(name, "ty le") ||
+                StartsWithWord(name, "ty suat") ||
+                StartsWithWord(name, "cong suat") ||
+                StartsWithWord(name, "hieu suat") ||
+                ContainsFormulaPhrase(method, "ty le") ||
+                ContainsFormulaPhrase(method, "phan tram") ||
+                method.Contains("100") ||
+                (!string.IsNullOrWhiteSpace(numerator) && !string.IsNullOrWhiteSpace(denominator) && method.Contains("%")))
+            {
+                return LoaiCongThuc.TyLe;
+            }
+
+            if (StartsWithWord(name, "ty so") || ContainsFormulaPhrase(method, "ty so"))
+            {
+                return LoaiCongThuc.TySo;
+            }
+
+            if (StartsWithWord(name, "thoi gian") || ContainsFormulaPhrase(method, "thoi gian trung binh"))
+            {
+                return LoaiCongThuc.ThoiGianTrungBinh;
+            }
+
+            if (StartsWithAnyWord(name, "so luong", "so ca", "so cuoc", "so nguoi", "so lan", "so luot", "so ngay", "so khoa", "so bac si"))
+            {
+                return LoaiCongThuc.SoLuong;
+            }
+
+            if (ContainsFormulaPhrase(name, "diem trung binh") ||
+                ContainsFormulaPhrase(method, "diem trung binh") ||
+                ContainsFormulaPhrase(name, "diem") ||
+                ContainsFormulaPhrase(method, "diem"))
+            {
+                return LoaiCongThuc.DiemTrungBinh;
+            }
+
+            if (string.IsNullOrWhiteSpace(denominator))
+            {
+                return LoaiCongThuc.GiaTriTrucTiep;
+            }
+
+            return LoaiCongThuc.TyLe;
+        }
+
+        private static string InferUnit(ChiSoViewModel model)
+        {
+            if (model == null)
+            {
+                return null;
+            }
+
+            var name = NormalizeIndicatorName(model == null ? null : model.TenChiSo);
+
+            if (name.Contains("bac si co chung chi phau thuat noi soi"))
+            {
+                return "bác sĩ có chứng chỉ/phẫu thuật viên";
+            }
+
+            if (name.Contains("bac si dieu duong"))
+            {
+                return "bác sĩ/điều dưỡng";
+            }
+
+            if (name.Contains("dieu duong giuong benh"))
+            {
+                return "điều dưỡng/giường bệnh";
+            }
+
+            if (name.Contains("duoc si giuong benh"))
+            {
+                return "dược sĩ/giường bệnh";
+            }
+
+            if (name.Contains("nhan vien dinh duong giuong benh"))
+            {
+                return "nhân viên dinh dưỡng/giường bệnh";
+            }
+
+            if (name.Contains("bac si giuong benh"))
+            {
+                return "bác sĩ/giường bệnh";
+            }
+
+            if (name.Contains("thoi gian xu ly su co he thong mang"))
+            {
+                return "giờ";
+            }
+
+            if (name.Contains("thoi gian kham benh trung binh"))
+            {
+                return "phút";
+            }
+
+            if (name.Contains("thoi gian nam vien trung binh"))
+            {
+                return "ngày";
+            }
+
+            if (name.Contains("bao cao phan ung co hai"))
+            {
+                return "báo cáo";
+            }
+
+            if (StartsWithWord(name, "so ca"))
+            {
+                return "ca";
+            }
+
+            if (StartsWithWord(name, "so luot"))
+            {
+                return "lượt";
+            }
+
+            if (name.Contains("buong ve sinh"))
+            {
+                return "buồng";
+            }
+
+            if (name.Contains("diem tiep noi"))
+            {
+                return "điểm tiếp nối";
+            }
+
+            if (name.Contains("cau thang"))
+            {
+                return "cầu thang";
+            }
+
+            if (name.Contains("vi tinh hoa quan ly trang thiet bi"))
+            {
+                return "mức độ";
+            }
+
+            if (name.Contains("bac si tham du") ||
+                name.Contains("can bo y te") ||
+                name.Contains("nguoi benh noi tru duoc danh gia") ||
+                name.Contains("nguoi benh noi tru an suat an") ||
+                name.Contains("nguoi benh duoc truyen thong dinh duong"))
+            {
+                return "người";
+            }
+
+            switch (model.LoaiCongThuc)
+            {
+                case LoaiCongThuc.TyLe:
+                    return "%";
+                case LoaiCongThuc.TySo:
+                    return "tỷ số";
+                case LoaiCongThuc.SoLuong:
+                    return "số lượng";
+                case LoaiCongThuc.ThoiGianTrungBinh:
+                    return "thời gian";
+                case LoaiCongThuc.DiemTrungBinh:
+                    return "điểm";
+                case LoaiCongThuc.GiaTriTrucTiep:
+                    return "giá trị";
+                default:
+                    return null;
+            }
+        }
+
+        private static string NormalizeIndicatorName(string value)
+        {
+            return Regex.Replace(NormalizeKey(value), @"^\d+\s+", string.Empty).Trim();
+        }
+
+        private static bool StartsWithAnyWord(string text, params string[] phrases)
+        {
+            return phrases.Any(phrase => StartsWithWord(text, phrase));
+        }
+
+        private static bool StartsWithWord(string text, string phrase)
+        {
+            return !string.IsNullOrWhiteSpace(text) &&
+                (text == phrase || text.StartsWith(phrase + " ", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static bool ContainsFormulaPhrase(string text, string phrase)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return false;
+            }
+
+            return text == phrase ||
+                text.StartsWith(phrase + " ", StringComparison.OrdinalIgnoreCase) ||
+                text.EndsWith(" " + phrase, StringComparison.OrdinalIgnoreCase) ||
+                text.IndexOf(" " + phrase + " ", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         private static void FillTargetFromText(ChiSoViewModel model, string targetText)
         {
             if (string.IsNullOrWhiteSpace(model.ToanTuSoSanh))
@@ -1102,6 +1303,34 @@ ELSE
             }
         }
 
+        public static string FormatFrequencies(IEnumerable<TanSuatBaoCao> frequencies)
+        {
+            var values = frequencies == null ? new List<TanSuatBaoCao>() : frequencies.Distinct().OrderBy(GetAssignmentFrequencyDisplayOrder).ToList();
+            if (values.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            return string.Join(", ", values.Select(FormatFrequency));
+        }
+
+        private static int GetAssignmentFrequencyDisplayOrder(TanSuatBaoCao frequency)
+        {
+            switch (frequency)
+            {
+                case TanSuatBaoCao.HangNgay: return 10;
+                case TanSuatBaoCao.HangTuan: return 20;
+                case TanSuatBaoCao.HangThang: return 30;
+                case TanSuatBaoCao.HangQuy: return 40;
+                case TanSuatBaoCao.SauThang: return 50;
+                case TanSuatBaoCao.ChinThang: return 60;
+                case TanSuatBaoCao.HangNam: return 70;
+                case TanSuatBaoCao.KhiPhatSinh: return 80;
+                case TanSuatBaoCao.TruocSauKhiThucHien: return 90;
+                default: return 100;
+            }
+        }
+
         public static string FormatFormula(LoaiCongThuc formula)
         {
             switch (formula)
@@ -1237,6 +1466,116 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
         public IList<AssignmentItemViewModel> GetAll(int? khoaPhongId = null)
         {
             return GetAll(khoaPhongId, null, null, null, 1, 999999);
+        }
+
+        public IList<AssignmentExportRow> GetExportRows(
+            int? khoaPhongId = null,
+            int? chiSoId = null,
+            string trangThai = null,
+            string trangThaiPhanCong = null,
+            string search = null)
+        {
+            if (string.Equals(trangThaiPhanCong, "unassigned", StringComparison.OrdinalIgnoreCase))
+            {
+                return new List<AssignmentExportRow>();
+            }
+
+            var conditions = new List<string>();
+            var parameters = new List<SqlParameter>();
+
+            if (khoaPhongId.HasValue && khoaPhongId.Value > 0)
+            {
+                conditions.Add("pc.KhoaPhongId = @KhoaPhongId");
+                parameters.Add(Param("@KhoaPhongId", khoaPhongId.Value));
+            }
+
+            if (chiSoId.HasValue && chiSoId.Value > 0)
+            {
+                conditions.Add("pc.ChiSoChatLuongId = @ChiSoId");
+                parameters.Add(Param("@ChiSoId", chiSoId.Value));
+            }
+
+            if (!string.IsNullOrEmpty(trangThai))
+            {
+                if (trangThai == "active")
+                {
+                    conditions.Add("pc.DangHoatDong = 1");
+                }
+                else if (trangThai == "inactive")
+                {
+                    conditions.Add("pc.DangHoatDong = 0");
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                conditions.Add("(kp.TenKhoaPhong LIKE @Search OR cs.MaChiSo LIKE @Search OR cs.TenChiSo LIKE @Search)");
+                parameters.Add(Param("@Search", "%" + search.Trim() + "%"));
+            }
+
+            var whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
+            var sql = $@"
+SELECT pc.ChiSoChatLuongId, kp.TenKhoaPhong,
+       cs.TenChiSo, cs.TanSuatBaoCao, cs.PhuongPhapTinh, cs.TuSoMoTa, cs.MauSoMoTa, cs.ThuThapTongHop
+FROM dbo.PhanCongChiSo pc
+INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
+INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
+{whereClause}
+ORDER BY cs.MaChiSo, kp.TenKhoaPhong";
+
+            var rows = Query(sql, r =>
+            {
+                var frequency = (TanSuatBaoCao)r.GetByte(r.GetOrdinal("TanSuatBaoCao"));
+                return new AssignmentExportRow
+                {
+                    ChiSoChatLuongId = Int(r, "ChiSoChatLuongId"),
+                    TenKhoaPhong = String(r, "TenKhoaPhong"),
+                    TenChiSo = String(r, "TenChiSo"),
+                    TanSuatBaoCao = frequency,
+                    TanSuatBaoCaoText = FormatFrequency(frequency),
+                    PhuongPhapTinh = String(r, "PhuongPhapTinh"),
+                    TuSoMoTa = String(r, "TuSoMoTa"),
+                    MauSoMoTa = String(r, "MauSoMoTa"),
+                    ThuThapTongHop = String(r, "ThuThapTongHop")
+                };
+            }, parameters.ToArray());
+
+            PopulateExportFrequencies(rows);
+            return rows;
+        }
+
+        private void PopulateExportFrequencies(IList<AssignmentExportRow> rows)
+        {
+            if (rows == null || rows.Count == 0)
+            {
+                return;
+            }
+
+            var indicatorIds = rows.Select(x => x.ChiSoChatLuongId).Distinct().ToList();
+            var sql = $@"
+SELECT ChiSoChatLuongId, TanSuatBaoCao
+FROM dbo.ChiSoTanSuatBaoCao
+WHERE ChiSoChatLuongId IN ({string.Join(",", indicatorIds)})
+ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
+
+            var frequencies = Query(sql, r => new
+            {
+                ChiSoChatLuongId = Int(r, "ChiSoChatLuongId"),
+                TanSuatBaoCao = (TanSuatBaoCao)r.GetByte(r.GetOrdinal("TanSuatBaoCao"))
+            });
+
+            var groups = frequencies
+                .GroupBy(x => x.ChiSoChatLuongId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.TanSuatBaoCao).ToList());
+
+            foreach (var row in rows)
+            {
+                List<TanSuatBaoCao> rowFrequencies;
+                if (groups.TryGetValue(row.ChiSoChatLuongId, out rowFrequencies) && rowFrequencies.Count > 0)
+                {
+                    row.TanSuatBaoCaoText = FormatFrequencies(rowFrequencies);
+                }
+            }
         }
 
         public int GetIndicatorsCount(string trangThaiPhanCong = null, string search = null, int? khoaPhongId = null, int? chiSoId = null, string trangThai = null)

@@ -21,7 +21,7 @@ Tài liệu này là bản ghi nhớ kỹ thuật và nghiệp vụ tổng quan 
 
 ## 2. Công Nghệ
 
-- Framework: ASP.NET MVC 5 trên .NET Framework 4.7.2.
+- Framework: ASP.NET MVC 4 trên .NET Framework 4.7.2.
 - Ngôn ngữ: C#.
 - View engine: Razor `.cshtml`.
 - Cơ sở dữ liệu: SQL Server LocalDB.
@@ -100,6 +100,8 @@ HospitalQualityDashboard/
 │   └── Shared/
 ├── tools/
 │   ├── VerifyExcelParser.ps1
+│   ├── VerifyAssignmentExcelExport.ps1
+│   ├── VerifyIndicatorFormulaImport.ps1
 │   ├── VerifyReportWorkflowAndNotifications.ps1
 │   ├── VerifyIndicatorDepartmentAssignmentParser.ps1
 │   └── VerifyIndicatorFrequencyParser.ps1
@@ -134,7 +136,7 @@ Các service chứa nghiệp vụ và truy cập database trực tiếp qua ADO.
 - `SessionUserAccessor`: chuẩn hóa các key session như `TaiKhoanId`, `LoaiTaiKhoan`, `KhoaPhongId`.
 - `ManagementServices`: nghiệp vụ khoa/phòng và nhân viên.
 - `ExcelImportExportService`: đọc Excel, xử lý shared string, inline string và ô trống bị Excel lược bỏ trong XML.
-- `IndicatorPeriodServices`: nghiệp vụ chỉ số, import chỉ số, parser tần suất, parser khoa/phòng, phân công và kỳ báo cáo.
+- `IndicatorPeriodServices`: nghiệp vụ chỉ số, import chỉ số, parser tần suất, parser khoa/phòng, suy luận loại công thức/đơn vị tính, phân công và kỳ báo cáo.
 - `ReportDashboardServices`: nhập báo cáo, tính kết quả, gửi/khóa/xóa báo cáo, lấy dữ liệu dashboard.
 - `NotificationExportServices`: thông báo, thông báo tự động, chống gửi trùng và xuất dữ liệu.
 - `PasswordHasher`: hash/verify mật khẩu bằng PBKDF2.
@@ -250,9 +252,21 @@ Các biến thể tiếng Việt đang được nhận diện là tần suất q
    - tần suất báo cáo;
    - phương pháp tính;
    - tử số/mẫu số;
+   - loại công thức;
+   - đơn vị tính;
    - mục tiêu.
 4. Hệ thống nhận diện khoa/phòng từ trường `ThuThapTongHop`.
 5. Hệ thống lưu chỉ số, tần suất, mục tiêu và phân công tương ứng.
+
+Với file DOCX không có cột `Đơn vị tính`, ví dụ `Phân chia các chỉ số dựa theo đơn vị thu thập và tổng hợp.docx`, hệ thống tự suy luận `DonViTinh` sau khi đã xác định `LoaiCongThuc`. Giá trị `DonViTinh` có sẵn trong file import luôn được ưu tiên. Các rule chính:
+
+- `Tỷ lệ`, `Tỷ suất`, `Công suất`, `Hiệu suất` -> `%`.
+- `Tỷ số` -> đơn vị tỷ số cụ thể như `bác sĩ/giường bệnh`, `điều dưỡng/giường bệnh`, `bác sĩ/điều dưỡng`.
+- Chỉ số thời gian -> `giờ`, `phút`, `ngày`.
+- Chỉ số số lượng -> `người`, `báo cáo`, `ca`, `lượt`, `buồng`, `điểm tiếp nối`, `cầu thang`.
+- `Vi tính hóa quản lý trang thiết bị y tế khối nội` -> `mức độ`.
+
+Tên chỉ số được bỏ số thứ tự đầu dòng như `8.` hoặc `10.` trước khi nhận diện. Case `Số lượng các điểm tiếp nối...` được ưu tiên là `SoLuong`, không bị nhầm sang `DiemTrungBinh`.
 
 ### 8.4. Phân công chỉ số
 
@@ -339,6 +353,8 @@ Giao diện đã được cải tiến theo hướng hiện đại, dùng tiến
 Các script trong `tools/` hỗ trợ kiểm thử nhanh các parser quan trọng:
 
 - `VerifyExcelParser.ps1`: kiểm tra parser Excel xử lý đúng shared strings, inline strings và ô trống.
+- `VerifyAssignmentExcelExport.ps1`: kiểm tra xuất Excel trên trang phân công.
+- `VerifyIndicatorFormulaImport.ps1`: kiểm tra import DOCX, alias nhãn tiếng Việt, suy luận loại công thức và đơn vị tính.
 - `VerifyReportWorkflowAndNotifications.ps1`: kiểm tra luồng báo cáo, dashboard cảnh báo thiếu báo cáo, thông báo tự động và trang chi tiết thông báo.
 - `VerifyIndicatorFrequencyParser.ps1`: kiểm tra nhận diện tần suất, đặc biệt các biến thể quý.
 - `VerifyIndicatorDepartmentAssignmentParser.ps1`: kiểm tra nhận diện nhiều khoa/phòng trong trường thu thập/tổng hợp số liệu.
@@ -355,6 +371,7 @@ Lệnh build kiểm tra Razor view:
 - **User bắt buộc gắn với khoa/phòng** và bị giới hạn nghiêm ngặt phạm vi truy cập dữ liệu ở mức Server-side (không chỉ ẩn/hiện ở Client-side).
 - **Chỉ số - Khoa/phòng là quan hệ nhiều-nhiều** thông qua bảng trung gian `PhanCongChiSo` hỗ trợ thuộc tính trạng thái hoạt động độc lập.
 - **Một chỉ số có thể cấu hình nhiều tần suất báo cáo** thông qua bảng phụ `ChiSoTanSuatBaoCao`, cho phép linh hoạt ghép nối tần suất nghiệp vụ thực tế.
+- **Import DOCX không phụ thuộc tuyệt đối vào cột đơn vị tính**: Nếu file chỉ số không có `DonViTinh`, hệ thống suy luận đơn vị từ tên chỉ số và loại công thức. Nếu file có `DonViTinh`, giá trị file được ưu tiên để tránh ghi đè dữ liệu chủ động của Admin.
 - **Sinh "kỳ báo cáo chi tiết" (Reporting Slots) động bằng cơ chế LEFT JOIN**: Hệ thống không ghi trước các dòng trống xuống cơ sở dữ liệu khi Admin tạo một kỳ báo cáo mới. Thay vào đó, khi User truy cập, hệ thống sử dụng truy vấn `LEFT JOIN` giữa bảng phân công chỉ số của khoa đó (`PhanCongChiSo`) và bảng báo cáo thực tế (`dbo.BaoCao`).
   - *Lợi ích*: Tiết kiệm dung lượng lưu trữ tối đa, tránh dư thừa dữ liệu. Đồng thời giúp cập nhật danh sách ngay lập tức khi Admin thay đổi phân công chỉ số mà không cần thao tác đồng bộ phức tạp.
   - *Giải thích số lượng slots*: Số lượng "slot" báo cáo hiển thị chính xác tương ứng với số lượng chỉ số đang hoạt động của khoa đó có tần suất trùng với tần suất của kỳ báo cáo. Ví dụ, nếu khoa chỉ phụ trách 3 chỉ số có tần suất 6 tháng, thì trong kỳ báo cáo 6 tháng hệ thống sẽ hiển thị đúng 3 slot tương ứng.
@@ -404,3 +421,14 @@ Hệ thống đã được nâng cấp toàn diện với các giải pháp kỹ
 - Trang `Views/Notification/Details.cshtml` hiển thị nội dung thông báo và danh sách chỉ số còn thiếu của kỳ báo cáo liên quan.
 - Với thông báo `QuaHan`, trang chi tiết chỉ hiển thị các chỉ số quá hạn chưa nộp thuộc kỳ đó.
 - Khi User mở chi tiết thông báo, hệ thống đánh dấu thông báo là đã đọc.
+
+## 15. Cập Nhật Ngày 28/05/2026
+
+Đợt cập nhật này hoàn thiện import chỉ số từ file DOCX nguồn:
+
+- `IndicatorService.BuildIndicatorFromRow` gọi `InferFormulaType` khi file thiếu `LoaiCongThuc`.
+- `InferFormulaType` bỏ số thứ tự đầu tên chỉ số trước khi nhận diện, nhận diện thêm `Tỷ suất`, `Công suất`, `Hiệu suất`, và ưu tiên `SoLuong` cho các chỉ số bắt đầu bằng `Số lượng`, `Số ca`, `Số lượt`.
+- `InferUnit` tự gán `DonViTinh` khi file import không có đơn vị tính.
+- Các đơn vị chi tiết đã hỗ trợ gồm `%`, các đơn vị tỷ số cụ thể, `giờ`, `phút`, `ngày`, `người`, `báo cáo`, `ca`, `lượt`, `buồng`, `điểm tiếp nối`, `cầu thang`, `mức độ`.
+- Probe trên file `Phân chia các chỉ số dựa theo đơn vị thu thập và tổng hợp.docx` đọc được 55/55 chỉ số và 0 chỉ số thiếu `DonViTinh`.
+- Dữ liệu cũ đã import trước khi cập nhật cần import lại hoặc chạy cập nhật bổ sung để điền `DonViTinh`.

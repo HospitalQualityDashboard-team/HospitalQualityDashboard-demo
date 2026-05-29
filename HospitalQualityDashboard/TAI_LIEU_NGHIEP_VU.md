@@ -226,6 +226,7 @@ Quy tắc:
 - Chỉ số đã có báo cáo không nên xóa cứng.
 - Nếu chỉ số không còn áp dụng, nên ngừng hoạt động.
 - Thông tin `Thu thập và tổng hợp số liệu` là nguồn quan trọng để tự động phân công khoa/phòng.
+- Khi import từ file Word/Excel mà không có cột `Đơn vị tính`, hệ thống phải tự suy luận `DonViTinh` từ tên chỉ số, loại công thức, tử số, mẫu số và phương pháp tính.
 
 ## 7. Quan Hệ Chỉ Số Và Khoa/Phòng
 
@@ -588,8 +589,26 @@ Yêu cầu:
 - Nhận diện đúng các trường trong bảng chỉ số.
 - Nhận diện tần suất báo cáo.
 - Nhận diện nhiều khoa/phòng trong trường thu thập/tổng hợp.
+- Nhận diện loại công thức từ tên chỉ số, tử số, mẫu số và phương pháp tính nếu file không khai báo rõ.
+- Tự gán đơn vị tính nếu file không có cột `DonViTinh`.
 - Lưu chỉ số, mục tiêu, tần suất và phân công.
 - Ghi lại lỗi import để Admin kiểm tra.
+
+Quy tắc suy luận `DonViTinh` khi file nguồn không có đơn vị:
+
+- Nhóm `Tỷ lệ`, `Tỷ suất`, `Công suất`, `Hiệu suất`: đơn vị `%`.
+- Nhóm `Tỷ số`: dùng đơn vị cụ thể theo tên chỉ số, ví dụ `bác sĩ/giường bệnh`, `điều dưỡng/giường bệnh`, `bác sĩ/điều dưỡng`, `dược sĩ/giường bệnh`, `nhân viên dinh dưỡng/giường bệnh`, `bác sĩ có chứng chỉ/phẫu thuật viên`.
+- Nhóm thời gian: `giờ`, `phút` hoặc `ngày`.
+- Nhóm số lượng: `người`, `báo cáo`, `ca`, `lượt`, `buồng`, `điểm tiếp nối`, `cầu thang`.
+- Chỉ số `Vi tính hóa quản lý trang thiết bị y tế khối nội`: đơn vị `mức độ`.
+- Nếu file import có sẵn `DonViTinh`, giá trị trong file được ưu tiên và không bị override.
+
+Lưu ý với file `Phân chia các chỉ số dựa theo đơn vị thu thập và tổng hợp.docx`:
+
+- File này không có cột đơn vị tính riêng, nhưng hệ thống vẫn phải import đủ `DonViTinh`.
+- Tên chỉ số có số thứ tự đầu dòng như `8.` hoặc `10.` phải được bỏ số thứ tự trước khi suy luận.
+- Chỉ số `Số lượng các điểm tiếp nối vật lý để vận chuyển người bệnh` phải được phân loại là `SoLuong`, không phải `DiemTrungBinh`.
+- Sau khi thay đổi logic import, dữ liệu đã import trước đó cần import lại hoặc cập nhật lại để điền đơn vị tính cho các bản ghi cũ.
 
 ### 16.4. Vấn đề kỹ thuật của Excel
 
@@ -648,7 +667,11 @@ Nếu một chỉ số có nhiều phòng ban trong trường thu thập/tổng 
 
 Nếu tần suất ghi là “Mỗi quý, 6 tháng, 12 tháng”, hệ thống phải lưu cả quý, 6 tháng và năm.
 
-### 19.3. User không có dữ liệu
+### 19.3. File chỉ số không có cột đơn vị tính
+
+Một số file nguồn Word chỉ mô tả tên chỉ số, phương pháp tính, tử số, mẫu số, nguồn số liệu và tần suất nhưng không có cột `Đơn vị tính`. Trong trường hợp này, hệ thống không yêu cầu sửa file Word nguồn mà tự suy luận đơn vị theo quy tắc import.
+
+### 19.4. User không có dữ liệu
 
 Nếu User đăng nhập nhưng không thấy dữ liệu báo cáo, nguyên nhân có thể là:
 
@@ -658,11 +681,11 @@ Nếu User đăng nhập nhưng không thấy dữ liệu báo cáo, nguyên nh�
 - Chỉ số bị ngừng hoạt động.
 - Tài khoản User gắn sai khoa/phòng.
 
-### 19.4. User thấy link Admin
+### 19.5. User thấy link Admin
 
 Đây là lỗi giao diện phân quyền. Menu đã được cập nhật để phân biệt Admin/User. Controller vẫn là lớp bảo vệ chính.
 
-### 19.5. Báo cáo quá hạn
+### 19.6. Báo cáo quá hạn
 
 Trong hệ thống hiện tại cần phân biệt 2 khái niệm:
 
@@ -677,6 +700,7 @@ Hệ thống được xem là đáp ứng nghiệp vụ khi:
 
 - Admin import được danh mục khoa/phòng, nhân viên và chỉ số.
 - Parser nhận diện đúng các biến thể tần suất quý.
+- Parser import chỉ số nhận diện đúng loại công thức và đơn vị tính, kể cả file DOCX không có cột `DonViTinh`.
 - Chỉ số có nhiều khoa/phòng được phân công đủ.
 - User chỉ thấy menu và dữ liệu đúng quyền.
 - User nhập được báo cáo theo kỳ.
@@ -781,3 +805,28 @@ Khi User click vào một thông báo:
 - Nếu thông báo có `KyBaoCaoId`, trang chi tiết truy vấn các chỉ số còn thiếu của khoa/phòng trong kỳ đó.
 - Nếu là thông báo `QuaHan`, danh sách chỉ hiển thị các chỉ số đã quá hạn chưa nộp.
 - Thông báo được tự động đánh dấu đã đọc khi User mở chi tiết.
+
+## 25. Cập Nhật Import Công Thức Và Đơn Vị Tính Chỉ Số (Ngày 28/05/2026)
+
+### 25.1. Vấn đề nghiệp vụ
+
+File `Phân chia các chỉ số dựa theo đơn vị thu thập và tổng hợp.docx` là nguồn dữ liệu quan trọng để khởi tạo danh mục chỉ số. File này có đầy đủ thông tin tên chỉ số, phương pháp tính, tử số, mẫu số, nguồn số liệu, thu thập/tổng hợp và tần suất, nhưng không có nhãn/cột riêng cho `Đơn vị tính`.
+
+Nếu hệ thống không tự suy luận đơn vị, nhiều chỉ số sau import sẽ thiếu `DonViTinh`, làm giảm độ rõ ràng khi User nhập báo cáo và khi Admin kiểm tra cấu hình chỉ số.
+
+### 25.2. Cách xử lý hiện tại
+
+- Không yêu cầu sửa file Word nguồn.
+- Không đổi schema vì bảng `ChiSoChatLuong` đã có trường `DonViTinh`.
+- Khi import, hệ thống ưu tiên giá trị `DonViTinh` nếu file có sẵn.
+- Nếu file không có `DonViTinh`, hệ thống tự suy luận từ tên chỉ số, loại công thức, tử số, mẫu số và phương pháp tính.
+- Logic suy luận chạy sau bước suy luận `LoaiCongThuc`.
+
+### 25.3. Kết quả mong đợi
+
+- Import DOCX vẫn gán đủ đơn vị cho 55 chỉ số.
+- Các chỉ số tỷ lệ/tỷ suất/công suất/hiệu suất dùng `%`.
+- Các chỉ số tỷ số dùng đúng đơn vị tỷ số nghiệp vụ.
+- Các chỉ số thời gian dùng đúng `giờ`, `phút`, `ngày`.
+- Các chỉ số số lượng dùng đúng `người`, `báo cáo`, `ca`, `lượt`, `buồng`, `điểm tiếp nối`, `cầu thang`.
+- Dữ liệu đã import trước khi cập nhật cần import lại hoặc cập nhật bổ sung để được điền `DonViTinh`.

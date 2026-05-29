@@ -13,6 +13,7 @@ namespace HospitalQualityDashboard.Services
         public int? NhanVienId { get; set; }
         public int? KhoaPhongId { get; set; }
         public string TenKhoaPhong { get; set; }
+        public bool IsLocked { get; set; }
     }
 
     public class AuthService
@@ -44,10 +45,13 @@ SELECT TOP 1
     tk.LoaiTaiKhoan,
     tk.NhanVienId,
     tk.KhoaPhongId,
+    tk.DangHoatDong AS TaiKhoanDangHoatDong,
+    nv.DangHoatDong AS NhanVienDangHoatDong,
     kp.TenKhoaPhong
 FROM dbo.TaiKhoan tk
+LEFT JOIN dbo.NhanVien nv ON nv.NhanVienId = tk.NhanVienId
 LEFT JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = tk.KhoaPhongId
-WHERE tk.TenDangNhap = @TenDangNhap AND tk.DangHoatDong = 1";
+WHERE tk.TenDangNhap = @TenDangNhap";
 
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
@@ -75,7 +79,8 @@ WHERE tk.TenDangNhap = @TenDangNhap AND tk.DangHoatDong = 1";
                         LoaiTaiKhoan = (LoaiTaiKhoan)reader.GetByte(reader.GetOrdinal("LoaiTaiKhoan")),
                         NhanVienId = ReadNullableInt(reader, "NhanVienId"),
                         KhoaPhongId = ReadNullableInt(reader, "KhoaPhongId"),
-                        TenKhoaPhong = ReadNullableString(reader, "TenKhoaPhong")
+                        TenKhoaPhong = ReadNullableString(reader, "TenKhoaPhong"),
+                        IsLocked = !reader.GetBoolean(reader.GetOrdinal("TaiKhoanDangHoatDong")) || IsEmployeeLocked(reader)
                     };
                 }
             }
@@ -136,6 +141,12 @@ WHERE tk.TenDangNhap = @TenDangNhap AND tk.DangHoatDong = 1";
         {
             var ordinal = reader.GetOrdinal(name);
             return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
+        }
+
+        private static bool IsEmployeeLocked(SqlDataReader reader)
+        {
+            var ordinal = reader.GetOrdinal("NhanVienDangHoatDong");
+            return !reader.IsDBNull(ordinal) && !reader.GetBoolean(ordinal);
         }
     }
 }

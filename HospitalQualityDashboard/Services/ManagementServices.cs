@@ -226,7 +226,14 @@ WHERE NhanVienId=@NhanVienId", parameters);
 
         public void SetActive(int id, bool active)
         {
-            Execute("UPDATE dbo.NhanVien SET DangHoatDong = @Active, NgayCapNhat = GETDATE() WHERE NhanVienId = @Id", Param("@Active", active), Param("@Id", id));
+            Execute(@"
+UPDATE dbo.NhanVien SET DangHoatDong = @Active, NgayCapNhat = GETDATE() WHERE NhanVienId = @Id;
+UPDATE tk SET DangHoatDong = @Active, NgayCapNhat = GETDATE()
+FROM dbo.TaiKhoan tk
+INNER JOIN dbo.NhanVien nv ON nv.NhanVienId = @Id
+WHERE tk.NhanVienId = nv.NhanVienId OR tk.TenDangNhap = nv.MaNhanVien;",
+                Param("@Active", active),
+                Param("@Id", id));
         }
 
         public void Delete(int id)

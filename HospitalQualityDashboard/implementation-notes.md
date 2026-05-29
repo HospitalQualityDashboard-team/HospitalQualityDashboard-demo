@@ -9,7 +9,7 @@ Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiế
 - Viết lại `PROJECT_CONTEXT.md` bằng UTF-8 sạch, tiếng Việt có dấu, thay cho bản cũ bị lỗi encoding.
 - Tạo mới `TAI_LIEU_NGHIEP_VU.md` để mô tả business và nghiệp vụ chi tiết của hệ thống.
 - Cập nhật `implementation-notes.md` thành nhật ký triển khai rõ ràng hơn.
-- Ghi nhận hiện trạng kiến trúc: ASP.NET MVC 5, .NET Framework 4.7.2, SQL Server LocalDB, ADO.NET thuần, Razor view.
+- Ghi nhận hiện trạng kiến trúc: ASP.NET MVC 4, .NET Framework 4.7.2, SQL Server LocalDB, ADO.NET thuần, Razor view.
 
 ### 2. Phân quyền Admin/User
 
@@ -288,3 +288,62 @@ Kết quả:
 
 - Khi truy cập `localhost:44387/Notification` bằng browser nội bộ mà chưa đăng nhập, hệ thống chuyển về `Account/UserLogin`. Đây là đúng cơ chế bảo vệ session.
 - Cần đăng nhập bằng tài khoản User có thông báo tự động gắn `KyBaoCaoId` để kiểm tra thao tác click thông báo và xem danh sách chỉ số quá hạn chưa nộp trên giao diện thật.
+
+## 2026-05-28
+
+Đợt cập nhật này hoàn thiện logic import chỉ số từ file `Phân chia các chỉ số dựa theo đơn vị thu thập và tổng hợp.docx`, tập trung vào 2 vấn đề: nhận diện đúng loại công thức và tự gán `DonViTinh` khi file Word nguồn không có cột đơn vị tính.
+
+### 1. Suy luận loại công thức khi import DOCX
+
+- `IndicatorService.BuildIndicatorFromRow` không còn mặc định chỉ chia `GiaTriTrucTiep`/`TyLe` theo việc có mẫu số hay không.
+- Bổ sung `InferFormulaType(ChiSoViewModel model)` để suy luận từ:
+  - tên chỉ số;
+  - phương pháp tính;
+  - tử số;
+  - mẫu số.
+- Tên chỉ số được chuẩn hóa bằng cách bỏ số thứ tự đầu dòng như `1.`, `8.`, `10.` trước khi nhận diện.
+- Các cụm `Tỷ lệ`, `Tỷ suất`, `Công suất`, `Hiệu suất` được nhận diện là `TyLe`.
+- Các cụm `Tỷ số` được nhận diện là `TySo`.
+- Các chỉ số bắt đầu bằng `Số lượng`, `Số ca`, `Số lượt` được nhận diện là `SoLuong` trước khi xét chữ `điểm`, để chỉ số `Số lượng các điểm tiếp nối...` không bị nhầm sang `DiemTrungBinh`.
+
+### 2. Suy luận đơn vị tính khi import DOCX
+
+- Bổ sung `InferUnit(ChiSoViewModel model)`.
+- Nếu file import đã có `DonViTinh`, hệ thống giữ nguyên giá trị trong file.
+- Nếu file import thiếu `DonViTinh`, hệ thống tự gán theo rule chi tiết:
+  - `%` cho nhóm tỷ lệ, tỷ suất, công suất, hiệu suất;
+  - đơn vị tỷ số cụ thể như `bác sĩ/giường bệnh`, `điều dưỡng/giường bệnh`, `bác sĩ/điều dưỡng`, `dược sĩ/giường bệnh`, `nhân viên dinh dưỡng/giường bệnh`, `bác sĩ có chứng chỉ/phẫu thuật viên`;
+  - `giờ`, `phút`, `ngày` cho nhóm thời gian;
+  - `người`, `báo cáo`, `ca`, `lượt`, `buồng`, `điểm tiếp nối`, `cầu thang` cho nhóm số lượng;
+  - `mức độ` cho chỉ số `Vi tính hóa quản lý trang thiết bị y tế khối nội`.
+- Nếu không match rule chi tiết, fallback theo loại công thức:
+  - `TyLe` -> `%`
+  - `TySo` -> `tỷ số`
+  - `SoLuong` -> `số lượng`
+  - `ThoiGianTrungBinh` -> `thời gian`
+  - `DiemTrungBinh` -> `điểm`
+  - `GiaTriTrucTiep` -> `giá trị`
+
+### 3. Kiểm tra đã chạy
+
+```powershell
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:BaseIntermediateOutputPath=obj_unit\ /p:OutputPath=bin_unit\
+$env:HQD_APP_ASSEMBLY = (Resolve-Path '.\HospitalQualityDashboard\bin_unit\HospitalQualityDashboard.dll'); powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyIndicatorFormulaImport.ps1
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyExcelParser.ps1
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyAssignmentExcelExport.ps1
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:MvcBuildViews=true /p:BaseIntermediateOutputPath=obj_unit\ /p:OutputPath=bin_unit\
+```
+
+Kết quả:
+
+- Build Debug bằng output riêng `bin_unit`: passed.
+- `MvcBuildViews=true`: passed.
+- `VerifyIndicatorFormulaImport.ps1`: passed.
+- `VerifyExcelParser.ps1`: passed.
+- `VerifyAssignmentExcelExport.ps1`: passed.
+- Probe trực tiếp file DOCX nguồn đọc được `55/55` chỉ số, `0` chỉ số thiếu `DonViTinh`.
+
+### 4. Lưu ý vận hành
+
+- Các bản ghi đã import trước ngày cập nhật sẽ không tự có `DonViTinh`. Cần import lại file DOCX hoặc chạy cập nhật dữ liệu nếu muốn điền đơn vị cho dữ liệu cũ.
+- Trong lúc kiểm thử, build mặc định vào `bin/obj` bị khóa bởi process local đang chạy, nên dùng output riêng `obj_unit/bin_unit` để xác minh code mới mà không cần tắt localhost.

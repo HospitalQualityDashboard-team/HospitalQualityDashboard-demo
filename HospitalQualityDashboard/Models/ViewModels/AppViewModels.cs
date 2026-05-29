@@ -196,6 +196,19 @@ namespace HospitalQualityDashboard.Models.ViewModels
         public DateTime NgayTao { get; set; }
     }
 
+    public class AssignmentExportRow
+    {
+        public int ChiSoChatLuongId { get; set; }
+        public string TenChiSo { get; set; }
+        public TanSuatBaoCao TanSuatBaoCao { get; set; }
+        public string TanSuatBaoCaoText { get; set; }
+        public string PhuongPhapTinh { get; set; }
+        public string TuSoMoTa { get; set; }
+        public string MauSoMoTa { get; set; }
+        public string ThuThapTongHop { get; set; }
+        public string TenKhoaPhong { get; set; }
+    }
+
     public class DepartmentAssignmentGroup
     {
         public int KhoaPhongId { get; set; }
