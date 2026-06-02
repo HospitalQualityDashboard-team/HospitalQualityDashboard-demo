@@ -16,6 +16,17 @@ namespace HospitalQualityDashboard.Controllers
             return View(_service.GetAll());
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult GeneratePeriods()
+        {
+            var admin = RequireAdmin();
+            if (admin != null) return admin;
+            var generated = _service.GenerateMissingPeriods();
+            TempData["Message"] = $"Đã tạo {generated.Count} kỳ báo cáo tự động!";
+            return RedirectToAction("Index");
+        }
+
         public ActionResult Create()
         {
             var admin = RequireAdmin();

@@ -1797,6 +1797,141 @@ ORDER BY ky.TuNgay DESC";
             return Query(sql, MapPeriod);
         }
 
+        public bool HasActiveAssignmentsForFrequency(TanSuatBaoCao frequency)
+        {
+            const string sql = @"
+SELECT COUNT(*) 
+FROM dbo.PhanCongChiSo pc
+INNER JOIN dbo.ChiSoTanSuatBaoCao tsb ON tsb.ChiSoChatLuongId = pc.ChiSoChatLuongId
+WHERE pc.DangHoatDong = 1 AND tsb.TanSuatBaoCao = @Frequency
+UNION ALL
+SELECT COUNT(*)
+FROM dbo.PhanCongChiSo pc
+INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
+WHERE pc.DangHoatDong = 1 AND cs.TanSuatBaoCao = @Frequency";
+
+            var counts = Query(sql, r => r.GetInt32(0), Param("@Frequency", (byte)frequency)).ToList();
+            return counts.Sum() > 0;
+        }
+
+        public (DateTime TuNgay, DateTime DenNgay, string TenKyBaoCao) CalculatePeriodDates(TanSuatBaoCao frequency, DateTime referenceDate)
+        {
+            DateTime tuNgay, denNgay;
+            string tenKyBaoCao;
+
+            switch (frequency)
+            {
+                case TanSuatBaoCao.HangNgay:
+                    tuNgay = referenceDate.Date;
+                    denNgay = tuNgay;
+                    tenKyBaoCao = $"Kỳ báo cáo ngày {tuNgay:dd/MM/yyyy}";
+                    break;
+
+                case TanSuatBaoCao.HangTuan:
+                    // Assuming week starts on Monday
+                    int diff = (int)referenceDate.DayOfWeek - (int)DayOfWeek.Monday;
+                    if (diff < 0) diff += 7;
+                    tuNgay = referenceDate.Date.AddDays(-diff);
+                    denNgay = tuNgay.AddDays(6);
+                    tenKyBaoCao = $"Kỳ báo cáo tuần {tuNgay:dd/MM} - {denNgay:dd/MM/yyyy}";
+                    break;
+
+                case TanSuatBaoCao.HangThang:
+                    tuNgay = new DateTime(referenceDate.Year, referenceDate.Month, 1);
+                    denNgay = tuNgay.AddMonths(1).AddDays(-1);
+                    tenKyBaoCao = $"Kỳ báo cáo Tháng {tuNgay:MM/yyyy}";
+                    break;
+
+                case TanSuatBaoCao.HangQuy:
+                    int quarterNumber = (referenceDate.Month - 1) / 3 + 1;
+                    tuNgay = new DateTime(referenceDate.Year, (quarterNumber - 1) * 3 + 1, 1);
+                    denNgay = tuNgay.AddMonths(3).AddDays(-1);
+                    tenKyBaoCao = $"Kỳ báo cáo Quý {quarterNumber}/{tuNgay:yyyy}";
+                    break;
+
+                case TanSuatBaoCao.SauThang:
+                    int sixMonthStart = referenceDate.Month <= 6 ? 1 : 7;
+                    tuNgay = new DateTime(referenceDate.Year, sixMonthStart, 1);
+                    denNgay = tuNgay.AddMonths(6).AddDays(-1);
+                    tenKyBaoCao = $"Kỳ báo cáo 6 tháng {tuNgay:MM/yyyy} - {denNgay:MM/yyyy}";
+                    break;
+
+                case TanSuatBaoCao.ChinThang:
+                    int nineMonthStart = referenceDate.Month <= 9 ? 1 : 4; // Adjust logic as needed
+                    tuNgay = new DateTime(referenceDate.Year, nineMonthStart, 1);
+                    denNgay = tuNgay.AddMonths(9).AddDays(-1);
+                    tenKyBaoCao = $"Kỳ báo cáo 9 tháng {tuNgay:MM/yyyy} - {denNgay:MM/yyyy}";
+                    break;
+
+                case TanSuatBaoCao.HangNam:
+                    tuNgay = new DateTime(referenceDate.Year, 1, 1);
+                    denNgay = tuNgay.AddYears(1).AddDays(-1);
+                    tenKyBaoCao = $"Kỳ báo cáo Năm {tuNgay:yyyy}";
+                    break;
+
+                default:
+                    throw new NotSupportedException($"Frequency {frequency} is not supported for auto-generation");
+            }
+
+            return (tuNgay, denNgay, tenKyBaoCao);
+        }
+
+        public bool PeriodExists(TanSuatBaoCao frequency, DateTime tuNgay)
+        {
+            var count = Convert.ToInt32(Scalar(@"
+SELECT COUNT(*) FROM dbo.KyBaoCao 
+WHERE LoaiKyBaoCao = @Frequency AND TuNgay = @TuNgay",
+                Param("@Frequency", (byte)frequency),
+                Param("@TuNgay", tuNgay)));
+            return count > 0;
+        }
+
+        public IList<KyBaoCaoViewModel> GenerateMissingPeriods()
+        {
+            var generatedPeriods = new List<KyBaoCaoViewModel>();
+            var referenceDate = DateTime.Today;
+
+            // List of frequencies that can be auto-generated
+            var autoGenerateFrequencies = new[]
+            {
+                TanSuatBaoCao.HangNgay,
+                TanSuatBaoCao.HangTuan,
+                TanSuatBaoCao.HangThang,
+                TanSuatBaoCao.HangQuy,
+                TanSuatBaoCao.SauThang,
+                TanSuatBaoCao.ChinThang,
+                TanSuatBaoCao.HangNam
+            };
+
+            foreach (var frequency in autoGenerateFrequencies)
+            {
+                if (!HasActiveAssignmentsForFrequency(frequency))
+                {
+                    continue;
+                }
+
+                var (tuNgay, denNgay, tenKyBaoCao) = CalculatePeriodDates(frequency, referenceDate);
+
+                if (!PeriodExists(frequency, tuNgay))
+                {
+                    var model = new KyBaoCaoViewModel
+                    {
+                        TenKyBaoCao = tenKyBaoCao,
+                        LoaiKyBaoCao = frequency,
+                        TuNgay = tuNgay,
+                        DenNgay = denNgay,
+                        HanNop = denNgay.AddDays(5),
+                        TrangThai = TrangThaiKyBaoCao.Mo
+                    };
+
+                    Save(model);
+                    generatedPeriods.Add(model);
+                }
+            }
+
+            return generatedPeriods;
+        }
+
         public IList<TanSuatBaoCao> GetFrequenciesForDepartment(int departmentId)
         {
             const string sql = @"
