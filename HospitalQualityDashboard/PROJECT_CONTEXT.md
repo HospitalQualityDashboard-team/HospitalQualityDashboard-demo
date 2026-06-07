@@ -141,6 +141,12 @@ Các service chứa nghiệp vụ và truy cập database trực tiếp qua ADO.
 - `NotificationExportServices`: thông báo, thông báo tự động, chống gửi trùng và xuất dữ liệu.
 - `PasswordHasher`: hash/verify mật khẩu bằng PBKDF2.
 
+### 4.3. Quy ước chú thích code
+
+Các file code tự viết đã có chú thích tiếng Việt có dấu ở đầu file theo mẫu `Mục đích:` để mô tả vai trò chính của file. Quy ước này áp dụng cho controller, service, model, filter, cấu hình MVC và Razor view nội bộ.
+
+Không thêm chú thích vào thư viện bên thứ ba như Bootstrap, jQuery, Modernizr hoặc file minified. Khi bổ sung code mới, comment nên ưu tiên giải thích mục đích nghiệp vụ, điều kiện bảo mật hoặc lý do xử lý đặc biệt; không cần mô tả lại thao tác hiển nhiên của từng dòng.
+
 ## 5. Phân Quyền
 
 Hệ thống có 2 loại tài khoản:
@@ -182,7 +188,7 @@ Quy tắc chính:
 - `ThongBao`: thông báo do hệ thống hoặc Admin tạo.
 - `ThongBaoNguoiNhan`: danh sách người nhận và trạng thái đã đọc.
 - `ThongBaoTuDongLog`: log chống gửi trùng cho thông báo tự động theo `DedupKey`.
-- `LichSuImport`, `LichSuImportChiTiet`: lưu lịch sử import.
+- `LichSuImport`: lưu lịch sử import ở mức tổng hợp.
 - `NhatKyHeThong`: lưu nhật ký thao tác hệ thống.
 
 ## 7. Quan Hệ Nghiệp Vụ Quan Trọng
@@ -230,6 +236,13 @@ Các biến thể tiếng Việt đang được nhận diện là tần suất q
 3. `AccountController` đối chiếu đúng `LoaiTaiKhoan` với trang đăng nhập.
 4. `SessionUserAccessor` ghi session.
 5. Người dùng được chuyển đến Dashboard.
+
+Kiểm tra session trên trình duyệt thực hiện qua DevTools:
+
+- Tab `Application` > `Storage` > `Cookies` cho biết cookie `ASP.NET_SessionId`.
+- Cookie chỉ lưu mã session; dữ liệu đăng nhập thực tế nằm phía server trong `Session`.
+- `Web.config` hiện chưa khai báo `sessionState timeout`, nên timeout server-side dùng mặc định ASP.NET khoảng 20 phút không hoạt động.
+- Sau logout, `SessionUserAccessor.ClearLoginSession` gọi `Clear()` và `Abandon()`, sau đó truy cập trang protected phải quay lại login.
 
 ### 8.2. Import khoa/phòng và nhân viên
 
@@ -432,3 +445,159 @@ Hệ thống đã được nâng cấp toàn diện với các giải pháp kỹ
 - Các đơn vị chi tiết đã hỗ trợ gồm `%`, các đơn vị tỷ số cụ thể, `giờ`, `phút`, `ngày`, `người`, `báo cáo`, `ca`, `lượt`, `buồng`, `điểm tiếp nối`, `cầu thang`, `mức độ`.
 - Probe trên file `Phân chia các chỉ số dựa theo đơn vị thu thập và tổng hợp.docx` đọc được 55/55 chỉ số và 0 chỉ số thiếu `DonViTinh`.
 - Dữ liệu cũ đã import trước khi cập nhật cần import lại hoặc chạy cập nhật bổ sung để điền `DonViTinh`.
+
+## 16. Cập Nhật Ngày 30/05/2026 - Tạo Lịch Kỳ Báo Cáo Tự Động
+
+Đợt cập nhật này bổ sung chức năng tạo lịch kỳ báo cáo tự động theo năm cho Admin. Mục tiêu là giảm thao tác tạo kỳ thủ công, nhưng vẫn giữ nguyên mô hình dữ liệu động của hệ thống: chỉ tạo `KyBaoCao`, không tạo sẵn `BaoCao` rỗng cho từng khoa/phòng và từng chỉ số.
+
+### 16.1. Phạm vi chức năng
+
+- Admin vào màn hình **Kỳ báo cáo** và bấm **Tạo lịch tự động**.
+- Admin chọn năm cần tạo lịch.
+- Admin chọn một hoặc nhiều loại kỳ cần sinh.
+- Hệ thống hiển thị preview trước khi lưu, gồm cả kỳ sẽ tạo mới và kỳ đã tồn tại.
+- Khi Admin xác nhận, hệ thống chỉ tạo các kỳ chưa tồn tại.
+- User không thấy màn hình tạo lịch tự động.
+- User chỉ thấy các kỳ đang **Mở** có tần suất khớp với chỉ số đang được phân công cho khoa/phòng của mình.
+
+### 16.2. Các loại kỳ được hỗ trợ
+
+| Loại kỳ nghiệp vụ | Enum trong code | Số kỳ tối đa trong một năm | Ghi chú |
+|---|---|---:|---|
+| Hàng ngày | `HangNgay` | 365 hoặc 366 | Mỗi ngày là một kỳ riêng. |
+| Hàng tháng | `HangThang` | 12 | Mỗi tháng là một kỳ. |
+| Hàng quý | `HangQuy` | 4 | Quý I, II, III, IV. |
+| 6 tháng | `SauThang` | 2 | 6 tháng đầu năm và 6 tháng cuối năm. |
+| 9 tháng | `ChinThang` | 1 | Từ 01/01 đến 30/09. |
+| Hàng năm | `HangNam` | 1 | Từ 01/01 đến 31/12. |
+
+Không sinh lịch tự động cho:
+
+- `KhiPhatSinh`.
+- `TruocSauKhiThucHien`.
+
+Hai loại này phụ thuộc sự kiện nghiệp vụ thực tế, không phù hợp để tạo sẵn theo lịch năm.
+
+### 16.3. Quy ước thời gian 00:00 và 23:59
+
+Database hiện lưu `TuNgay`, `DenNgay`, `HanNop` theo kiểu ngày. Vì vậy hệ thống dùng quy ước nghiệp vụ sau:
+
+- `TuNgay` = thời điểm mở kỳ lúc **00:00** của ngày bắt đầu.
+- `DenNgay` = thời điểm đóng kỳ lúc **23:59** của ngày kết thúc.
+- `HanNop` = hạn nộp cuối cùng lúc **23:59** của ngày kết thúc.
+
+Ví dụ vận hành:
+
+| Loại kỳ | Tên kỳ | Mở lúc | Đóng lúc | Hạn nộp cuối cùng |
+|---|---|---|---|---|
+| Hàng ngày | Ngày 30/05/2026 | 30/05/2026 00:00 | 30/05/2026 23:59 | 30/05/2026 23:59 |
+| Hàng tháng | Tháng 06/2026 | 01/06/2026 00:00 | 30/06/2026 23:59 | 30/06/2026 23:59 |
+| Hàng quý | Quý II/2026 | 01/04/2026 00:00 | 30/06/2026 23:59 | 30/06/2026 23:59 |
+| 6 tháng | 6 tháng cuối năm 2026 | 01/07/2026 00:00 | 31/12/2026 23:59 | 31/12/2026 23:59 |
+| 9 tháng | 9 tháng năm 2026 | 01/01/2026 00:00 | 30/09/2026 23:59 | 30/09/2026 23:59 |
+| Hàng năm | Năm 2026 | 01/01/2026 00:00 | 31/12/2026 23:59 | 31/12/2026 23:59 |
+
+Do database chỉ lưu ngày, phần `23:59` được thể hiện ở giao diện và trong tài liệu để người dùng hiểu đúng hạn cuối. Khi User gửi báo cáo, hệ thống đánh trễ khi **ngày hiện tại lớn hơn ngày hạn nộp**, không đánh trễ trong chính ngày `HanNop`.
+
+### 16.4. Quy tắc bỏ qua kỳ đã kết thúc
+
+Khi tạo lịch cho năm hiện tại, hệ thống không sinh các kỳ đã kết thúc trước hôm nay. Điều này tránh tình trạng ngày 30/05/2026 nhưng preview vẫn đề xuất tạo các kỳ như Tháng 01/2026 hoặc Tháng 02/2026.
+
+Ví dụ nếu hôm nay là **30/05/2026**:
+
+- Lịch hàng ngày bắt đầu từ Ngày 30/05/2026.
+- Lịch hàng tháng bỏ qua Tháng 01, 02, 03, 04/2026.
+- Tháng 05/2026 vẫn được preview vì kỳ này kết thúc ngày 31/05/2026.
+- Tháng 06/2026 trở đi là kỳ tương lai.
+- Kỳ 9 tháng năm 2026 vẫn được preview vì kết thúc ngày 30/09/2026.
+- Kỳ năm 2026 vẫn được preview vì kết thúc ngày 31/12/2026.
+
+Nếu Admin tạo lịch cho năm tương lai, hệ thống preview toàn bộ kỳ của năm đó. Nếu Admin tạo lịch cho năm đã qua, các kỳ đã kết thúc trước hôm nay sẽ không được đề xuất tạo mới.
+
+### 16.5. Quy tắc trạng thái
+
+Enum trong code vẫn giữ nguyên để không phá dữ liệu và luồng hiện có:
+
+| Enum | Hiển thị | Ý nghĩa |
+|---|---|---|
+| `Nhap` | Nhập | Kỳ đã có trong hệ thống nhưng chưa tới ngày bắt đầu. |
+| `Mo` | Mở | Kỳ đã tới ngày bắt đầu và User có thể nhập/gửi báo cáo. |
+| `Khoa` | Khóa | Kỳ đã bị khóa, User không tiếp tục nhập/sửa. |
+
+Khi tạo lịch:
+
+- Nếu `TuNgay <= hôm nay`, kỳ được tạo ở trạng thái `Mo`.
+- Nếu `TuNgay > hôm nay`, kỳ được tạo ở trạng thái `Nhap`.
+- Các kỳ `Nhap` sẽ tự chuyển sang `Mo` khi tới ngày bắt đầu.
+
+Hàm tự mở kỳ được gọi ở các điểm nhẹ:
+
+- khi ứng dụng khởi động;
+- khi truy cập Dashboard;
+- khi truy cập Báo cáo;
+- khi truy cập Kỳ báo cáo;
+- khi truy cập Thông báo.
+
+Giai đoạn này chưa dùng background scheduler phức tạp vì nhu cầu chỉ cần tự đồng bộ trạng thái theo ngày.
+
+### 16.6. Chống trùng và không tạo báo cáo rỗng
+
+Hệ thống chống trùng kỳ theo bộ khóa nghiệp vụ:
+
+```text
+LoaiKyBaoCao + TuNgay + DenNgay
+```
+
+Nếu kỳ đã tồn tại:
+
+- preview hiển thị là **Đã tồn tại**;
+- khi bấm tạo, hệ thống bỏ qua dòng đó;
+- không cập nhật đè trạng thái, tên kỳ hoặc hạn nộp của kỳ cũ.
+
+Chức năng này không sinh dòng `BaoCao` rỗng. Danh sách User cần báo cáo vẫn được tính động bằng truy vấn kết hợp:
+
+- kỳ báo cáo đang `Mo`;
+- tần suất kỳ báo cáo;
+- chỉ số đang hoạt động;
+- bảng tần suất phụ `ChiSoTanSuatBaoCao`;
+- phân công chỉ số đang hoạt động;
+- khoa/phòng của User;
+- bản ghi `BaoCao` thực tế nếu đã lưu nháp hoặc gửi.
+
+Nhờ vậy, nếu Admin thay đổi phân công sau khi tạo kỳ, danh sách cần báo cáo của User vẫn cập nhật đúng mà không cần tạo/xóa lại các báo cáo rỗng.
+
+### 16.7. File kỹ thuật chính
+
+- `Models/ViewModels/AppViewModels.cs`: chứa ViewModel tạo lịch và preview.
+- `Services/IndicatorPeriodServices.cs`: chứa `ReportingPeriodScheduleService`, logic sinh kỳ, chống trùng, bỏ qua kỳ cũ và tự mở kỳ.
+- `Controllers/ReportingPeriodController.cs`: thêm action `GenerateSchedule`, `PreviewSchedule`, `CreateSchedule`.
+- `Views/ReportingPeriod/GenerateSchedule.cshtml`: màn hình Admin chọn năm, loại kỳ và xem preview.
+- `Views/ReportingPeriod/Index.cshtml`: thêm nút **Tạo lịch tự động**.
+- `Controllers/DashboardController.cs`, `Controllers/ReportController.cs`, `Controllers/NotificationController.cs`: gọi tự mở kỳ khi người dùng truy cập các màn hình chính.
+- `Global.asax.cs`: gọi tự mở kỳ khi ứng dụng khởi động.
+- `Services/ReportDashboardServices.cs`: xác định báo cáo trễ theo ngày hạn nộp, phù hợp quy ước hạn cuối 23:59.
+- `tools/VerifyReportingPeriodSchedule.ps1`: script kiểm tra cấu trúc chức năng tạo lịch tự động.
+
+### 16.8. Kiểm thử cần giữ
+
+Các kịch bản tối thiểu:
+
+- Tạo lịch hàng ngày cho ngày hiện tại sinh kỳ hôm nay ở trạng thái **Mở**.
+- Tạo lịch hàng tháng cho năm 2026 tại ngày 30/05/2026 bỏ qua Tháng 01-04/2026, giữ Tháng 05/2026 trở đi.
+- Tạo lịch quý sinh đúng các quý còn hiệu lực.
+- Tạo lịch 6 tháng sinh đúng kỳ còn hiệu lực.
+- Tạo lịch 9 tháng sinh một kỳ từ 01/01 đến 30/09 nếu kỳ chưa kết thúc.
+- Tạo lịch năm sinh một kỳ từ 01/01 đến 31/12 nếu kỳ chưa kết thúc.
+- Chạy tạo lịch lần hai không tạo trùng.
+- Kỳ tương lai là `Nhap`.
+- Kỳ tới ngày bắt đầu tự chuyển sang `Mo`.
+- User chỉ thấy kỳ `Mo` khớp tần suất chỉ số được phân công.
+- Admin vẫn xem được toàn bộ kỳ báo cáo.
+
+Lệnh kiểm tra:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportingPeriodSchedule.ps1
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportWorkflowAndNotifications.ps1
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:MvcBuildViews=true
+```

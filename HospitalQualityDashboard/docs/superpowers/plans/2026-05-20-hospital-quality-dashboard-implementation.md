@@ -67,7 +67,7 @@
 - `BaoCao`: one report per `KyBaoCaoId + KhoaPhongId + ChiSoChatLuongId`.
 - `BaoCaoChiTiet`: numerator, denominator, direct value, computed result, target pass/fail, note.
 - `ThongBao`, `ThongBaoNguoiNhan`: manual and system notifications.
-- `LichSuImport`, `LichSuImportChiTiet`: import history and row errors.
+- `LichSuImport`: import history summary.
 - `NhatKyHeThong`: important user actions.
 
 ### Required Constraints

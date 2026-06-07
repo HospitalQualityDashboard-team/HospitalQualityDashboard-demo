@@ -145,3 +145,16 @@ Các quy tắc logic bắt buộc hệ thống phải tuân thủ nghiêm ngặt
    - Các chỉ số `Tỷ số` phải được phân biệt đơn vị cụ thể như `bác sĩ/giường bệnh`, `điều dưỡng/giường bệnh`, `bác sĩ/điều dưỡng`, `dược sĩ/giường bệnh`, `nhân viên dinh dưỡng/giường bệnh` hoặc `bác sĩ có chứng chỉ/phẫu thuật viên`.
    - Các chỉ số thời gian phải dùng đúng đơn vị `giờ`, `phút` hoặc `ngày` tùy tên chỉ số.
    - Các chỉ số số lượng phải dùng đúng đơn vị nghiệp vụ như `người`, `báo cáo`, `ca`, `lượt`, `buồng`, `điểm tiếp nối`, `cầu thang`; riêng `Vi tính hóa quản lý trang thiết bị y tế khối nội` dùng `mức độ`.
+8. **Quy tắc tạo lịch kỳ báo cáo tự động (Reporting Period Schedule Rule)**:
+   - Admin được tạo hàng loạt kỳ báo cáo theo năm bằng chức năng **Tạo lịch tự động**.
+   - Hệ thống phải có bước preview trước khi tạo, hiển thị rõ kỳ **Sẽ tạo mới** và kỳ **Đã tồn tại**.
+   - Hệ thống hỗ trợ tạo tự động cho `HangNgay`, `HangThang`, `HangQuy`, `SauThang`, `ChinThang`, `HangNam`.
+   - Hệ thống không tạo tự động cho `KhiPhatSinh` và `TruocSauKhiThucHien` vì đây là kỳ phụ thuộc sự kiện.
+   - Kỳ có `DenNgay` nhỏ hơn ngày hiện tại phải bị bỏ qua khi preview và khi tạo mới.
+   - Kỳ có `TuNgay` nhỏ hơn hoặc bằng ngày hiện tại phải được tạo hoặc chuyển sang trạng thái `Mo`.
+   - Kỳ có `TuNgay` lớn hơn ngày hiện tại phải được tạo ở trạng thái `Nhap`.
+   - Hạn nộp của kỳ tự động bằng ngày kết thúc kỳ, hiểu là 23:59 của ngày đó.
+   - Báo cáo chỉ bị đánh `QuaHan` khi ngày gửi lớn hơn `HanNop`; gửi trong đúng ngày hạn nộp vẫn đúng hạn.
+   - Hệ thống phải chống trùng kỳ theo `LoaiKyBaoCao + TuNgay + DenNgay`.
+   - Tạo lịch kỳ báo cáo không được tạo trước bản ghi `BaoCao` hoặc `BaoCaoChiTiet` rỗng.
+   - User chỉ thấy kỳ `Mo` có loại kỳ khớp với tần suất của chỉ số đang được phân công cho khoa/phòng mình.

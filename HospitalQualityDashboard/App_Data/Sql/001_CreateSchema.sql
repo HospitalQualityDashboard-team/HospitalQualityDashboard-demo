@@ -1,3 +1,30 @@
+
+SET NOCOUNT ON;
+
+-- TanSuatBaoCao:
+-- 1 = Hàng Ngày
+-- 2 = Tuần / Hàng tuần
+-- 3 = Hàng Tháng
+-- 4 = 3 Tháng / Quý / Hàng quý
+-- 5 = 6 Tháng
+-- 6 = 12 tháng / Hàng năm / 1 lần/năm
+-- 7 = Khi có xảy ra phản ứng có hại / Khi phát sinh / Thường xuyên
+-- 8 = Trước/sau khi thực hiện
+-- 9 = 9 Tháng
+--
+-- TrangThaiKyBaoCao:
+-- 1 = Nháp / chưa mở cho nhập liệu
+-- 2 = Mở / đang cho khoa phòng ghi số
+-- 3 = Khóa / đã khóa kỳ báo cáo
+--
+-- TrangThaiBaoCao (trạng thái ghi số):
+-- 1 = Nháp / khoa phòng đang ghi số
+-- 2 = Đã gửi / đã nộp đúng hạn
+-- 3 = Quá hạn / đã nộp sau hạn
+-- 4 = Đã khóa / admin đã chốt báo cáo
+-- 5 = Đã duyệt / dự phòng nếu bật quy trình duyệt
+-- 6 = Trả lại / dự phòng nếu bật quy trình duyệt
+
 CREATE TABLE dbo.KhoaPhong (
     KhoaPhongId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_KhoaPhong PRIMARY KEY,
     IdKhoaPhongNguon INT NOT NULL,
@@ -59,14 +86,18 @@ CREATE TABLE dbo.ChiSoChatLuong (
     MauSoMoTa NVARCHAR(MAX) NULL,
     NguonSoLieu NVARCHAR(MAX) NULL,
     ThuThapTongHop NVARCHAR(MAX) NULL,
+    KhoaPhongThuThapId INT NULL,
+    KhoaPhongTongHopId INT NULL,
     GiaTriSoLieu NVARCHAR(MAX) NULL,
-    TanSuatBaoCao TINYINT NOT NULL,
     LoaiCongThuc TINYINT NOT NULL,
     DonViTinh NVARCHAR(100) NULL,
     DangHoatDong BIT NOT NULL CONSTRAINT DF_ChiSoChatLuong_DangHoatDong DEFAULT (1),
     NgayTao DATETIME NOT NULL CONSTRAINT DF_ChiSoChatLuong_NgayTao DEFAULT (GETDATE()),
     NgayCapNhat DATETIME NULL,
-    CONSTRAINT UQ_ChiSoChatLuong_MaChiSo UNIQUE (MaChiSo)
+    CONSTRAINT UQ_ChiSoChatLuong_MaChiSo UNIQUE (MaChiSo),
+    CONSTRAINT CK_ChiSoChatLuong_LoaiCongThuc CHECK (LoaiCongThuc IN (1, 2, 3, 4, 5, 6)),
+    CONSTRAINT FK_ChiSo_KhoaPhongThuThap FOREIGN KEY (KhoaPhongThuThapId) REFERENCES dbo.KhoaPhong(KhoaPhongId),
+    CONSTRAINT FK_ChiSo_KhoaPhongTongHop FOREIGN KEY (KhoaPhongTongHopId) REFERENCES dbo.KhoaPhong(KhoaPhongId)
 );
 
 CREATE TABLE dbo.ChiSoMucTieu (
@@ -77,7 +108,9 @@ CREATE TABLE dbo.ChiSoMucTieu (
     GiaTriMucTieu DECIMAL(18,4) NULL,
     MoTaMucTieu NVARCHAR(500) NULL,
     CONSTRAINT FK_ChiSoMucTieu_ChiSoChatLuong FOREIGN KEY (ChiSoChatLuongId) REFERENCES dbo.ChiSoChatLuong(ChiSoChatLuongId),
-    CONSTRAINT UQ_ChiSoMucTieu_ChiSo_Nam UNIQUE (ChiSoChatLuongId, Nam)
+    CONSTRAINT UQ_ChiSoMucTieu_ChiSo_Nam UNIQUE (ChiSoChatLuongId, Nam),
+    CONSTRAINT CK_ChiSoMucTieu_Nam CHECK (Nam BETWEEN 2000 AND 2100),
+    CONSTRAINT CK_ChiSoMucTieu_ToanTu CHECK (ToanTuSoSanh IN (N'>', N'>=', N'<', N'<=', N'=', N'=='))
 );
 
 CREATE TABLE dbo.ChiSoTanSuatBaoCao (
@@ -85,7 +118,8 @@ CREATE TABLE dbo.ChiSoTanSuatBaoCao (
     ChiSoChatLuongId INT NOT NULL,
     TanSuatBaoCao TINYINT NOT NULL,
     CONSTRAINT FK_ChiSoTanSuatBaoCao_ChiSo FOREIGN KEY (ChiSoChatLuongId) REFERENCES dbo.ChiSoChatLuong(ChiSoChatLuongId),
-    CONSTRAINT UQ_ChiSoTanSuatBaoCao UNIQUE (ChiSoChatLuongId, TanSuatBaoCao)
+    CONSTRAINT UQ_ChiSoTanSuatBaoCao UNIQUE (ChiSoChatLuongId, TanSuatBaoCao),
+    CONSTRAINT CK_ChiSoTanSuatBaoCao_TanSuat CHECK (TanSuatBaoCao IN (1, 2, 3, 4, 5, 6, 7, 8, 9))
 );
 
 CREATE TABLE dbo.PhanCongChiSo (
@@ -114,8 +148,10 @@ CREATE TABLE dbo.KyBaoCao (
     TrangThai TINYINT NOT NULL,
     NgayTao DATETIME NOT NULL CONSTRAINT DF_KyBaoCao_NgayTao DEFAULT (GETDATE()),
     NgayCapNhat DATETIME NULL,
+    CONSTRAINT CK_KyBaoCao_LoaiKyBaoCao CHECK (LoaiKyBaoCao IN (1, 2, 3, 4, 5, 6, 7, 8, 9)),
     CONSTRAINT CK_KyBaoCao_DateRange CHECK (TuNgay <= DenNgay AND HanNop >= DenNgay),
-    CONSTRAINT CK_KyBaoCao_TrangThai CHECK (TrangThai IN (1, 2, 3))
+    CONSTRAINT CK_KyBaoCao_TrangThai CHECK (TrangThai IN (1, 2, 3)),
+    CONSTRAINT UQ_KyBaoCao_Loai_TuNgay_DenNgay UNIQUE (LoaiKyBaoCao, TuNgay, DenNgay)
 );
 
 CREATE TABLE dbo.BaoCao (
@@ -128,6 +164,7 @@ CREATE TABLE dbo.BaoCao (
     NguoiTaoId INT NOT NULL,
     NguoiGuiId INT NULL,
     NgayGui DATETIME NULL,
+    YKienPhanHoi NVARCHAR(MAX) NULL,
     NgayTao DATETIME NOT NULL CONSTRAINT DF_BaoCao_NgayTao DEFAULT (GETDATE()),
     NgayCapNhat DATETIME NULL,
     CONSTRAINT FK_BaoCao_KyBaoCao FOREIGN KEY (KyBaoCaoId) REFERENCES dbo.KyBaoCao(KyBaoCaoId),
@@ -137,7 +174,7 @@ CREATE TABLE dbo.BaoCao (
     CONSTRAINT FK_BaoCao_NguoiTao FOREIGN KEY (NguoiTaoId) REFERENCES dbo.TaiKhoan(TaiKhoanId),
     CONSTRAINT FK_BaoCao_NguoiGui FOREIGN KEY (NguoiGuiId) REFERENCES dbo.TaiKhoan(TaiKhoanId),
     CONSTRAINT UQ_BaoCao_Ky_Khoa_ChiSo UNIQUE (KyBaoCaoId, KhoaPhongId, ChiSoChatLuongId),
-    CONSTRAINT CK_BaoCao_TrangThai CHECK (TrangThai IN (1, 2, 3, 4))
+    CONSTRAINT CK_BaoCao_TrangThai CHECK (TrangThai IN (1, 2, 3, 4, 5, 6))
 );
 
 CREATE TABLE dbo.BaoCaoChiTiet (
@@ -166,7 +203,8 @@ CREATE TABLE dbo.ThongBao (
     NgayTao DATETIME NOT NULL CONSTRAINT DF_ThongBao_NgayTao DEFAULT (GETDATE()),
     CONSTRAINT FK_ThongBao_KyBaoCao FOREIGN KEY (KyBaoCaoId) REFERENCES dbo.KyBaoCao(KyBaoCaoId),
     CONSTRAINT FK_ThongBao_BaoCao FOREIGN KEY (BaoCaoId) REFERENCES dbo.BaoCao(BaoCaoId),
-    CONSTRAINT FK_ThongBao_NguoiTao FOREIGN KEY (NguoiTaoId) REFERENCES dbo.TaiKhoan(TaiKhoanId)
+    CONSTRAINT FK_ThongBao_NguoiTao FOREIGN KEY (NguoiTaoId) REFERENCES dbo.TaiKhoan(TaiKhoanId),
+    CONSTRAINT CK_ThongBao_LoaiThongBao CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6))
 );
 
 CREATE TABLE dbo.ThongBaoNguoiNhan (
@@ -190,7 +228,8 @@ CREATE TABLE dbo.ThongBaoTuDongLog (
     NgayTao DATETIME NOT NULL CONSTRAINT DF_ThongBaoTuDongLog_NgayTao DEFAULT (GETDATE()),
     CONSTRAINT UQ_ThongBaoTuDongLog_DedupKey UNIQUE (DedupKey),
     CONSTRAINT FK_ThongBaoTuDongLog_KyBaoCao FOREIGN KEY (KyBaoCaoId) REFERENCES dbo.KyBaoCao(KyBaoCaoId),
-    CONSTRAINT FK_ThongBaoTuDongLog_KhoaPhong FOREIGN KEY (KhoaPhongId) REFERENCES dbo.KhoaPhong(KhoaPhongId)
+    CONSTRAINT FK_ThongBaoTuDongLog_KhoaPhong FOREIGN KEY (KhoaPhongId) REFERENCES dbo.KhoaPhong(KhoaPhongId),
+    CONSTRAINT CK_ThongBaoTuDongLog_LoaiThongBao CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6))
 );
 
 CREATE TABLE dbo.LichSuImport (
@@ -202,18 +241,9 @@ CREATE TABLE dbo.LichSuImport (
     SoDongLoi INT NOT NULL,
     NguoiImportId INT NOT NULL,
     NgayImport DATETIME NOT NULL CONSTRAINT DF_LichSuImport_NgayImport DEFAULT (GETDATE()),
-    CONSTRAINT FK_LichSuImport_NguoiImport FOREIGN KEY (NguoiImportId) REFERENCES dbo.TaiKhoan(TaiKhoanId)
-);
-
-CREATE TABLE dbo.LichSuImportChiTiet (
-    LichSuImportChiTietId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_LichSuImportChiTiet PRIMARY KEY,
-    LichSuImportId INT NOT NULL,
-    SoDong INT NOT NULL,
-    KhoaDuLieu NVARCHAR(255) NULL,
-    HanhDong NVARCHAR(50) NULL,
-    ThanhCong BIT NOT NULL,
-    ThongBaoLoi NVARCHAR(1000) NULL,
-    CONSTRAINT FK_LichSuImportChiTiet_LichSuImport FOREIGN KEY (LichSuImportId) REFERENCES dbo.LichSuImport(LichSuImportId)
+    CONSTRAINT FK_LichSuImport_NguoiImport FOREIGN KEY (NguoiImportId) REFERENCES dbo.TaiKhoan(TaiKhoanId),
+    CONSTRAINT CK_LichSuImport_LoaiImport CHECK (LoaiImport IN (1, 2, 3)),
+    CONSTRAINT CK_LichSuImport_SoDong CHECK (TongSoDong >= 0 AND SoDongThanhCong >= 0 AND SoDongLoi >= 0)
 );
 
 CREATE TABLE dbo.NhatKyHeThong (
@@ -229,11 +259,49 @@ CREATE TABLE dbo.NhatKyHeThong (
 );
 
 CREATE INDEX IX_KhoaPhong_TenKhoaPhong ON dbo.KhoaPhong(TenKhoaPhong);
+CREATE INDEX IX_KhoaPhong_Used ON dbo.KhoaPhong(Used, TenKhoaPhong);
+
 CREATE INDEX IX_NhanVien_KhoaPhongId ON dbo.NhanVien(KhoaPhongId);
+CREATE INDEX IX_NhanVien_HoTen ON dbo.NhanVien(HoTen);
+
 CREATE INDEX IX_TaiKhoan_KhoaPhongId ON dbo.TaiKhoan(KhoaPhongId);
-CREATE INDEX IX_PhanCongChiSo_KhoaPhongId ON dbo.PhanCongChiSo(KhoaPhongId);
-CREATE INDEX IX_ChiSoTanSuatBaoCao_ChiSoChatLuongId ON dbo.ChiSoTanSuatBaoCao(ChiSoChatLuongId);
+CREATE INDEX IX_TaiKhoan_NhanVienId ON dbo.TaiKhoan(NhanVienId);
+CREATE INDEX IX_TaiKhoan_Loai_Active ON dbo.TaiKhoan(LoaiTaiKhoan, DangHoatDong, KhoaPhongId);
+
+CREATE INDEX IX_ChiSoChatLuong_Active_Order ON dbo.ChiSoChatLuong(DangHoatDong, SoThuTu, MaChiSo);
+CREATE INDEX IX_ChiSoChatLuong_KhoaPhongThuThap ON dbo.ChiSoChatLuong(KhoaPhongThuThapId);
+CREATE INDEX IX_ChiSoChatLuong_KhoaPhongTongHop ON dbo.ChiSoChatLuong(KhoaPhongTongHopId);
+
+CREATE INDEX IX_ChiSoTanSuatBaoCao_TanSuat_ChiSo ON dbo.ChiSoTanSuatBaoCao(TanSuatBaoCao, ChiSoChatLuongId);
+
+CREATE INDEX IX_PhanCongChiSo_KhoaPhong_Active ON dbo.PhanCongChiSo(KhoaPhongId, DangHoatDong, ChiSoChatLuongId);
 CREATE INDEX IX_PhanCongChiSo_ChiSoChatLuongId ON dbo.PhanCongChiSo(ChiSoChatLuongId);
+CREATE INDEX IX_PhanCongChiSo_NguoiTaoId ON dbo.PhanCongChiSo(NguoiTaoId);
+
+CREATE INDEX IX_KyBaoCao_TrangThai_Loai_HanNop ON dbo.KyBaoCao(TrangThai, LoaiKyBaoCao, HanNop);
+CREATE INDEX IX_KyBaoCao_TuNgay ON dbo.KyBaoCao(TuNgay DESC);
+
 CREATE INDEX IX_BaoCao_KyBaoCaoId ON dbo.BaoCao(KyBaoCaoId);
-CREATE INDEX IX_BaoCao_KhoaPhongId ON dbo.BaoCao(KhoaPhongId);
+CREATE INDEX IX_BaoCao_KhoaPhong_TrangThai ON dbo.BaoCao(KhoaPhongId, TrangThai);
 CREATE INDEX IX_BaoCao_ChiSoChatLuongId ON dbo.BaoCao(ChiSoChatLuongId);
+CREATE INDEX IX_BaoCao_PhanCongChiSoId ON dbo.BaoCao(PhanCongChiSoId);
+CREATE INDEX IX_BaoCao_TrangThai ON dbo.BaoCao(TrangThai);
+
+CREATE INDEX IX_ThongBao_NgayTao ON dbo.ThongBao(NgayTao DESC);
+CREATE INDEX IX_ThongBao_KyBaoCaoId ON dbo.ThongBao(KyBaoCaoId);
+CREATE INDEX IX_ThongBao_BaoCaoId ON dbo.ThongBao(BaoCaoId);
+
+CREATE INDEX IX_ThongBaoNguoiNhan_TaiKhoan_DaDoc ON dbo.ThongBaoNguoiNhan(TaiKhoanId, DaDoc);
+
+CREATE INDEX IX_ThongBaoTuDongLog_Ky_Khoa ON dbo.ThongBaoTuDongLog(KyBaoCaoId, KhoaPhongId);
+CREATE INDEX IX_LichSuImport_NguoiImportId ON dbo.LichSuImport(NguoiImportId);
+CREATE INDEX IX_NhatKyHeThong_TaiKhoan_ThoiGian ON dbo.NhatKyHeThong(TaiKhoanId, ThoiGian DESC);
+CREATE INDEX IX_NhatKyHeThong_DoiTuong ON dbo.NhatKyHeThong(DoiTuong, DoiTuongId);
+
+INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, LoaiTaiKhoan, DangHoatDong)
+VALUES(
+    N'admin',
+    N'10000:AQIDBAUGBwgJCgsMDQ4PEA==:rJPsxUC5qMZAY/awUbhVdQPeOX+4Z12BD7E/F7/y5pA=',
+    1,
+    1
+);

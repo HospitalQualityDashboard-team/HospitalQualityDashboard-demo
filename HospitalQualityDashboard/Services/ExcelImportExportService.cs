@@ -1,3 +1,4 @@
+// Mục đích: đọc Excel/CSV import và tạo file export theo định dạng an toàn.
 using System;
 using System.Collections.Generic;
 using System.Globalization;

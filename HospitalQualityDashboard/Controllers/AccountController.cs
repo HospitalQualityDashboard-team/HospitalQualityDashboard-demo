@@ -1,3 +1,4 @@
+// Mục đích: xử lý đăng nhập, đăng xuất, hồ sơ và đổi mật khẩu người dùng.
 using System.Web.Mvc;
 using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Models.ViewModels;
@@ -100,7 +101,7 @@ namespace HospitalQualityDashboard.Controllers
                 return RedirectToAction("UserLogin");
             }
 
-            return View(new ChangePasswordViewModel());
+            return RedirectToAction("Profile");
         }
 
         [HttpPost]
@@ -125,7 +126,66 @@ namespace HospitalQualityDashboard.Controllers
             }
 
             TempData["SuccessMessage"] = "Doi mat khau thanh cong.";
-            return RedirectToAction("ChangePassword");
+            return RedirectToAction("Profile");
+        }
+
+        [HttpGet]
+        public new ActionResult Profile()
+        {
+            if (!SessionUserAccessor.IsAuthenticated(Session))
+            {
+                return RedirectToAction("UserLogin");
+            }
+
+            var taiKhoanId = SessionUserAccessor.GetInt(Session, SessionUserAccessor.TaiKhoanIdKey).Value;
+            var model = _authService.GetUserProfile(taiKhoanId);
+            if (model == null)
+            {
+                SessionUserAccessor.ClearLoginSession(Session);
+                return RedirectToAction("UserLogin");
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public new ActionResult Profile(UserProfileViewModel model)
+        {
+            if (!SessionUserAccessor.IsAuthenticated(Session))
+            {
+                return RedirectToAction("UserLogin");
+            }
+
+            var taiKhoanId = SessionUserAccessor.GetInt(Session, SessionUserAccessor.TaiKhoanIdKey).Value;
+            var profile = _authService.GetUserProfile(taiKhoanId);
+            if (profile == null)
+            {
+                SessionUserAccessor.ClearLoginSession(Session);
+                return RedirectToAction("UserLogin");
+            }
+
+            if (model == null || model.ChangePassword == null)
+            {
+                ModelState.AddModelError("", "Vui lòng nhập thông tin đổi mật khẩu.");
+                return View(profile);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                profile.ChangePassword = model.ChangePassword;
+                return View(profile);
+            }
+
+            if (!_authService.ChangePassword(taiKhoanId, model.ChangePassword.MatKhauCu, model.ChangePassword.MatKhauMoi))
+            {
+                ModelState.AddModelError("", "Mật khẩu hiện tại không đúng.");
+                profile.ChangePassword = model.ChangePassword;
+                return View(profile);
+            }
+
+            TempData["SuccessMessage"] = "Đổi mật khẩu thành công.";
+            return RedirectToAction("Profile");
         }
     }
 }

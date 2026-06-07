@@ -1,3 +1,4 @@
+// Mục đích: chứa các service quản trị danh mục, nhân viên, chỉ số và phân công.
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -171,10 +172,13 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
         }
     }
 
+    // Service quản lý nhân viên, tài khoản liên kết và import nhân viên.
     public class EmployeeService : DbServiceBase
     {
+        // Service đọc file Excel/CSV import.
         private readonly ExcelImportExportService _excel = new ExcelImportExportService();
 
+        // Lấy danh sách nhân viên, có thể lọc theo khoa/phòng.
         public IList<NhanVienViewModel> GetAll(int? khoaPhongId)
         {
             const string sql = @"
@@ -189,9 +193,11 @@ FROM dbo.NhanVien nv
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = nv.KhoaPhongId
 WHERE (@KhoaPhongId IS NULL OR nv.KhoaPhongId = @KhoaPhongId)
 ORDER BY kp.TenKhoaPhong, nv.HoTen";
+            // Map từng dòng SQL thành NhanVienViewModel cho màn hình danh sách.
             return Query(sql, MapEmployee, Param("@KhoaPhongId", khoaPhongId));
         }
 
+        // Lấy một nhân viên theo id để hiển thị form sửa hoặc tạo tài khoản.
         public NhanVienViewModel Get(int id)
         {
             const string sql = @"
@@ -205,25 +211,30 @@ SELECT nv.NhanVienId, nv.MaNhanVien, nv.HoTen, nv.NgaySinh, nv.GioiTinh, nv.Chuc
 FROM dbo.NhanVien nv
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = nv.KhoaPhongId
 WHERE nv.NhanVienId = @Id";
+            // QuerySingle trả về duy nhất một nhân viên.
             return QuerySingle(sql, MapEmployee, Param("@Id", id));
         }
 
+        // Lưu thông tin nhân viên: thêm mới nếu id = 0, ngược lại thì cập nhật.
         public void Save(NhanVienViewModel model)
         {
             if (model.NhanVienId == 0)
             {
+                // NhanVienId = 0 nghĩa là thêm nhân viên mới.
                 Execute(@"INSERT INTO dbo.NhanVien(MaNhanVien, HoTen, NgaySinh, GioiTinh, ChucVu, Email, SoDienThoai, KhoaPhongId, DangHoatDong)
 VALUES(@MaNhanVien, @HoTen, @NgaySinh, @GioiTinh, @ChucVu, @Email, @SoDienThoai, @KhoaPhongId, @DangHoatDong)",
                     EmployeeParams(model));
                 return;
             }
 
+            // Đã có NhanVienId thì cập nhật thông tin nhân viên hiện tại.
             var parameters = EmployeeParams(model).Concat(new[] { Param("@NhanVienId", model.NhanVienId) }).ToArray();
             Execute(@"UPDATE dbo.NhanVien SET MaNhanVien=@MaNhanVien, HoTen=@HoTen, NgaySinh=@NgaySinh, GioiTinh=@GioiTinh,
 ChucVu=@ChucVu, Email=@Email, SoDienThoai=@SoDienThoai, KhoaPhongId=@KhoaPhongId, DangHoatDong=@DangHoatDong, NgayCapNhat=GETDATE()
 WHERE NhanVienId=@NhanVienId", parameters);
         }
 
+        // Khóa/mở khóa nhân viên và tài khoản đăng nhập liên quan.
         public void SetActive(int id, bool active)
         {
             Execute(@"
@@ -236,20 +247,24 @@ WHERE tk.NhanVienId = nv.NhanVienId OR tk.TenDangNhap = nv.MaNhanVien;",
                 Param("@Id", id));
         }
 
+        // Xóa nhân viên nếu nhân viên chưa có tài khoản.
         public void Delete(int id)
         {
             var accountCount = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.TaiKhoan WHERE NhanVienId=@Id", Param("@Id", id)));
             if (accountCount > 0)
             {
+                // Đã có tài khoản thì không xóa cứng, chỉ nên khóa.
                 throw new InvalidOperationException("Nhan vien da co tai khoan, vui long khoa thay vi xoa.");
             }
 
             Execute("DELETE FROM dbo.NhanVien WHERE NhanVienId=@Id", Param("@Id", id));
         }
 
+        // Tạo tài khoản User cho nhân viên.
         public void CreateUserAccount(CreateUserAccountViewModel model)
         {
             var employee = Get(model.NhanVienId);
+            // Lưu mật khẩu đã hash, không lưu mật khẩu gốc.
             Execute(@"INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, LoaiTaiKhoan, NhanVienId, KhoaPhongId, DangHoatDong)
 VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)",
                 Param("@TenDangNhap", model.TenDangNhap),
@@ -259,28 +274,34 @@ VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)"
                 Param("@KhoaPhongId", employee.KhoaPhongId));
         }
 
+        // Kiểm tra tên đăng nhập đã tồn tại chưa.
         public bool IsUsernameExists(string username)
         {
             var count = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.TaiKhoan WHERE TenDangNhap = @TenDangNhap", Param("@TenDangNhap", username)));
             return count > 0;
         }
 
+        // Kiểm tra nhân viên đã có tài khoản chưa.
         public bool HasAccount(int nhanVienId)
         {
             var count = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.TaiKhoan WHERE NhanVienId = @NhanVienId", Param("@NhanVienId", nhanVienId)));
             return count > 0;
         }
 
+        // Import nhân viên từ file, dòng hợp lệ sẽ được thêm/cập nhật.
         public ImportResultViewModel Import(HttpPostedFileBase file, int? selectedKhoaPhongId, int userId)
         {
             var rows = _excel.ReadWorksheet(file);
             var result = new ImportResultViewModel { TongSoDong = rows.Count };
             for (var i = 0; i < rows.Count; i++)
             {
+                // Excel có dòng tiêu đề, nên dòng dữ liệu đầu tiên là dòng số 2.
                 var row = rows[i];
                 var rowNumber = i + 2;
                 string value;
                 var model = new NhanVienViewModel { DangHoatDong = true };
+
+                // Đọc các cột có trong file vào view model.
                 if (row.TryGetValue("MaNhanVien", out value)) model.MaNhanVien = value;
                 if (row.TryGetValue("HoTen", out value)) model.HoTen = value;
                 if (row.TryGetValue("GioiTinh", out value)) model.GioiTinh = value;
@@ -290,6 +311,7 @@ VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)"
 
                 if (string.IsNullOrWhiteSpace(model.MaNhanVien) || string.IsNullOrWhiteSpace(model.HoTen))
                 {
+                    // Mã nhân viên và họ tên là dữ liệu bắt buộc.
                     result.Errors.Add("Dong " + rowNumber + ": MaNhanVien va HoTen la bat buoc.");
                     result.SoDongLoi++;
                     continue;
@@ -297,10 +319,12 @@ VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)"
 
                 if (selectedKhoaPhongId.HasValue)
                 {
+                    // Nếu đang lọc theo khoa/phòng thì import vào khoa/phòng đó.
                     model.KhoaPhongId = selectedKhoaPhongId.Value;
                 }
                 else
                 {
+                    // Import toàn viện cần cột IDKHOAPHONG để tìm khoa/phòng.
                     string sourceIdText;
                     int sourceId;
                     if (!row.TryGetValue("IDKHOAPHONG", out sourceIdText) || !int.TryParse(sourceIdText, out sourceId))
@@ -313,6 +337,7 @@ VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)"
                     var khoaPhongId = Scalar("SELECT KhoaPhongId FROM dbo.KhoaPhong WHERE IdKhoaPhongNguon = @SourceId", Param("@SourceId", sourceId));
                     if (khoaPhongId == null)
                     {
+                        // Bỏ qua dòng nếu khoa/phòng trong file không có trong hệ thống.
                         result.Errors.Add("Dong " + rowNumber + ": khoa/phong khong ton tai.");
                         result.SoDongLoi++;
                         continue;
@@ -336,12 +361,14 @@ END", EmployeeParams(model));
 
                 int employeeId = Convert.ToInt32(nvId);
 
+                // Sau khi import nhân viên, tạo tài khoản mặc định nếu chưa có.
                 var hasAccount = Scalar("SELECT 1 FROM dbo.TaiKhoan WHERE NhanVienId=@EmployeeId OR TenDangNhap=@TenDangNhap",
                     Param("@EmployeeId", employeeId),
                     Param("@TenDangNhap", model.MaNhanVien));
 
                 if (hasAccount == null)
                 {
+                    // Mật khẩu mặc định bằng mã nhân viên và được hash trước khi lưu.
                     Execute(@"INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, LoaiTaiKhoan, NhanVienId, KhoaPhongId, DangHoatDong)
 VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)",
                         Param("@TenDangNhap", model.MaNhanVien),
@@ -354,6 +381,7 @@ VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)"
                 result.SoDongThanhCong++;
             }
 
+            // Ghi lịch sử import để truy vết người import và kết quả.
             Execute(@"INSERT INTO dbo.LichSuImport(LoaiImport, TenFile, TongSoDong, SoDongThanhCong, SoDongLoi, NguoiImportId)
 VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiImportId)",
                 Param("@LoaiImport", (byte)LoaiImport.NhanVien),
@@ -366,8 +394,10 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
             return result;
         }
 
+        // Chuyển view model thành danh sách tham số SQL.
         private static SqlParameter[] EmployeeParams(NhanVienViewModel model)
         {
+            // Gom dữ liệu trên form thành tham số SQL, tránh nối chuỗi câu lệnh.
             return new[]
             {
                 Param("@MaNhanVien", model.MaNhanVien),
@@ -382,6 +412,7 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
             };
         }
 
+        // Chuyển một dòng SqlDataReader thành view model nhân viên.
         private static NhanVienViewModel MapEmployee(SqlDataReader reader)
         {
             return new NhanVienViewModel

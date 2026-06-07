@@ -830,3 +830,203 @@ Nếu hệ thống không tự suy luận đơn vị, nhiều chỉ số sau imp
 - Các chỉ số thời gian dùng đúng `giờ`, `phút`, `ngày`.
 - Các chỉ số số lượng dùng đúng `người`, `báo cáo`, `ca`, `lượt`, `buồng`, `điểm tiếp nối`, `cầu thang`.
 - Dữ liệu đã import trước khi cập nhật cần import lại hoặc cập nhật bổ sung để được điền `DonViTinh`.
+
+## 26. Cập Nhật Nghiệp Vụ Tạo Lịch Kỳ Báo Cáo Tự Động (Ngày 30/05/2026)
+
+### 26.1. Lý do bổ sung chức năng
+
+Trước đây Admin có thể tạo kỳ báo cáo thủ công, ví dụ tạo một kỳ tháng, một kỳ quý hoặc một kỳ năm. Cách này phù hợp khi số kỳ ít, nhưng không thuận tiện khi bệnh viện cần vận hành báo cáo xuyên suốt cả năm với nhiều tần suất khác nhau.
+
+Chức năng **Tạo lịch tự động** được bổ sung để Admin có thể tạo hàng loạt kỳ báo cáo theo năm. Hệ thống hỗ trợ tạo lịch trước, tự mở kỳ đúng ngày bắt đầu và vẫn đảm bảo User chỉ nhìn thấy kỳ phù hợp với trách nhiệm báo cáo của khoa/phòng mình.
+
+Mô hình được chọn là:
+
+```text
+Admin tạo lịch hàng loạt -> Hệ thống tự mở kỳ khi tới ngày -> User nhập/gửi báo cáo khi có kỳ Mở phù hợp.
+```
+
+Không chọn mô hình tự sinh toàn bộ báo cáo rỗng cho User vì dễ tạo dữ liệu dư, khó xử lý khi phân công chỉ số thay đổi và làm tăng số dòng trong database không cần thiết.
+
+### 26.2. Đối tượng sử dụng
+
+| Vai trò | Quyền trong chức năng |
+|---|---|
+| Admin | Tạo lịch tự động, xem preview, tạo các kỳ chưa tồn tại, xem toàn bộ kỳ. |
+| User | Không tạo lịch, chỉ thấy kỳ đang Mở và khớp tần suất chỉ số được phân công. |
+
+### 26.3. Luồng nghiệp vụ Admin
+
+1. Admin đăng nhập hệ thống.
+2. Admin vào menu **Kỳ báo cáo**.
+3. Admin bấm nút **Tạo lịch tự động**.
+4. Admin nhập năm cần tạo lịch, ví dụ `2026`.
+5. Admin chọn một hoặc nhiều loại kỳ báo cáo.
+6. Admin bấm **Xem trước**.
+7. Hệ thống hiển thị danh sách kỳ dự kiến, gồm tên kỳ, loại kỳ, ngày mở, ngày đóng, hạn nộp, trạng thái dự kiến và kết quả kiểm tra trùng.
+8. Admin kiểm tra các kỳ **Sẽ tạo mới** và **Đã tồn tại**.
+9. Admin bấm **Tạo các kỳ chưa tồn tại**.
+10. Hệ thống lưu các kỳ mới, bỏ qua kỳ đã tồn tại và quay về danh sách kỳ báo cáo.
+
+### 26.4. Loại kỳ được tạo tự động
+
+| Loại kỳ | Số kỳ dự kiến trong năm đầy đủ | Cách đặt tên | Khoảng thời gian |
+|---|---:|---|---|
+| Hàng ngày | 365 hoặc 366 | Ngày dd/MM/yyyy | Từ 00:00 đến 23:59 cùng ngày. |
+| Hàng tháng | 12 | Tháng MM/yyyy | Từ ngày đầu tháng đến ngày cuối tháng. |
+| Hàng quý | 4 | Quý I/yyyy, Quý II/yyyy... | Từ ngày đầu quý đến ngày cuối quý. |
+| 6 tháng | 2 | 6 tháng đầu năm yyyy, 6 tháng cuối năm yyyy | 01/01-30/06 và 01/07-31/12. |
+| 9 tháng | 1 | 9 tháng năm yyyy | 01/01-30/09. |
+| Hàng năm | 1 | Năm yyyy | 01/01-31/12. |
+
+Không tạo tự động cho **Khi phát sinh** và **Trước/sau khi thực hiện** vì hai loại này phụ thuộc sự kiện nghiệp vụ thực tế, không phù hợp để tạo sẵn theo lịch năm.
+
+### 26.5. Quy tắc ngày giờ mở, đóng và hạn nộp
+
+Hệ thống thống nhất cách hiểu như sau:
+
+```text
+Ngày bắt đầu kỳ = mở lúc 00:00.
+Ngày kết thúc kỳ = đóng lúc 23:59.
+Hạn nộp = 23:59 của ngày kết thúc kỳ.
+```
+
+Ví dụ chi tiết:
+
+| Trường hợp | Mở kỳ | Đóng kỳ | Hạn nộp cuối cùng |
+|---|---|---|---|
+| Ngày 30/05/2026 | 30/05/2026 00:00 | 30/05/2026 23:59 | 30/05/2026 23:59 |
+| Tháng 06/2026 | 01/06/2026 00:00 | 30/06/2026 23:59 | 30/06/2026 23:59 |
+| Quý II/2026 | 01/04/2026 00:00 | 30/06/2026 23:59 | 30/06/2026 23:59 |
+| 6 tháng cuối năm 2026 | 01/07/2026 00:00 | 31/12/2026 23:59 | 31/12/2026 23:59 |
+| 9 tháng năm 2026 | 01/01/2026 00:00 | 30/09/2026 23:59 | 30/09/2026 23:59 |
+| Năm 2026 | 01/01/2026 00:00 | 31/12/2026 23:59 | 31/12/2026 23:59 |
+
+Lưu ý kỹ thuật: database hiện lưu ngày, không lưu giờ cho `KyBaoCao.HanNop`. Vì vậy `23:59` là quy ước nghiệp vụ và quy ước hiển thị. Khi User gửi báo cáo trong đúng ngày hạn nộp, báo cáo vẫn được xem là đúng hạn. Báo cáo chỉ bị đánh `QuaHan` khi ngày gửi lớn hơn ngày hạn nộp.
+
+### 26.6. Quy tắc tạo kỳ khi năm đã đi qua một phần
+
+Khi Admin tạo lịch cho năm hiện tại, hệ thống không tạo lại những kỳ đã kết thúc trước ngày hiện tại, vì các kỳ đó không còn giá trị vận hành.
+
+Ví dụ ngày hiện tại là **30/05/2026**:
+
+| Loại kỳ | Kỳ bị bỏ qua | Kỳ còn được preview |
+|---|---|---|
+| Hàng ngày | 01/01/2026 đến 29/05/2026 | Từ 30/05/2026 đến 31/12/2026 |
+| Hàng tháng | Tháng 01, 02, 03, 04/2026 | Tháng 05 đến Tháng 12/2026 |
+| Hàng quý | Quý I/2026 | Quý II, III, IV/2026 |
+| 6 tháng | Không bỏ kỳ 6 tháng đầu nếu ngày hiện tại còn trong kỳ | 6 tháng đầu năm, 6 tháng cuối năm |
+| 9 tháng | Không bỏ nếu ngày hiện tại trước hoặc bằng 30/09/2026 | 9 tháng năm 2026 |
+| Hàng năm | Không bỏ nếu ngày hiện tại trước hoặc bằng 31/12/2026 | Năm 2026 |
+
+Với ví dụ Tháng 05/2026, dù kỳ đã mở từ ngày 01/05/2026, ngày 30/05/2026 vẫn nằm trong kỳ nên kỳ này vẫn được tạo ở trạng thái **Mở** nếu chưa tồn tại.
+
+### 26.7. Quy tắc trạng thái kỳ báo cáo
+
+| Trạng thái code | Hiển thị | Khi nào dùng |
+|---|---|---|
+| `Nhap` | Nhập | Kỳ tương lai, chưa tới ngày bắt đầu. |
+| `Mo` | Mở | Kỳ đã tới ngày bắt đầu, User được nhập và gửi báo cáo. |
+| `Khoa` | Khóa | Kỳ đã khóa, User không tiếp tục nhập/sửa báo cáo. |
+
+Khi tạo lịch:
+
+- Kỳ có `TuNgay <= hôm nay` được tạo là **Mở**.
+- Kỳ có `TuNgay > hôm nay` được tạo là **Nhập**.
+- Kỳ **Nhập** sẽ tự chuyển thành **Mở** khi tới ngày bắt đầu.
+
+Không tự chuyển kỳ sang **Khóa** sau hạn nộp trong giai đoạn này, vì hệ thống vẫn cho User gửi trễ và tự đánh báo cáo là `QuaHan`.
+
+### 26.8. Quy tắc chống trùng kỳ
+
+Một kỳ được xem là trùng nếu có cùng:
+
+```text
+Loại kỳ báo cáo + Từ ngày + Đến ngày
+```
+
+Ví dụ: đã có `HangThang`, `01/06/2026`, `30/06/2026`. Khi tạo lịch tháng năm 2026 lần nữa, dòng Tháng 06/2026 phải hiện **Đã tồn tại** và hệ thống bỏ qua khi tạo.
+
+Không dùng tên kỳ làm khóa chính để tránh lỗi do đổi cách đặt tên hiển thị.
+
+### 26.9. Quy tắc User nhìn thấy kỳ báo cáo
+
+User không nhìn thấy tất cả kỳ đang có trong hệ thống. User chỉ thấy kỳ khi đồng thời thỏa mãn:
+
+- kỳ đang ở trạng thái **Mở**;
+- loại kỳ khớp với tần suất báo cáo của ít nhất một chỉ số được phân công cho khoa/phòng User;
+- phân công chỉ số còn hoạt động;
+- chỉ số còn hoạt động.
+
+Ví dụ: Khoa A chỉ có chỉ số tần suất **Hàng ngày**. Hệ thống đang mở kỳ Hàng ngày, Hàng tháng và Hàng quý. Khoa A chỉ thấy kỳ Hàng ngày, còn Admin vẫn thấy toàn bộ kỳ để quản lý.
+
+### 26.10. Quy tắc không tạo báo cáo rỗng
+
+Khi Admin tạo lịch tự động, hệ thống chỉ thêm dòng vào bảng `KyBaoCao`. Hệ thống không tạo trước các dòng `BaoCao` theo từng `KhoaPhong + ChiSo + KyBaoCao`.
+
+Lý do:
+
+- tránh phình dữ liệu khi có nhiều khoa/phòng và nhiều chỉ số;
+- tránh phải đồng bộ lại nếu Admin thay đổi phân công;
+- tránh tạo các bản ghi nháp không có ý nghĩa nghiệp vụ;
+- đảm bảo báo cáo chỉ tồn tại khi User thật sự lưu nháp hoặc gửi.
+
+Danh sách “còn thiếu báo cáo” trên Dashboard/Thông báo được tính động, không dựa trên báo cáo rỗng.
+
+### 26.11. Tiêu chí nghiệm thu
+
+| STT | Tiêu chí | Kết quả mong đợi |
+|---:|---|---|
+| 1 | Admin tạo lịch hàng ngày | Có các kỳ từ hôm nay trở đi, kỳ hôm nay là Mở. |
+| 2 | Admin tạo lịch hàng tháng ngày 30/05/2026 | Không tạo Tháng 01-04/2026, có Tháng 05-12/2026. |
+| 3 | Admin tạo lịch quý | Sinh đúng các quý còn hiệu lực. |
+| 4 | Admin tạo lịch 6 tháng | Sinh đúng kỳ 6 tháng còn hiệu lực. |
+| 5 | Admin tạo lịch 9 tháng | Sinh kỳ 01/01-30/09 nếu kỳ chưa kết thúc. |
+| 6 | Admin tạo lịch năm | Sinh kỳ 01/01-31/12 nếu kỳ chưa kết thúc. |
+| 7 | Chạy tạo lịch lần hai | Không tạo trùng. |
+| 8 | Kỳ tương lai | Trạng thái Nhập. |
+| 9 | Kỳ tới ngày bắt đầu | Trạng thái Mở. |
+| 10 | User vào Báo cáo | Chỉ thấy kỳ Mở khớp tần suất chỉ số được phân công. |
+| 11 | User gửi trong ngày hạn nộp | Không bị đánh QuaHan. |
+| 12 | User gửi sau ngày hạn nộp | Bị đánh QuaHan. |
+
+### 26.12. Ghi chú vận hành
+
+- Admin nên tạo lịch đầu năm hoặc trước khi bắt đầu triển khai báo cáo chính thức.
+- Nếu triển khai giữa năm, hệ thống bỏ qua các kỳ đã kết thúc để tránh tạo kỳ cũ không còn cần nhập.
+- Nếu bệnh viện muốn nhập bù dữ liệu các tháng cũ, Admin vẫn có thể dùng chức năng tạo kỳ thủ công hoặc chỉnh quy tắc tạo lịch trong tương lai.
+- Hạn nộp mặc định của lịch tự động hiện bằng ngày kết thúc kỳ, hiểu là 23:59 của ngày đó.
+- Khi cần thay đổi chính sách hạn nộp, nên thống nhất lại nghiệp vụ trước vì sẽ ảnh hưởng dashboard, thông báo và trạng thái `QuaHan`.
+
+## 27. Cập Nhật Tài Liệu Và Chú Thích Code (Ngày 06/06/2026)
+
+### 27.1. Mục tiêu cập nhật
+
+Đợt cập nhật này chuẩn hóa tài liệu và chú thích code để người đọc dự án dễ hiểu hơn khi kiểm tra, bảo trì hoặc trình bày báo cáo thực tập.
+
+Các file code tự viết đã có chú thích đầu file bằng tiếng Việt có dấu theo mẫu `Mục đích:`. Chú thích này nêu vai trò chính của từng controller, service, model, filter, Razor view hoặc file cấu hình MVC.
+
+### 27.2. Phạm vi chú thích
+
+Chú thích áp dụng cho:
+
+- controller xử lý luồng nghiệp vụ;
+- service chứa nghiệp vụ và truy cập dữ liệu;
+- entity, enum và view model;
+- filter và cấu hình MVC;
+- Razor view tự viết trong hệ thống.
+
+Không áp dụng cho thư viện bên thứ ba như Bootstrap, jQuery, Modernizr hoặc file minified, vì các file này không thuộc phần nghiệp vụ của dự án.
+
+### 27.3. Kiểm tra session bằng trình duyệt
+
+Khi kiểm thử đăng nhập, người kiểm thử có thể dùng DevTools để kiểm tra session:
+
+1. Mở ứng dụng local, thường là `https://localhost:44387/`.
+2. Nhấn `F12` hoặc `Ctrl + Shift + I`.
+3. Vào tab `Application`.
+4. Chọn `Storage` > `Cookies` > domain local của ứng dụng.
+5. Kiểm tra cookie `ASP.NET_SessionId`.
+
+Cookie này chỉ là mã phiên. Các thông tin nghiệp vụ như `TaiKhoanId`, `LoaiTaiKhoan`, `NhanVienId`, `KhoaPhongId` và `TenKhoaPhong` được lưu ở server-side `Session`, không nằm trong `localStorage` hoặc `sessionStorage`.
+
+Hiện `Web.config` chưa cấu hình timeout session riêng, nên ASP.NET dùng timeout mặc định khoảng 20 phút không hoạt động. Sau khi logout, hệ thống gọi `Session.Clear()` và `Session.Abandon()`, vì vậy truy cập lại trang cần đăng nhập phải quay về màn hình login.

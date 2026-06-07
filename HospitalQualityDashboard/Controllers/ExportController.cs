@@ -1,3 +1,4 @@
+// Mục đích: cung cấp endpoint xuất CSV/Excel cho dữ liệu quản trị và báo cáo.
 using System.Web.Mvc;
 using HospitalQualityDashboard.Services;
 

@@ -2,6 +2,34 @@
 
 Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiết kế và lưu ý vận hành của dự án `HospitalQualityDashboard`.
 
+## 2026-06-06
+
+### 1. Chuẩn hóa chú thích code tiếng Việt
+
+- Bổ sung comment đầu file bằng tiếng Việt có dấu theo mẫu `Mục đích:` cho các file code tự viết.
+- Phạm vi gồm `Controllers`, `Services`, `Models`, `Filters`, `App_Start`, `Global.asax.cs`, `Properties/AssemblyInfo.cs` và Razor view trong `Views`.
+- Không chỉnh thư viện bên thứ ba như Bootstrap, jQuery, Modernizr hoặc file minified.
+- Chuyển các comment nội bộ còn không dấu hoặc tiếng Anh trong phần code tự viết sang tiếng Việt có dấu.
+
+### 2. Bổ sung hướng dẫn Inspect và Storage
+
+- Cập nhật tài liệu để hướng dẫn kiểm tra `Application` > `Storage` > `Cookies` trong DevTools.
+- Ghi rõ cookie cần kiểm tra là `ASP.NET_SessionId`.
+- Làm rõ các giá trị đăng nhập như `TaiKhoanId`, `LoaiTaiKhoan`, `KhoaPhongId` được lưu ở server-side `Session`, không hiển thị trực tiếp trong `localStorage` hoặc `sessionStorage`.
+- Ghi nhận hiện trạng `Web.config` chưa khai báo `sessionState timeout`, nên timeout server-side dùng mặc định ASP.NET khoảng 20 phút không hoạt động.
+
+### 3. Kiểm tra đã chạy
+
+```powershell
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:Platform=AnyCPU /v:minimal
+```
+
+Kết quả:
+
+- MSBuild Debug: passed.
+- Không còn comment `Purpose:` trong phạm vi code tự viết.
+- Các comment đầu file đã chuyển sang `Mục đích:`.
+
 ## 2026-05-21
 
 ### 1. Chuẩn hóa tài liệu dự án
@@ -347,3 +375,195 @@ Kết quả:
 
 - Các bản ghi đã import trước ngày cập nhật sẽ không tự có `DonViTinh`. Cần import lại file DOCX hoặc chạy cập nhật dữ liệu nếu muốn điền đơn vị cho dữ liệu cũ.
 - Trong lúc kiểm thử, build mặc định vào `bin/obj` bị khóa bởi process local đang chạy, nên dùng output riêng `obj_unit/bin_unit` để xác minh code mới mà không cần tắt localhost.
+
+## 2026-05-30
+
+Đợt cập nhật này triển khai chức năng **Tạo lịch kỳ báo cáo tự động** cho Admin và điều chỉnh quy ước hạn nộp theo ngày kết thúc kỳ.
+
+### 1. Mục tiêu kỹ thuật
+
+- Cho phép Admin tạo hàng loạt kỳ báo cáo theo năm.
+- Có màn hình preview trước khi ghi database.
+- Chống tạo trùng kỳ theo `LoaiKyBaoCao + TuNgay + DenNgay`.
+- Tự chuyển kỳ tương lai từ `Nhap` sang `Mo` khi tới ngày bắt đầu.
+- Không tạo trước bản ghi `BaoCao` rỗng.
+- Giữ cơ chế User chỉ thấy kỳ `Mo` có tần suất khớp chỉ số được phân công.
+- Thêm loại kỳ **Hàng ngày** vào chức năng tạo lịch.
+- Thống nhất hạn nộp tự động bằng ngày kết thúc kỳ, hiểu là 23:59 của ngày đó.
+
+### 2. Thay đổi ViewModel
+
+`Models/ViewModels/AppViewModels.cs` bổ sung nhóm ViewModel cho tạo lịch:
+
+- `ReportingPeriodScheduleViewModel`: dữ liệu form Admin nhập.
+- `ReportingPeriodSchedulePreviewItemViewModel`: từng dòng preview.
+- Các trường chính gồm năm, danh sách loại kỳ được chọn, trạng thái mặc định, danh sách preview và thống kê số dòng sẽ tạo mới/đã tồn tại.
+
+Form vẫn giữ `DueDayOffset` ở mức model để tương thích code cũ, nhưng giao diện hiện tại không dùng offset hạn nộp nữa. Hạn nộp của kỳ tự động được tính bằng `DenNgay`.
+
+### 3. Thay đổi service
+
+`Services/IndicatorPeriodServices.cs` bổ sung `ReportingPeriodScheduleService`.
+
+Các trách nhiệm chính:
+
+- Sinh danh sách kỳ theo năm và tần suất.
+- Sinh kỳ hàng ngày từ 01/01 đến 31/12, sau đó lọc bỏ kỳ đã kết thúc trước hôm nay.
+- Sinh kỳ tháng, quý, 6 tháng, 9 tháng và năm theo mốc ngày cố định.
+- Không sinh `KhiPhatSinh` và `TruocSauKhiThucHien`.
+- Kiểm tra kỳ đã tồn tại trước khi tạo.
+- Xác định trạng thái dự kiến:
+  - `Mo` nếu `TuNgay <= today`;
+  - `Nhap` nếu `TuNgay > today`.
+- Tạo các kỳ chưa tồn tại.
+- Tự mở kỳ đã tới ngày bắt đầu bằng cách cập nhật `TrangThai = Mo` cho các kỳ `Nhap` có `TuNgay <= today`.
+
+Quy tắc bỏ qua kỳ cũ:
+
+```text
+Nếu DenNgay < today thì không đưa kỳ vào preview và không tạo mới.
+```
+
+Ví dụ ngày 30/05/2026:
+
+- Hàng ngày bắt đầu từ Ngày 30/05/2026.
+- Hàng tháng bỏ qua Tháng 01-04/2026.
+- Tháng 05/2026 vẫn được giữ vì `DenNgay = 31/05/2026`.
+
+### 4. Thay đổi controller
+
+`Controllers/ReportingPeriodController.cs` bổ sung:
+
+- `GenerateSchedule`: hiển thị form tạo lịch.
+- `PreviewSchedule`: nhận form, gọi service sinh preview và trả lại màn hình.
+- `CreateSchedule`: tạo các kỳ chưa tồn tại từ cấu hình đã preview.
+
+Controller cũng gọi hàm tự mở kỳ trước khi hiển thị danh sách để đảm bảo Admin thấy trạng thái mới nhất.
+
+Các controller khác gọi tự mở kỳ ở điểm vào nghiệp vụ:
+
+- `DashboardController`.
+- `ReportController`.
+- `NotificationController`.
+
+`Global.asax.cs` gọi tự mở kỳ khi ứng dụng khởi động. Đây là cơ chế nhẹ, không cần Windows Service, Hangfire hay scheduler ngoài.
+
+### 5. Thay đổi giao diện
+
+`Views/ReportingPeriod/Index.cshtml`:
+
+- Thêm nút **Tạo lịch tự động**.
+- Hiển thị trạng thái kỳ bằng tiếng Việt: **Nhập**, **Mở**, **Khóa**.
+
+`Views/ReportingPeriod/GenerateSchedule.cshtml`:
+
+- Form chọn năm.
+- Form chọn loại kỳ báo cáo.
+- Hỗ trợ các lựa chọn: Hàng ngày, Hàng tháng, Hàng quý, 6 tháng, 9 tháng, Hàng năm.
+- Không hiển thị lựa chọn Khi phát sinh và Trước/sau khi thực hiện.
+- Hiển thị ghi chú `00:00` cho ngày mở và `23:59` cho ngày đóng/hạn nộp.
+- Preview danh sách kỳ dự kiến.
+- Badge **Sẽ tạo mới** và **Đã tồn tại**.
+- Nút **Tạo các kỳ chưa tồn tại** chỉ dùng sau khi đã preview.
+
+### 6. Điều chỉnh hạn nộp và báo cáo trễ
+
+Quy ước nghiệp vụ mới:
+
+```text
+HanNop = DenNgay
+HanNop hiển thị là 23:59 của DenNgay
+```
+
+Vì database lưu kiểu ngày, code không lưu giờ `23:59` vật lý. Thay vào đó:
+
+- UI hiển thị `23:59` cạnh ngày hạn nộp để người dùng hiểu hạn cuối.
+- `ReportDashboardServices.cs` đánh `QuaHan` khi `CAST(GETDATE() AS date) > HanNop`.
+- Nếu User gửi trong cùng ngày `HanNop`, kể cả sau giờ hành chính, vẫn được xem là đúng hạn theo quy ước ngày.
+- Nếu User gửi từ ngày hôm sau trở đi, báo cáo chuyển `QuaHan`.
+
+Các nơi hiển thị hạn nộp đã được cập nhật để thống nhất:
+
+- Dashboard cảnh báo.
+- Danh sách báo cáo.
+- Chi tiết thông báo.
+- Nội dung thông báo tự động.
+
+### 7. Quy tắc User thấy kỳ phù hợp
+
+Không thay đổi thiết kế dữ liệu động trước đó. User chỉ thấy kỳ khi:
+
+- kỳ `Mo`;
+- loại kỳ khớp tần suất của chỉ số đang hoạt động;
+- chỉ số được phân công cho khoa/phòng của User;
+- phân công đang hoạt động.
+
+Admin vẫn xem được toàn bộ kỳ để quản trị.
+
+### 8. Không tạo `BaoCao` rỗng
+
+Khi tạo lịch tự động, hệ thống chỉ insert vào `KyBaoCao`. Không insert vào:
+
+- `BaoCao`;
+- `BaoCaoChiTiet`.
+
+`BaoCao` chỉ được tạo khi User thực hiện một trong các thao tác:
+
+- **Lưu nháp**.
+- **Gửi báo cáo**.
+
+Điều này giúp tránh dữ liệu rác và đảm bảo thay đổi phân công chỉ số có hiệu lực ngay trong danh sách cần báo cáo.
+
+### 9. File chính đã chỉnh
+
+- `Controllers/DashboardController.cs`
+- `Controllers/NotificationController.cs`
+- `Controllers/ReportController.cs`
+- `Controllers/ReportingPeriodController.cs`
+- `Global.asax.cs`
+- `HospitalQualityDashboard.csproj`
+- `Models/ViewModels/AppViewModels.cs`
+- `Services/IndicatorPeriodServices.cs`
+- `Services/NotificationExportServices.cs`
+- `Services/ReportDashboardServices.cs`
+- `Views/Dashboard/Index.cshtml`
+- `Views/Notification/Details.cshtml`
+- `Views/Report/Index.cshtml`
+- `Views/ReportingPeriod/GenerateSchedule.cshtml`
+- `Views/ReportingPeriod/Index.cshtml`
+- `tools/VerifyReportingPeriodSchedule.ps1`
+- `tools/VerifyReportWorkflowAndNotifications.ps1`
+
+### 10. Kiểm tra tự động
+
+Script mới:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportingPeriodSchedule.ps1
+```
+
+Script này kiểm tra các điểm quan trọng:
+
+- tồn tại ViewModel tạo lịch;
+- tồn tại màn hình `GenerateSchedule`;
+- controller có action preview và tạo lịch;
+- service có logic tạo lịch, chống trùng, tự mở kỳ;
+- hỗ trợ `HangNgay`, `HangThang`, `HangQuy`, `SauThang`, `ChinThang`, `HangNam`;
+- không tạo lịch tự động cho loại phụ thuộc sự kiện;
+- bỏ qua kỳ có `DenNgay < today`;
+- hạn nộp bằng `DenNgay`;
+- UI hiển thị quy ước 00:00/23:59.
+
+Các lệnh nên chạy sau khi sửa:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportingPeriodSchedule.ps1
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportWorkflowAndNotifications.ps1
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:MvcBuildViews=true
+```
+
+### 11. Lưu ý vận hành
+
+- Nếu Admin muốn nhập bù dữ liệu các tháng đã kết thúc, cần tạo kỳ thủ công hoặc thay đổi quy tắc bỏ qua kỳ cũ.
+- Nếu sau này bệnh viện muốn “hạn nộp sau ngày kết thúc kỳ N ngày”, cần đưa lại trường offset lên UI và rà soát dashboard/thông báo.
+- Nếu muốn đóng kỳ tự động sau hạn nộp, cần tách rõ khái niệm `Mo` để nhập trễ và `Khoa` để không cho nhập nữa. Hiện tại chưa tự khóa kỳ vì hệ thống vẫn hỗ trợ gửi trễ.

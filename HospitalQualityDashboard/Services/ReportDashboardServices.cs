@@ -1,3 +1,4 @@
+// Mục đích: xử lý tính toán báo cáo, lưu quy trình báo cáo và dữ liệu dashboard.
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -76,6 +77,7 @@ LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
 WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
   AND (@KhoaPhongId IS NULL OR bc.KhoaPhongId = @KhoaPhongId)
   AND (@ChiSoChatLuongId IS NULL OR bc.ChiSoChatLuongId = @ChiSoChatLuongId)
+  AND (@IsAdmin = 1 OR ky.TrangThai <> @DraftPeriodStatus)
   AND ((@IsAdmin = 1 AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus))
        OR (@IsAdmin = 0 AND bc.KhoaPhongId = @CurrentKhoaPhongId))
 ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
@@ -85,6 +87,7 @@ ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
                 Param("@ChiSoChatLuongId", indicatorId),
                 Param("@IsAdmin", admin),
                 Param("@CurrentKhoaPhongId", currentDepartmentId),
+                Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap),
                 Param("@DaGuiStatus", (byte)TrangThaiBaoCao.DaGui),
                 Param("@QuaHanStatus", (byte)TrangThaiBaoCao.QuaHan),
                 Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa));
@@ -106,8 +109,12 @@ INNER JOIN dbo.ChiSoTanSuatBaoCao cst ON cst.ChiSoChatLuongId = pc.ChiSoChatLuon
 LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId AND bc.KhoaPhongId = pc.KhoaPhongId AND bc.ChiSoChatLuongId = pc.ChiSoChatLuongId
 LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
 WHERE pc.DangHoatDong = 1 AND pc.KhoaPhongId = @KhoaPhongId
+AND ky.TrangThai = @Mo
 ORDER BY cs.MaChiSo";
-            return Query(sql, MapReport, Param("@KyBaoCaoId", periodId), Param("@KhoaPhongId", departmentId));
+            return Query(sql, MapReport,
+                Param("@KyBaoCaoId", periodId),
+                Param("@KhoaPhongId", departmentId),
+                Param("@Mo", (byte)TrangThaiKyBaoCao.Mo));
         }
 
         public ReportEntryViewModel Get(int id)
@@ -192,7 +199,7 @@ ELSE
         public void Submit(int id, int userId)
         {
             var affectedRows = Execute(@"UPDATE bc
-SET TrangThai=CASE WHEN GETDATE() > ky.HanNop THEN @QuaHan ELSE @DaGui END,
+SET TrangThai=CASE WHEN CAST(GETDATE() AS date) > ky.HanNop THEN @QuaHan ELSE @DaGui END,
     NguoiGuiId=@NguoiGuiId,
     NgayGui=GETDATE(),
     NgayCapNhat=GETDATE()

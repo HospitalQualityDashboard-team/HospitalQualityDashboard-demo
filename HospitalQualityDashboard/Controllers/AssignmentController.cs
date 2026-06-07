@@ -1,3 +1,4 @@
+// Mục đích: quản lý phân công chỉ số chất lượng cho các khoa/phòng.
 using System.Web.Mvc;
 using HospitalQualityDashboard.Models.ViewModels;
 using HospitalQualityDashboard.Services;
@@ -23,7 +24,7 @@ namespace HospitalQualityDashboard.Controllers
             var admin = RequireAdmin();
             if (admin != null) return admin;
 
-            // Set default view mode to byIndicator
+            // Đặt chế độ xem mặc định là theo chỉ số.
             if (string.IsNullOrEmpty(viewMode))
             {
                 viewMode = "byIndicator";

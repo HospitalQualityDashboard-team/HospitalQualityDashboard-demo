@@ -1,3 +1,4 @@
+@* Mục đích: màn hình quản lý phân công chỉ số và các chế độ lọc/xem. *@
 @model HospitalQualityDashboard.Models.ViewModels.AssignmentViewModel
 @{
     ViewBag.Title = "Phân công chỉ số";
@@ -487,7 +488,7 @@
 @section scripts {
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Toggle view modes
+        // Chuyển đổi chế độ xem.
         document.querySelectorAll('.view-mode-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 var mode = btn.getAttribute('data-mode');
@@ -496,7 +497,7 @@
             });
         });
 
-        // Assignment Excel export columns
+        // Các cột xuất Excel cho phân công.
         var exportColumnCheckboxes = document.querySelectorAll('.assignment-export-column');
         var exportSubmitBtn = document.getElementById('assignment-export-submit');
 
@@ -528,7 +529,7 @@
 
         updateAssignmentExportSubmit();
 
-        // Search Khoa/Phòng
+        // Tìm kiếm khoa/phòng.
         var searchKp = document.getElementById('search-khoaphong');
         if (searchKp) {
             searchKp.addEventListener('input', function(e) {
@@ -545,7 +546,7 @@
             });
         }
 
-        // Search Chỉ số
+        // Tìm kiếm chỉ số.
         var searchCs = document.getElementById('search-chiso');
         if (searchCs) {
             searchCs.addEventListener('input', function(e) {
@@ -562,7 +563,7 @@
             });
         }
 
-        // Checkbox count and AJAX preview
+        // Đếm checkbox và xem trước bằng AJAX.
         var kpCheckboxes = document.querySelectorAll('.kp-checkbox');
         var csCheckboxes = document.querySelectorAll('.cs-checkbox');
         var submitBtn = document.getElementById('submitBtn');
@@ -641,17 +642,17 @@
         kpCheckboxes.forEach(cb => cb.addEventListener('change', updateSelectionCountAndPreview));
         csCheckboxes.forEach(cb => cb.addEventListener('change', updateSelectionCountAndPreview));
 
-        // Quick Assign from group view
+        // Phân công nhanh từ chế độ xem nhóm.
         document.querySelectorAll('.assign-now-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 var indicatorId = btn.getAttribute('data-id');
-                // Select this indicator in the list
+                // Chọn chỉ số này trong danh sách.
                 var checkbox = document.getElementById('cs_' + indicatorId);
                 if (checkbox) {
                     checkbox.checked = true;
-                    // Trigger scroll to form
+                    // Cuộn tới form.
                     document.getElementById('createAssignmentForm').scrollIntoView({ behavior: 'smooth' });
-                    // Open the form if closed
+                    // Mở form nếu đang đóng.
                     var formCollapse = new bootstrap.Collapse(document.getElementById('createAssignmentForm'), { toggle: false });
                     formCollapse.show();
                     updateSelectionCountAndPreview();
@@ -659,10 +660,10 @@
             });
         });
 
-        // Select All / Clear All toggles for create form lists
+        // Chọn tất cả / bỏ chọn tất cả trong danh sách của form tạo.
         document.getElementById('select-all-kp').addEventListener('click', function() {
             kpCheckboxes.forEach(cb => {
-                // Only select if not filtered out
+                // Chỉ chọn mục không bị lọc ẩn.
                 var wrapper = cb.closest('.item-khoaphong');
                 if (wrapper.style.display !== 'none') {
                     cb.checked = true;
@@ -688,7 +689,7 @@
             updateSelectionCountAndPreview();
         });
 
-        // Bulk operations bar handling
+        // Xử lý thanh thao tác hàng loạt.
         var bulkBar = document.getElementById('bulkActionBar');
         var bulkSelectedCount = document.getElementById('bulk-selected-count');
         var bulkCheckboxes = document.querySelectorAll('.bulk-checkbox');
@@ -701,7 +702,7 @@
             if (selectedCount > 0) {
                 bulkSelectedCount.innerText = selectedCount;
                 
-                // Inject the IDs into forms
+                // Gán các ID đã chọn vào form.
                 document.querySelectorAll('.ids-container').forEach(container => {
                     container.innerHTML = '';
                     selectedCheckboxes.forEach(cb => {
@@ -719,7 +720,7 @@
             }
         }
 
-        // Attach listeners for bulk checkboxes
+        // Gắn listener cho checkbox thao tác hàng loạt.
         document.addEventListener('change', function(e) {
             if (e.target && e.target.classList.contains('bulk-checkbox')) {
                 updateBulkActionBar();

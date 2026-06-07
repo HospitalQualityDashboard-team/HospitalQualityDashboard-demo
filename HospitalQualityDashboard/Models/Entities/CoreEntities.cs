@@ -1,3 +1,4 @@
+// Mục đích: tập hợp entity thuần phản ánh các bảng dữ liệu cốt lõi của hệ thống.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -327,33 +328,11 @@ namespace HospitalQualityDashboard.Models.Entities
         public DateTime NgayImport { get; set; }
 
         public virtual TaiKhoan NguoiImport { get; set; }
-        public virtual ICollection<LichSuImportChiTiet> ChiTiets { get; set; }
 
         public LichSuImport()
         {
             NgayImport = DateTime.UtcNow;
-            ChiTiets = new List<LichSuImportChiTiet>();
         }
-    }
-
-    public class LichSuImportChiTiet
-    {
-        public int LichSuImportChiTietId { get; set; }
-        public int LichSuImportId { get; set; }
-        public int SoDong { get; set; }
-
-        [StringLength(255)]
-        public string KhoaDuLieu { get; set; }
-
-        [StringLength(50)]
-        public string HanhDong { get; set; }
-
-        public bool ThanhCong { get; set; }
-
-        [StringLength(1000)]
-        public string ThongBaoLoi { get; set; }
-
-        public virtual LichSuImport LichSuImport { get; set; }
     }
 
     public class NhatKyHeThong

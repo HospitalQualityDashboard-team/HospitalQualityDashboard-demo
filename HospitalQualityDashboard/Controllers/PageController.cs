@@ -1,3 +1,4 @@
+// Mục đích: controller nền tập trung kiểm tra session, role và phạm vi khoa/phòng.
 using System.Web.Mvc;
 using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Services;

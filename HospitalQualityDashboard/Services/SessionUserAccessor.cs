@@ -1,3 +1,4 @@
+// Mục đích: chuẩn hóa các key và thao tác đọc/ghi session đăng nhập.
 using System;
 using System.Web;
 using System.Web.SessionState;

@@ -1,0 +1,132 @@
+<h2>Chọn hướng khung quản trị cho Hospital Quality Dashboard</h2>
+<p class="subtitle">Phạm vi B: thiết kế lại layout chung, design tokens, component nền và áp dụng cho các màn hình chính. Hãy chọn hướng phù hợp nhất với môi trường bệnh viện cần thao tác nhanh và bảng dữ liệu dễ scan.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="height:260px;background:#f4f8fb;border:1px solid #d8e2ea;border-radius:10px;overflow:hidden;font-family:Segoe UI,Arial,sans-serif;color:#142033">
+        <div style="height:48px;background:#fff;border-bottom:1px solid #d8e2ea;display:flex;align-items:center;gap:10px;padding:0 14px">
+          <div style="width:34px;height:34px;background:#146c78;border-radius:8px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">HQ</div>
+          <div style="font-weight:800">Chất lượng bệnh viện</div>
+          <div style="margin-left:auto;display:flex;gap:6px">
+            <span style="background:#e5f4f5;border-radius:7px;padding:6px 9px;font-size:12px">Tổng quan</span>
+            <span style="padding:6px 9px;font-size:12px">Báo cáo</span>
+            <span style="padding:6px 9px;font-size:12px">Thông báo</span>
+          </div>
+        </div>
+        <div style="padding:18px">
+          <div style="display:flex;justify-content:space-between;align-items:end;margin-bottom:14px">
+            <div>
+              <div style="font-size:22px;font-weight:850">Trung tâm điều hành chất lượng</div>
+              <div style="font-size:12px;color:#637083">Theo dõi tiến độ và rủi ro theo kỳ báo cáo</div>
+            </div>
+            <div style="height:34px;width:150px;border:1px solid #cbd6e2;border-radius:7px;background:#fff"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+            <div style="height:72px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+            <div style="height:72px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+            <div style="height:72px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+            <div style="height:72px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.35fr .65fr;gap:12px">
+            <div style="height:92px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+            <div style="height:92px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Top navigation tinh gọn</h3>
+      <p>Giữ gần layout hiện tại, ít rủi ro, dễ áp dụng nhanh. Phù hợp nếu muốn thay đổi giao diện nhưng không đổi thói quen điều hướng.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="height:260px;background:#f3f6fa;border:1px solid #d8e2ea;border-radius:10px;overflow:hidden;font-family:Segoe UI,Arial,sans-serif;color:#142033;display:grid;grid-template-columns:210px 1fr">
+        <div style="background:#ffffff;border-right:1px solid #d8e2ea;padding:14px">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px">
+            <div style="width:34px;height:34px;background:#146c78;border-radius:8px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">HQ</div>
+            <div>
+              <div style="font-weight:850;font-size:13px">Chất lượng BV</div>
+              <div style="font-size:10px;color:#637083">Hospital Dashboard</div>
+            </div>
+          </div>
+          <div style="display:grid;gap:7px;font-size:12px;font-weight:750">
+            <div style="background:#e5f4f5;color:#0f5661;border-radius:7px;padding:8px 10px">Tổng quan</div>
+            <div style="padding:8px 10px">Khoa/phòng</div>
+            <div style="padding:8px 10px">Nhân viên</div>
+            <div style="padding:8px 10px">Chỉ số</div>
+            <div style="padding:8px 10px">Phân công</div>
+            <div style="padding:8px 10px">Báo cáo</div>
+          </div>
+        </div>
+        <div>
+          <div style="height:48px;background:#fff;border-bottom:1px solid #d8e2ea;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:0 18px">
+            <span style="background:#e5f4f5;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:800">Admin</span>
+            <span style="font-size:12px">Hồ sơ</span>
+          </div>
+          <div style="padding:16px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+              <div>
+                <div style="font-size:20px;font-weight:850">Trung tâm điều hành chất lượng</div>
+                <div style="font-size:12px;color:#637083">Admin nhìn toàn hệ thống, User nhìn khoa/phòng của mình</div>
+              </div>
+              <div style="width:132px;height:34px;border:1px solid #cbd6e2;border-radius:7px;background:#fff"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px">
+              <div style="height:62px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+              <div style="height:62px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+              <div style="height:62px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+              <div style="height:62px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+            </div>
+            <div style="height:82px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Sidebar quản trị chuyên nghiệp</h3>
+      <p>Tốt nhất cho nhiều module: menu rõ, active state mạnh, content rộng cho bảng. Đổi layout nhiều hơn nhưng phù hợp app quản trị bệnh viện.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="height:260px;background:#f5f8fb;border:1px solid #d8e2ea;border-radius:10px;overflow:hidden;font-family:Segoe UI,Arial,sans-serif;color:#142033;display:grid;grid-template-columns:68px 1fr">
+        <div style="background:#ffffff;border-right:1px solid #d8e2ea;padding:12px;display:grid;align-content:start;gap:12px">
+          <div style="width:38px;height:38px;background:#146c78;border-radius:8px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">HQ</div>
+          <div style="width:38px;height:34px;background:#e5f4f5;border-radius:8px"></div>
+          <div style="width:38px;height:34px;background:#f0f3f7;border-radius:8px"></div>
+          <div style="width:38px;height:34px;background:#f0f3f7;border-radius:8px"></div>
+          <div style="width:38px;height:34px;background:#f0f3f7;border-radius:8px"></div>
+        </div>
+        <div>
+          <div style="height:52px;background:#fff;border-bottom:1px solid #d8e2ea;display:flex;align-items:center;gap:10px;padding:0 18px">
+            <div style="font-weight:850">Hospital Quality Dashboard</div>
+            <div style="margin-left:auto;width:220px;height:32px;border:1px solid #cbd6e2;border-radius:7px"></div>
+          </div>
+          <div style="padding:16px">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:14px;margin-bottom:12px">
+              <div>
+                <div style="font-size:20px;font-weight:850">Trung tâm điều hành</div>
+                <div style="font-size:12px;color:#637083">Điều hướng bằng icon, thao tác bằng topbar</div>
+              </div>
+              <div style="display:flex;gap:6px"><span style="width:72px;height:30px;background:#146c78;border-radius:7px"></span><span style="width:72px;height:30px;background:#fff;border:1px solid #d8e2ea;border-radius:7px"></span></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px">
+              <div style="height:64px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+              <div style="height:64px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+              <div style="height:64px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+            </div>
+            <div style="height:86px;background:#fff;border:1px solid #d8e2ea;border-radius:8px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Compact rail + topbar</h3>
+      <p>Hiện đại và tiết kiệm chiều ngang, nhưng icon-only dễ khó dùng với người dùng nội bộ nếu không quen hệ thống.</p>
+    </div>
+  </div>
+</div>

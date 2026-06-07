@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Mục đích: điều hướng các trang thông tin cơ bản của ứng dụng.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;

@@ -1,47 +1,73 @@
-﻿@model IEnumerable<HospitalQualityDashboard.Models.ViewModels.NotificationViewModel>
+@* Mục đích: danh sách thông báo của người dùng và thao tác tự động của Admin. *@
+@model IEnumerable<HospitalQualityDashboard.Models.ViewModels.NotificationViewModel>
+@using System.Linq
 @{
     ViewBag.Title = "Thông báo";
     var isAdmin = Convert.ToString(Session["LoaiTaiKhoan"]) == "Admin";
+    var notifications = (Model ?? Enumerable.Empty<HospitalQualityDashboard.Models.ViewModels.NotificationViewModel>()).ToList();
+    var unreadCount = notifications.Count(x => !x.DaDoc);
 }
-<div class="page-header">
-    <div>
-        <h1>Thông báo</h1>
-        <p>Theo dõi và gửi thông báo cho các khoa/phòng.</p>
-    </div>
-</div>
-@if (isAdmin)
-{
-    <div class="d-flex gap-2 flex-wrap mb-3">
-        @Html.ActionLink("Gửi thông báo", "Create", null, new { @class = "btn btn-primary" })
-        @using (Html.BeginForm("RunAutomation", "Notification", FormMethod.Post, new { @class = "d-inline" }))
+
+<section class="management-page">
+    <div class="page-header">
+        <div>
+            <span class="dashboard-role">Trung tâm thông báo</span>
+            <h1>Thông báo</h1>
+            <p>Theo dõi cảnh báo hệ thống, nhắc hạn báo cáo và thông tin gửi đến các khoa/phòng.</p>
+        </div>
+        @if (isAdmin)
         {
-            @Html.AntiForgeryToken()
-            <button class="btn btn-outline-success" type="submit">Chạy kiểm tra thông báo tự động</button>
+            <div class="management-toolbar">
+                @Html.ActionLink("Gửi thông báo", "Create", null, new { @class = "btn btn-primary" })
+                @using (Html.BeginForm("RunAutomation", "Notification", FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-outline-success" type="submit">Chạy kiểm tra tự động</button>
+                }
+            </div>
         }
     </div>
-}
-@if (TempData["Message"] != null)
-{
-    <div class="alert alert-success">@TempData["Message"]</div>
-}
-<table class="table table-striped table-sm">
-    <thead><tr><th>Tiêu đề</th><th>Loại</th><th>Ngày tạo</th><th>Đã đọc</th><th></th></tr></thead>
-    <tbody>
-    @foreach (var item in Model)
+
+    @if (TempData["Message"] != null)
     {
-        var detailUrl = Url.Action("Details", new { id = item.ThongBaoId });
-        <tr>
-            <td>
-                <strong>@Html.ActionLink(item.TieuDe, "Details", new { id = item.ThongBaoId }, new { @class = "text-dark text-decoration-none" })</strong><br />
-                <a href="@detailUrl" class="text-body text-decoration-none">@item.NoiDung</a>
-            </td>
-            <td>@item.LoaiThongBao</td>
-            <td>@item.NgayTao</td>
-            <td>@(item.DaDoc ? "Có" : "Chưa")</td>
-            <td>
-                @Html.ActionLink("Xem chi tiết", "Details", new { id = item.ThongBaoId }, new { @class = "btn btn-sm btn-outline-primary" })
-            </td>
-        </tr>
+        <div class="alert alert-success">@TempData["Message"]</div>
     }
-    </tbody>
-</table>
+
+    <section class="data-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Hộp thư thông báo</h2>
+                <p>@unreadCount thông báo chưa đọc trong danh sách hiện tại.</p>
+            </div>
+            <span class="status-pill status-muted">@notifications.Count dòng</span>
+        </div>
+
+        @if (notifications.Any())
+        {
+            <div class="notification-list">
+                @foreach (var item in notifications)
+                {
+                    var detailUrl = Url.Action("Details", new { id = item.ThongBaoId });
+                    <article class="notification-item @(item.DaDoc ? "" : "is-unread")">
+                        <div>
+                            @Html.ActionLink(item.TieuDe, "Details", new { id = item.ThongBaoId }, new { @class = "notification-title" })
+                            <a href="@detailUrl" class="notification-body notification-body-link">@item.NoiDung</a>
+                            <div class="notification-meta">
+                                <span class="status-pill status-muted">@item.LoaiThongBao</span>
+                                <span class="status-pill @(item.DaDoc ? "status-read" : "status-unread")">@(item.DaDoc ? "Đã đọc" : "Chưa đọc")</span>
+                                <span class="status-pill status-muted">@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        </div>
+                        <div class="text-end table-actions">
+                            @Html.ActionLink("Xem chi tiết", "Details", new { id = item.ThongBaoId }, new { @class = "btn btn-sm btn-outline-primary" })
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">Chưa có thông báo trong phạm vi hiện tại.</div>
+        }
+    </section>
+</section>

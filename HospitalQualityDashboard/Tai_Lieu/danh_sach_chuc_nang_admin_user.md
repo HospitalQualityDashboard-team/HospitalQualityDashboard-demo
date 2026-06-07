@@ -215,19 +215,60 @@ Admin tạo và quản lý các kỳ báo cáo.
 | STT | Chức năng | Mô tả |
 |---:|---|---|
 | 1 | Xem danh sách kỳ báo cáo | Hiển thị các kỳ báo cáo đã tạo. |
-| 2 | Tạo kỳ báo cáo | Tạo kỳ báo cáo tháng, quý, năm. |
+| 2 | Tạo kỳ báo cáo thủ công | Tạo một kỳ báo cáo riêng lẻ khi cần nhập bù hoặc xử lý ngoại lệ. |
 | 3 | Sửa kỳ báo cáo | Cập nhật thời gian và hạn nộp. |
 | 4 | Mở kỳ báo cáo | Cho phép User nhập báo cáo. |
 | 5 | Khóa kỳ báo cáo | Không cho User nhập hoặc sửa báo cáo. |
 | 6 | Cấu hình hạn nộp | Thiết lập ngày hết hạn báo cáo. |
 | 7 | Theo dõi tiến độ kỳ báo cáo | Xem khoa/phòng nào đã nộp, chưa nộp, quá hạn. |
+| 8 | Tạo lịch tự động | Tạo hàng loạt kỳ báo cáo theo năm, có preview và chống trùng. |
 
 #### Ví dụ kỳ báo cáo
 
 | Kỳ báo cáo | Từ ngày | Đến ngày | Hạn nộp |
 |---|---|---|---|
-| Tháng 01/2026 | 01/01/2026 | 31/01/2026 | 10/02/2026 |
-| Quý I/2026 | 01/01/2026 | 31/03/2026 | 10/04/2026 |
+| Ngày 30/05/2026 | 30/05/2026 00:00 | 30/05/2026 23:59 | 30/05/2026 23:59 |
+| Tháng 06/2026 | 01/06/2026 00:00 | 30/06/2026 23:59 | 30/06/2026 23:59 |
+| Quý II/2026 | 01/04/2026 00:00 | 30/06/2026 23:59 | 30/06/2026 23:59 |
+
+#### Tạo lịch tự động
+
+Chức năng **Tạo lịch tự động** dành cho Admin khi muốn chuẩn bị lịch báo cáo cho cả năm. Admin chọn năm và một hoặc nhiều loại kỳ, hệ thống preview trước khi tạo.
+
+Các loại kỳ được hỗ trợ:
+
+| Loại kỳ | Số kỳ trong năm đầy đủ | Quy tắc |
+|---|---:|---|
+| Hàng ngày | 365 hoặc 366 | Mỗi ngày một kỳ, mở 00:00 và đóng 23:59 cùng ngày. |
+| Hàng tháng | 12 | Từ ngày đầu tháng đến 23:59 ngày cuối tháng. |
+| Hàng quý | 4 | Từ ngày đầu quý đến 23:59 ngày cuối quý. |
+| 6 tháng | 2 | 01/01-30/06 và 01/07-31/12. |
+| 9 tháng | 1 | 01/01-30/09. |
+| Hàng năm | 1 | 01/01-31/12. |
+
+Không tạo tự động cho **Khi phát sinh** và **Trước/sau khi thực hiện** vì đây là các loại kỳ phụ thuộc sự kiện thực tế.
+
+Quy tắc chính:
+
+- Kỳ có ngày kết thúc trước hôm nay sẽ không được đưa vào preview.
+- Kỳ có ngày bắt đầu nhỏ hơn hoặc bằng hôm nay được tạo là **Mở**.
+- Kỳ tương lai được tạo là **Nhập**.
+- Hạn nộp của lịch tự động bằng ngày kết thúc kỳ, hiểu là 23:59 của ngày đó.
+- Hệ thống chống trùng theo loại kỳ, từ ngày và đến ngày.
+- Hệ thống không tạo báo cáo rỗng cho User.
+
+Ví dụ nếu hôm nay là **30/05/2026** và Admin tạo lịch hàng tháng năm 2026:
+
+| Kỳ | Kết quả |
+|---|---|
+| Tháng 01/2026 | Bỏ qua vì đã kết thúc. |
+| Tháng 02/2026 | Bỏ qua vì đã kết thúc. |
+| Tháng 03/2026 | Bỏ qua vì đã kết thúc. |
+| Tháng 04/2026 | Bỏ qua vì đã kết thúc. |
+| Tháng 05/2026 | Preview và tạo là Mở nếu chưa tồn tại. |
+| Tháng 06-12/2026 | Preview và tạo là Nhập nếu chưa tồn tại. |
+
+User chỉ thấy những kỳ **Mở** có loại kỳ khớp với tần suất của chỉ số được phân công cho khoa/phòng mình. Admin vẫn xem được toàn bộ kỳ.
 
 ---
 
@@ -565,7 +606,7 @@ Các bảng chính nên có trong giai đoạn hiện tại:
 | `BaoCao` | Lưu thông tin báo cáo chính. |
 | `BaoCaoChiTiet` | Lưu số liệu chi tiết của báo cáo. |
 | `ThongBao` | Lưu thông báo hệ thống. |
-| `LichSuImport` | Lưu lịch sử import khoa/phòng và nhân viên. |
+| `LichSuImport` | Lưu lịch sử import khoa/phòng, nhân viên và chỉ số ở mức tổng hợp. |
 
 ---
 

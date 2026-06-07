@@ -1,4 +1,7 @@
+// Mục đích: view model cho đăng nhập, đổi mật khẩu và hồ sơ người dùng.
+using System;
 using System.ComponentModel.DataAnnotations;
+using HospitalQualityDashboard.Models.Enums;
 
 namespace HospitalQualityDashboard.Models.ViewModels
 {
@@ -32,5 +35,36 @@ namespace HospitalQualityDashboard.Models.ViewModels
         [DataType(DataType.Password)]
         [Display(Name = "Xác nhận mật khẩu mới")]
         public string XacNhanMatKhauMoi { get; set; }
+    }
+
+    public class UserProfileViewModel
+    {
+        public int TaiKhoanId { get; set; }
+        public string TenDangNhap { get; set; }
+        public LoaiTaiKhoan LoaiTaiKhoan { get; set; }
+        public string LoaiTaiKhoanText
+        {
+            get { return LoaiTaiKhoan == LoaiTaiKhoan.Admin ? "Admin" : "User"; }
+        }
+
+        public int? NhanVienId { get; set; }
+        public string MaNhanVien { get; set; }
+        public string HoTen { get; set; }
+        public DateTime? NgaySinh { get; set; }
+        public string GioiTinh { get; set; }
+        public string ChucVu { get; set; }
+        public string Email { get; set; }
+        public string SoDienThoai { get; set; }
+        public int? KhoaPhongId { get; set; }
+        public string TenKhoaPhong { get; set; }
+        public bool TaiKhoanDangHoatDong { get; set; }
+        public bool? NhanVienDangHoatDong { get; set; }
+        public DateTime? LanDangNhapCuoi { get; set; }
+        public ChangePasswordViewModel ChangePassword { get; set; }
+
+        public UserProfileViewModel()
+        {
+            ChangePassword = new ChangePasswordViewModel();
+        }
     }
 }

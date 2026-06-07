@@ -1,3 +1,4 @@
+// Mục đích: quản lý danh mục chỉ số chất lượng và quyền xem theo khoa/phòng.
 using System.Web.Mvc;
 using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Models.ViewModels;

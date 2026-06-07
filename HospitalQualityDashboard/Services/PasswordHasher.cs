@@ -1,3 +1,4 @@
+// Mục đích: băm và kiểm tra mật khẩu bằng PBKDF2 kèm salt.
 using System;
 using System.Security.Cryptography;
 

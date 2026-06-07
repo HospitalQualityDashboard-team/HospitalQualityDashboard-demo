@@ -1,3 +1,4 @@
+// Mục đích: quản lý thông báo thủ công, thông báo tự động và trạng thái đã đọc.
 using System.Web.Mvc;
 using HospitalQualityDashboard.Models.ViewModels;
 using HospitalQualityDashboard.Models.Enums;
@@ -11,11 +12,14 @@ namespace HospitalQualityDashboard.Controllers
     {
         private readonly NotificationService _service = new NotificationService();
         private readonly NotificationAutomationService _automation = new NotificationAutomationService();
+        private readonly ReportingPeriodScheduleService _periodSchedule = new ReportingPeriodScheduleService();
         private readonly DepartmentService _departments = new DepartmentService();
         private readonly DashboardService _dashboard = new DashboardService();
 
         public ActionResult Index()
         {
+            _periodSchedule.OpenDuePeriods(DateTime.Now);
+
             if (IsAdmin)
             {
                 _automation.Run(DateTime.Now);
@@ -26,6 +30,8 @@ namespace HospitalQualityDashboard.Controllers
 
         public ActionResult Details(int id)
         {
+            _periodSchedule.OpenDuePeriods(DateTime.Now);
+
             var notification = _service.GetDetailForUser(id, CurrentTaiKhoanId.Value, IsAdmin);
             if (notification == null)
             {
@@ -68,7 +74,7 @@ namespace HospitalQualityDashboard.Controllers
             if (admin != null) return admin;
             if (string.IsNullOrWhiteSpace(model.TieuDe) || string.IsNullOrWhiteSpace(model.NoiDung))
             {
-                ModelState.AddModelError("", "Vui long nhap tieu de va noi dung.");
+                ModelState.AddModelError("", "Vui lòng nhập tiêu đề và nội dung.");
             }
 
             if (!ModelState.IsValid)
@@ -96,8 +102,9 @@ namespace HospitalQualityDashboard.Controllers
             var admin = RequireAdmin();
             if (admin != null) return admin;
 
+            _periodSchedule.OpenDuePeriods(DateTime.Now);
             _automation.Run(DateTime.Now);
-            TempData["Message"] = "Da chay kiem tra thong bao tu dong.";
+            TempData["Message"] = "Đã chạy kiểm tra thông báo tự động.";
             return RedirectToAction("Index");
         }
     }

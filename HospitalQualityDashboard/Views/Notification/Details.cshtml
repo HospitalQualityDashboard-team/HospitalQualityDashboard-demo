@@ -1,3 +1,4 @@
+@* Mục đích: hiển thị chi tiết thông báo và các báo cáo liên quan cần xử lý. *@
 @using System.Linq
 @using HospitalQualityDashboard.Models.Enums
 @model HospitalQualityDashboard.Models.ViewModels.NotificationDetailViewModel
@@ -58,7 +59,7 @@
                 var statusClass = item.IsOverdue ? "badge bg-danger" : (item.IsDueSoon ? "badge bg-warning text-dark" : "badge bg-secondary");
                 <tr>
                     <td>@item.TenKyBaoCao</td>
-                    <td>@item.HanNop.ToString("dd/MM/yyyy")</td>
+                    <td>@item.HanNop.ToString("dd/MM/yyyy") 23:59</td>
                     <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
                     <td><span class="@statusClass">@statusText</span></td>
                     <td>

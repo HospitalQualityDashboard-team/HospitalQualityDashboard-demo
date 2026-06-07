@@ -1,10 +1,10 @@
+// Mục đích: tạo database/schema mẫu khi chạy debug để môi trường dev sẵn sàng.
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Hosting;
 
@@ -95,38 +95,7 @@ namespace HospitalQualityDashboard.Services
                 {
                     RunScript(connection, scriptDirectory, "001_CreateSchema.sql");
                 }
-
-                RunScript(connection, scriptDirectory, "002_SeedAdmin.sql");
-                RunScript(connection, scriptDirectory, "003_AddIndicatorFrequencies.sql");
-                RunScript(connection, scriptDirectory, "004_AddAssignmentUniqueConstraint.sql");
-
-                if (ShouldRunApprovalScript(connection))
-                {
-                    RunScript(connection, scriptDirectory, "005_AddApprovalAndRejection.sql");
-                }
-
-                RunScript(connection, scriptDirectory, "006_AddNotificationAutomationLog.sql");
             }
-        }
-
-        private static bool ShouldRunApprovalScript(SqlConnection connection)
-        {
-            if (!ObjectExists(connection, "dbo.BaoCao"))
-            {
-                return false;
-            }
-
-            var hasFeedbackColumn = Convert.ToInt32(ExecuteScalar(connection, "SELECT CASE WHEN COL_LENGTH('dbo.BaoCao', 'YKienPhanHoi') IS NULL THEN 0 ELSE 1 END")) == 1;
-            var constraintDefinition = ExecuteScalar(connection, @"
-SELECT definition
-FROM sys.check_constraints
-WHERE name = N'CK_BaoCao_TrangThai'
-  AND parent_object_id = OBJECT_ID(N'dbo.BaoCao')") as string;
-
-            var hasUpdatedStatusConstraint = !string.IsNullOrWhiteSpace(constraintDefinition)
-                && Regex.IsMatch(constraintDefinition, @"\b6\b");
-
-            return !hasFeedbackColumn || !hasUpdatedStatusConstraint;
         }
 
         private static bool ObjectExists(SqlConnection connection, string objectName)
@@ -188,15 +157,6 @@ WHERE name = N'CK_BaoCao_TrangThai'
             if (batch.Length > 0)
             {
                 yield return batch.ToString();
-            }
-        }
-
-        private static object ExecuteScalar(SqlConnection connection, string sql)
-        {
-            using (var command = new SqlCommand(sql, connection))
-            {
-                command.CommandTimeout = CommandTimeoutSeconds;
-                return command.ExecuteScalar();
             }
         }
 

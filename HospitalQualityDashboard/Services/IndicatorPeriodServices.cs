@@ -1,3 +1,4 @@
+// Mục đích: xử lý tần suất chỉ số, kỳ báo cáo và tạo lịch kỳ báo cáo.
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -25,8 +26,8 @@ namespace HospitalQualityDashboard.Services
             {
                 sql = @"
 SELECT cs.ChiSoChatLuongId, cs.MaChiSo, cs.SoThuTu, cs.TenChiSo, cs.DinhNghia, cs.LinhVucApDung, cs.KhiaCanhChatLuong, cs.ThanhToChatLuong,
-       cs.LyDoLuaChon, cs.PhuongPhapTinh, cs.TuSoMoTa, cs.MauSoMoTa, cs.NguonSoLieu, cs.ThuThapTongHop, cs.GiaTriSoLieu,
-       cs.TanSuatBaoCao, cs.LoaiCongThuc, cs.DonViTinh, cs.DangHoatDong
+       cs.LyDoLuaChon, cs.PhuongPhapTinh, cs.TuSoMoTa, cs.MauSoMoTa, cs.NguonSoLieu, cs.ThuThapTongHop,
+       cs.KhoaPhongThuThapId, cs.KhoaPhongTongHopId, cs.GiaTriSoLieu, cs.LoaiCongThuc, cs.DonViTinh, cs.DangHoatDong
 FROM dbo.ChiSoChatLuong cs
 INNER JOIN dbo.PhanCongChiSo pc ON pc.ChiSoChatLuongId = cs.ChiSoChatLuongId
 WHERE pc.KhoaPhongId = @KhoaPhongId AND pc.DangHoatDong = 1
@@ -37,8 +38,8 @@ ORDER BY ISNULL(cs.SoThuTu, 9999), cs.MaChiSo";
             {
                 sql = @"
 SELECT ChiSoChatLuongId, MaChiSo, SoThuTu, TenChiSo, DinhNghia, LinhVucApDung, KhiaCanhChatLuong, ThanhToChatLuong,
-       LyDoLuaChon, PhuongPhapTinh, TuSoMoTa, MauSoMoTa, NguonSoLieu, ThuThapTongHop, GiaTriSoLieu,
-       TanSuatBaoCao, LoaiCongThuc, DonViTinh, DangHoatDong
+       LyDoLuaChon, PhuongPhapTinh, TuSoMoTa, MauSoMoTa, NguonSoLieu, ThuThapTongHop,
+       KhoaPhongThuThapId, KhoaPhongTongHopId, GiaTriSoLieu, LoaiCongThuc, DonViTinh, DangHoatDong
 FROM dbo.ChiSoChatLuong
 WHERE (@IncludeInactive = 1 OR DangHoatDong = 1)
 ORDER BY ISNULL(SoThuTu, 9999), MaChiSo";
@@ -73,7 +74,7 @@ WHERE ChiSoChatLuongId = @IndicatorId AND KhoaPhongId = @KhoaPhongId AND DangHoa
         public ChiSoViewModel Get(int id)
         {
             var model = QuerySingle(@"SELECT ChiSoChatLuongId, MaChiSo, SoThuTu, TenChiSo, DinhNghia, LinhVucApDung, KhiaCanhChatLuong, ThanhToChatLuong,
-LyDoLuaChon, PhuongPhapTinh, TuSoMoTa, MauSoMoTa, NguonSoLieu, ThuThapTongHop, GiaTriSoLieu, TanSuatBaoCao, LoaiCongThuc, DonViTinh, DangHoatDong
+LyDoLuaChon, PhuongPhapTinh, TuSoMoTa, MauSoMoTa, NguonSoLieu, ThuThapTongHop, KhoaPhongThuThapId, KhoaPhongTongHopId, GiaTriSoLieu, LoaiCongThuc, DonViTinh, DangHoatDong
 FROM dbo.ChiSoChatLuong WHERE ChiSoChatLuongId = @Id", MapIndicator, Param("@Id", id));
             if (model == null)
             {
@@ -108,10 +109,10 @@ FROM dbo.ChiSoChatLuong WHERE ChiSoChatLuongId = @Id", MapIndicator, Param("@Id"
             if (model.ChiSoChatLuongId == 0)
             {
                 var id = Convert.ToInt32(Scalar(@"INSERT INTO dbo.ChiSoChatLuong(MaChiSo, SoThuTu, TenChiSo, DinhNghia, LinhVucApDung, KhiaCanhChatLuong,
-ThanhToChatLuong, LyDoLuaChon, PhuongPhapTinh, TuSoMoTa, MauSoMoTa, NguonSoLieu, ThuThapTongHop, GiaTriSoLieu, TanSuatBaoCao, LoaiCongThuc, DonViTinh, DangHoatDong)
+ThanhToChatLuong, LyDoLuaChon, PhuongPhapTinh, TuSoMoTa, MauSoMoTa, NguonSoLieu, ThuThapTongHop, KhoaPhongThuThapId, KhoaPhongTongHopId, GiaTriSoLieu, LoaiCongThuc, DonViTinh, DangHoatDong)
 OUTPUT INSERTED.ChiSoChatLuongId
 VALUES(@MaChiSo, @SoThuTu, @TenChiSo, @DinhNghia, @LinhVucApDung, @KhiaCanhChatLuong, @ThanhToChatLuong, @LyDoLuaChon,
-@PhuongPhapTinh, @TuSoMoTa, @MauSoMoTa, @NguonSoLieu, @ThuThapTongHop, @GiaTriSoLieu, @TanSuatBaoCao, @LoaiCongThuc, @DonViTinh, @DangHoatDong)",
+@PhuongPhapTinh, @TuSoMoTa, @MauSoMoTa, @NguonSoLieu, @ThuThapTongHop, @KhoaPhongThuThapId, @KhoaPhongTongHopId, @GiaTriSoLieu, @LoaiCongThuc, @DonViTinh, @DangHoatDong)",
                     IndicatorParams(model)));
                 model.ChiSoChatLuongId = id;
             }
@@ -121,7 +122,7 @@ VALUES(@MaChiSo, @SoThuTu, @TenChiSo, @DinhNghia, @LinhVucApDung, @KhiaCanhChatL
                 Execute(@"UPDATE dbo.ChiSoChatLuong SET MaChiSo=@MaChiSo, SoThuTu=@SoThuTu, TenChiSo=@TenChiSo, DinhNghia=@DinhNghia,
 LinhVucApDung=@LinhVucApDung, KhiaCanhChatLuong=@KhiaCanhChatLuong, ThanhToChatLuong=@ThanhToChatLuong, LyDoLuaChon=@LyDoLuaChon,
 PhuongPhapTinh=@PhuongPhapTinh, TuSoMoTa=@TuSoMoTa, MauSoMoTa=@MauSoMoTa, NguonSoLieu=@NguonSoLieu, ThuThapTongHop=@ThuThapTongHop,
-GiaTriSoLieu=@GiaTriSoLieu, TanSuatBaoCao=@TanSuatBaoCao, LoaiCongThuc=@LoaiCongThuc, DonViTinh=@DonViTinh, DangHoatDong=@DangHoatDong, NgayCapNhat=GETDATE()
+KhoaPhongThuThapId=@KhoaPhongThuThapId, KhoaPhongTongHopId=@KhoaPhongTongHopId, GiaTriSoLieu=@GiaTriSoLieu, LoaiCongThuc=@LoaiCongThuc, DonViTinh=@DonViTinh, DangHoatDong=@DangHoatDong, NgayCapNhat=GETDATE()
 WHERE ChiSoChatLuongId=@ChiSoChatLuongId", parameters);
             }
 
@@ -340,6 +341,7 @@ ELSE
             var items = models == null ? new List<ChiSoViewModel>() : models.ToList();
             foreach (var item in items)
             {
+                item.TanSuatBaoCao = item.TanSuatBaoCao == 0 ? TanSuatBaoCao.HangThang : item.TanSuatBaoCao;
                 item.TanSuatBaoCaos = new List<TanSuatBaoCao> { item.TanSuatBaoCao };
                 item.SelectedTanSuatBaoCaoValues = new[] { (int)item.TanSuatBaoCao };
                 item.TanSuatBaoCaoText = FormatFrequencies(item.TanSuatBaoCaos);
@@ -442,10 +444,6 @@ BEGIN
     );
 
     CREATE INDEX IX_ChiSoTanSuatBaoCao_ChiSoChatLuongId ON dbo.ChiSoTanSuatBaoCao(ChiSoChatLuongId);
-
-    INSERT INTO dbo.ChiSoTanSuatBaoCao(ChiSoChatLuongId, TanSuatBaoCao)
-    SELECT ChiSoChatLuongId, TanSuatBaoCao
-    FROM dbo.ChiSoChatLuong;
 END");
         }
 
@@ -1249,8 +1247,9 @@ ELSE
                 Param("@MauSoMoTa", model.MauSoMoTa),
                 Param("@NguonSoLieu", model.NguonSoLieu),
                 Param("@ThuThapTongHop", model.ThuThapTongHop),
+                Param("@KhoaPhongThuThapId", model.KhoaPhongThuThapId),
+                Param("@KhoaPhongTongHopId", model.KhoaPhongTongHopId),
                 Param("@GiaTriSoLieu", model.GiaTriSoLieu),
-                Param("@TanSuatBaoCao", (byte)model.TanSuatBaoCao),
                 Param("@LoaiCongThuc", (byte)model.LoaiCongThuc),
                 Param("@DonViTinh", model.DonViTinh),
                 Param("@DangHoatDong", model.DangHoatDong)
@@ -1275,8 +1274,10 @@ ELSE
                 MauSoMoTa = String(reader, "MauSoMoTa"),
                 NguonSoLieu = String(reader, "NguonSoLieu"),
                 ThuThapTongHop = String(reader, "ThuThapTongHop"),
+                KhoaPhongThuThapId = NullableInt(reader, "KhoaPhongThuThapId"),
+                KhoaPhongTongHopId = NullableInt(reader, "KhoaPhongTongHopId"),
                 GiaTriSoLieu = String(reader, "GiaTriSoLieu"),
-                TanSuatBaoCao = (TanSuatBaoCao)reader.GetByte(reader.GetOrdinal("TanSuatBaoCao")),
+                TanSuatBaoCao = TanSuatBaoCao.HangThang,
                 LoaiCongThuc = (LoaiCongThuc)reader.GetByte(reader.GetOrdinal("LoaiCongThuc")),
                 DonViTinh = String(reader, "DonViTinh"),
                 DangHoatDong = reader.GetBoolean(reader.GetOrdinal("DangHoatDong"))
@@ -1381,12 +1382,12 @@ ELSE
             }
 
             string whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
-            string sql = $@"
+            string sql = @"
 SELECT COUNT(*)
 FROM dbo.PhanCongChiSo pc
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
 INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
-{whereClause}";
+" + whereClause;
 
             return Convert.ToInt32(Scalar(sql, parameters.ToArray()));
         }
@@ -1438,17 +1439,17 @@ INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
             parameters.Add(Param("@Offset", offset));
             parameters.Add(Param("@PageSize", pageSize));
 
-            string sql = $@"
+            string sql = @"
 SELECT pc.PhanCongChiSoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, kp.TenKhoaPhong, 
-       cs.MaChiSo, cs.TenChiSo, cs.TanSuatBaoCao, cs.LoaiCongThuc, pc.DangHoatDong, pc.NgayTao
+       cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, pc.DangHoatDong, pc.NgayTao
 FROM dbo.PhanCongChiSo pc
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
 INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
-{whereClause}
+" + whereClause + @"
 ORDER BY kp.TenKhoaPhong, cs.MaChiSo
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
-            return Query(sql, r => new AssignmentItemViewModel
+            var items = Query(sql, r => new AssignmentItemViewModel
             {
                 PhanCongChiSoId = Int(r, "PhanCongChiSoId"),
                 KhoaPhongId = Int(r, "KhoaPhongId"),
@@ -1457,15 +1458,56 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
                 MaChiSo = String(r, "MaChiSo"),
                 TenChiSo = String(r, "TenChiSo"),
                 DangHoatDong = r.GetBoolean(r.GetOrdinal("DangHoatDong")),
-                TanSuatBaoCaoText = FormatFrequency((TanSuatBaoCao)r.GetByte(r.GetOrdinal("TanSuatBaoCao"))),
                 LoaiCongThucText = FormatFormula((LoaiCongThuc)r.GetByte(r.GetOrdinal("LoaiCongThuc"))),
                 NgayTao = r.GetDateTime(r.GetOrdinal("NgayTao"))
             }, parameters.ToArray());
+            PopulateAssignmentItemFrequencies(items);
+            return items;
         }
 
         public IList<AssignmentItemViewModel> GetAll(int? khoaPhongId = null)
         {
             return GetAll(khoaPhongId, null, null, null, 1, 999999);
+        }
+
+        private void PopulateAssignmentItemFrequencies(IList<AssignmentItemViewModel> items)
+        {
+            if (items == null || items.Count == 0)
+            {
+                return;
+            }
+
+            var frequencyTexts = GetFrequencyTextByIndicatorIds(items.Select(x => x.ChiSoChatLuongId));
+            foreach (var item in items)
+            {
+                string text;
+                item.TanSuatBaoCaoText = frequencyTexts.TryGetValue(item.ChiSoChatLuongId, out text) ? text : string.Empty;
+            }
+        }
+
+        private IDictionary<int, string> GetFrequencyTextByIndicatorIds(IEnumerable<int> indicatorIds)
+        {
+            var ids = (indicatorIds ?? new int[0]).Distinct().ToList();
+            if (ids.Count == 0)
+            {
+                return new Dictionary<int, string>();
+            }
+
+            var sql = @"
+SELECT ChiSoChatLuongId, TanSuatBaoCao
+FROM dbo.ChiSoTanSuatBaoCao
+WHERE ChiSoChatLuongId IN (" + string.Join(",", ids) + @")
+ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
+
+            var frequencies = Query(sql, r => new
+            {
+                ChiSoChatLuongId = Int(r, "ChiSoChatLuongId"),
+                TanSuatBaoCao = (TanSuatBaoCao)r.GetByte(r.GetOrdinal("TanSuatBaoCao"))
+            });
+
+            return frequencies
+                .GroupBy(x => x.ChiSoChatLuongId)
+                .ToDictionary(g => g.Key, g => FormatFrequencies(g.Select(x => x.TanSuatBaoCao)));
         }
 
         public IList<AssignmentExportRow> GetExportRows(
@@ -1514,25 +1556,22 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             }
 
             var whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
-            var sql = $@"
+            var sql = @"
 SELECT pc.ChiSoChatLuongId, kp.TenKhoaPhong,
-       cs.TenChiSo, cs.TanSuatBaoCao, cs.PhuongPhapTinh, cs.TuSoMoTa, cs.MauSoMoTa, cs.ThuThapTongHop
+       cs.TenChiSo, cs.PhuongPhapTinh, cs.TuSoMoTa, cs.MauSoMoTa, cs.ThuThapTongHop
 FROM dbo.PhanCongChiSo pc
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
 INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
-{whereClause}
+" + whereClause + @"
 ORDER BY cs.MaChiSo, kp.TenKhoaPhong";
 
             var rows = Query(sql, r =>
             {
-                var frequency = (TanSuatBaoCao)r.GetByte(r.GetOrdinal("TanSuatBaoCao"));
                 return new AssignmentExportRow
                 {
                     ChiSoChatLuongId = Int(r, "ChiSoChatLuongId"),
                     TenKhoaPhong = String(r, "TenKhoaPhong"),
                     TenChiSo = String(r, "TenChiSo"),
-                    TanSuatBaoCao = frequency,
-                    TanSuatBaoCaoText = FormatFrequency(frequency),
                     PhuongPhapTinh = String(r, "PhuongPhapTinh"),
                     TuSoMoTa = String(r, "TuSoMoTa"),
                     MauSoMoTa = String(r, "MauSoMoTa"),
@@ -1552,10 +1591,10 @@ ORDER BY cs.MaChiSo, kp.TenKhoaPhong";
             }
 
             var indicatorIds = rows.Select(x => x.ChiSoChatLuongId).Distinct().ToList();
-            var sql = $@"
+            var sql = @"
 SELECT ChiSoChatLuongId, TanSuatBaoCao
 FROM dbo.ChiSoTanSuatBaoCao
-WHERE ChiSoChatLuongId IN ({string.Join(",", indicatorIds)})
+WHERE ChiSoChatLuongId IN (" + string.Join(",", indicatorIds) + @")
 ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
 
             var frequencies = Query(sql, r => new
@@ -1626,7 +1665,7 @@ ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
             }
 
             string whereClause = "WHERE " + string.Join(" AND ", conditions);
-            string sql = $@"SELECT COUNT(*) FROM dbo.ChiSoChatLuong cs {whereClause}";
+            string sql = "SELECT COUNT(*) FROM dbo.ChiSoChatLuong cs " + whereClause;
 
             return Convert.ToInt32(Scalar(sql, parameters.ToArray()));
         }
@@ -1691,10 +1730,10 @@ ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
             parameters.Add(Param("@Offset", offset));
             parameters.Add(Param("@PageSize", pageSize));
 
-            string indicatorSql = $@"
-SELECT cs.ChiSoChatLuongId, cs.MaChiSo, cs.TenChiSo, cs.TanSuatBaoCao, cs.LoaiCongThuc
+            string indicatorSql = @"
+SELECT cs.ChiSoChatLuongId, cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc
 FROM dbo.ChiSoChatLuong cs
-{whereClause}
+" + whereClause + @"
 ORDER BY ISNULL(cs.SoThuTu, 9999), cs.MaChiSo
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -1703,7 +1742,6 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
                 ChiSoChatLuongId = Int(r, "ChiSoChatLuongId"),
                 MaChiSo = String(r, "MaChiSo"),
                 TenChiSo = String(r, "TenChiSo"),
-                TanSuatBaoCao = (TanSuatBaoCao)r.GetByte(r.GetOrdinal("TanSuatBaoCao")),
                 LoaiCongThuc = (LoaiCongThuc)r.GetByte(r.GetOrdinal("LoaiCongThuc"))
             }, parameters.ToArray());
 
@@ -1714,7 +1752,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
             var indicatorIds = indicators.Select(x => x.ChiSoChatLuongId).ToList();
             var assignmentsParams = new List<SqlParameter>();
-            var assignmentsConditions = new List<string> { $"pc.ChiSoChatLuongId IN ({string.Join(",", indicatorIds)})" };
+            var assignmentsConditions = new List<string> { "pc.ChiSoChatLuongId IN (" + string.Join(",", indicatorIds) + ")" };
 
             if (khoaPhongId.HasValue && khoaPhongId.Value > 0)
             {
@@ -1734,13 +1772,13 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             }
 
             string assignmentsWhere = "WHERE " + string.Join(" AND ", assignmentsConditions);
-            string assignmentsSql = $@"
+            string assignmentsSql = @"
 SELECT pc.PhanCongChiSoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, kp.TenKhoaPhong,
-       cs.MaChiSo, cs.TenChiSo, cs.TanSuatBaoCao, cs.LoaiCongThuc, pc.DangHoatDong, pc.NgayTao
+       cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, pc.DangHoatDong, pc.NgayTao
 FROM dbo.PhanCongChiSo pc
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
 INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
-{assignmentsWhere}
+" + assignmentsWhere + @"
 ORDER BY kp.TenKhoaPhong";
 
             var assignments = Query(assignmentsSql, r => new AssignmentItemViewModel
@@ -1752,10 +1790,11 @@ ORDER BY kp.TenKhoaPhong";
                 MaChiSo = String(r, "MaChiSo"),
                 TenChiSo = String(r, "TenChiSo"),
                 DangHoatDong = r.GetBoolean(r.GetOrdinal("DangHoatDong")),
-                TanSuatBaoCaoText = FormatFrequency((TanSuatBaoCao)r.GetByte(r.GetOrdinal("TanSuatBaoCao"))),
                 LoaiCongThucText = FormatFormula((LoaiCongThuc)r.GetByte(r.GetOrdinal("LoaiCongThuc"))),
                 NgayTao = r.GetDateTime(r.GetOrdinal("NgayTao"))
             }, assignmentsParams.ToArray());
+            PopulateAssignmentItemFrequencies(assignments);
+            var frequencyTexts = GetFrequencyTextByIndicatorIds(indicatorIds);
 
             var groups = new List<IndicatorAssignmentGroup>();
             foreach (var ind in indicators)
@@ -1768,7 +1807,7 @@ ORDER BY kp.TenKhoaPhong";
                     ChiSoChatLuongId = ind.ChiSoChatLuongId,
                     MaChiSo = ind.MaChiSo,
                     TenChiSo = ind.TenChiSo,
-                    TanSuatBaoCaoText = FormatFrequency(ind.TanSuatBaoCao),
+                    TanSuatBaoCaoText = frequencyTexts.ContainsKey(ind.ChiSoChatLuongId) ? frequencyTexts[ind.ChiSoChatLuongId] : string.Empty,
                     LoaiCongThucText = FormatFormula(ind.LoaiCongThuc),
                     SoKhoaPhong = indAssignments.Count(x => x.DangHoatDong),
                     ChuaPhanCong = isUnassigned,
@@ -1815,7 +1854,7 @@ ORDER BY kp.TenKhoaPhong";
             }
 
             string whereClause = "WHERE " + string.Join(" AND ", conditions);
-            string sql = $@"SELECT COUNT(*) FROM dbo.KhoaPhong kp {whereClause}";
+            string sql = "SELECT COUNT(*) FROM dbo.KhoaPhong kp " + whereClause;
 
             return Convert.ToInt32(Scalar(sql, parameters.ToArray()));
         }
@@ -1867,10 +1906,10 @@ ORDER BY kp.TenKhoaPhong";
             parameters.Add(Param("@Offset", offset));
             parameters.Add(Param("@PageSize", pageSize));
 
-            string deptSql = $@"
+            string deptSql = @"
 SELECT kp.KhoaPhongId, kp.TenKhoaPhong
 FROM dbo.KhoaPhong kp
-{whereClause}
+" + whereClause + @"
 ORDER BY kp.TenKhoaPhong
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -1887,7 +1926,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
             var deptIds = departments.Select(x => x.KhoaPhongId).ToList();
             var assignmentsParams = new List<SqlParameter>();
-            var assignmentsConditions = new List<string> { $"pc.KhoaPhongId IN ({string.Join(",", deptIds)})" };
+            var assignmentsConditions = new List<string> { "pc.KhoaPhongId IN (" + string.Join(",", deptIds) + ")" };
 
             if (chiSoId.HasValue && chiSoId.Value > 0)
             {
@@ -1907,13 +1946,13 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             }
 
             string assignmentsWhere = "WHERE " + string.Join(" AND ", assignmentsConditions);
-            string assignmentsSql = $@"
+            string assignmentsSql = @"
 SELECT pc.PhanCongChiSoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, kp.TenKhoaPhong,
-       cs.MaChiSo, cs.TenChiSo, cs.TanSuatBaoCao, cs.LoaiCongThuc, pc.DangHoatDong, pc.NgayTao
+       cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, pc.DangHoatDong, pc.NgayTao
 FROM dbo.PhanCongChiSo pc
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
 INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
-{assignmentsWhere}
+" + assignmentsWhere + @"
 ORDER BY cs.MaChiSo";
 
             var assignments = Query(assignmentsSql, r => new AssignmentItemViewModel
@@ -1925,10 +1964,10 @@ ORDER BY cs.MaChiSo";
                 MaChiSo = String(r, "MaChiSo"),
                 TenChiSo = String(r, "TenChiSo"),
                 DangHoatDong = r.GetBoolean(r.GetOrdinal("DangHoatDong")),
-                TanSuatBaoCaoText = FormatFrequency((TanSuatBaoCao)r.GetByte(r.GetOrdinal("TanSuatBaoCao"))),
                 LoaiCongThucText = FormatFormula((LoaiCongThuc)r.GetByte(r.GetOrdinal("LoaiCongThuc"))),
                 NgayTao = r.GetDateTime(r.GetOrdinal("NgayTao"))
             }, assignmentsParams.ToArray());
+            PopulateAssignmentItemFrequencies(assignments);
 
             var groups = new List<DepartmentAssignmentGroup>();
             foreach (var dept in departments)
@@ -1976,10 +2015,10 @@ WHERE DangHoatDong = 1"));
                 return result;
             }
 
-            var depts = Query($"SELECT KhoaPhongId, TenKhoaPhong FROM dbo.KhoaPhong WHERE KhoaPhongId IN ({string.Join(",", departmentIds)})",
+            var depts = Query("SELECT KhoaPhongId, TenKhoaPhong FROM dbo.KhoaPhong WHERE KhoaPhongId IN (" + string.Join(",", departmentIds) + ")",
                 r => new { Id = Int(r, "KhoaPhongId"), Name = String(r, "TenKhoaPhong") });
 
-            var inds = Query($"SELECT ChiSoChatLuongId, MaChiSo, TenChiSo FROM dbo.ChiSoChatLuong WHERE ChiSoChatLuongId IN ({string.Join(",", indicatorIds)})",
+            var inds = Query("SELECT ChiSoChatLuongId, MaChiSo, TenChiSo FROM dbo.ChiSoChatLuong WHERE ChiSoChatLuongId IN (" + string.Join(",", indicatorIds) + ")",
                 r => new { Id = Int(r, "ChiSoChatLuongId"), Code = String(r, "MaChiSo"), Name = String(r, "TenChiSo") });
 
             foreach (var dept in depts)
@@ -2087,26 +2126,26 @@ ELSE
         public void BulkDeactivate(int[] ids)
         {
             if (ids == null || ids.Length == 0) return;
-            Execute($"UPDATE dbo.PhanCongChiSo SET DangHoatDong = 0 WHERE PhanCongChiSoId IN ({string.Join(",", ids)})");
+            Execute("UPDATE dbo.PhanCongChiSo SET DangHoatDong = 0 WHERE PhanCongChiSoId IN (" + string.Join(",", ids) + ")");
         }
 
         public void BulkActivate(int[] ids)
         {
             if (ids == null || ids.Length == 0) return;
-            Execute($"UPDATE dbo.PhanCongChiSo SET DangHoatDong = 1 WHERE PhanCongChiSoId IN ({string.Join(",", ids)})");
+            Execute("UPDATE dbo.PhanCongChiSo SET DangHoatDong = 1 WHERE PhanCongChiSoId IN (" + string.Join(",", ids) + ")");
         }
 
         public void BulkDelete(int[] ids)
         {
             if (ids == null || ids.Length == 0) return;
 
-            var reportCount = Convert.ToInt32(Scalar($"SELECT COUNT(*) FROM dbo.BaoCao WHERE PhanCongChiSoId IN ({string.Join(",", ids)})"));
+            var reportCount = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.BaoCao WHERE PhanCongChiSoId IN (" + string.Join(",", ids) + ")"));
             if (reportCount > 0)
             {
                 throw new InvalidOperationException("Một số phân công được chọn đã có báo cáo, vui lòng ngừng kích hoạt thay vì xóa.");
             }
 
-            Execute($"DELETE FROM dbo.PhanCongChiSo WHERE PhanCongChiSoId IN ({string.Join(",", ids)})");
+            Execute("DELETE FROM dbo.PhanCongChiSo WHERE PhanCongChiSoId IN (" + string.Join(",", ids) + ")");
         }
 
         public void Delete(int id)
@@ -2142,11 +2181,6 @@ ORDER BY ky.TuNgay DESC";
 SELECT DISTINCT tsb.TanSuatBaoCao
 FROM dbo.PhanCongChiSo pc
 INNER JOIN dbo.ChiSoTanSuatBaoCao tsb ON tsb.ChiSoChatLuongId = pc.ChiSoChatLuongId
-WHERE pc.KhoaPhongId = @KhoaPhongId AND pc.DangHoatDong = 1
-UNION
-SELECT DISTINCT cs.TanSuatBaoCao
-FROM dbo.PhanCongChiSo pc
-INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
 WHERE pc.KhoaPhongId = @KhoaPhongId AND pc.DangHoatDong = 1";
 
             return Query(sql, r => (TanSuatBaoCao)r.GetByte(0), Param("@KhoaPhongId", departmentId));
@@ -2155,6 +2189,21 @@ WHERE pc.KhoaPhongId = @KhoaPhongId AND pc.DangHoatDong = 1";
         public IList<SelectListItem> GetOptions()
         {
             return GetAll().Select(x => new SelectListItem { Value = x.KyBaoCaoId.ToString(), Text = x.TenKyBaoCao }).ToList();
+        }
+
+        public bool IsOpenForDepartment(int periodId, int departmentId)
+        {
+            var count = Convert.ToInt32(Scalar(@"
+SELECT COUNT(DISTINCT ky.KyBaoCaoId)
+FROM dbo.KyBaoCao ky
+INNER JOIN dbo.PhanCongChiSo pc ON pc.KhoaPhongId=@KhoaPhongId AND pc.DangHoatDong=1
+INNER JOIN dbo.ChiSoTanSuatBaoCao cst ON cst.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cst.TanSuatBaoCao = ky.LoaiKyBaoCao
+WHERE ky.KyBaoCaoId=@KyBaoCaoId AND ky.TrangThai=@Mo",
+                Param("@KyBaoCaoId", periodId),
+                Param("@KhoaPhongId", departmentId),
+                Param("@Mo", (byte)TrangThaiKyBaoCao.Mo)));
+
+            return count > 0;
         }
 
         public KyBaoCaoViewModel Get(int id)
@@ -2230,6 +2279,284 @@ SELECT
                 TongBaoCao = Int(reader, "TongBaoCao"),
                 DaGui = Int(reader, "DaGui")
             };
+        }
+    }
+
+    public class ReportingPeriodScheduleService : DbServiceBase
+    {
+        private static readonly TanSuatBaoCao[] SchedulableFrequencies =
+        {
+            TanSuatBaoCao.HangNgay,
+            TanSuatBaoCao.HangThang,
+            TanSuatBaoCao.HangQuy,
+            TanSuatBaoCao.SauThang,
+            TanSuatBaoCao.ChinThang,
+            TanSuatBaoCao.HangNam
+        };
+
+        public ReportingPeriodScheduleRequestViewModel CreateDefaultRequest()
+        {
+            return PopulateOptions(new ReportingPeriodScheduleRequestViewModel());
+        }
+
+        public ReportingPeriodScheduleRequestViewModel PopulateOptions(ReportingPeriodScheduleRequestViewModel model)
+        {
+            if (model == null)
+            {
+                model = new ReportingPeriodScheduleRequestViewModel();
+            }
+
+            model.FrequencyOptions = SchedulableFrequencies
+                .Select(x => new SelectListItem
+                {
+                    Value = ((int)x).ToString(CultureInfo.InvariantCulture),
+                    Text = FormatFrequencyForSchedule(x),
+                    Selected = model.SelectedFrequencyValues != null && model.SelectedFrequencyValues.Contains((int)x)
+                })
+                .ToList();
+
+            model.StatusOptions = new List<SelectListItem>
+            {
+                new SelectListItem { Value = ((byte)TrangThaiKyBaoCao.Nhap).ToString(CultureInfo.InvariantCulture), Text = "Nhập", Selected = model.DefaultStatus == TrangThaiKyBaoCao.Nhap },
+                new SelectListItem { Value = ((byte)TrangThaiKyBaoCao.Mo).ToString(CultureInfo.InvariantCulture), Text = "Mở", Selected = model.DefaultStatus == TrangThaiKyBaoCao.Mo },
+                new SelectListItem { Value = ((byte)TrangThaiKyBaoCao.Khoa).ToString(CultureInfo.InvariantCulture), Text = "Khóa", Selected = model.DefaultStatus == TrangThaiKyBaoCao.Khoa }
+            };
+
+            if (model.PreviewItems == null)
+            {
+                model.PreviewItems = new List<ReportingPeriodSchedulePreviewItemViewModel>();
+            }
+
+            return model;
+        }
+
+        public IList<ReportingPeriodSchedulePreviewItemViewModel> BuildSchedulePreview(ReportingPeriodScheduleRequestViewModel request, DateTime now)
+        {
+            ValidateScheduleRequest(request);
+            request.DueDayOffset = 0;
+            var today = now.Date;
+            var items = new List<ReportingPeriodSchedulePreviewItemViewModel>();
+
+            foreach (var frequency in GetSelectedFrequencies(request))
+            {
+                switch (frequency)
+                {
+                    case TanSuatBaoCao.HangNgay:
+                        var day = new DateTime(request.Year, 1, 1);
+                        var lastDay = new DateTime(request.Year, 12, 31);
+                        while (day <= lastDay)
+                        {
+                            AddPeriod(items, string.Format("Ngày {0:dd/MM/yyyy}", day), frequency, day, day, request.DueDayOffset, today);
+                            day = day.AddDays(1);
+                        }
+                        break;
+                    case TanSuatBaoCao.HangThang:
+                        for (var month = 1; month <= 12; month++)
+                        {
+                            var start = new DateTime(request.Year, month, 1);
+                            var end = start.AddMonths(1).AddDays(-1);
+                            AddPeriod(items, string.Format("Tháng {0:00}/{1}", month, request.Year), frequency, start, end, request.DueDayOffset, today);
+                        }
+                        break;
+                    case TanSuatBaoCao.HangQuy:
+                        for (var quarter = 1; quarter <= 4; quarter++)
+                        {
+                            var startMonth = (quarter - 1) * 3 + 1;
+                            var start = new DateTime(request.Year, startMonth, 1);
+                            var end = start.AddMonths(3).AddDays(-1);
+                            AddPeriod(items, string.Format("Quý {0}/{1}", ToRomanQuarter(quarter), request.Year), frequency, start, end, request.DueDayOffset, today);
+                        }
+                        break;
+                    case TanSuatBaoCao.SauThang:
+                        AddPeriod(items, string.Format("6 tháng đầu năm {0}", request.Year), frequency, new DateTime(request.Year, 1, 1), new DateTime(request.Year, 6, 30), request.DueDayOffset, today);
+                        AddPeriod(items, string.Format("6 tháng cuối năm {0}", request.Year), frequency, new DateTime(request.Year, 7, 1), new DateTime(request.Year, 12, 31), request.DueDayOffset, today);
+                        break;
+                    case TanSuatBaoCao.ChinThang:
+                        AddPeriod(items, string.Format("9 tháng năm {0}", request.Year), frequency, new DateTime(request.Year, 1, 1), new DateTime(request.Year, 9, 30), request.DueDayOffset, today);
+                        break;
+                    case TanSuatBaoCao.HangNam:
+                        AddPeriod(items, string.Format("Năm {0}", request.Year), frequency, new DateTime(request.Year, 1, 1), new DateTime(request.Year, 12, 31), request.DueDayOffset, today);
+                        break;
+                }
+            }
+
+            foreach (var item in items)
+            {
+                item.AlreadyExists = PeriodExists(item.LoaiKyBaoCao, item.TuNgay, item.DenNgay);
+            }
+
+            return items
+                .OrderBy(x => x.TuNgay)
+                .ThenBy(x => GetFrequencyOrder(x.LoaiKyBaoCao))
+                .ToList();
+        }
+
+        public ReportingPeriodScheduleResultViewModel GenerateSchedule(ReportingPeriodScheduleRequestViewModel request, DateTime now)
+        {
+            var preview = BuildSchedulePreview(request, now);
+            var result = new ReportingPeriodScheduleResultViewModel
+            {
+                TotalPreviewed = preview.Count,
+                SkippedExistingCount = preview.Count(x => x.AlreadyExists)
+            };
+
+            foreach (var item in preview.Where(x => !x.AlreadyExists))
+            {
+                if (PeriodExists(item.LoaiKyBaoCao, item.TuNgay, item.DenNgay))
+                {
+                    result.SkippedExistingCount++;
+                    continue;
+                }
+
+                InsertPeriod(item);
+                result.CreatedCount++;
+            }
+
+            result.OpenedCount = OpenDuePeriods(now);
+            return result;
+        }
+
+        public int OpenDuePeriods(DateTime now)
+        {
+            const string sql = @"
+UPDATE dbo.KyBaoCao
+SET TrangThai=@Mo, NgayCapNhat=GETDATE()
+WHERE TrangThai=@Nhap AND TuNgay <= @Today";
+
+            return Execute(sql,
+                Param("@Mo", (byte)TrangThaiKyBaoCao.Mo),
+                Param("@Nhap", (byte)TrangThaiKyBaoCao.Nhap),
+                Param("@Today", now.Date));
+        }
+
+        private static void ValidateScheduleRequest(ReportingPeriodScheduleRequestViewModel request)
+        {
+            if (request == null)
+            {
+                throw new InvalidOperationException("Vui lòng nhập thông tin tạo lịch kỳ báo cáo.");
+            }
+
+            if (request.Year < 2000 || request.Year > 2100)
+            {
+                throw new InvalidOperationException("Năm phải nằm trong khoảng 2000 đến 2100.");
+            }
+
+            if (request.DueDayOffset < 0 || request.DueDayOffset > 365)
+            {
+                throw new InvalidOperationException("Số ngày hạn nộp phải từ 0 đến 365.");
+            }
+
+            if (!GetSelectedFrequencies(request).Any())
+            {
+                throw new InvalidOperationException("Vui lòng chọn ít nhất một loại kỳ báo cáo.");
+            }
+        }
+
+        private static IList<TanSuatBaoCao> GetSelectedFrequencies(ReportingPeriodScheduleRequestViewModel request)
+        {
+            if (request.SelectedFrequencyValues == null)
+            {
+                return new List<TanSuatBaoCao>();
+            }
+
+            return request.SelectedFrequencyValues
+                .Where(x => Enum.IsDefined(typeof(TanSuatBaoCao), (byte)x))
+                .Select(x => (TanSuatBaoCao)(byte)x)
+                .Where(x => SchedulableFrequencies.Contains(x))
+                .Distinct()
+                .OrderBy(GetFrequencyOrder)
+                .ToList();
+        }
+
+        private static void AddPeriod(
+            IList<ReportingPeriodSchedulePreviewItemViewModel> items,
+            string name,
+            TanSuatBaoCao frequency,
+            DateTime start,
+            DateTime end,
+            int dueDayOffset,
+            DateTime today)
+        {
+            if (end.Date < today)
+            {
+                return;
+            }
+
+            items.Add(new ReportingPeriodSchedulePreviewItemViewModel
+            {
+                TenKyBaoCao = name,
+                LoaiKyBaoCao = frequency,
+                LoaiKyBaoCaoText = FormatFrequencyForSchedule(frequency),
+                TuNgay = start,
+                DenNgay = end,
+                HanNop = end.AddDays(dueDayOffset),
+                TrangThai = start.Date <= today ? TrangThaiKyBaoCao.Mo : TrangThaiKyBaoCao.Nhap
+            });
+        }
+
+        private bool PeriodExists(TanSuatBaoCao frequency, DateTime start, DateTime end)
+        {
+            const string sql = @"
+SELECT COUNT(*)
+FROM dbo.KyBaoCao
+WHERE LoaiKyBaoCao=@LoaiKyBaoCao AND TuNgay=@TuNgay AND DenNgay=@DenNgay";
+
+            return Convert.ToInt32(Scalar(sql,
+                Param("@LoaiKyBaoCao", (byte)frequency),
+                Param("@TuNgay", start.Date),
+                Param("@DenNgay", end.Date))) > 0;
+        }
+
+        private void InsertPeriod(ReportingPeriodSchedulePreviewItemViewModel item)
+        {
+            Execute(@"INSERT INTO dbo.KyBaoCao(TenKyBaoCao, LoaiKyBaoCao, TuNgay, DenNgay, HanNop, TrangThai)
+VALUES(@TenKyBaoCao, @LoaiKyBaoCao, @TuNgay, @DenNgay, @HanNop, @TrangThai)",
+                Param("@TenKyBaoCao", item.TenKyBaoCao),
+                Param("@LoaiKyBaoCao", (byte)item.LoaiKyBaoCao),
+                Param("@TuNgay", item.TuNgay.Date),
+                Param("@DenNgay", item.DenNgay.Date),
+                Param("@HanNop", item.HanNop.Date),
+                Param("@TrangThai", (byte)item.TrangThai));
+        }
+
+        private static int GetFrequencyOrder(TanSuatBaoCao frequency)
+        {
+            switch (frequency)
+            {
+                case TanSuatBaoCao.HangNgay: return 5;
+                case TanSuatBaoCao.HangThang: return 10;
+                case TanSuatBaoCao.HangQuy: return 20;
+                case TanSuatBaoCao.SauThang: return 30;
+                case TanSuatBaoCao.ChinThang: return 40;
+                case TanSuatBaoCao.HangNam: return 50;
+                default: return 100;
+            }
+        }
+
+        private static string FormatFrequencyForSchedule(TanSuatBaoCao frequency)
+        {
+            switch (frequency)
+            {
+                case TanSuatBaoCao.HangNgay: return "Hàng ngày";
+                case TanSuatBaoCao.HangThang: return "Hàng tháng";
+                case TanSuatBaoCao.HangQuy: return "Hàng quý";
+                case TanSuatBaoCao.SauThang: return "6 tháng";
+                case TanSuatBaoCao.ChinThang: return "9 tháng";
+                case TanSuatBaoCao.HangNam: return "Hàng năm";
+                default: return frequency.ToString();
+            }
+        }
+
+        private static string ToRomanQuarter(int quarter)
+        {
+            switch (quarter)
+            {
+                case 1: return "I";
+                case 2: return "II";
+                case 3: return "III";
+                case 4: return "IV";
+                default: return quarter.ToString(CultureInfo.InvariantCulture);
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+// Mục đích: khai báo enum dùng chung cho role, trạng thái, tần suất và loại nghiệp vụ.
 namespace HospitalQualityDashboard.Models.Enums
 {
     public enum LoaiTaiKhoan : byte

@@ -1,3 +1,4 @@
+// Mục đích: quản lý danh mục khoa/phòng và import dữ liệu khoa/phòng.
 using System.Web.Mvc;
 using HospitalQualityDashboard.Models.ViewModels;
 using HospitalQualityDashboard.Services;

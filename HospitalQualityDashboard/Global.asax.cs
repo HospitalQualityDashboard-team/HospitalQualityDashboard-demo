@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Mục đích: khởi động ứng dụng, bootstrap dữ liệu debug và đăng ký MVC pipeline.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -14,6 +15,7 @@ namespace HospitalQualityDashboard
         protected void Application_Start()
         {
             DatabaseBootstrapper.BootstrapIfDebug();
+            new ReportingPeriodScheduleService().OpenDuePeriods(DateTime.Now);
 
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);

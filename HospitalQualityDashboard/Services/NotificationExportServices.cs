@@ -1,3 +1,4 @@
+// Mục đích: xử lý thông báo và các chức năng export dữ liệu.
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -105,7 +106,7 @@ WHERE ky.TrangThai = @Mo";
             {
                 var key = string.Format("period-opened:{0}:{1}", row.KyBaoCaoId, row.KhoaPhongId);
                 var title = "Kỳ báo cáo đã mở";
-                var body = string.Format("Kỳ báo cáo \"{0}\" đã mở. Khoa/phòng vui lòng nhập và gửi số liệu trước ngày {1:dd/MM/yyyy}.", row.TenKyBaoCao, row.HanNop);
+                var body = string.Format("Kỳ báo cáo \"{0}\" đã mở. Khoa/phòng vui lòng nhập và gửi số liệu trước 23:59 ngày {1:dd/MM/yyyy}.", row.TenKyBaoCao, row.HanNop);
                 var notificationId = CreateAutoNotification(key, LoaiThongBao.KyBaoCaoMo, title, body, row.KyBaoCaoId, row.KhoaPhongId, row.HanNop.Date);
                 AddDepartmentRecipients(notificationId, row.KhoaPhongId);
             }
@@ -143,7 +144,7 @@ HAVING COUNT(pc.PhanCongChiSoId) - COUNT(bc.BaoCaoId) > 0";
                 {
                     var key = string.Format("due:{0}:{1}:{2}", row.KyBaoCaoId, row.KhoaPhongId, daysBeforeDue);
                     var title = daysBeforeDue == 0 ? "Hôm nay là hạn nộp báo cáo" : string.Format("Còn {0} ngày đến hạn nộp báo cáo", daysBeforeDue);
-                    var body = string.Format("Kỳ báo cáo \"{0}\" còn {1} chỉ số chưa gửi. Hạn nộp: {2:dd/MM/yyyy}.", row.TenKyBaoCao, row.MissingCount, row.HanNop);
+                    var body = string.Format("Kỳ báo cáo \"{0}\" còn {1} chỉ số chưa gửi. Hạn nộp: 23:59 ngày {2:dd/MM/yyyy}.", row.TenKyBaoCao, row.MissingCount, row.HanNop);
                     var notificationId = CreateAutoNotification(key, LoaiThongBao.NhacHan, title, body, row.KyBaoCaoId, row.KhoaPhongId, row.HanNop.Date);
                     AddDepartmentRecipients(notificationId, row.KhoaPhongId);
                 }

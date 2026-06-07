@@ -9,6 +9,8 @@
 # Build outputs
 [Bb]in/
 [Oo]bj/
+[Bb]in_unit/
+[Oo]bj_unit/
 [Dd]ebug/
 [Rr]elease/
 x64/
@@ -34,6 +36,9 @@ logs/
 *.cache
 *.tmp
 *.temp
+scratch/
+ExcelDump/
+HospitalQualityDashboard/Tai_Lieu/DM_KHOA_PHONG.zip
 
 # IIS / publish artifacts
 _PublishedWebsites/

@@ -1,7 +1,9 @@
+// Mục đích: xử lý xác thực, đổi mật khẩu và truy vấn hồ sơ tài khoản.
 using System;
 using System.Configuration;
 using System.Data.SqlClient;
 using HospitalQualityDashboard.Models.Enums;
+using HospitalQualityDashboard.Models.ViewModels;
 
 namespace HospitalQualityDashboard.Services
 {
@@ -109,6 +111,69 @@ WHERE tk.TenDangNhap = @TenDangNhap";
             return true;
         }
 
+        public UserProfileViewModel GetUserProfile(int taiKhoanId)
+        {
+            const string sql = @"
+SELECT TOP 1
+    tk.TaiKhoanId,
+    tk.TenDangNhap,
+    tk.LoaiTaiKhoan,
+    tk.NhanVienId,
+    tk.KhoaPhongId AS TaiKhoanKhoaPhongId,
+    tk.DangHoatDong AS TaiKhoanDangHoatDong,
+    tk.LanDangNhapCuoi,
+    nv.MaNhanVien,
+    nv.HoTen,
+    nv.NgaySinh,
+    nv.GioiTinh,
+    nv.ChucVu,
+    nv.Email,
+    nv.SoDienThoai,
+    nv.KhoaPhongId AS NhanVienKhoaPhongId,
+    nv.DangHoatDong AS NhanVienDangHoatDong,
+    kp.TenKhoaPhong
+FROM dbo.TaiKhoan tk
+LEFT JOIN dbo.NhanVien nv ON nv.NhanVienId = tk.NhanVienId
+LEFT JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = ISNULL(tk.KhoaPhongId, nv.KhoaPhongId)
+WHERE tk.TaiKhoanId = @TaiKhoanId";
+
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@TaiKhoanId", taiKhoanId);
+                connection.Open();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    if (!reader.Read())
+                    {
+                        return null;
+                    }
+
+                    return new UserProfileViewModel
+                    {
+                        TaiKhoanId = reader.GetInt32(reader.GetOrdinal("TaiKhoanId")),
+                        TenDangNhap = reader.GetString(reader.GetOrdinal("TenDangNhap")),
+                        LoaiTaiKhoan = (LoaiTaiKhoan)reader.GetByte(reader.GetOrdinal("LoaiTaiKhoan")),
+                        NhanVienId = ReadNullableInt(reader, "NhanVienId"),
+                        MaNhanVien = ReadNullableString(reader, "MaNhanVien"),
+                        HoTen = ReadNullableString(reader, "HoTen"),
+                        NgaySinh = ReadNullableDateTime(reader, "NgaySinh"),
+                        GioiTinh = ReadNullableString(reader, "GioiTinh"),
+                        ChucVu = ReadNullableString(reader, "ChucVu"),
+                        Email = ReadNullableString(reader, "Email"),
+                        SoDienThoai = ReadNullableString(reader, "SoDienThoai"),
+                        KhoaPhongId = ReadNullableInt(reader, "TaiKhoanKhoaPhongId") ?? ReadNullableInt(reader, "NhanVienKhoaPhongId"),
+                        TenKhoaPhong = ReadNullableString(reader, "TenKhoaPhong"),
+                        TaiKhoanDangHoatDong = reader.GetBoolean(reader.GetOrdinal("TaiKhoanDangHoatDong")),
+                        NhanVienDangHoatDong = ReadNullableBool(reader, "NhanVienDangHoatDong"),
+                        LanDangNhapCuoi = ReadNullableDateTime(reader, "LanDangNhapCuoi"),
+                        ChangePassword = new ChangePasswordViewModel()
+                    };
+                }
+            }
+        }
+
         private string GetPasswordHash(int taiKhoanId)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -141,6 +206,18 @@ WHERE tk.TenDangNhap = @TenDangNhap";
         {
             var ordinal = reader.GetOrdinal(name);
             return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
+        }
+
+        private static DateTime? ReadNullableDateTime(SqlDataReader reader, string name)
+        {
+            var ordinal = reader.GetOrdinal(name);
+            return reader.IsDBNull(ordinal) ? (DateTime?)null : reader.GetDateTime(ordinal);
+        }
+
+        private static bool? ReadNullableBool(SqlDataReader reader, string name)
+        {
+            var ordinal = reader.GetOrdinal(name);
+            return reader.IsDBNull(ordinal) ? (bool?)null : reader.GetBoolean(ordinal);
         }
 
         private static bool IsEmployeeLocked(SqlDataReader reader)

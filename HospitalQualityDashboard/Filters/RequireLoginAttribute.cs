@@ -1,3 +1,4 @@
+// Mục đích: filter bảo vệ action theo trạng thái đăng nhập và role được phép.
 using System.Web.Mvc;
 using HospitalQualityDashboard.Models.Enums;
 

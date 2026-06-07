@@ -1,5 +1,8 @@
+// Mục đích: điều phối quy trình nhập, gửi, duyệt, từ chối và khóa báo cáo.
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Models.ViewModels;
 using HospitalQualityDashboard.Services;
 
@@ -9,22 +12,20 @@ namespace HospitalQualityDashboard.Controllers
     {
         private readonly ReportService _service = new ReportService();
         private readonly ReportingPeriodService _periods = new ReportingPeriodService();
+        private readonly ReportingPeriodScheduleService _periodSchedule = new ReportingPeriodScheduleService();
         private readonly DepartmentService _departments = new DepartmentService();
         private readonly IndicatorService _indicators = new IndicatorService();
 
         public ActionResult Index(int? kyBaoCaoId, int? khoaPhongId, int? chiSoChatLuongId)
         {
-            var effectiveDepartmentId = IsAdmin ? khoaPhongId : CurrentKhoaPhongId;
-            var activePeriods = _periods.GetAll()
-                .Where(p => p.TrangThai == Models.Enums.TrangThaiKyBaoCao.Mo)
-                .ToList();
+            _periodSchedule.OpenDuePeriods(System.DateTime.Now);
 
-            if (!IsAdmin && CurrentKhoaPhongId.HasValue)
+            var effectiveDepartmentId = IsAdmin ? khoaPhongId : CurrentKhoaPhongId;
+            var activePeriods = GetActivePeriodsForCurrentViewer();
+
+            if (!IsAdmin && kyBaoCaoId.HasValue && activePeriods.All(p => p.KyBaoCaoId != kyBaoCaoId.Value))
             {
-                var userFreqs = _periods.GetFrequenciesForDepartment(CurrentKhoaPhongId.Value);
-                activePeriods = activePeriods
-                    .Where(p => userFreqs.Contains(p.LoaiKyBaoCao))
-                    .ToList();
+                kyBaoCaoId = null;
             }
 
             return View(new ReportListViewModel
@@ -33,7 +34,7 @@ namespace HospitalQualityDashboard.Controllers
                 KyBaoCaoId = kyBaoCaoId,
                 KhoaPhongId = effectiveDepartmentId,
                 ChiSoChatLuongId = chiSoChatLuongId,
-                KyBaoCaoOptions = _periods.GetOptions(),
+                KyBaoCaoOptions = IsAdmin ? _periods.GetOptions() : BuildUserPeriodOptions(activePeriods),
                 KhoaPhongOptions = _departments.GetOptions(),
                 ChiSoOptions = _indicators.GetOptions(),
                 Items = _service.GetAll(kyBaoCaoId, effectiveDepartmentId, chiSoChatLuongId, IsAdmin, CurrentKhoaPhongId),
@@ -43,10 +44,8 @@ namespace HospitalQualityDashboard.Controllers
 
         public ActionResult Nhap(int kyBaoCaoId)
         {
-            if (!CurrentKhoaPhongId.HasValue)
-            {
-                return new HttpUnauthorizedResult();
-            }
+            var periodGate = EnsureOpenPeriodForUser(kyBaoCaoId);
+            if (periodGate != null) return periodGate;
 
             return View(_service.GetAssignedForUser(kyBaoCaoId, CurrentKhoaPhongId.Value));
         }
@@ -72,10 +71,22 @@ namespace HospitalQualityDashboard.Controllers
                     return new HttpUnauthorizedResult();
                 }
 
+                if (!kyBaoCaoId.HasValue || !chiSoChatLuongId.HasValue)
+                {
+                    return new HttpStatusCodeResult(400, "Thieu thong tin ky bao cao hoac chi so.");
+                }
+
+                var periodGate = EnsureOpenPeriodForUser(kyBaoCaoId.Value);
+                if (periodGate != null) return periodGate;
+
                 var departmentId = IsAdmin ? khoaPhongId.GetValueOrDefault() : CurrentKhoaPhongId.GetValueOrDefault();
                 var gate = EnsureUserDepartment(departmentId);
                 if (gate != null) return gate;
-                model = _service.GetAssignedForUser(kyBaoCaoId.Value, departmentId).First(x => x.ChiSoChatLuongId == chiSoChatLuongId.Value);
+                model = _service.GetAssignedForUser(kyBaoCaoId.Value, departmentId).FirstOrDefault(x => x.ChiSoChatLuongId == chiSoChatLuongId.Value);
+                if (model == null)
+                {
+                    return HttpNotFound();
+                }
             }
 
             ViewBag.IsAdmin = IsAdmin;
@@ -93,6 +104,8 @@ namespace HospitalQualityDashboard.Controllers
 
             var gate = EnsureUserDepartment(model.KhoaPhongId);
             if (gate != null) return gate;
+            var periodGate = EnsureOpenPeriodForUser(model.KyBaoCaoId);
+            if (periodGate != null) return periodGate;
             if (!ModelState.IsValid) return View(model);
             var id = _service.SaveDraft(model, CurrentTaiKhoanId.Value);
             return RedirectToAction("Edit", new { id = id });
@@ -115,6 +128,8 @@ namespace HospitalQualityDashboard.Controllers
 
             var gate = EnsureUserDepartment(report.KhoaPhongId);
             if (gate != null) return gate;
+            var periodGate = EnsureOpenPeriodForUser(report.KyBaoCaoId);
+            if (periodGate != null) return periodGate;
             _service.Submit(id, CurrentTaiKhoanId.Value);
             return RedirectToAction("Index");
         }
@@ -151,6 +166,55 @@ namespace HospitalQualityDashboard.Controllers
             if (admin != null) return admin;
             _service.Delete(id);
             return RedirectToAction("Index");
+        }
+
+        private IList<KyBaoCaoViewModel> GetActivePeriodsForCurrentViewer()
+        {
+            var activePeriods = _periods.GetAll()
+                .Where(p => p.TrangThai == TrangThaiKyBaoCao.Mo)
+                .ToList();
+
+            if (!IsAdmin)
+            {
+                if (!CurrentKhoaPhongId.HasValue)
+                {
+                    return new List<KyBaoCaoViewModel>();
+                }
+
+                var userFreqs = _periods.GetFrequenciesForDepartment(CurrentKhoaPhongId.Value);
+                activePeriods = activePeriods
+                    .Where(p => userFreqs.Contains(p.LoaiKyBaoCao))
+                    .ToList();
+            }
+
+            return activePeriods;
+        }
+
+        private static IList<SelectListItem> BuildUserPeriodOptions(IEnumerable<KyBaoCaoViewModel> activePeriods)
+        {
+            return activePeriods
+                .Select(x => new SelectListItem { Value = x.KyBaoCaoId.ToString(), Text = x.TenKyBaoCao })
+                .ToList();
+        }
+
+        private ActionResult EnsureOpenPeriodForUser(int kyBaoCaoId)
+        {
+            if (IsAdmin)
+            {
+                return new HttpUnauthorizedResult();
+            }
+
+            if (!CurrentKhoaPhongId.HasValue)
+            {
+                return new HttpUnauthorizedResult();
+            }
+
+            if (!_periods.IsOpenForDepartment(kyBaoCaoId, CurrentKhoaPhongId.Value))
+            {
+                return new HttpStatusCodeResult(403, "Ky bao cao chua mo hoac khong phu hop voi phan cong cua khoa/phong.");
+            }
+
+            return null;
         }
     }
 }

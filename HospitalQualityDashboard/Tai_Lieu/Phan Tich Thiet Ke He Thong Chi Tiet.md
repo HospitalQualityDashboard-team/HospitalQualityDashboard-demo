@@ -421,6 +421,120 @@ Script `tools/VerifyIndicatorFormulaImport.ps1` kiểm tra các case bắt buộ
 
 ---
 
+### 4.5. Thiết kế tạo lịch kỳ báo cáo tự động
+
+Chức năng tạo lịch tự động được thiết kế để Admin tạo hàng loạt `KyBaoCao` theo năm, đồng thời giữ nguyên nguyên tắc sinh slot báo cáo động. Hệ thống không tạo trước bản ghi `BaoCao` rỗng.
+
+#### Luồng xử lý tổng quát
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant UI as GenerateSchedule.cshtml
+    participant Ctl as ReportingPeriodController
+    participant Svc as ReportingPeriodScheduleService
+    participant DB as SQL Server
+
+    Admin->>UI: Chọn năm và loại kỳ
+    Admin->>Ctl: PreviewSchedule(model)
+    Ctl->>Svc: BuildPreview(model, today)
+    Svc->>Svc: Sinh kỳ theo loại kỳ
+    Svc->>Svc: Bỏ kỳ có DenNgay < today
+    Svc->>DB: Kiểm tra kỳ đã tồn tại
+    DB-->>Svc: Danh sách kỳ trùng
+    Svc-->>Ctl: Preview gồm Sẽ tạo mới/Đã tồn tại
+    Ctl-->>UI: Hiển thị danh sách kỳ dự kiến
+    Admin->>Ctl: CreateSchedule(model)
+    Ctl->>Svc: CreateMissingPeriods(model, today)
+    Svc->>DB: INSERT các kỳ chưa tồn tại
+    Svc->>DB: UPDATE kỳ Nhập đã tới ngày thành Mở
+    Ctl-->>Admin: Quay về danh sách kỳ báo cáo
+```
+
+#### Các loại kỳ được sinh
+
+| Loại kỳ | Enum | Khoảng thời gian |
+| :--- | :--- | :--- |
+| Hàng ngày | `HangNgay` | Mỗi ngày một kỳ, `TuNgay = DenNgay`. |
+| Hàng tháng | `HangThang` | Ngày đầu tháng đến ngày cuối tháng. |
+| Hàng quý | `HangQuy` | Ngày đầu quý đến ngày cuối quý. |
+| 6 tháng | `SauThang` | 01/01-30/06 và 01/07-31/12. |
+| 9 tháng | `ChinThang` | 01/01-30/09. |
+| Hàng năm | `HangNam` | 01/01-31/12. |
+
+Không sinh lịch tự động cho `KhiPhatSinh` và `TruocSauKhiThucHien`, vì hai loại kỳ này không có lịch cố định theo năm.
+
+#### Quy tắc thời gian
+
+Các cột ngày trong database vẫn lưu dạng ngày, nhưng nghiệp vụ hiểu theo mốc thời gian:
+
+```text
+TuNgay  = 00:00 ngày bắt đầu kỳ
+DenNgay = 23:59 ngày kết thúc kỳ
+HanNop  = 23:59 ngày kết thúc kỳ
+```
+
+Vì vậy `HanNop` của lịch tự động bằng `DenNgay`. Ví dụ kỳ Tháng 06/2026 mở lúc 00:00 ngày 01/06/2026, đóng lúc 23:59 ngày 30/06/2026 và hạn nộp cuối cùng cũng là 23:59 ngày 30/06/2026.
+
+Khi User gửi báo cáo, service không so sánh giờ vật lý vì DB không lưu giờ. Hệ thống đánh `QuaHan` khi:
+
+```sql
+CAST(GETDATE() AS date) > KyBaoCao.HanNop
+```
+
+Do đó gửi trong đúng ngày hạn nộp vẫn là đúng hạn; gửi từ ngày hôm sau mới là quá hạn.
+
+#### Quy tắc bỏ kỳ đã kết thúc
+
+Khi preview, service loại bỏ kỳ có:
+
+```text
+DenNgay < today
+```
+
+Ví dụ nếu hôm nay là 30/05/2026:
+
+- Hàng ngày bỏ 01/01/2026 đến 29/05/2026.
+- Hàng tháng bỏ Tháng 01 đến Tháng 04/2026.
+- Tháng 05/2026 vẫn còn vì kết thúc 31/05/2026.
+- Tháng 06/2026 trở đi được preview là kỳ tương lai.
+
+Quy tắc này giúp Admin không tạo nhầm các kỳ quá khứ đã hết giá trị vận hành khi triển khai giữa năm.
+
+#### Quy tắc trạng thái
+
+| Điều kiện | Trạng thái tạo/cập nhật |
+| :--- | :--- |
+| `TuNgay <= today` | `Mo` |
+| `TuNgay > today` | `Nhap` |
+| `TrangThai = Nhap` và `TuNgay <= today` | Tự chuyển sang `Mo` |
+
+Hệ thống không tự chuyển kỳ sang `Khoa` sau hạn nộp. Lý do là nghiệp vụ hiện tại vẫn cho phép User gửi trễ, khi đó bản ghi `BaoCao` được đánh `QuaHan`.
+
+#### Quy tắc chống trùng
+
+Khóa nghiệp vụ để kiểm tra trùng:
+
+```text
+LoaiKyBaoCao + TuNgay + DenNgay
+```
+
+Không dùng `TenKy` làm khóa vì tên kỳ là dữ liệu hiển thị, có thể thay đổi cách đặt tên mà không làm thay đổi bản chất kỳ.
+
+#### Tương tác với cơ chế slot báo cáo động
+
+Sau khi lịch được tạo, User vẫn không có bản ghi `BaoCao` cho tới khi lưu nháp hoặc gửi. Khi User vào màn hình Báo cáo, hệ thống dùng truy vấn động:
+
+- lọc kỳ đang `Mo`;
+- lọc tần suất khớp kỳ;
+- lọc chỉ số đang hoạt động;
+- lọc phân công đang hoạt động của khoa/phòng User;
+- LEFT JOIN sang `BaoCao` nếu đã có dữ liệu.
+
+Thiết kế này giúp danh sách cần báo cáo luôn phản ánh phân công mới nhất và tránh dữ liệu rỗng.
+
+---
+
 ## 5. Thiết Kế Giao Diện & Cơ Chế Bảo Lưu Trạng Thái (State Preservation)
 
 Một trong những tối ưu UX lớn nhất của hệ thống là việc duy trì trạng thái tìm kiếm/phân trang của Admin khi thực hiện các hành động CRUD phân công chỉ số.

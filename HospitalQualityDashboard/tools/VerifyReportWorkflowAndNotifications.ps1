@@ -46,7 +46,7 @@ $schema = Read-ProjectFile 'App_Data\Sql\001_CreateSchema.sql'
 $projectFile = Read-ProjectFile 'HospitalQualityDashboard.csproj'
 
 Assert-Contains $reports 'bc\.TrangThai\s+IN\s*\(@DaGuiStatus,\s*@QuaHanStatus,\s*@DaKhoaStatus\)' 'Admin report list must only include submitted, late-submitted, and locked reports.'
-Assert-Contains $reports 'CASE\s+WHEN\s+GETDATE\(\)\s*>\s*ky\.HanNop\s+THEN\s+@QuaHan' 'Submit must mark late submissions as QuaHan.'
+Assert-Contains $reports 'CASE\s+WHEN\s+CAST\(GETDATE\(\)\s+AS\s+date\)\s*>\s*ky\.HanNop\s+THEN\s+@QuaHan' 'Submit must mark submissions as late only after the deadline date has ended.'
 Assert-Contains $reports 'WHERE\s+BaoCaoId=@Id\s+AND\s+TrangThai=@Nhap' 'SaveDraft must only allow editing draft reports.'
 Assert-NotContains $reports 'status\s*!=\s*\(byte\)TrangThaiBaoCao\.TraLai' 'SaveDraft must no longer allow editing returned reports.'
 Assert-Contains $reports 'TrangThai\s+IN\s*\(@DaGui,\s*@QuaHan\)' 'Lock must allow both DaGui and QuaHan reports.'

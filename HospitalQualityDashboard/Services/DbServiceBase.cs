@@ -1,3 +1,4 @@
+// Mục đích: lớp cơ sở đóng gói kết nối SQL, query, execute và helper đọc cột.
 using System;
 using System.Collections.Generic;
 using System.Configuration;

@@ -1,152 +1,267 @@
+@* Mục đích: danh sách báo cáo, bộ lọc và thao tác duyệt/xuất dữ liệu. *@
 @model HospitalQualityDashboard.Models.ViewModels.ReportListViewModel
+@using System.Linq
 @{
     ViewBag.Title = "Báo cáo";
+    var activePeriods = (Model.ActivePeriods ?? new System.Collections.Generic.List<HospitalQualityDashboard.Models.ViewModels.KyBaoCaoViewModel>()).ToList();
+    var reports = (Model.Items ?? new System.Collections.Generic.List<HospitalQualityDashboard.Models.ViewModels.ReportEntryViewModel>()).ToList();
+    var submittedCount = reports.Count(x =>
+        x.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.DaGui ||
+        x.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.QuaHan ||
+        x.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.DaKhoa);
+    var draftCount = reports.Count(x => x.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.Nhap);
 }
-<div class="page-header">
-    <div>
-        <h1>Báo cáo</h1>
-        <p>Theo dõi, nhập và khóa số liệu báo cáo theo kỳ.</p>
-    </div>
-</div>
-@if (Model.ActivePeriods != null && Model.ActivePeriods.Any())
-{
-    <h3 class="mb-3 text-secondary" style="font-weight: 600; font-size: 1.25rem;">Kỳ báo cáo đang mở</h3>
-    <div class="row g-3 mb-4">
-        @foreach (var period in Model.ActivePeriods)
-        {
-            var isOverdue = DateTime.Now > period.HanNop;
-            var frequencyText = "";
-            switch (period.LoaiKyBaoCao)
-            {
-                case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.HangNgay: frequencyText = "Hàng ngày"; break;
-                case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.HangTuan: frequencyText = "Hàng tuần"; break;
-                case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.HangThang: frequencyText = "Hàng tháng"; break;
-                case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.HangQuy: frequencyText = "Hàng quý"; break;
-                case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.SauThang: frequencyText = "6 tháng"; break;
-                case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.ChinThang: frequencyText = "9 tháng"; break;
-                case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.HangNam: frequencyText = "Hàng năm"; break;
-                case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.KhiPhatSinh: frequencyText = "Khi phát sinh"; break;
-                case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.TruocSauKhiThucHien: frequencyText = "Trước/sau thực hiện"; break;
-            }
 
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm" style="border-radius: 12px; border: 1px solid rgba(0,0,0,0.05) !important; background: linear-gradient(145deg, #ffffff, #f8f9fa);">
-                    <div class="card-body d-flex flex-column p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <span class="badge text-primary px-3 py-2" style="font-size: 0.8rem; font-weight: 600; border-radius: 8px; background-color: rgba(13, 110, 253, 0.1);">
-                                @frequencyText
-                            </span>
+@helper FrequencyText(HospitalQualityDashboard.Models.Enums.TanSuatBaoCao frequency)
+{
+    switch (frequency)
+    {
+        case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.HangNgay:
+            @:Hàng ngày
+            break;
+        case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.HangTuan:
+            @:Hàng tuần
+            break;
+        case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.HangThang:
+            @:Hàng tháng
+            break;
+        case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.HangQuy:
+            @:Hàng quý
+            break;
+        case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.SauThang:
+            @:6 tháng
+            break;
+        case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.ChinThang:
+            @:9 tháng
+            break;
+        case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.HangNam:
+            @:Hàng năm
+            break;
+        case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.KhiPhatSinh:
+            @:Khi phát sinh
+            break;
+        case HospitalQualityDashboard.Models.Enums.TanSuatBaoCao.TruocSauKhiThucHien:
+            @:Trước/sau thực hiện
+            break;
+        default:
+            @frequency.ToString()
+            break;
+    }
+}
+
+<section class="report-page">
+    <div class="page-header report-header">
+        <div>
+            <span class="dashboard-role">Báo cáo chất lượng</span>
+            <h1>Báo cáo</h1>
+            <p>Theo dõi kỳ đang mở, nhập số liệu theo phân công và rà soát lịch sử báo cáo đã phát sinh.</p>
+        </div>
+        <div class="report-header-metrics">
+            <div>
+                <span>Kỳ đang mở</span>
+                <strong>@activePeriods.Count</strong>
+            </div>
+            <div>
+                <span>Báo cáo</span>
+                <strong>@reports.Count</strong>
+            </div>
+            <div>
+                <span>Nháp</span>
+                <strong>@draftCount</strong>
+            </div>
+        </div>
+    </div>
+
+    <section class="dashboard-panel report-open-section">
+        <div class="panel-header">
+            <div>
+                <h2>Kỳ báo cáo đang mở</h2>
+                <p>User chỉ thấy các kỳ đã mở và phù hợp với tần suất chỉ số được phân công.</p>
+            </div>
+            <span class="status-pill status-success">@activePeriods.Count kỳ</span>
+        </div>
+
+        @if (activePeriods.Any())
+        {
+            <div class="report-open-grid">
+                @foreach (var period in activePeriods)
+                {
+                    var isOverdue = DateTime.Today > period.HanNop.Date;
+                    var percent = period.TongBaoCao > 0 ? (int)Math.Round((decimal)period.DaGui * 100 / period.TongBaoCao) : 0;
+                    <article class="period-card @(isOverdue ? "is-overdue" : "")">
+                        <div class="period-card-top">
+                            <span class="status-pill status-muted">@FrequencyText(period.LoaiKyBaoCao)</span>
                             @if (isOverdue)
                             {
-                                <span class="badge bg-danger px-2.5 py-1.5" style="border-radius: 6px; font-size: 0.75rem;">Quá hạn</span>
+                                <span class="status-pill status-danger">Quá hạn</span>
                             }
                             else
                             {
-                                <span class="badge bg-success px-2.5 py-1.5" style="border-radius: 6px; font-size: 0.75rem;">Đang mở</span>
+                                <span class="status-pill status-success">Đang mở</span>
                             }
                         </div>
-                        
-                        <h5 class="card-title text-dark mb-2" style="font-weight: 700; line-height: 1.4; font-size: 1.1rem;">@period.TenKyBaoCao</h5>
-                        
-                        <div class="text-muted mb-4" style="font-size: 0.85rem; line-height: 1.6;">
-                            <div class="mb-1"><i class="bi bi-clock me-1"></i> Báo cáo từ: <strong>@period.TuNgay.ToString("dd/MM/yyyy")</strong> đến <strong>@period.DenNgay.ToString("dd/MM/yyyy")</strong></div>
-                            <div class="@(isOverdue ? "text-danger fw-bold" : "")"><i class="bi bi-calendar-x me-1"></i> Hạn nộp: <strong>@period.HanNop.ToString("dd/MM/yyyy HH:mm")</strong></div>
-                        </div>
-                        
-                        <div class="mt-auto">
-                            @if (Model.IsAdmin)
-                            {
-                                <a href="@Url.Action("Index", "Report", new { kyBaoCaoId = period.KyBaoCaoId })" class="btn btn-outline-primary w-100 py-2" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;">
-                                    Xem tổng hợp (@period.DaGui/@period.TongBaoCao)
-                                </a>
-                            }
-                            else
-                            {
-                                <a href="@Url.Action("Nhap", "Report", new { kyBaoCaoId = period.KyBaoCaoId })" class="btn btn-primary w-100 py-2 text-white shadow-sm" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem; background-color: #0d6efd; border-color: #0d6efd;">
-                                    Nhập số liệu báo cáo
-                                </a>
-                            }
-                        </div>
-                    </div>
-                </div>
+                        <h3>@period.TenKyBaoCao</h3>
+                        <dl class="period-meta">
+                            <div>
+                                <dt>Khoảng báo cáo</dt>
+                                <dd>@period.TuNgay.ToString("dd/MM/yyyy") - @period.DenNgay.ToString("dd/MM/yyyy")</dd>
+                            </div>
+                            <div>
+                                <dt>Hạn nộp</dt>
+                                <dd class="@(isOverdue ? "text-danger fw-bold" : "")">@period.HanNop.ToString("dd/MM/yyyy") 23:59</dd>
+                            </div>
+                        </dl>
+                        @if (Model.IsAdmin)
+                        {
+                            <div class="period-progress">
+                                <div class="progress-track">
+                                    <div class="progress-fill" style="width: @(percent)%"></div>
+                                </div>
+                                <span>@period.DaGui/@period.TongBaoCao</span>
+                            </div>
+                            <a href="@Url.Action("Index", "Report", new { kyBaoCaoId = period.KyBaoCaoId })" class="btn btn-outline-primary w-100">
+                                Xem tổng hợp
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Nhap", "Report", new { kyBaoCaoId = period.KyBaoCaoId })" class="btn btn-primary w-100">
+                                Nhập số liệu báo cáo
+                            </a>
+                        }
+                    </article>
+                }
             </div>
         }
-    </div>
-}
+        else
+        {
+            <div class="empty-state">Không có kỳ báo cáo đang mở trong phạm vi của bạn.</div>
+        }
+    </section>
 
-<h3 class="mb-3 text-secondary" style="font-weight: 600; font-size: 1.25rem; margin-top: 1.5rem;">Lịch sử & Danh sách báo cáo</h3>
-
-@using (Html.BeginForm("Index", "Report", FormMethod.Get, new { @class = "row g-2 mb-3" }))
-{
-    <div class="col-md-3">@Html.DropDownListFor(m => m.KyBaoCaoId, Model.KyBaoCaoOptions, "Tất cả kỳ", new { @class = "form-select" })</div>
-    if (Model.IsAdmin)
-    {
-        <div class="col-md-3">@Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "Tất cả khoa/phòng", new { @class = "form-select" })</div>
-        <div class="col-md-4">@Html.DropDownListFor(m => m.ChiSoChatLuongId, Model.ChiSoOptions, "Tất cả chỉ số", new { @class = "form-select" })</div>
-    }
-    <div class="col-md-2"><button class="btn btn-outline-primary" type="submit">Lọc</button></div>
-}
-@if (Model.IsAdmin)
-{
-    <p>@Html.ActionLink("Xuất CSV", "Reports", "Export", new { kyBaoCaoId = Model.KyBaoCaoId, khoaPhongId = Model.KhoaPhongId, chiSoChatLuongId = Model.ChiSoChatLuongId }, new { @class = "btn btn-outline-secondary" })</p>
-}
-@if (!Model.IsAdmin && Model.KyBaoCaoId.HasValue)
-{
-    <p>@Html.ActionLink("Nhập báo cáo cho kỳ đã chọn", "Nhap", new { kyBaoCaoId = Model.KyBaoCaoId.Value }, new { @class = "btn btn-primary" })</p>
-}
-<table class="table table-striped table-sm">
-    <thead><tr><th>Kỳ</th><th>Khoa/phòng</th><th>Chỉ số</th><th>Kết quả</th><th>Trạng thái</th><th></th></tr></thead>
-    <tbody>
-    @foreach (var item in Model.Items)
-    {
-        <tr>
-            <td>@item.TenKyBaoCao</td>
-            <td>@item.TenKhoaPhong</td>
-            <td>@item.MaChiSo - @item.TenChiSo</td>
-            <td>@(item.KetQua.HasValue ? item.KetQua.Value.ToString("0.####") : "")</td>
-             <td>
-                @switch (item.TrangThai)
-                {
-                    case HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.Nhap:
-                        <span class="badge bg-secondary">Nháp</span>
-                        break;
-                    case HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.DaGui:
-                        <span class="badge bg-primary">Đã gửi</span>
-                        break;
-                    case HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.QuaHan:
-                        <span class="badge bg-danger">Quá hạn</span>
-                        break;
-                    case HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.DaKhoa:
-                        <span class="badge bg-dark">Đã khóa</span>
-                        break;
-                    default:
-                        <span class="badge bg-light text-dark">@item.TrangThai</span>
-                        break;
-                }
-            </td>
-            <td class="text-end">
-                @{
-                    var detailLabel = Model.IsAdmin ? "Xem" : (item.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.Nhap ? "Sửa" : "Xem");
-                }
-                @Html.ActionLink(detailLabel, "Edit", new { id = item.BaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
-                @if (!Model.IsAdmin && item.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.Nhap)
-                {
-                    using (Html.BeginForm("Submit", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
-                    { @Html.AntiForgeryToken() <button class="btn btn-sm btn-outline-success" type="submit">Gửi</button> }
-                }
+    <section class="filter-panel">
+        @using (Html.BeginForm("Index", "Report", FormMethod.Get, new { @class = "filter-form" }))
+        {
+            <div class="filter-field">
+                <label for="KyBaoCaoId">Kỳ báo cáo</label>
+                @Html.DropDownListFor(m => m.KyBaoCaoId, Model.KyBaoCaoOptions, "Tất cả kỳ đang mở", new { @class = "form-select" })
+            </div>
+            if (Model.IsAdmin)
+            {
+                <div class="filter-field">
+                    <label for="KhoaPhongId">Khoa/phòng</label>
+                    @Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "Tất cả khoa/phòng", new { @class = "form-select" })
+                </div>
+                <div class="filter-field is-wide">
+                    <label for="ChiSoChatLuongId">Chỉ số</label>
+                    @Html.DropDownListFor(m => m.ChiSoChatLuongId, Model.ChiSoOptions, "Tất cả chỉ số", new { @class = "form-select" })
+                </div>
+            }
+            <div class="filter-actions">
+                <button class="btn btn-outline-primary" type="submit">Lọc</button>
                 @if (Model.IsAdmin)
                 {
-                    if (item.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.DaGui ||
-                        item.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.QuaHan)
-                    {
-                        using (Html.BeginForm("Lock", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
-                        { @Html.AntiForgeryToken() <button class="btn btn-sm btn-outline-warning" type="submit">Khóa</button> }
-                    }
-                    using (Html.BeginForm("Delete", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
-                    { @Html.AntiForgeryToken() <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xóa báo cáo này?')">Xóa</button> }
+                    @Html.ActionLink("Xuất CSV", "Reports", "Export", new { kyBaoCaoId = Model.KyBaoCaoId, khoaPhongId = Model.KhoaPhongId, chiSoChatLuongId = Model.ChiSoChatLuongId }, new { @class = "btn btn-outline-secondary" })
                 }
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+                @if (!Model.IsAdmin && Model.KyBaoCaoId.HasValue)
+                {
+                    @Html.ActionLink("Nhập báo cáo", "Nhap", new { kyBaoCaoId = Model.KyBaoCaoId.Value }, new { @class = "btn btn-primary" })
+                }
+            </div>
+        }
+    </section>
+
+    <section class="dashboard-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Lịch sử và danh sách báo cáo</h2>
+                <p>@submittedCount báo cáo đã gửi/khóa trong bộ lọc hiện tại.</p>
+            </div>
+            <span class="status-pill status-muted">@reports.Count dòng</span>
+        </div>
+
+        @if (reports.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle report-table">
+                    <thead>
+                        <tr>
+                            <th>Kỳ</th>
+                            <th>Khoa/phòng</th>
+                            <th>Chỉ số</th>
+                            <th>Kết quả</th>
+                            <th>Trạng thái</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in reports)
+                    {
+                        <tr>
+                            <td>@item.TenKyBaoCao</td>
+                            <td>@item.TenKhoaPhong</td>
+                            <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
+                            <td class="numeric-value">@(item.KetQua.HasValue ? item.KetQua.Value.ToString("0.####") : "")</td>
+                            <td>
+                                @switch (item.TrangThai)
+                                {
+                                    case HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.Nhap:
+                                        <span class="status-pill status-muted">Nháp</span>
+                                        break;
+                                    case HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.DaGui:
+                                        <span class="status-pill status-success">Đã gửi</span>
+                                        break;
+                                    case HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.QuaHan:
+                                        <span class="status-pill status-danger">Quá hạn</span>
+                                        break;
+                                    case HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.DaKhoa:
+                                        <span class="status-pill status-muted">Đã khóa</span>
+                                        break;
+                                    default:
+                                        <span class="status-pill status-muted">@item.TrangThai</span>
+                                        break;
+                                }
+                            </td>
+                            <td class="text-end table-actions">
+                                @{
+                                    var detailLabel = Model.IsAdmin ? "Xem" : (item.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.Nhap ? "Sửa" : "Xem");
+                                }
+                                @Html.ActionLink(detailLabel, "Edit", new { id = item.BaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
+                                @if (!Model.IsAdmin && item.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.Nhap)
+                                {
+                                    using (Html.BeginForm("Submit", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-success" type="submit">Gửi</button>
+                                    }
+                                }
+                                @if (Model.IsAdmin)
+                                {
+                                    if (item.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.DaGui ||
+                                        item.TrangThai == HospitalQualityDashboard.Models.Enums.TrangThaiBaoCao.QuaHan)
+                                    {
+                                        using (Html.BeginForm("Lock", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-outline-warning" type="submit">Khóa</button>
+                                        }
+                                    }
+                                    using (Html.BeginForm("Delete", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xóa báo cáo này?')">Xóa</button>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">Chưa có báo cáo phù hợp với bộ lọc hiện tại.</div>
+        }
+    </section>
+</section>

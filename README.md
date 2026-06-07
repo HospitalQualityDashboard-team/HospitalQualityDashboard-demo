@@ -121,7 +121,17 @@ Build Razor view với output riêng:
 & "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:MvcBuildViews=true /p:BaseIntermediateOutputPath=obj_unit\ /p:OutputPath=bin_unit\
 ```
 
-## 7. Dữ Liệu Nguồn Và Import
+## 7. Quy Ước Chú Thích Code
+
+Các file code tự viết của dự án đã được bổ sung chú thích tiếng Việt có dấu ở đầu file theo mẫu `Mục đích:`. Quy ước này giúp người đọc nhanh chóng hiểu vai trò của từng controller, service, view model, Razor view hoặc file cấu hình trước khi đi vào chi tiết.
+
+Phạm vi chú thích:
+
+- Có chú thích: `Controllers`, `Services`, `Models`, `Filters`, `App_Start`, `Global.asax.cs`, `Properties/AssemblyInfo.cs` và các Razor view tự viết trong `Views`.
+- Không chú thích vào thư viện bên thứ ba như Bootstrap, jQuery, Modernizr hoặc file minified.
+- Comment trong code ưu tiên giải thích vai trò, luồng nghiệp vụ hoặc lý do xử lý; tránh mô tả lại từng dòng code hiển nhiên.
+
+## 8. Dữ Liệu Nguồn Và Import
 
 Các file tài liệu/nghiệp vụ nằm trong:
 
@@ -146,7 +156,7 @@ Import chỉ số hiện hỗ trợ:
 
 Với file `Phân chia các chỉ số dựa theo đơn vị thu thập và tổng hợp.docx`, hệ thống tự gán đủ đơn vị tính cho 55 chỉ số khi import mới. Dữ liệu đã import trước khi có logic này cần import lại hoặc chạy cập nhật bổ sung để điền `DonViTinh`.
 
-## 8. Test Và Verification
+## 9. Test Và Verification
 
 Các script test nhanh nằm trong:
 
@@ -156,7 +166,7 @@ HospitalQualityDashboard/tools/
 
 Chạy từng script từ thư mục gốc repo.
 
-### 8.1. Verify cấu hình MVC và database bootstrap
+### 9.1. Verify cấu hình MVC và database bootstrap
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyMvc4Configuration.ps1
@@ -169,7 +179,7 @@ Mục tiêu:
 - Kiểm tra `DatabaseBootstrapper` được gọi ở `Global.asax.cs`.
 - Kiểm tra bootstrap đọc đúng connection string và chạy SQL scripts.
 
-### 8.2. Verify parser Excel/Word và import chỉ số
+### 9.2. Verify parser Excel/Word và import chỉ số
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyExcelParser.ps1
@@ -204,7 +214,7 @@ Mục tiêu:
 - Kiểm tra suy luận `DonViTinh`.
 - Kiểm tra file có sẵn `DonViTinh` thì không bị override.
 
-### 8.3. Verify phân công và xuất Excel
+### 9.3. Verify phân công và xuất Excel
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyAssignmentExcelExport.ps1
@@ -215,7 +225,7 @@ Mục tiêu:
 - Kiểm tra export Excel trên trang Phân công.
 - Kiểm tra workbook xuất tiếng Việt và đúng các cột được chọn.
 
-### 8.4. Verify tài khoản, đăng nhập và nút nhân viên
+### 9.4. Verify tài khoản, đăng nhập và nút nhân viên
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyEmployeeAccountButton.ps1
@@ -227,7 +237,7 @@ Mục tiêu:
 - Kiểm tra luồng tạo tài khoản từ nhân viên.
 - Kiểm tra tài khoản bị khóa không đăng nhập được.
 
-### 8.5. Verify workflow báo cáo, thông báo và audit
+### 9.5. Verify workflow báo cáo, thông báo và audit
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportWorkflowAndNotifications.ps1
@@ -242,7 +252,7 @@ Mục tiêu:
 - Kiểm tra thông báo tự động và chi tiết thông báo.
 - Kiểm tra ghi audit log các thao tác báo cáo.
 
-### 8.6. Chạy full verification suite
+### 9.6. Chạy full verification suite
 
 Sau khi build project, có thể chạy lần lượt:
 
@@ -266,9 +276,9 @@ Sau đó chạy build Razor view:
 & "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:MvcBuildViews=true
 ```
 
-## 9. Checklist Test Thủ Công Trên Trình Duyệt
+## 10. Checklist Test Thủ Công Trên Trình Duyệt
 
-### 9.1. Admin
+### 10.1. Admin
 
 1. Đăng nhập tại `/Account/AdminLogin` bằng `admin / Admin@123`.
 2. Vào Dashboard, kiểm tra thống kê tổng quan.
@@ -283,7 +293,7 @@ Sau đó chạy build Razor view:
 11. Vào Báo cáo, kiểm tra Admin chỉ thấy báo cáo đã gửi/gửi trễ/đã khóa, không thấy bản nháp của User.
 12. Vào Thông báo, gửi thông báo thủ công hoặc chạy kiểm tra thông báo tự động.
 
-### 9.2. User khoa/phòng
+### 10.2. User khoa/phòng
 
 1. Đăng nhập tại `/Account/UserLogin` bằng tài khoản User đã tạo.
 2. Kiểm tra menu chỉ còn Tổng quan, Báo cáo của tôi, Thông báo, Đổi mật khẩu, Đăng xuất.
@@ -296,7 +306,18 @@ Sau đó chạy build Razor view:
 9. Nếu gửi sau hạn, kiểm tra trạng thái là `QuaHan`.
 10. Mở thông báo có link chi tiết, kiểm tra danh sách chỉ số còn thiếu và trạng thái đã đọc.
 
-## 10. Lỗi Thường Gặp
+### 10.3. Inspect, Storage và session
+
+Khi cần kiểm tra trạng thái đăng nhập trên trình duyệt:
+
+1. Chạy app bằng IIS Express, thường tại `https://localhost:44387/`.
+2. Mở DevTools bằng `F12` hoặc `Ctrl + Shift + I`.
+3. Vào tab `Application` > `Storage` > `Cookies` > domain local của app.
+4. Kiểm tra cookie `ASP.NET_SessionId`. Cookie này chỉ chứa mã session; các giá trị như `TaiKhoanId`, `LoaiTaiKhoan`, `KhoaPhongId` được lưu phía server qua `SessionUserAccessor`.
+5. Nếu cột `Expires / Max-Age` hiển thị `Session`, cookie sẽ hết khi đóng phiên trình duyệt. Timeout server-side hiện chưa khai báo rõ trong `Web.config`, nên ASP.NET dùng mặc định khoảng 20 phút không hoạt động.
+6. Sau logout, truy cập lại trang cần đăng nhập như `/Dashboard`; hệ thống phải chuyển về trang login.
+
+## 11. Lỗi Thường Gặp
 
 ### Không kết nối được LocalDB
 
@@ -324,16 +345,122 @@ Build project trước khi chạy script:
 & "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug
 ```
 
-Nếu build bằng `bin_unit`, set `HQD_APP_ASSEMBLY` như mục 8.2.
+Nếu build bằng `bin_unit`, set `HQD_APP_ASSEMBLY` như mục 9.2.
 
 ### Import DOCX xong dữ liệu cũ vẫn thiếu đơn vị
 
 Logic mới chỉ áp dụng khi import/chạy build model từ dòng import. Các bản ghi đã import trước đó cần import lại hoặc cập nhật lại dữ liệu trong database.
 
-## 11. Tài Liệu Tham Khảo Trong Repo
+## 12. Tài Liệu Tham Khảo Trong Repo
 
 - `HospitalQualityDashboard/PROJECT_CONTEXT.md`: bối cảnh tổng quan.
 - `HospitalQualityDashboard/TAI_LIEU_NGHIEP_VU.md`: nghiệp vụ hệ thống.
 - `HospitalQualityDashboard/implementation-notes.md`: nhật ký triển khai.
 - `HospitalQualityDashboard/Tai_Lieu/Phan Tich Thiet Ke He Thong Chi Tiet.md`: tài liệu phân tích thiết kế.
 - `HospitalQualityDashboard/Tai_Lieu/Yeu Cau Nghiep Vu BA.md`: tài liệu yêu cầu BA.
+
+## 13. Cập Nhật Chức Năng Tạo Lịch Kỳ Báo Cáo Tự Động
+
+Từ ngày 30/05/2026, hệ thống bổ sung chức năng **Tạo lịch tự động** cho module Kỳ báo cáo. Chức năng này giúp Admin không phải tạo từng kỳ thủ công, nhưng vẫn giữ nguyên nguyên tắc dữ liệu sạch: hệ thống chỉ tạo các dòng `KyBaoCao`, không tạo trước các dòng `BaoCao` rỗng.
+
+### 13.1. Luồng sử dụng cho Admin
+
+1. Admin đăng nhập và vào menu **Kỳ báo cáo**.
+2. Bấm **Tạo lịch tự động**.
+3. Chọn năm cần tạo lịch.
+4. Chọn một hoặc nhiều loại kỳ:
+   - Hàng ngày.
+   - Hàng tháng.
+   - Hàng quý.
+   - 6 tháng.
+   - 9 tháng.
+   - Hàng năm.
+5. Bấm **Xem trước** để hệ thống hiển thị danh sách kỳ dự kiến.
+6. Kiểm tra các dòng **Sẽ tạo mới** và **Đã tồn tại**.
+7. Bấm **Tạo các kỳ chưa tồn tại** để lưu các kỳ mới.
+
+### 13.2. Quy tắc thời gian mở, đóng và hạn nộp
+
+Hệ thống xem `TuNgay` là thời điểm mở kỳ lúc **00:00** của ngày bắt đầu, và xem `DenNgay`/`HanNop` là thời điểm đóng/hết hạn lúc **23:59** của ngày kết thúc.
+
+Ví dụ:
+
+| Loại kỳ | Tên kỳ | Mở lúc | Đóng lúc | Hạn nộp cuối cùng |
+|---|---|---|---|---|
+| Hàng ngày | Ngày 30/05/2026 | 30/05/2026 00:00 | 30/05/2026 23:59 | 30/05/2026 23:59 |
+| Hàng tháng | Tháng 06/2026 | 01/06/2026 00:00 | 30/06/2026 23:59 | 30/06/2026 23:59 |
+| Hàng quý | Quý II/2026 | 01/04/2026 00:00 | 30/06/2026 23:59 | 30/06/2026 23:59 |
+| 6 tháng | 6 tháng cuối năm 2026 | 01/07/2026 00:00 | 31/12/2026 23:59 | 31/12/2026 23:59 |
+| 9 tháng | 9 tháng năm 2026 | 01/01/2026 00:00 | 30/09/2026 23:59 | 30/09/2026 23:59 |
+| Hàng năm | Năm 2026 | 01/01/2026 00:00 | 31/12/2026 23:59 | 31/12/2026 23:59 |
+
+Vì cột `KyBaoCao.HanNop` trong database đang lưu kiểu `DATE`, thời điểm `23:59` được hiểu theo quy ước nghiệp vụ và hiển thị ở giao diện. Khi User gửi báo cáo, hệ thống so sánh theo ngày: chỉ khi ngày hiện tại lớn hơn ngày hạn nộp thì báo cáo mới bị đánh trạng thái `QuaHan`.
+
+### 13.3. Quy tắc bỏ qua kỳ cũ
+
+Khi tạo lịch cho năm hiện tại, hệ thống bỏ qua các kỳ đã kết thúc trước hôm nay.
+
+Ví dụ nếu hôm nay là **30/05/2026**:
+
+- Tạo lịch hàng ngày năm 2026 sẽ bắt đầu từ **Ngày 30/05/2026**, không tạo các ngày 01/01/2026 đến 29/05/2026.
+- Tạo lịch hàng tháng năm 2026 sẽ không tạo Tháng 01, 02, 03, 04/2026 vì các kỳ này đã kết thúc.
+- Tháng 05/2026 vẫn được đưa vào preview vì ngày 30/05/2026 vẫn nằm trong kỳ.
+- Các kỳ tương lai như Tháng 06/2026, Quý III/2026 hoặc 6 tháng cuối năm 2026 được tạo ở trạng thái **Nhập**.
+
+### 13.4. Quy tắc trạng thái kỳ
+
+Giao diện hiển thị tiếng Việt:
+
+| Enum trong code | Hiển thị | Ý nghĩa |
+|---|---|---|
+| `Nhap` | Nhập | Kỳ đã được tạo nhưng chưa tới ngày bắt đầu, User chưa nhập báo cáo. |
+| `Mo` | Mở | Kỳ đã tới ngày bắt đầu, User có thể nhập và gửi báo cáo. |
+| `Khoa` | Khóa | Kỳ đã bị khóa, User không tiếp tục nhập/sửa báo cáo. |
+
+Khi tạo lịch tự động:
+
+- Kỳ có `TuNgay <= hôm nay` được tạo hoặc tự chuyển sang **Mở**.
+- Kỳ có `TuNgay > hôm nay` được tạo ở trạng thái **Nhập**.
+- Hệ thống tự mở các kỳ đến ngày bắt đầu khi app khởi động hoặc khi người dùng truy cập Dashboard, Báo cáo, Kỳ báo cáo, Thông báo.
+
+### 13.5. Nguyên tắc không tạo báo cáo rỗng
+
+Chức năng tạo lịch tự động chỉ tạo dữ liệu trong bảng `KyBaoCao`. Hệ thống không tạo trước bản ghi trong bảng `BaoCao`.
+
+Danh sách việc User cần báo cáo vẫn được tính động bằng cách kết hợp:
+
+- kỳ báo cáo đang **Mở**;
+- tần suất của kỳ;
+- chỉ số đang hoạt động;
+- phân công chỉ số đang hoạt động;
+- khoa/phòng của User;
+- báo cáo thực tế đã lưu/gửi hay chưa.
+
+Chỉ khi User bấm **Lưu nháp** hoặc **Gửi báo cáo**, hệ thống mới tạo bản ghi `BaoCao` thật.
+
+### 13.6. Kiểm tra chức năng tạo lịch
+
+Script kiểm tra mới:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportingPeriodSchedule.ps1
+```
+
+Script này kiểm tra:
+
+- có ViewModel tạo lịch tự động;
+- có màn hình `Views/ReportingPeriod/GenerateSchedule.cshtml`;
+- có action preview và tạo lịch trong `ReportingPeriodController`;
+- có service tạo lịch và tự mở kỳ;
+- có loại kỳ hàng ngày, hàng tháng, hàng quý, 6 tháng, 9 tháng, hàng năm;
+- không tạo lịch cho `KhiPhatSinh` và `TruocSauKhiThucHien`;
+- bỏ qua kỳ đã kết thúc trước hôm nay;
+- hạn nộp mặc định bằng ngày kết thúc kỳ;
+- UI hiển thị trạng thái tiếng Việt và ghi chú 00:00/23:59.
+
+Nên chạy thêm:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportWorkflowAndNotifications.ps1
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:MvcBuildViews=true
+```

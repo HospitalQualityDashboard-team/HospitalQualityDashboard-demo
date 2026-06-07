@@ -1,3 +1,4 @@
+// Mục đích: gom view model cho màn hình nghiệp vụ và dữ liệu truyền sang Razor view.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -30,19 +31,24 @@ namespace HospitalQualityDashboard.Models.ViewModels
         public ImportResultViewModel ImportResult { get; set; }
     }
 
+    // View model dùng cho form thêm/sửa và hiển thị một nhân viên.
     public class NhanVienViewModel
     {
+        // Bằng 0 khi thêm mới, có giá trị khi sửa nhân viên.
         public int NhanVienId { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập mã nhân viên.")]
         [Display(Name = "Mã nhân viên")]
+        // Mã nhân viên bắt buộc và thường dùng làm tên đăng nhập mặc định.
         public string MaNhanVien { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập họ tên.")]
         [Display(Name = "Họ tên")]
+        // Họ tên nhân viên bắt buộc.
         public string HoTen { get; set; }
 
         [Display(Name = "Ngày sinh")]
+        // Thông tin cá nhân và liên hệ.
         public DateTime? NgaySinh { get; set; }
         [Display(Name = "Giới tính")]
         public string GioiTinh { get; set; }
@@ -54,34 +60,52 @@ namespace HospitalQualityDashboard.Models.ViewModels
 
         [Required(ErrorMessage = "Vui lòng chọn khoa/phòng.")]
         [Display(Name = "Khoa/phòng")]
+        // Khoa/phòng của nhân viên, bắt buộc chọn trên form.
         public int KhoaPhongId { get; set; }
 
+        // Dữ liệu bổ sung để hiển thị trên danh sách.
         public string TenKhoaPhong { get; set; }
         public bool DangHoatDong { get; set; }
         public bool HasAccount { get; set; }
+
+        // Danh sách khoa/phòng để render dropdown.
         public IList<SelectListItem> KhoaPhongOptions { get; set; }
     }
 
+    // View model cho màn hình danh sách nhân viên.
     public class NhanVienIndexViewModel
     {
+        // Khoa/phòng đang được chọn để lọc danh sách.
         public int? KhoaPhongId { get; set; }
+
+        // Dropdown khoa/phòng ở bộ lọc và form import.
         public IList<SelectListItem> KhoaPhongOptions { get; set; }
+
+        // Danh sách nhân viên hiển thị trong bảng.
         public IList<NhanVienViewModel> Items { get; set; }
+
+        // Kết quả sau khi import file nhân viên.
         public ImportResultViewModel ImportResult { get; set; }
     }
 
+    // View model cho form tạo tài khoản User từ nhân viên.
     public class CreateUserAccountViewModel
     {
+        // Id nhân viên sẽ được gán tài khoản.
         public int NhanVienId { get; set; }
+
+        // Tên nhân viên để hiển thị trên form.
         public string HoTen { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập tên đăng nhập.")]
         [Display(Name = "Tên đăng nhập")]
+        // Tên đăng nhập mới, bắt buộc và không được trùng.
         public string TenDangNhap { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
         [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự.")]
         [Display(Name = "Mật khẩu")]
+        // Mật khẩu được hash trước khi lưu vào database.
         public string MatKhau { get; set; }
     }
 
@@ -120,6 +144,8 @@ namespace HospitalQualityDashboard.Models.ViewModels
         public string NguonSoLieu { get; set; }
         [Display(Name = "Thu thập và tổng hợp số liệu")]
         public string ThuThapTongHop { get; set; }
+        public int? KhoaPhongThuThapId { get; set; }
+        public int? KhoaPhongTongHopId { get; set; }
         [Display(Name = "Giá trị của số liệu")]
         public string GiaTriSoLieu { get; set; }
         public TanSuatBaoCao TanSuatBaoCao { get; set; }
@@ -250,8 +276,87 @@ namespace HospitalQualityDashboard.Models.ViewModels
         public DateTime DenNgay { get; set; }
         public DateTime HanNop { get; set; }
         public TrangThaiKyBaoCao TrangThai { get; set; }
+        public string TrangThaiText
+        {
+            get
+            {
+                switch (TrangThai)
+                {
+                    case TrangThaiKyBaoCao.Nhap: return "Nhập";
+                    case TrangThaiKyBaoCao.Mo: return "Mở";
+                    case TrangThaiKyBaoCao.Khoa: return "Khóa";
+                    default: return TrangThai.ToString();
+                }
+            }
+        }
+
         public int TongBaoCao { get; set; }
         public int DaGui { get; set; }
+    }
+
+    public class ReportingPeriodScheduleRequestViewModel
+    {
+        [Range(2000, 2100, ErrorMessage = "Năm phải nằm trong khoảng 2000 đến 2100.")]
+        [Display(Name = "Năm")]
+        public int Year { get; set; }
+
+        [Display(Name = "Loại kỳ báo cáo")]
+        public int[] SelectedFrequencyValues { get; set; }
+
+        [Range(0, 365, ErrorMessage = "Số ngày hạn nộp phải từ 0 đến 365.")]
+        [Display(Name = "Hạn nộp sau ngày kết thúc kỳ")]
+        public int DueDayOffset { get; set; }
+
+        [Display(Name = "Trạng thái mặc định")]
+        public TrangThaiKyBaoCao DefaultStatus { get; set; }
+
+        public IList<SelectListItem> FrequencyOptions { get; set; }
+        public IList<SelectListItem> StatusOptions { get; set; }
+        public IList<ReportingPeriodSchedulePreviewItemViewModel> PreviewItems { get; set; }
+        public ReportingPeriodScheduleResultViewModel Result { get; set; }
+
+        public ReportingPeriodScheduleRequestViewModel()
+        {
+            Year = DateTime.Today.Year;
+            DueDayOffset = 0;
+            DefaultStatus = TrangThaiKyBaoCao.Nhap;
+            SelectedFrequencyValues = new[] { (int)TanSuatBaoCao.HangNgay, (int)TanSuatBaoCao.HangThang, (int)TanSuatBaoCao.HangQuy };
+            PreviewItems = new List<ReportingPeriodSchedulePreviewItemViewModel>();
+        }
+    }
+
+    public class ReportingPeriodSchedulePreviewItemViewModel
+    {
+        public string TenKyBaoCao { get; set; }
+        public TanSuatBaoCao LoaiKyBaoCao { get; set; }
+        public string LoaiKyBaoCaoText { get; set; }
+        public DateTime TuNgay { get; set; }
+        public DateTime DenNgay { get; set; }
+        public DateTime HanNop { get; set; }
+        public TrangThaiKyBaoCao TrangThai { get; set; }
+        public bool AlreadyExists { get; set; }
+
+        public string TrangThaiText
+        {
+            get
+            {
+                switch (TrangThai)
+                {
+                    case TrangThaiKyBaoCao.Nhap: return "Nhập";
+                    case TrangThaiKyBaoCao.Mo: return "Mở";
+                    case TrangThaiKyBaoCao.Khoa: return "Khóa";
+                    default: return TrangThai.ToString();
+                }
+            }
+        }
+    }
+
+    public class ReportingPeriodScheduleResultViewModel
+    {
+        public int TotalPreviewed { get; set; }
+        public int CreatedCount { get; set; }
+        public int SkippedExistingCount { get; set; }
+        public int OpenedCount { get; set; }
     }
 
     public class ReportEntryViewModel
@@ -344,22 +449,35 @@ namespace HospitalQualityDashboard.Models.ViewModels
         public int DaGui { get; set; }
     }
 
+    // Kết quả sau khi import dữ liệu từ file.
     public class ImportResultViewModel
     {
+        // Tổng số dòng dữ liệu đọc được từ file.
         public int TongSoDong { get; set; }
+
+        // Số dòng import thành công.
         public int SoDongThanhCong { get; set; }
+
+        // Số dòng bị lỗi và bị bỏ qua.
         public int SoDongLoi { get; set; }
+
+        // Danh sách lỗi chi tiết theo dòng.
         public IList<string> Errors { get; set; }
 
         public ImportResultViewModel()
         {
+            // Khởi tạo sẵn để view/service có thể thêm lỗi trực tiếp.
             Errors = new List<string>();
         }
     }
 
+    // File import và khoa/phòng đang chọn trên màn hình.
     public class ImportFileViewModel
     {
+        // File người dùng upload.
         public HttpPostedFileBase File { get; set; }
+
+        // Nếu có giá trị thì import vào khoa/phòng này.
         public int? KhoaPhongId { get; set; }
     }
 }
