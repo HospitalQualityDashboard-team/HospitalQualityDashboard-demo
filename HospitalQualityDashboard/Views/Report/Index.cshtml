@@ -8,13 +8,22 @@
         <p>Theo dõi, nhập và khóa số liệu báo cáo theo kỳ.</p>
     </div>
 </div>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
 @if (Model.ActivePeriods != null && Model.ActivePeriods.Any())
 {
     <h3 class="mb-3 text-secondary" style="font-weight: 600; font-size: 1.25rem;">Kỳ báo cáo đang mở</h3>
     <div class="row g-3 mb-4">
         @foreach (var period in Model.ActivePeriods)
         {
-            var isOverdue = DateTime.Now > period.HanNop;
+            var isOverdue = DateTime.Today > period.HanNop.Date;
+            var isAllowNhap = DateTime.Today > period.DenNgay.Date && DateTime.Today <= period.HanNop.Date;
             var frequencyText = "";
             switch (period.LoaiKyBaoCao)
             {
@@ -51,6 +60,10 @@
                         <div class="text-muted mb-4" style="font-size: 0.85rem; line-height: 1.6;">
                             <div class="mb-1"><i class="bi bi-clock me-1"></i> Báo cáo từ: <strong>@period.TuNgay.ToString("dd/MM/yyyy")</strong> đến <strong>@period.DenNgay.ToString("dd/MM/yyyy")</strong></div>
                             <div class="@(isOverdue ? "text-danger fw-bold" : "")"><i class="bi bi-calendar-x me-1"></i> Hạn nộp: <strong>@period.HanNop.ToString("dd/MM/yyyy HH:mm")</strong></div>
+                            @if (!isAllowNhap && !isOverdue)
+                            {
+                                <div class="text-warning mt-2"><i class="bi bi-info-circle me-1"></i> Nút nhập sẽ mở sau ngày @period.DenNgay.ToString("dd/MM/yyyy")</div>
+                            }
                         </div>
                         
                         <div class="mt-auto">
@@ -62,9 +75,18 @@
                             }
                             else
                             {
-                                <a href="@Url.Action("Nhap", "Report", new { kyBaoCaoId = period.KyBaoCaoId })" class="btn btn-primary w-100 py-2 text-white shadow-sm" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem; background-color: #0d6efd; border-color: #0d6efd;">
-                                    Nhập số liệu báo cáo
-                                </a>
+                                if (isAllowNhap)
+                                {
+                                    <a href="@Url.Action("Nhap", "Report", new { kyBaoCaoId = period.KyBaoCaoId })" class="btn btn-primary w-100 py-2 text-white shadow-sm" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem; background-color: #0d6efd; border-color: #0d6efd;">
+                                        Nhập số liệu báo cáo
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-secondary w-100 py-2" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;" disabled>
+                                        Nhập số liệu báo cáo
+                                    </button>
+                                }
                             }
                         </div>
                     </div>
@@ -92,7 +114,19 @@
 }
 @if (!Model.IsAdmin && Model.KyBaoCaoId.HasValue)
 {
-    <p>@Html.ActionLink("Nhập báo cáo cho kỳ đã chọn", "Nhap", new { kyBaoCaoId = Model.KyBaoCaoId.Value }, new { @class = "btn btn-primary" })</p>
+    var selectedPeriod = Model.ActivePeriods.FirstOrDefault(p => p.KyBaoCaoId == Model.KyBaoCaoId.Value);
+    if (selectedPeriod != null)
+    {
+        var isAllowNhap = DateTime.Today > selectedPeriod.DenNgay.Date && DateTime.Today <= selectedPeriod.HanNop.Date;
+        if (isAllowNhap)
+        {
+            <p>@Html.ActionLink("Nhập báo cáo cho kỳ đã chọn", "Nhap", new { kyBaoCaoId = Model.KyBaoCaoId.Value }, new { @class = "btn btn-primary" })</p>
+        }
+        else
+        {
+            <p><button class="btn btn-secondary" disabled>Nhập báo cáo cho kỳ đã chọn</button></p>
+        }
+    }
 }
 <table class="table table-striped table-sm">
     <thead><tr><th>Kỳ</th><th>Khoa/phòng</th><th>Chỉ số</th><th>Kết quả</th><th>Trạng thái</th><th></th></tr></thead>

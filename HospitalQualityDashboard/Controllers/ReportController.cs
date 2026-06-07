@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Web.Mvc;
 using HospitalQualityDashboard.Models.ViewModels;
@@ -48,6 +49,19 @@ namespace HospitalQualityDashboard.Controllers
                 return new HttpUnauthorizedResult();
             }
 
+            // Kiểm tra thời gian cho phép nhập
+            var period = _periods.Get(kyBaoCaoId);
+            if (period == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!(DateTime.Today > period.DenNgay.Date && DateTime.Today <= period.HanNop.Date))
+            {
+                TempData["Error"] = "Chỉ có thể nhập số liệu sau ngày kết thúc chu kỳ và trước hoặc đúng hạn nộp!";
+                return RedirectToAction("Index");
+            }
+
             return View(_service.GetAssignedForUser(kyBaoCaoId, CurrentKhoaPhongId.Value));
         }
 
@@ -64,6 +78,14 @@ namespace HospitalQualityDashboard.Controllers
 
                 var gate = EnsureUserDepartment(model.KhoaPhongId);
                 if (gate != null) return gate;
+
+                // Kiểm tra thời gian cho phép nhập
+                var period = _periods.Get(model.KyBaoCaoId);
+                if (!(DateTime.Today > period.DenNgay.Date && DateTime.Today <= period.HanNop.Date))
+                {
+                    TempData["Error"] = "Chỉ có thể nhập/sửa số liệu sau ngày kết thúc chu kỳ và trước hoặc đúng hạn nộp!";
+                    return RedirectToAction("Index");
+                }
             }
             else
             {
@@ -75,6 +97,15 @@ namespace HospitalQualityDashboard.Controllers
                 var departmentId = IsAdmin ? khoaPhongId.GetValueOrDefault() : CurrentKhoaPhongId.GetValueOrDefault();
                 var gate = EnsureUserDepartment(departmentId);
                 if (gate != null) return gate;
+
+                // Kiểm tra thời gian cho phép nhập
+                var period = _periods.Get(kyBaoCaoId.Value);
+                if (!(DateTime.Today > period.DenNgay.Date && DateTime.Today <= period.HanNop.Date))
+                {
+                    TempData["Error"] = "Chỉ có thể nhập/sửa số liệu sau ngày kết thúc chu kỳ và trước hoặc đúng hạn nộp!";
+                    return RedirectToAction("Index");
+                }
+
                 model = _service.GetAssignedForUser(kyBaoCaoId.Value, departmentId).First(x => x.ChiSoChatLuongId == chiSoChatLuongId.Value);
             }
 
