@@ -1788,10 +1788,16 @@ ELSE
         {
             const string sql = @"
 SELECT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay, ky.HanNop, ky.TrangThai,
-       COUNT(bc.BaoCaoId) AS TongBaoCao,
+       COUNT(DISTINCT pc.PhanCongChiSoId) AS TongBaoCao,
        ISNULL(SUM(CASE WHEN bc.TrangThai IN (2,3,4) THEN 1 ELSE 0 END), 0) AS DaGui
 FROM dbo.KyBaoCao ky
-LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
+LEFT JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
+LEFT JOIN dbo.ChiSoTanSuatBaoCao cst ON cst.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cst.TanSuatBaoCao = ky.LoaiKyBaoCao
+LEFT JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
+LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId 
+                        AND bc.KhoaPhongId = pc.KhoaPhongId 
+                        AND bc.ChiSoChatLuongId = pc.ChiSoChatLuongId
+WHERE (cst.ChiSoTanSuatBaoCaoId IS NOT NULL OR cs.TanSuatBaoCao = ky.LoaiKyBaoCao)
 GROUP BY ky.KyBaoCaoId, ky.TenKyBaoCao, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay, ky.HanNop, ky.TrangThai
 ORDER BY ky.TuNgay DESC";
             return Query(sql, MapPeriod);
