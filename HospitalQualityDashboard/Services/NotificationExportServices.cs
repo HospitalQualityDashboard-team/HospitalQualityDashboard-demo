@@ -11,36 +11,103 @@ namespace HospitalQualityDashboard.Services
     {
         public IList<NotificationViewModel> GetForUser(int accountId, bool admin)
         {
-            const string sql = @"
-SELECT tb.ThongBaoId, tb.TieuDe, tb.NoiDung, tb.LoaiThongBao, tb.KyBaoCaoId, tb.BaoCaoId, tb.NgayTao, ISNULL(tbn.DaDoc, 0) AS DaDoc
+            string sql;
+            if (admin)
+            {
+                // For admin, only show:
+                // 1. Notifications of type TongHopAdmin
+                // 2. Notifications that have an entry in ThongBaoNguoiNhan for any admin account (LoaiTaiKhoan.Admin)
+                sql = @"
+SELECT DISTINCT tb.ThongBaoId, tb.TieuDe, tb.NoiDung, tb.LoaiThongBao, tb.KyBaoCaoId, tb.BaoCaoId, tb.NgayTao, ISNULL(tbn.DaDoc, 0) AS DaDoc
 FROM dbo.ThongBao tb
 LEFT JOIN dbo.ThongBaoNguoiNhan tbn ON tbn.ThongBaoId = tb.ThongBaoId AND tbn.TaiKhoanId = @TaiKhoanId
-WHERE @IsAdmin = 1 OR tbn.TaiKhoanId = @TaiKhoanId
+WHERE tb.LoaiThongBao = @TongHopAdmin 
+   OR EXISTS (
+       SELECT 1 FROM dbo.ThongBaoNguoiNhan tbn_admin
+       INNER JOIN dbo.TaiKhoan tk ON tk.TaiKhoanId = tbn_admin.TaiKhoanId
+       WHERE tbn_admin.ThongBaoId = tb.ThongBaoId 
+         AND tk.LoaiTaiKhoan = @AdminType
+   )
 ORDER BY tb.NgayTao DESC";
-            return Query(sql, MapNotification, Param("@TaiKhoanId", accountId), Param("@IsAdmin", admin));
+                return Query(sql, MapNotification,
+                    Param("@TaiKhoanId", accountId),
+                    Param("@TongHopAdmin", (byte)LoaiThongBao.TongHopAdmin),
+                    Param("@AdminType", (byte)LoaiTaiKhoan.Admin));
+            }
+            else
+            {
+                // Regular user: only show notifications where they are in ThongBaoNguoiNhan
+                sql = @"
+SELECT tb.ThongBaoId, tb.TieuDe, tb.NoiDung, tb.LoaiThongBao, tb.KyBaoCaoId, tb.BaoCaoId, tb.NgayTao, ISNULL(tbn.DaDoc, 0) AS DaDoc
+FROM dbo.ThongBao tb
+INNER JOIN dbo.ThongBaoNguoiNhan tbn ON tbn.ThongBaoId = tb.ThongBaoId AND tbn.TaiKhoanId = @TaiKhoanId
+ORDER BY tb.NgayTao DESC";
+                return Query(sql, MapNotification, Param("@TaiKhoanId", accountId));
+            }
         }
 
         public NotificationViewModel GetDetailForUser(int notificationId, int accountId, bool admin)
         {
-            const string sql = @"
+            string sql;
+            if (admin)
+            {
+                sql = @"
 SELECT tb.ThongBaoId, tb.TieuDe, tb.NoiDung, tb.LoaiThongBao, tb.KyBaoCaoId, tb.BaoCaoId, tb.NgayTao, ISNULL(tbn.DaDoc, 0) AS DaDoc
 FROM dbo.ThongBao tb
 LEFT JOIN dbo.ThongBaoNguoiNhan tbn ON tbn.ThongBaoId = tb.ThongBaoId AND tbn.TaiKhoanId = @TaiKhoanId
 WHERE tb.ThongBaoId = @ThongBaoId
-  AND (@IsAdmin = 1 OR tbn.TaiKhoanId = @TaiKhoanId)";
-            return QuerySingle(sql, MapNotification,
-                Param("@ThongBaoId", notificationId),
-                Param("@TaiKhoanId", accountId),
-                Param("@IsAdmin", admin));
+  AND (tb.LoaiThongBao = @TongHopAdmin 
+       OR EXISTS (
+           SELECT 1 FROM dbo.ThongBaoNguoiNhan tbn_admin
+           INNER JOIN dbo.TaiKhoan tk ON tk.TaiKhoanId = tbn_admin.TaiKhoanId
+           WHERE tbn_admin.ThongBaoId = tb.ThongBaoId 
+             AND tk.LoaiTaiKhoan = @AdminType
+       ))";
+                return QuerySingle(sql, MapNotification,
+                    Param("@ThongBaoId", notificationId),
+                    Param("@TaiKhoanId", accountId),
+                    Param("@TongHopAdmin", (byte)LoaiThongBao.TongHopAdmin),
+                    Param("@AdminType", (byte)LoaiTaiKhoan.Admin));
+            }
+            else
+            {
+                sql = @"
+SELECT tb.ThongBaoId, tb.TieuDe, tb.NoiDung, tb.LoaiThongBao, tb.KyBaoCaoId, tb.BaoCaoId, tb.NgayTao, ISNULL(tbn.DaDoc, 0) AS DaDoc
+FROM dbo.ThongBao tb
+INNER JOIN dbo.ThongBaoNguoiNhan tbn ON tbn.ThongBaoId = tb.ThongBaoId AND tbn.TaiKhoanId = @TaiKhoanId
+WHERE tb.ThongBaoId = @ThongBaoId";
+                return QuerySingle(sql, MapNotification,
+                    Param("@ThongBaoId", notificationId),
+                    Param("@TaiKhoanId", accountId));
+            }
         }
 
         public void SendManual(NotificationViewModel model, int userId)
         {
-            var notificationId = Convert.ToInt32(Scalar(@"INSERT INTO dbo.ThongBao(TieuDe, NoiDung, LoaiThongBao, NguoiTaoId)
-OUTPUT INSERTED.ThongBaoId VALUES(@TieuDe, @NoiDung, @LoaiThongBao, @NguoiTaoId)",
+            // Check for duplicate (same LoaiThongBao, KyBaoCaoId, NoiDung, today's date)
+            var duplicateExists = Convert.ToInt32(Scalar(@"
+SELECT COUNT(*)
+FROM dbo.ThongBao
+WHERE LoaiThongBao = @LoaiThongBao
+  AND (@KyBaoCaoId IS NULL OR KyBaoCaoId = @KyBaoCaoId)
+  AND NoiDung = @NoiDung
+  AND CAST(NgayTao AS DATE) = CAST(GETDATE() AS DATE)",
+                Param("@LoaiThongBao", (byte)LoaiThongBao.ThuCong),
+                Param("@KyBaoCaoId", model.KyBaoCaoId),
+                Param("@NoiDung", model.NoiDung)));
+
+            if (duplicateExists > 0)
+            {
+                // Skip sending, already exists today
+                return;
+            }
+
+            var notificationId = Convert.ToInt32(Scalar(@"INSERT INTO dbo.ThongBao(TieuDe, NoiDung, LoaiThongBao, KyBaoCaoId, NguoiTaoId)
+OUTPUT INSERTED.ThongBaoId VALUES(@TieuDe, @NoiDung, @LoaiThongBao, @KyBaoCaoId, @NguoiTaoId)",
                 Param("@TieuDe", model.TieuDe),
                 Param("@NoiDung", model.NoiDung),
                 Param("@LoaiThongBao", (byte)LoaiThongBao.ThuCong),
+                Param("@KyBaoCaoId", model.KyBaoCaoId),
                 Param("@NguoiTaoId", userId)));
 
             foreach (var departmentId in model.SelectedKhoaPhongIds ?? new int[0])
