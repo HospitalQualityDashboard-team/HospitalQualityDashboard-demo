@@ -57,14 +57,14 @@ namespace HospitalQualityDashboard.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Approve(int id)
         {
-            return new HttpStatusCodeResult(410, "Approval workflow is disabled.");
+            return new HttpStatusCodeResult(410, "Quy trình duyệt báo cáo hiện không được sử dụng.");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Reject(int id, string yKienPhanHoi)
         {
-            return new HttpStatusCodeResult(410, "Approval workflow is disabled.");
+            return new HttpStatusCodeResult(410, "Quy trình duyệt báo cáo hiện không được sử dụng.");
         }
 
         [HttpPost]

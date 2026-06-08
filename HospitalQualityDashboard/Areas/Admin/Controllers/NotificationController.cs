@@ -44,7 +44,7 @@ namespace HospitalQualityDashboard.Areas.Admin.Controllers
         {
             if (string.IsNullOrWhiteSpace(model.TieuDe) || string.IsNullOrWhiteSpace(model.NoiDung))
             {
-                ModelState.AddModelError("", "Vui long nhap tieu de va noi dung.");
+                ModelState.AddModelError("", "Vui lòng nhập tiêu đề và nội dung.");
             }
 
             if (!ModelState.IsValid)
@@ -79,7 +79,7 @@ namespace HospitalQualityDashboard.Areas.Admin.Controllers
         {
             _periodSchedule.OpenDuePeriods(DateTime.Now);
             _automation.Run(DateTime.Now);
-            TempData["Message"] = "Da chay kiem tra thong bao tu dong.";
+            TempData["Message"] = "Đã chạy kiểm tra thông báo tự động.";
             return RedirectToAction("Index");
         }
 

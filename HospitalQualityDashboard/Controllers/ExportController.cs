@@ -1,4 +1,4 @@
-// Muc dich: dieu huong xuat du lieu theo vai tro sang Area tuong ung.
+// Mục đích: điều hướng xuất dữ liệu theo vai trò sang Area tương ứng.
 using System.Web.Mvc;
 
 namespace HospitalQualityDashboard.Controllers

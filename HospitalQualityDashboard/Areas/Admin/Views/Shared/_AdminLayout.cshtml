@@ -1,10 +1,10 @@
-@* Layout rieng cho Admin Area: menu chi hien thi cac man hinh quan tri. *@
+@* Layout riêng cho Admin Area: menu chỉ hiển thị các màn hình quản trị. *@
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Bang dieu khien chat luong benh vien</title>
+    <title>@ViewBag.Title - Bảng điều khiển chất lượng bệnh viện</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
 </head>
@@ -22,28 +22,28 @@
     <div class="app-shell">
         <aside class="app-sidebar" id="appSidebar">
             <div class="app-sidebar-brand">
-                @Html.ActionLink("HQ", "Index", "Dashboard", new { area = "Admin" }, new { @class = "app-brand-mark", aria_label = "Trang chu Admin" })
+                @Html.ActionLink("HQ", "Index", "Dashboard", new { area = "Admin" }, new { @class = "app-brand-mark", aria_label = "Trang chủ quản trị" })
                 <div class="app-brand-copy">
                     <span class="app-brand-title">Chat luong benh vien</span>
-                    <span class="app-brand-subtitle">Admin workspace</span>
+                    <span class="app-brand-subtitle">Không gian quản trị</span>
                 </div>
             </div>
 
-            <nav class="app-sidebar-nav" aria-label="Dieu huong Admin">
-                @Html.ActionLink("Tong quan", "Index", "Dashboard", new { area = "Admin" }, new { @class = navClass("Dashboard", "Index") })
-                @Html.ActionLink("Khoa/phong", "Index", "Department", new { area = "Admin" }, new { @class = navClass("Department", "") })
-                @Html.ActionLink("Nhan vien", "Index", "Employee", new { area = "Admin" }, new { @class = navClass("Employee", "") })
-                @Html.ActionLink("Chi so", "Index", "Indicator", new { area = "Admin" }, new { @class = navClass("Indicator", "") })
-                @Html.ActionLink("Phan cong", "Index", "Assignment", new { area = "Admin" }, new { @class = navClass("Assignment", "") })
-                @Html.ActionLink("Ky bao cao", "Index", "ReportingPeriod", new { area = "Admin" }, new { @class = navClass("ReportingPeriod", "") })
-                @Html.ActionLink("Bao cao", "Index", "Report", new { area = "Admin" }, new { @class = navClass("Report", "") })
-                @Html.ActionLink("Thong bao", "Index", "Notification", new { area = "Admin" }, new { @class = navClass("Notification", "") })
+            <nav class="app-sidebar-nav" aria-label="Điều hướng quản trị">
+                @Html.ActionLink("Tổng quan", "Index", "Dashboard", new { area = "Admin" }, new { @class = navClass("Dashboard", "Index") })
+                @Html.ActionLink("Khoa/phòng", "Index", "Department", new { area = "Admin" }, new { @class = navClass("Department", "") })
+                @Html.ActionLink("Nhân viên", "Index", "Employee", new { area = "Admin" }, new { @class = navClass("Employee", "") })
+                @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "Admin" }, new { @class = navClass("Indicator", "") })
+                @Html.ActionLink("Phân công", "Index", "Assignment", new { area = "Admin" }, new { @class = navClass("Assignment", "") })
+                @Html.ActionLink("Kỳ báo cáo", "Index", "ReportingPeriod", new { area = "Admin" }, new { @class = navClass("ReportingPeriod", "") })
+                @Html.ActionLink("Báo cáo", "Index", "Report", new { area = "Admin" }, new { @class = navClass("Report", "") })
+                @Html.ActionLink("Thông báo", "Index", "Notification", new { area = "Admin" }, new { @class = navClass("Notification", "") })
             </nav>
         </aside>
 
         <div class="app-content">
             <header class="app-topbar app-navbar">
-                <button type="button" class="app-sidebar-toggle" data-app-sidebar-toggle aria-controls="appSidebar" aria-expanded="false" aria-label="Mo menu">
+                <button type="button" class="app-sidebar-toggle" data-app-sidebar-toggle aria-controls="appSidebar" aria-expanded="false" aria-label="Mở menu">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -51,11 +51,11 @@
                 <div class="app-topbar-title">@ViewBag.Title</div>
                 <div class="app-topbar-actions">
                     <span class="app-role-chip">Admin</span>
-                    @Html.ActionLink("Ho so", "Profile", "Account", new { area = "" }, new { @class = navClass("Account", "Profile") })
+                    @Html.ActionLink("Hồ sơ", "Profile", "Account", new { area = "" }, new { @class = navClass("Account", "Profile") })
                     @using (Html.BeginForm("Logout", "Account", new { area = "" }, FormMethod.Post, new { @class = "d-inline" }))
                     {
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-link app-topbar-link">Dang xuat</button>
+                        <button type="submit" class="btn btn-link app-topbar-link">Đăng xuất</button>
                     }
                 </div>
             </header>
@@ -65,7 +65,7 @@
             </main>
 
             <footer class="app-footer">
-                <span>&copy; @DateTime.Now.Year - Bang dieu khien chat luong benh vien</span>
+                <span>&copy; @DateTime.Now.Year - Bảng điều khiển chất lượng bệnh viện</span>
             </footer>
         </div>
     </div>

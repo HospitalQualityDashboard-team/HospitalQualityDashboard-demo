@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Bang dieu khien chat luong benh vien</title>
+    <title>@ViewBag.Title - Bảng điều khiển chất lượng bệnh viện</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
 </head>
@@ -22,24 +22,24 @@
     <div class="app-shell">
         <aside class="app-sidebar" id="appSidebar">
             <div class="app-sidebar-brand">
-                @Html.ActionLink("HQ", "Index", "Dashboard", new { area = "User" }, new { @class = "app-brand-mark", aria_label = "Trang chu User" })
+                @Html.ActionLink("HQ", "Index", "Dashboard", new { area = "User" }, new { @class = "app-brand-mark", aria_label = "Trang chủ người dùng" })
                 <div class="app-brand-copy">
                     <span class="app-brand-title">Chat luong benh vien</span>
-                    <span class="app-brand-subtitle">User workspace</span>
+                    <span class="app-brand-subtitle">Không gian khoa/phòng</span>
                 </div>
             </div>
 
-            <nav class="app-sidebar-nav" aria-label="Dieu huong User">
-                @Html.ActionLink("Tong quan", "Index", "Dashboard", new { area = "User" }, new { @class = navClass("Dashboard", "Index") })
-                @Html.ActionLink("Chi so", "Index", "Indicator", new { area = "User" }, new { @class = navClass("Indicator", "") })
-                @Html.ActionLink("Bao cao cua toi", "Index", "Report", new { area = "User" }, new { @class = navClass("Report", "") })
-                @Html.ActionLink("Thong bao", "Index", "Notification", new { area = "User" }, new { @class = navClass("Notification", "") })
+            <nav class="app-sidebar-nav" aria-label="Điều hướng người dùng">
+                @Html.ActionLink("Tổng quan", "Index", "Dashboard", new { area = "User" }, new { @class = navClass("Dashboard", "Index") })
+                @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "User" }, new { @class = navClass("Indicator", "") })
+                @Html.ActionLink("Báo cáo của tôi", "Index", "Report", new { area = "User" }, new { @class = navClass("Report", "") })
+                @Html.ActionLink("Thông báo", "Index", "Notification", new { area = "User" }, new { @class = navClass("Notification", "") })
             </nav>
         </aside>
 
         <div class="app-content">
             <header class="app-topbar app-navbar">
-                <button type="button" class="app-sidebar-toggle" data-app-sidebar-toggle aria-controls="appSidebar" aria-expanded="false" aria-label="Mo menu">
+                <button type="button" class="app-sidebar-toggle" data-app-sidebar-toggle aria-controls="appSidebar" aria-expanded="false" aria-label="Mở menu">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -47,11 +47,11 @@
                 <div class="app-topbar-title">@ViewBag.Title</div>
                 <div class="app-topbar-actions">
                     <span class="app-role-chip">User</span>
-                    @Html.ActionLink("Ho so", "Profile", "Account", new { area = "" }, new { @class = navClass("Account", "Profile") })
+                    @Html.ActionLink("Hồ sơ", "Profile", "Account", new { area = "" }, new { @class = navClass("Account", "Profile") })
                     @using (Html.BeginForm("Logout", "Account", new { area = "" }, FormMethod.Post, new { @class = "d-inline" }))
                     {
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-link app-topbar-link">Dang xuat</button>
+                        <button type="submit" class="btn btn-link app-topbar-link">Đăng xuất</button>
                     }
                 </div>
             </header>
@@ -61,7 +61,7 @@
             </main>
 
             <footer class="app-footer">
-                <span>&copy; @DateTime.Now.Year - Bang dieu khien chat luong benh vien</span>
+                <span>&copy; @DateTime.Now.Year - Bảng điều khiển chất lượng bệnh viện</span>
             </footer>
         </div>
     </div>

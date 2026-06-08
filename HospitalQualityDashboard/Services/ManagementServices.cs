@@ -93,7 +93,7 @@ SELECT
                 Param("@Id", id)));
             if (dependentCount > 0)
             {
-                throw new InvalidOperationException("Khoa/phong da co du lieu lien quan, vui long khoa thay vi xoa.");
+                throw new InvalidOperationException("Khoa/phòng đã có dữ liệu liên quan, vui lòng khóa thay vì xóa.");
             }
 
             Execute("DELETE FROM dbo.KhoaPhong WHERE KhoaPhongId=@Id", Param("@Id", id));
@@ -284,7 +284,7 @@ WHERE tk.NhanVienId = nv.NhanVienId OR tk.TenDangNhap = nv.MaNhanVien;",
             if (accountCount > 0)
             {
                 // Đã có tài khoản thì không xóa cứng, chỉ nên khóa.
-                throw new InvalidOperationException("Nhan vien da co tai khoan, vui long khoa thay vi xoa.");
+                throw new InvalidOperationException("Nhân viên đã có tài khoản, vui lòng khóa thay vì xóa.");
             }
 
             Execute("DELETE FROM dbo.NhanVien WHERE NhanVienId=@Id", Param("@Id", id));

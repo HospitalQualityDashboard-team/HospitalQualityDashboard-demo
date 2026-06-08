@@ -89,7 +89,7 @@ namespace HospitalQualityDashboard.Areas.Admin.Controllers
                 IndicatorIds = model.SelectedChiSoIds,
                 CurrentUserId = CurrentTaiKhoanId.Value
             });
-            TempData["Success"] = "Da phan cong chi so thanh cong!";
+            TempData["Success"] = "Đã phân công chỉ số thành công!";
             return RedirectToAction("Index", new { viewMode = model.ViewMode });
         }
 
@@ -120,7 +120,7 @@ namespace HospitalQualityDashboard.Areas.Admin.Controllers
         public ActionResult SyncFromIndicators(string viewMode)
         {
             var changed = _service.SyncFromIndicatorSources(CurrentTaiKhoanId.Value);
-            TempData["Success"] = "Da dong bo " + changed + " phan cong tu du lieu chi so.";
+            TempData["Success"] = "Đã đồng bộ " + changed + " phân công từ dữ liệu chỉ số.";
             return RedirectToAction("Index", new { viewMode = viewMode });
         }
 

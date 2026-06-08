@@ -22,7 +22,7 @@ namespace HospitalQualityDashboard.Areas.Admin.Controllers
         public ActionResult OpenDuePeriods()
         {
             var openedCount = _schedule.OpenDuePeriods(DateTime.Now);
-            TempData["Message"] = string.Format("Da mo {0} ky bao cao den ngay bat dau.", openedCount);
+            TempData["Message"] = string.Format("Đã mở {0} kỳ báo cáo đến ngày bắt đầu.", openedCount);
             return RedirectToAction("Index");
         }
 
@@ -68,7 +68,7 @@ namespace HospitalQualityDashboard.Areas.Admin.Controllers
                     DueDayOffset = model.DueDayOffset,
                     DefaultStatus = model.DefaultStatus
                 }, DateTime.Now);
-                TempData["Message"] = string.Format("Da tao {0} ky bao cao moi, bo qua {1} ky da ton tai, tu mo {2} ky den ngay bat dau.",
+                TempData["Message"] = string.Format("Đã tạo {0} kỳ báo cáo mới, bỏ qua {1} kỳ đã tồn tại, tự mở {2} kỳ đến ngày bắt đầu.",
                     result.CreatedCount,
                     result.SkippedExistingCount,
                     result.OpenedCount);

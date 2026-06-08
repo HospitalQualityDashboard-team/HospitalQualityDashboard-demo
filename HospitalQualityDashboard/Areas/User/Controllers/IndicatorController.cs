@@ -23,7 +23,7 @@ namespace HospitalQualityDashboard.Areas.User.Controllers
 
             if (!CurrentKhoaPhongId.HasValue || !_service.IsAssigned(id, CurrentKhoaPhongId.Value))
             {
-                return new HttpUnauthorizedResult("Ban khong co quyen xem chi tiet chi so nay.");
+                return new HttpUnauthorizedResult("Bạn không có quyền xem chi tiết chỉ số này.");
             }
 
             return View(model);

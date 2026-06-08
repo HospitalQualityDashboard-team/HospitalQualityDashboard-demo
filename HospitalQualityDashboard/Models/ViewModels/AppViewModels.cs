@@ -268,7 +268,7 @@ namespace HospitalQualityDashboard.Models.ViewModels
     {
         public int KyBaoCaoId { get; set; }
 
-        [Required(ErrorMessage = "Vui long nhap ten ky bao cao.")]
+        [Required(ErrorMessage = "Vui lòng nhập tên kỳ báo cáo.")]
         public string TenKyBaoCao { get; set; }
 
         public TanSuatBaoCao LoaiKyBaoCao { get; set; }

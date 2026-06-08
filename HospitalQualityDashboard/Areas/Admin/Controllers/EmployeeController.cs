@@ -81,7 +81,7 @@ namespace HospitalQualityDashboard.Areas.Admin.Controllers
             var employee = _service.Get(id);
             if (employee.HasAccount)
             {
-                TempData["Error"] = "Nhan vien nay da co tai khoan trong he thong.";
+                TempData["Error"] = "Nhân viên này đã có tài khoản trong hệ thống.";
                 return RedirectToAction("Index");
             }
 
@@ -95,13 +95,13 @@ namespace HospitalQualityDashboard.Areas.Admin.Controllers
             if (!ModelState.IsValid) return View(model);
             if (_service.HasAccount(model.NhanVienId))
             {
-                ModelState.AddModelError("", "Nhan vien nay da co tai khoan trong he thong.");
+                ModelState.AddModelError("", "Nhân viên này đã có tài khoản trong hệ thống.");
                 return View(model);
             }
 
             if (_service.IsUsernameExists(model.TenDangNhap))
             {
-                ModelState.AddModelError("TenDangNhap", "Ten dang nhap da ton tai trong he thong. Vui long chon ten khac.");
+                ModelState.AddModelError("TenDangNhap", "Tên đăng nhập đã tồn tại trong hệ thống. Vui lòng chọn tên khác.");
                 return View(model);
             }
 

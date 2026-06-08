@@ -36,7 +36,7 @@ namespace HospitalQualityDashboard.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult AdminLogin(LoginViewModel model)
         {
-            return LoginForRole(model, LoaiTaiKhoan.Admin, "AdminLogin", "Tai khoan nay khong phai tai khoan Admin.");
+            return LoginForRole(model, LoaiTaiKhoan.Admin, "AdminLogin", "Tài khoản này không phải tài khoản Admin.");
         }
 
         [HttpGet]
@@ -49,7 +49,7 @@ namespace HospitalQualityDashboard.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult UserLogin(LoginViewModel model)
         {
-            return LoginForRole(model, LoaiTaiKhoan.User, "UserLogin", "Tai khoan nay khong phai tai khoan User.");
+            return LoginForRole(model, LoaiTaiKhoan.User, "UserLogin", "Tài khoản này không phải tài khoản User.");
         }
 
         private ActionResult LoginForRole(LoginViewModel model, LoaiTaiKhoan expectedRole, string viewName, string wrongRoleMessage)
@@ -63,7 +63,7 @@ namespace HospitalQualityDashboard.Controllers
             if (user == null)
             {
                 _authService.RecordFailedLogin(model.TenDangNhap);
-                ModelState.AddModelError("", "Ten dang nhap hoac mat khau khong dung.");
+                ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng.");
                 return View(viewName, model);
             }
 
@@ -128,11 +128,11 @@ namespace HospitalQualityDashboard.Controllers
             var taiKhoanId = SessionUserAccessor.GetInt(Session, SessionUserAccessor.TaiKhoanIdKey).Value;
             if (!_authService.ChangePassword(taiKhoanId, model.MatKhauCu, model.MatKhauMoi))
             {
-                ModelState.AddModelError("", "Mat khau hien tai khong dung.");
+                ModelState.AddModelError("", "Mật khẩu hiện tại không đúng.");
                 return View(model);
             }
 
-            TempData["SuccessMessage"] = "Doi mat khau thanh cong.";
+            TempData["SuccessMessage"] = "Đổi mật khẩu thành công.";
             return RedirectToAction("Profile");
         }
 

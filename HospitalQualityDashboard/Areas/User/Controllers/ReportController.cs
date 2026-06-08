@@ -71,7 +71,7 @@ namespace HospitalQualityDashboard.Areas.User.Controllers
             {
                 if (!kyBaoCaoId.HasValue || !chiSoChatLuongId.HasValue)
                 {
-                    return new HttpStatusCodeResult(400, "Thieu thong tin ky bao cao hoac chi so.");
+                    return new HttpStatusCodeResult(400, "Thiếu thông tin kỳ báo cáo hoặc chỉ số.");
                 }
 
                 var periodGate = EnsureOpenPeriodForUser(kyBaoCaoId.Value);
@@ -169,7 +169,7 @@ namespace HospitalQualityDashboard.Areas.User.Controllers
         {
             if (!_periods.IsOpenForDepartment(kyBaoCaoId, CurrentKhoaPhongId.Value))
             {
-                return new HttpStatusCodeResult(403, "Ky bao cao chua mo hoac khong phu hop voi phan cong cua khoa/phong.");
+                return new HttpStatusCodeResult(403, "Kỳ báo cáo chưa mở hoặc không phù hợp với phân công của khoa/phòng.");
             }
 
             return null;

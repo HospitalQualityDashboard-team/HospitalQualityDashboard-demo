@@ -26,7 +26,7 @@ namespace HospitalQualityDashboard.Services
         {
             if (file == null || file.ContentLength == 0)
             {
-                throw new InvalidOperationException("Vui long chon file import.");
+                throw new InvalidOperationException("Vui lòng chọn file import.");
             }
 
             ValidateImportSize(file);
@@ -39,7 +39,7 @@ namespace HospitalQualityDashboard.Services
 
             if (!string.Equals(extension, ".xlsx", StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("Chi ho tro file .xlsx hoac .csv.");
+                throw new InvalidOperationException("Chỉ hỗ trợ file .xlsx hoặc .csv.");
             }
 
             return ReadXlsx(file.InputStream);
@@ -49,7 +49,7 @@ namespace HospitalQualityDashboard.Services
         {
             if (file == null || file.ContentLength == 0)
             {
-                throw new InvalidOperationException("Vui long chon file import.");
+                throw new InvalidOperationException("Vui lòng chọn file import.");
             }
 
             ValidateImportSize(file);
@@ -57,7 +57,7 @@ namespace HospitalQualityDashboard.Services
             var extension = Path.GetExtension(file.FileName);
             if (!string.Equals(extension, ".docx", StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("Chi ho tro file .docx cho import tu dinh nghia chi so.");
+                throw new InvalidOperationException("Chỉ hỗ trợ file .docx cho import từ định nghĩa chỉ số.");
             }
 
             return ReadIndicatorDocxTables(file.InputStream);

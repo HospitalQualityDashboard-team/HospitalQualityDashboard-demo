@@ -175,7 +175,7 @@ WHERE ChiSoChatLuongId=@ChiSoChatLuongId", parameters);
             var reportCount = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.BaoCao WHERE ChiSoChatLuongId=@Id", Param("@Id", id)));
             if (reportCount > 0)
             {
-                throw new InvalidOperationException("Chi so da co bao cao, vui long khoa thay vi xoa.");
+                throw new InvalidOperationException("Chỉ số đã có báo cáo, vui lòng khóa thay vì xóa.");
             }
 
             EnsureIndicatorFrequencyTable();
@@ -2193,7 +2193,7 @@ ELSE
             var reportCount = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.BaoCao WHERE PhanCongChiSoId=@Id", Param("@Id", id)));
             if (reportCount > 0)
             {
-                throw new InvalidOperationException("Phan cong da co bao cao, vui long ngung kich hoat thay vi xoa.");
+                throw new InvalidOperationException("Phân công đã có báo cáo, vui lòng ngừng kích hoạt thay vì xóa.");
             }
 
             Execute("DELETE FROM dbo.PhanCongChiSo WHERE PhanCongChiSoId=@Id", Param("@Id", id));
@@ -2300,7 +2300,7 @@ SELECT
                 Param("@Id", id)));
             if (dependentCount > 0)
             {
-                throw new InvalidOperationException("Ky bao cao da co du lieu lien quan, vui long khoa thay vi xoa.");
+                throw new InvalidOperationException("Kỳ báo cáo đã có dữ liệu liên quan, vui lòng khóa thay vì xóa.");
             }
 
             Execute("DELETE FROM dbo.KyBaoCao WHERE KyBaoCaoId=@Id", Param("@Id", id));
