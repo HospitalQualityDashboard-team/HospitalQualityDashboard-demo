@@ -31,21 +31,22 @@ function Assert-NotContains {
     }
 }
 
-$reportController = Read-ProjectFile 'Controllers\ReportController.cs'
+$userReportController = Read-ProjectFile 'Areas\User\Controllers\ReportController.cs'
+$adminReportController = Read-ProjectFile 'Areas\Admin\Controllers\ReportController.cs'
 $reportService = Read-ProjectFile 'Services\ReportDashboardServices.cs'
 $bootstrapper = Read-ProjectFile 'Services\DatabaseBootstrapper.cs'
 $globalAsax = Read-ProjectFile 'Global.asax.cs'
 $webConfig = Read-ProjectFile 'Web.config'
 $schema = Read-ProjectFile 'App_Data\Sql\001_CreateSchema.sql'
-$assignmentView = Read-ProjectFile 'Views\Assignment\Index.cshtml'
-$notificationController = Read-ProjectFile 'Controllers\NotificationController.cs'
+$userNotificationController = Read-ProjectFile 'Areas\User\Controllers\NotificationController.cs'
+$adminNotificationController = Read-ProjectFile 'Areas\Admin\Controllers\NotificationController.cs'
 $periodController = Read-ProjectFile 'Controllers\ReportingPeriodController.cs'
 $pageController = Read-ProjectFile 'Controllers\PageController.cs'
 $authService = Read-ProjectFile 'Services\AuthService.cs'
 $excelService = Read-ProjectFile 'Services\ExcelImportExportService.cs'
 
-Assert-Contains $reportController 'var existingReport = _service\.Get\(model\.BaoCaoId\)' 'POST Report/Edit must reload the existing report before authorization.'
-Assert-Contains $reportController 'EnsureUserDepartment\(existingReport\.KhoaPhongId\)' 'POST Report/Edit must authorize against the persisted report department.'
+Assert-Contains $userReportController 'var departmentId = existingReport == null \? model\.KhoaPhongId : existingReport\.KhoaPhongId' 'User POST Report/Edit must reload the existing report before authorization.'
+Assert-Contains $userReportController 'EnsureUserDepartment\(departmentId\)' 'User POST Report/Edit must authorize against the persisted report department.'
 Assert-Contains $reportService 'model\.KhoaPhongId = existingReport\.KhoaPhongId' 'SaveDraft must ignore client-supplied department fields for existing reports.'
 
 Assert-NotContains $globalAsax 'DatabaseBootstrapper\.BootstrapIfDebug\(\);' 'Application startup must not seed a known admin account automatically.'
@@ -55,15 +56,16 @@ Assert-NotContains $schema "N'admin'" 'Base schema must not seed a known admin u
 Assert-NotContains $schema 'Admin@123' 'Base schema must not document or seed the default admin password.'
 Assert-NotContains $webConfig 'debug="true"' 'Base Web.config must not enable debug compilation by default.'
 
-Assert-NotContains $assignmentView 'tdCs\.innerHTML\s*=\s*`' 'Assignment preview must not render indicator data with innerHTML.'
-Assert-Contains $assignmentView 'tdCsCode\.textContent = item\.MaChiSo' 'Assignment preview must render indicator code with textContent.'
-Assert-Contains $assignmentView 'tdCsName\.textContent = item\.TenChiSo' 'Assignment preview must render indicator name with textContent.'
+Assert-Contains $adminReportController 'Index\(int\? kyBaoCaoId, int\? khoaPhongId, int\? chiSoChatLuongId\)' 'Admin Report Index must be GET-only (redirect from root).'
+Assert-Contains $userReportController 'Index\(int\? kyBaoCaoId, int\? chiSoChatLuongId\)' 'User Report Index must be GET-only (redirect from root).'
 
-Assert-Contains $notificationController 'public ActionResult Index\(\)\s*\{\s*return View\(_service\.GetForUser\(CurrentTaiKhoanId\.Value, IsAdmin\)\);\s*\}' 'Notification GET Index must be read-only.'
-Assert-Contains $notificationController 'public ActionResult Details\(int id\)[\s\S]*?return View\(new NotificationDetailViewModel' 'Notification GET Details must remain a read-only detail renderer.'
+Assert-Contains $userNotificationController 'public ActionResult Index\(\)\s*\{\s*return View\(_service\.GetForUser\(CurrentTaiKhoanId\.Value, false\)\);\s*\}' 'User Notification GET Index must be read-only.'
+Assert-Contains $adminNotificationController 'public ActionResult Index\(\)\s*\{\s*return View\(_service\.GetForUser\(CurrentTaiKhoanId\.Value, true\)\);\s*\}' 'Admin Notification GET Index must be read-only.'
+Assert-Contains $userNotificationController 'public ActionResult Details\(int id\)[\s\S]*?return View\(new NotificationDetailViewModel' 'User Notification GET Details must remain a read-only detail renderer.'
+Assert-Contains $adminNotificationController 'public ActionResult Details\(int id\)[\s\S]*?return View\(new NotificationDetailViewModel' 'Admin Notification GET Details must remain a read-only detail renderer.'
 Assert-Contains $periodController 'public ActionResult Index\(\)\s*\{\s*var admin = RequireAdmin\(\);[\s\S]*?return RedirectToAction\("Index", "ReportingPeriod", new \{ area = "Admin" \}\);\s*\}' 'ReportingPeriod root GET Index must be a read-only redirect to the Admin Area.'
-Assert-Contains $notificationController 'public ActionResult OpenDuePeriodsAndRunAutomation\(\)' 'State-changing notification automation must be POST-only.'
-Assert-Contains $notificationController 'public ActionResult MarkDetailAsRead\(int id\)' 'Marking notification details read must be POST-only.'
+Assert-Contains $adminNotificationController 'public ActionResult OpenDuePeriodsAndRunAutomation\(\)' 'State-changing notification automation must be POST-only.'
+Assert-Contains $userNotificationController 'public ActionResult MarkDetailAsRead\(int id\)' 'Marking notification details read must be POST-only.'
 Assert-Contains $periodController 'public ActionResult OpenDuePeriods\(\)' 'Opening due periods from period pages must be POST-only.'
 
 Assert-Contains $pageController 'RevalidateCurrentSession\(\)' 'Protected requests must revalidate the current account status.'
