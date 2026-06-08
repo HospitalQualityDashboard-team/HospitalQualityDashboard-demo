@@ -119,6 +119,24 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
+    <Compile Include="Areas\Admin\Controllers\AdminBaseController.cs" />
+    <Compile Include="Areas\Admin\Controllers\AssignmentController.cs" />
+    <Compile Include="Areas\Admin\Controllers\DashboardController.cs" />
+    <Compile Include="Areas\Admin\Controllers\DepartmentController.cs" />
+    <Compile Include="Areas\Admin\Controllers\EmployeeController.cs" />
+    <Compile Include="Areas\Admin\Controllers\ExportController.cs" />
+    <Compile Include="Areas\Admin\Controllers\IndicatorController.cs" />
+    <Compile Include="Areas\Admin\Controllers\NotificationController.cs" />
+    <Compile Include="Areas\Admin\Controllers\ReportController.cs" />
+    <Compile Include="Areas\Admin\Controllers\ReportingPeriodController.cs" />
+    <Compile Include="Areas\User\Controllers\DashboardController.cs" />
+    <Compile Include="Areas\User\Controllers\ExportController.cs" />
+    <Compile Include="Areas\User\Controllers\IndicatorController.cs" />
+    <Compile Include="Areas\User\Controllers\NotificationController.cs" />
+    <Compile Include="Areas\User\Controllers\ReportController.cs" />
+    <Compile Include="Areas\User\Controllers\UserBaseController.cs" />
+    <Compile Include="Areas\User\UserAreaRegistration.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
@@ -139,6 +157,14 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\Entities\CoreEntities.cs" />
+    <Compile Include="Models\DTOs\AssignmentDtos.cs" />
+    <Compile Include="Models\DTOs\DepartmentDtos.cs" />
+    <Compile Include="Models\DTOs\EmployeeDtos.cs" />
+    <Compile Include="Models\DTOs\ExportDtos.cs" />
+    <Compile Include="Models\DTOs\IndicatorDtos.cs" />
+    <Compile Include="Models\DTOs\NotificationDtos.cs" />
+    <Compile Include="Models\DTOs\ReportDtos.cs" />
+    <Compile Include="Models\DTOs\ReportingPeriodDtos.cs" />
     <Compile Include="Models\Enums\SystemEnums.cs" />
     <Compile Include="Models\ViewModels\AppViewModels.cs" />
     <Compile Include="Models\ViewModels\AuthViewModels.cs" />
@@ -200,6 +226,42 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
+    <Content Include="Areas\Admin\Views\Web.config" />
+    <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Admin\Views\Assignment\_DepartmentView.cshtml" />
+    <Content Include="Areas\Admin\Views\Assignment\_IndicatorView.cshtml" />
+    <Content Include="Areas\Admin\Views\Assignment\_TableView.cshtml" />
+    <Content Include="Areas\Admin\Views\Assignment\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Dashboard\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Department\Edit.cshtml" />
+    <Content Include="Areas\Admin\Views\Department\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Employee\CreateAccount.cshtml" />
+    <Content Include="Areas\Admin\Views\Employee\Edit.cshtml" />
+    <Content Include="Areas\Admin\Views\Employee\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Indicator\Details.cshtml" />
+    <Content Include="Areas\Admin\Views\Indicator\Edit.cshtml" />
+    <Content Include="Areas\Admin\Views\Indicator\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Notification\Create.cshtml" />
+    <Content Include="Areas\Admin\Views\Notification\Details.cshtml" />
+    <Content Include="Areas\Admin\Views\Notification\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Report\Edit.cshtml" />
+    <Content Include="Areas\Admin\Views\Report\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Report\Nhap.cshtml" />
+    <Content Include="Areas\Admin\Views\ReportingPeriod\Edit.cshtml" />
+    <Content Include="Areas\Admin\Views\ReportingPeriod\GenerateSchedule.cshtml" />
+    <Content Include="Areas\Admin\Views\ReportingPeriod\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Shared\_AdminLayout.cshtml" />
+    <Content Include="Areas\User\Views\Web.config" />
+    <Content Include="Areas\User\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\User\Views\Dashboard\Index.cshtml" />
+    <Content Include="Areas\User\Views\Indicator\Details.cshtml" />
+    <Content Include="Areas\User\Views\Indicator\Index.cshtml" />
+    <Content Include="Areas\User\Views\Notification\Details.cshtml" />
+    <Content Include="Areas\User\Views\Notification\Index.cshtml" />
+    <Content Include="Areas\User\Views\Report\Edit.cshtml" />
+    <Content Include="Areas\User\Views\Report\Index.cshtml" />
+    <Content Include="Areas\User\Views\Report\Nhap.cshtml" />
+    <Content Include="Areas\User\Views\Shared\_UserLayout.cshtml" />
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
@@ -231,10 +293,7 @@
     <Content Include="Views\ReportingPeriod\GenerateSchedule.cshtml" />
     <Content Include="Views\ReportingPeriod\Index.cshtml" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="App_Data\" />
-    <Folder Include="Models\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
     <Content Include="Content\bootstrap.rtl.css.map" />
@@ -252,6 +311,7 @@
     <Content Include="Content\bootstrap-grid.rtl.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
     <Content Include="Content\bootstrap-grid.css.map" />
+    <None Include="tools\VerifyAreasAndDtos.ps1" />
     <None Include="packages.config" />
     <Content Include="Scripts\bootstrap.min.js.map" />
     <Content Include="Scripts\bootstrap.js.map" />

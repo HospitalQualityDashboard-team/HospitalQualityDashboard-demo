@@ -184,6 +184,8 @@ CREATE TABLE dbo.TaiKhoan (
     NhanVienId      INT           NULL,
     KhoaPhongId     INT           NULL,
     DangHoatDong    BIT           NOT NULL CONSTRAINT DF_TaiKhoan_DangHoatDong DEFAULT (1),
+    FailedLoginCount INT          NOT NULL CONSTRAINT DF_TaiKhoan_FailedLoginCount DEFAULT (0),
+    LockoutUntil    DATETIME      NULL,
     LanDangNhapCuoi DATETIME      NULL,
     NgayTao         DATETIME      NOT NULL CONSTRAINT DF_TaiKhoan_NgayTao DEFAULT (GETDATE()),
     NgayCapNhat     DATETIME      NULL,
@@ -560,6 +562,7 @@ CREATE INDEX IX_NhanVien_HoTen          ON dbo.NhanVien(HoTen);
 CREATE INDEX IX_TaiKhoan_KhoaPhongId    ON dbo.TaiKhoan(KhoaPhongId);
 CREATE INDEX IX_TaiKhoan_NhanVienId     ON dbo.TaiKhoan(NhanVienId);
 CREATE INDEX IX_TaiKhoan_Loai_Active    ON dbo.TaiKhoan(LoaiTaiKhoan, DangHoatDong, KhoaPhongId);
+CREATE INDEX IX_TaiKhoan_LockoutUntil   ON dbo.TaiKhoan(LockoutUntil);
 
 -- ChiSoChatLuong
 CREATE INDEX IX_ChiSoChatLuong_Active_Order
@@ -623,11 +626,3 @@ GO
 -- ============================================================
 
 -- Tài khoản admin mặc định
-INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, LoaiTaiKhoan, DangHoatDong)
-VALUES(
-    N'admin',
-    N'10000:AQIDBAUGBwgJCgsMDQ4PEA==:rJPsxUC5qMZAY/awUbhVdQPeOX+4Z12BD7E/F7/y5pA=',
-    1,
-    1
-);
-GO

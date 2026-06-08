@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using HospitalQualityDashboard.Models.DTOs;
 using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Models.ViewModels;
 
@@ -39,6 +40,18 @@ ORDER BY TenKhoaPhong";
             return GetAll(null, false)
                 .Select(x => new SelectListItem { Value = x.KhoaPhongId.ToString(), Text = x.TenKhoaPhong })
                 .ToList();
+        }
+
+        public void Save(DepartmentSaveDto dto)
+        {
+            Save(new KhoaPhongViewModel
+            {
+                KhoaPhongId = dto.KhoaPhongId,
+                IdKhoaPhongNguon = dto.IdKhoaPhongNguon,
+                TenKhoaPhong = dto.TenKhoaPhong,
+                Used = dto.Used,
+                GhiChu = dto.GhiChu
+            });
         }
 
         public void Save(KhoaPhongViewModel model)
@@ -216,6 +229,23 @@ WHERE nv.NhanVienId = @Id";
         }
 
         // Lưu thông tin nhân viên: thêm mới nếu id = 0, ngược lại thì cập nhật.
+        public void Save(EmployeeSaveDto dto)
+        {
+            Save(new NhanVienViewModel
+            {
+                NhanVienId = dto.NhanVienId,
+                MaNhanVien = dto.MaNhanVien,
+                HoTen = dto.HoTen,
+                NgaySinh = dto.NgaySinh,
+                GioiTinh = dto.GioiTinh,
+                ChucVu = dto.ChucVu,
+                Email = dto.Email,
+                SoDienThoai = dto.SoDienThoai,
+                KhoaPhongId = dto.KhoaPhongId,
+                DangHoatDong = dto.DangHoatDong
+            });
+        }
+
         public void Save(NhanVienViewModel model)
         {
             if (model.NhanVienId == 0)
@@ -261,6 +291,16 @@ WHERE tk.NhanVienId = nv.NhanVienId OR tk.TenDangNhap = nv.MaNhanVien;",
         }
 
         // Tạo tài khoản User cho nhân viên.
+        public void CreateUserAccount(CreateUserAccountDto dto)
+        {
+            CreateUserAccount(new CreateUserAccountViewModel
+            {
+                NhanVienId = dto.NhanVienId,
+                TenDangNhap = dto.TenDangNhap,
+                MatKhau = dto.MatKhau
+            });
+        }
+
         public void CreateUserAccount(CreateUserAccountViewModel model)
         {
             var employee = Get(model.NhanVienId);

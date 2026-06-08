@@ -1,47 +1,48 @@
-// Mục đích: quản lý danh mục khoa/phòng và import dữ liệu khoa/phòng.
+// Muc dich: chuyen huong Admin sang Area de quan ly khoa/phong.
 using System.Web.Mvc;
 using HospitalQualityDashboard.Models.ViewModels;
-using HospitalQualityDashboard.Services;
 
 namespace HospitalQualityDashboard.Controllers
 {
     public class DepartmentController : PageController
     {
-        private readonly DepartmentService _service = new DepartmentService();
-
         public ActionResult Index(string search)
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            return View(new KhoaPhongIndexViewModel { Search = search, Items = _service.GetAll(search) });
+            return RedirectToAction("Index", "Department", new { area = "Admin", search });
         }
 
         public ActionResult Create()
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            return View("Edit", new KhoaPhongViewModel { Used = true });
+            return RedirectToAction("Create", "Department", new { area = "Admin" });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(KhoaPhongViewModel model)
         {
-            return Save(model);
+            var admin = RequireAdmin();
+            if (admin != null) return admin;
+            return RedirectToAction("Create", "Department", new { area = "Admin" });
         }
 
         public ActionResult Edit(int id)
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            return View(_service.Get(id));
+            return RedirectToAction("Edit", "Department", new { area = "Admin", id });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(KhoaPhongViewModel model)
         {
-            return Save(model);
+            var admin = RequireAdmin();
+            if (admin != null) return admin;
+            return RedirectToAction("Edit", "Department", new { area = "Admin" });
         }
 
         [HttpPost]
@@ -50,8 +51,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            _service.SetUsed(id, false);
-            return RedirectToAction("Index");
+            return RedirectToAction("Lock", "Department", new { area = "Admin", id });
         }
 
         [HttpPost]
@@ -60,8 +60,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            _service.SetUsed(id, true);
-            return RedirectToAction("Index");
+            return RedirectToAction("Unlock", "Department", new { area = "Admin", id });
         }
 
         [HttpPost]
@@ -70,16 +69,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            try
-            {
-                _service.Delete(id);
-            }
-            catch (System.InvalidOperationException ex)
-            {
-                TempData["Error"] = ex.Message;
-            }
-
-            return RedirectToAction("Index");
+            return RedirectToAction("Delete", "Department", new { area = "Admin", id });
         }
 
         [HttpPost]
@@ -88,17 +78,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            var result = _service.Import(model.File, CurrentTaiKhoanId.Value);
-            return View("Index", new KhoaPhongIndexViewModel { Items = _service.GetAll(), ImportResult = result });
-        }
-
-        private ActionResult Save(KhoaPhongViewModel model)
-        {
-            var admin = RequireAdmin();
-            if (admin != null) return admin;
-            if (!ModelState.IsValid) return View("Edit", model);
-            _service.Save(model);
-            return RedirectToAction("Index");
+            return RedirectToAction("Import", "Department", new { area = "Admin" });
         }
     }
 }

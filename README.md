@@ -14,7 +14,7 @@ Hệ thống quản lý bộ chỉ số chất lượng bệnh viện bằng ASP
 
 ```text
 HospitalQualityDashboard/
-├── App_Data/Sql/              # Script tạo schema, seed admin, migration bổ sung
+├── App_Data/Sql/              # Script tạo schema và migration bổ sung
 ├── Controllers/               # MVC controllers
 ├── Models/                    # Entity, enum, view model
 ├── Services/                  # Nghiệp vụ và ADO.NET data access
@@ -56,21 +56,14 @@ Connection string mặc định trong `HospitalQualityDashboard/Web.config`:
      providerName="System.Data.SqlClient" />
 ```
 
-Khi chạy ở Debug, `Global.asax.cs` gọi `DatabaseBootstrapper.BootstrapIfDebug()`. Bootstrapper sẽ:
+Ứng dụng không tự seed tài khoản Admin khi khởi động. Nếu cần bootstrap database local cho môi trường phát triển, bật app setting `HospitalQualityBootstrapEnabled=true` và gọi `DatabaseBootstrapper.BootstrapIfExplicitlyEnabled()` trong tác vụ local-only hoặc công cụ nội bộ. Bootstrapper sẽ:
 
 1. Kiểm tra database `HospitalQualityDashboard`.
 2. Tạo database nếu chưa tồn tại.
 3. Chạy các script trong `HospitalQualityDashboard/App_Data/Sql`.
-4. Seed tài khoản Admin mặc định.
+4. Không tạo tài khoản Admin mặc định.
 
-Tài khoản Admin mặc định:
-
-```text
-Tên đăng nhập: admin
-Mật khẩu: Admin@123
-```
-
-Nên đổi mật khẩu sau khi đăng nhập lần đầu nếu dùng dữ liệu thật.
+Admin đầu tiên phải được tạo bằng quy trình nội bộ an toàn hoặc script riêng có mật khẩu sinh một lần, sau đó đổi/rotate theo chính sách vận hành. Không dùng credential mặc định trong môi trường thật.
 
 ## 5. Chạy Dự Án Bằng Visual Studio
 
@@ -170,14 +163,14 @@ Chạy từng script từ thư mục gốc repo.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyMvc4Configuration.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyDatabaseBootstrapper.ps1
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifySecurityHardening.ps1
 ```
 
 Mục tiêu:
 
 - Kiểm tra project đang dùng MVC 4, Razor 2, WebPages 2.
-- Kiểm tra `DatabaseBootstrapper` được gọi ở `Global.asax.cs`.
-- Kiểm tra bootstrap đọc đúng connection string và chạy SQL scripts.
+- Kiểm tra bootstrap không còn chạy tự động ở `Global.asax.cs`.
+- Kiểm tra các guardrail security chính: không seed admin mặc định, GET không đổi trạng thái, CSV export chống formula injection, session revalidation và login lockout.
 
 ### 9.2. Verify parser Excel/Word và import chỉ số
 
@@ -258,7 +251,7 @@ Sau khi build project, có thể chạy lần lượt:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyMvc4Configuration.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyDatabaseBootstrapper.ps1
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifySecurityHardening.ps1
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyExcelParser.ps1
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyIndicatorFrequencyParser.ps1
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyIndicatorDepartmentAssignmentParser.ps1
@@ -280,7 +273,7 @@ Sau đó chạy build Razor view:
 
 ### 10.1. Admin
 
-1. Đăng nhập tại `/Account/AdminLogin` bằng `admin / Admin@123`.
+1. Đăng nhập tại `/Account/AdminLogin` bằng tài khoản Admin do môi trường test tạo riêng.
 2. Vào Dashboard, kiểm tra thống kê tổng quan.
 3. Vào Khoa/phòng, tạo/sửa/tạm dừng một khoa phòng thử nghiệm.
 4. Vào Nhân viên, tạo nhân viên và tạo tài khoản User từ nhân viên.

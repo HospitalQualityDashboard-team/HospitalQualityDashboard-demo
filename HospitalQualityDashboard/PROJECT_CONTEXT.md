@@ -47,7 +47,7 @@ HospitalQualityDashboard/
 ├── App_Data/
 │   └── Sql/
 │       ├── 001_CreateSchema.sql
-│       ├── 002_SeedAdmin.sql
+│       ├── 002_CreateSchema_Revised.sql
 │       ├── 003_AddIndicatorFrequencies.sql
 │       ├── 004_AddAssignmentUniqueConstraint.sql
 │       ├── 005_AddApprovalAndRejection.sql
@@ -348,7 +348,7 @@ Các loại thông báo tự động chính:
 
 Khi User bấm vào một thông báo có gắn `KyBaoCaoId`, `NotificationController.Details` mở trang chi tiết và truy vấn danh sách chỉ số còn thiếu của khoa/phòng trong kỳ đó. Với thông báo `QuaHan`, danh sách chỉ lấy các chỉ số đã qua hạn nhưng chưa có báo cáo ở trạng thái `DaGui`, `QuaHan` hoặc `DaKhoa`.
 
-Trang chi tiết thông báo cũng đánh dấu thông báo là đã đọc cho User hiện tại.
+Trang chi tiết thông báo hiển thị form POST có anti-forgery để User đánh dấu thông báo là đã đọc; GET chi tiết chỉ đọc dữ liệu.
 
 ## 9. Giao Diện
 
@@ -433,7 +433,7 @@ Hệ thống đã được nâng cấp toàn diện với các giải pháp kỹ
 - Danh sách thông báo có link “Xem chi tiết”; tiêu đề/nội dung thông báo cũng có thể click.
 - Trang `Views/Notification/Details.cshtml` hiển thị nội dung thông báo và danh sách chỉ số còn thiếu của kỳ báo cáo liên quan.
 - Với thông báo `QuaHan`, trang chi tiết chỉ hiển thị các chỉ số quá hạn chưa nộp thuộc kỳ đó.
-- Khi User mở chi tiết thông báo, hệ thống đánh dấu thông báo là đã đọc.
+- Khi User mở chi tiết thông báo, hệ thống chỉ hiển thị nội dung; thao tác đánh dấu đã đọc dùng POST riêng có anti-forgery.
 
 ## 15. Cập Nhật Ngày 28/05/2026
 
@@ -573,7 +573,7 @@ Nhờ vậy, nếu Admin thay đổi phân công sau khi tạo kỳ, danh sách 
 - `Controllers/ReportingPeriodController.cs`: thêm action `GenerateSchedule`, `PreviewSchedule`, `CreateSchedule`.
 - `Views/ReportingPeriod/GenerateSchedule.cshtml`: màn hình Admin chọn năm, loại kỳ và xem preview.
 - `Views/ReportingPeriod/Index.cshtml`: thêm nút **Tạo lịch tự động**.
-- `Controllers/DashboardController.cs`, `Controllers/ReportController.cs`, `Controllers/NotificationController.cs`: gọi tự mở kỳ khi người dùng truy cập các màn hình chính.
+- `Controllers/ReportingPeriodController.cs` và `Controllers/NotificationController.cs`: có endpoint POST có anti-forgery để Admin mở kỳ đến hạn hoặc chạy automation thủ công; các trang GET chính giữ nguyên read-only.
 - `Global.asax.cs`: gọi tự mở kỳ khi ứng dụng khởi động.
 - `Services/ReportDashboardServices.cs`: xác định báo cáo trễ theo ngày hạn nộp, phù hợp quy ước hạn cuối 23:59.
 - `tools/VerifyReportingPeriodSchedule.ps1`: script kiểm tra cấu trúc chức năng tạo lịch tự động.

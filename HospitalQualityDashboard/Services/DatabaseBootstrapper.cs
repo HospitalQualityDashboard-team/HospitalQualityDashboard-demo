@@ -15,9 +15,9 @@ namespace HospitalQualityDashboard.Services
         private const string ConnectionName = "HospitalQualityConnection";
         private const int CommandTimeoutSeconds = 120;
 
-        public static void BootstrapIfDebug()
+        public static void BootstrapIfExplicitlyEnabled()
         {
-            if (!IsDebugMode())
+            if (!IsBootstrapEnabled())
             {
                 return;
             }
@@ -45,9 +45,13 @@ namespace HospitalQualityDashboard.Services
             RunSchemaScripts(databaseConnection.ConnectionString, scriptDirectory);
         }
 
-        private static bool IsDebugMode()
+        private static bool IsBootstrapEnabled()
         {
-            return HttpContext.Current != null && HttpContext.Current.IsDebuggingEnabled;
+            var enabled = string.Equals(
+                ConfigurationManager.AppSettings["HospitalQualityBootstrapEnabled"],
+                "true",
+                StringComparison.OrdinalIgnoreCase);
+            return enabled && HttpContext.Current != null && HttpContext.Current.Request != null && HttpContext.Current.Request.IsLocal;
         }
 
         private static void EnsureDatabaseExists(SqlConnectionStringBuilder databaseConnection, string databaseName)

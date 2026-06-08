@@ -1,0 +1,89 @@
+@* Mục đích: partial view bảng phân công dạng phẳng. *@
+@model HospitalQualityDashboard.Models.ViewModels.AssignmentViewModel
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th class="ps-4 py-3" style="width: 40px;">
+                    <input class="form-check-input cursor-pointer" type="checkbox" id="bulk-select-all" />
+                </th>
+                <th class="py-3">Khoa/phòng phụ trách</th>
+                <th class="py-3">Mã chỉ số</th>
+                <th class="py-3">Tên chỉ số</th>
+                <th class="py-3">Tần suất</th>
+                <th class="py-3">Công thức</th>
+                <th class="py-3 text-center">Trạng thái</th>
+                <th class="pe-4 py-3 text-end">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Items == null || Model.Items.Count == 0)
+        {
+            <tr>
+                <td colspan="8" class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                    Không tìm thấy phân công nào phù hợp.
+                </td>
+            </tr>
+        }
+        else
+        {
+            foreach (var item in Model.Items)
+            {
+                <tr class="assignment-row" data-id="@item.PhanCongChiSoId">
+                    <td class="ps-4">
+                        <input class="form-check-input cursor-pointer bulk-checkbox" type="checkbox" value="@item.PhanCongChiSoId" />
+                    </td>
+                    <td class="fw-semibold text-dark">@item.TenKhoaPhong</td>
+                    <td class="font-monospace"><span class="badge bg-light text-secondary border">@item.MaChiSo</span></td>
+                    <td class="text-secondary">@item.TenChiSo</td>
+                    <td><span class="badge bg-info-subtle text-info px-2 py-1 rounded-pill small">@item.TanSuatBaoCaoText</span></td>
+                    <td><span class="text-muted small">@item.LoaiCongThucText</span></td>
+                    <td class="text-center">
+                        @if (item.DangHoatDong)
+                        {
+                            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle me-1"></i>Đang hoạt động</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill"><i class="bi bi-pause-circle me-1"></i>Đã tạm dừng</span>
+                        }
+                    </td>
+                    <td class="pe-4 text-end">
+                        <div class="d-flex gap-2 justify-content-end">
+                            @if (item.DangHoatDong)
+                            {
+                                using (Html.BeginForm("Deactivate", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-warning rounded-pill" type="submit" title="Tạm dừng phân công">
+                                        <i class="bi bi-pause-fill"></i> Tạm dừng
+                                    </button>
+                                }
+                            }
+                            else
+                            {
+                                using (Html.BeginForm("Activate", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-success rounded-pill" type="submit" title="Kích hoạt lại phân công">
+                                        <i class="bi bi-play-fill"></i> Kích hoạt
+                                    </button>
+                                }
+                            }
+                            @using (Html.BeginForm("Delete", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-sm btn-outline-danger rounded-pill" type="submit" onclick="return confirm('Bạn có chắc chắn muốn xóa phân công này không?')" title="Xóa phân công">
+                                    <i class="bi bi-trash-fill"></i> Xóa
+                                </button>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>

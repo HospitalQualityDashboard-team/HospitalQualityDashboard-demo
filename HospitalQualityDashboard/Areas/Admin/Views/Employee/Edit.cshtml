@@ -1,0 +1,42 @@
+﻿@* Mục đích: form thêm mới hoặc cập nhật thông tin nhân viên. *@
+@model HospitalQualityDashboard.Models.ViewModels.NhanVienViewModel
+@{
+    @* Đổi tiêu đề theo trạng thái thêm mới hay sửa. *@
+    ViewBag.Title = Model.NhanVienId == 0 ? "Thêm nhân viên" : "Sửa nhân viên";
+}
+<h2>@ViewBag.Title</h2>
+@using (Html.BeginForm())
+{
+    @* Form này dùng chung cho cả thêm mới và sửa nhân viên. *@
+    @Html.AntiForgeryToken()
+
+    @* Hidden id giúp controller biết đây là thêm mới hay cập nhật. *@
+    @Html.HiddenFor(m => m.NhanVienId)
+
+    @* Hiển thị lỗi validate nếu người dùng nhập thiếu/sai dữ liệu. *@
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="row">
+        @* Thông tin định danh bắt buộc của nhân viên. *@
+        <div class="col-md-4 mb-3">@Html.LabelFor(m => m.MaNhanVien, new { @class = "form-label" }) @Html.TextBoxFor(m => m.MaNhanVien, new { @class = "form-control" })</div>
+        <div class="col-md-8 mb-3">@Html.LabelFor(m => m.HoTen, new { @class = "form-label" }) @Html.TextBoxFor(m => m.HoTen, new { @class = "form-control" })</div>
+    </div>
+    <div class="row">
+        @* Thông tin phòng ban và chức danh. *@
+        <div class="col-md-4 mb-3">@Html.LabelFor(m => m.KhoaPhongId, "Khoa/phòng", new { @class = "form-label" }) @Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "-- Chọn --", new { @class = "form-select" })</div>
+        <div class="col-md-4 mb-3">@Html.LabelFor(m => m.ChucVu, new { @class = "form-label" }) @Html.TextBoxFor(m => m.ChucVu, new { @class = "form-control" })</div>
+        <div class="col-md-4 mb-3">@Html.LabelFor(m => m.GioiTinh, new { @class = "form-label" }) @Html.TextBoxFor(m => m.GioiTinh, new { @class = "form-control" })</div>
+    </div>
+    <div class="row">
+        @* Thông tin liên hệ của nhân viên. *@
+        <div class="col-md-6 mb-3">@Html.LabelFor(m => m.Email, new { @class = "form-label" }) @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })</div>
+        <div class="col-md-6 mb-3">@Html.LabelFor(m => m.SoDienThoai, new { @class = "form-label" }) @Html.TextBoxFor(m => m.SoDienThoai, new { @class = "form-control" })</div>
+    </div>
+    @* Trạng thái hoạt động của nhân viên. *@
+    <div class="form-check mb-3">@Html.CheckBoxFor(m => m.DangHoatDong, new { @class = "form-check-input" }) @Html.LabelFor(m => m.DangHoatDong, "Đang hoạt động", new { @class = "form-check-label" })</div>
+
+    @* Lưu form hoặc quay lại danh sách. *@
+    <button class="btn btn-primary" type="submit">Lưu</button>
+    @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn btn-outline-secondary" })
+}
+
+

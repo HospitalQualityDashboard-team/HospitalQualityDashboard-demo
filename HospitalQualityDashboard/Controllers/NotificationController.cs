@@ -18,30 +18,15 @@ namespace HospitalQualityDashboard.Controllers
 
         public ActionResult Index()
         {
-            _periodSchedule.OpenDuePeriods(DateTime.Now);
-
-            if (IsAdmin)
-            {
-                _automation.Run(DateTime.Now);
-            }
-
             return View(_service.GetForUser(CurrentTaiKhoanId.Value, IsAdmin));
         }
 
         public ActionResult Details(int id)
         {
-            _periodSchedule.OpenDuePeriods(DateTime.Now);
-
             var notification = _service.GetDetailForUser(id, CurrentTaiKhoanId.Value, IsAdmin);
             if (notification == null)
             {
                 return HttpNotFound();
-            }
-
-            if (!IsAdmin)
-            {
-                _service.MarkAsRead(id, CurrentTaiKhoanId.Value);
-                notification.DaDoc = true;
             }
 
             var missingReports = new List<MissingReportAlertViewModel>();
@@ -97,7 +82,19 @@ namespace HospitalQualityDashboard.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult RunAutomation()
+        public ActionResult MarkDetailAsRead(int id)
+        {
+            if (!IsAdmin)
+            {
+                _service.MarkAsRead(id, CurrentTaiKhoanId.Value);
+            }
+
+            return RedirectToAction("Details", new { id = id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult OpenDuePeriodsAndRunAutomation()
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
@@ -106,6 +103,13 @@ namespace HospitalQualityDashboard.Controllers
             _automation.Run(DateTime.Now);
             TempData["Message"] = "Đã chạy kiểm tra thông báo tự động.";
             return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult RunAutomation()
+        {
+            return OpenDuePeriodsAndRunAutomation();
         }
     }
 }

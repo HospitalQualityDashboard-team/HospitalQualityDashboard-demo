@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using HospitalQualityDashboard.Models.DTOs;
 using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Models.ViewModels;
 
@@ -33,6 +34,19 @@ WHERE tb.ThongBaoId = @ThongBaoId
                 Param("@ThongBaoId", notificationId),
                 Param("@TaiKhoanId", accountId),
                 Param("@IsAdmin", admin));
+        }
+
+        public void SendManual(NotificationSendDto dto, int userId)
+        {
+            SendManual(new NotificationViewModel
+            {
+                TieuDe = dto.TieuDe,
+                NoiDung = dto.NoiDung,
+                LoaiThongBao = dto.LoaiThongBao,
+                KyBaoCaoId = dto.KyBaoCaoId,
+                BaoCaoId = dto.BaoCaoId,
+                SelectedKhoaPhongIds = dto.SelectedKhoaPhongIds
+            }, userId);
         }
 
         public void SendManual(NotificationViewModel model, int userId)
@@ -373,6 +387,11 @@ WHERE tk.LoaiTaiKhoan=@AdminType
             });
         }
 
+        public byte[] ExportEmployees(EmployeeExportQueryDto dto)
+        {
+            return ExportEmployees(dto.DepartmentId, dto.IsAdmin, dto.CurrentDepartmentId);
+        }
+
         public byte[] ExportEmployees(int? departmentId, bool admin, int? currentDepartmentId)
         {
             var effectiveDepartmentId = admin ? departmentId : currentDepartmentId;
@@ -398,6 +417,11 @@ WHERE tk.LoaiTaiKhoan=@AdminType
             });
         }
 
+        public byte[] ExportReports(ReportExportQueryDto dto)
+        {
+            return ExportReports(dto.PeriodId, dto.DepartmentId, dto.IndicatorId, dto.IsAdmin, dto.CurrentDepartmentId);
+        }
+
         public byte[] ExportReports(int? periodId, int? departmentId, int? indicatorId, bool admin, int? currentDepartmentId)
         {
             var rows = _reports.GetAll(periodId, departmentId, indicatorId, admin, currentDepartmentId);
@@ -411,6 +435,11 @@ WHERE tk.LoaiTaiKhoan=@AdminType
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("TrangThai", x => x.TrangThai),
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("DatMucTieu", x => x.DatMucTieu)
             });
+        }
+
+        public byte[] ExportAssignments(AssignmentExportQueryDto dto)
+        {
+            return ExportAssignments(dto.DepartmentId, dto.IndicatorId, dto.Status, dto.AssignmentStatus, dto.Search, dto.Columns);
         }
 
         public byte[] ExportAssignments(

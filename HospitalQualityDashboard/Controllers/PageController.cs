@@ -55,7 +55,34 @@ namespace HospitalQualityDashboard.Controllers
                 return;
             }
 
+            var sessionGate = RevalidateCurrentSession();
+            if (sessionGate != null)
+            {
+                filterContext.Result = sessionGate;
+                return;
+            }
+
             base.OnActionExecuting(filterContext);
+        }
+
+        protected ActionResult RevalidateCurrentSession()
+        {
+            var accountId = CurrentTaiKhoanId;
+            if (!accountId.HasValue)
+            {
+                ClearLoginSession();
+                return RedirectToAction("UserLogin", "Account");
+            }
+
+            var user = new AuthService().GetAuthenticatedUser(accountId.Value);
+            if (user == null || user.IsLocked)
+            {
+                ClearLoginSession();
+                return RedirectToAction("UserLogin", "Account");
+            }
+
+            SetLoginSession(user);
+            return null;
         }
 
         protected ActionResult RequireAdmin()

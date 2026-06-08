@@ -36,22 +36,23 @@
             <nav class="app-sidebar-nav" aria-label="Điều hướng chính">
                 @if (isAuthenticated)
                 {
-                    @Html.ActionLink("Tổng quan", "Index", "Dashboard", new { area = "" }, new { @class = navClass("Dashboard", "Index") })
                     if (isAdmin)
                     {
-                        @Html.ActionLink("Khoa/phòng", "Index", "Department", new { area = "" }, new { @class = navClass("Department", "") })
-                        @Html.ActionLink("Nhân viên", "Index", "Employee", new { area = "" }, new { @class = navClass("Employee", "") })
-                        @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "" }, new { @class = navClass("Indicator", "") })
-                        @Html.ActionLink("Phân công", "Index", "Assignment", new { area = "" }, new { @class = navClass("Assignment", "") })
-                        @Html.ActionLink("Kỳ báo cáo", "Index", "ReportingPeriod", new { area = "" }, new { @class = navClass("ReportingPeriod", "") })
-                        @Html.ActionLink("Báo cáo", "Index", "Report", new { area = "" }, new { @class = navClass("Report", "") })
-                        @Html.ActionLink("Thông báo", "Index", "Notification", new { area = "" }, new { @class = navClass("Notification", "") })
+                        @Html.ActionLink("Tổng quan", "Index", "Dashboard", new { area = "Admin" }, new { @class = navClass("Dashboard", "Index") })
+                        @Html.ActionLink("Khoa/phòng", "Index", "Department", new { area = "Admin" }, new { @class = navClass("Department", "") })
+                        @Html.ActionLink("Nhân viên", "Index", "Employee", new { area = "Admin" }, new { @class = navClass("Employee", "") })
+                        @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "Admin" }, new { @class = navClass("Indicator", "") })
+                        @Html.ActionLink("Phân công", "Index", "Assignment", new { area = "Admin" }, new { @class = navClass("Assignment", "") })
+                        @Html.ActionLink("Kỳ báo cáo", "Index", "ReportingPeriod", new { area = "Admin" }, new { @class = navClass("ReportingPeriod", "") })
+                        @Html.ActionLink("Báo cáo", "Index", "Report", new { area = "Admin" }, new { @class = navClass("Report", "") })
+                        @Html.ActionLink("Thông báo", "Index", "Notification", new { area = "Admin" }, new { @class = navClass("Notification", "") })
                     }
                     else if (isUser)
                     {
-                        @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "" }, new { @class = navClass("Indicator", "") })
-                        @Html.ActionLink("Báo cáo của tôi", "Index", "Report", new { area = "" }, new { @class = navClass("Report", "") })
-                        @Html.ActionLink("Thông báo", "Index", "Notification", new { area = "" }, new { @class = navClass("Notification", "") })
+                        @Html.ActionLink("Tổng quan", "Index", "Dashboard", new { area = "User" }, new { @class = navClass("Dashboard", "Index") })
+                        @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "User" }, new { @class = navClass("Indicator", "") })
+                        @Html.ActionLink("Báo cáo của tôi", "Index", "Report", new { area = "User" }, new { @class = navClass("Report", "") })
+                        @Html.ActionLink("Thông báo", "Index", "Notification", new { area = "User" }, new { @class = navClass("Notification", "") })
                     }
                 }
             </nav>

@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
+using HospitalQualityDashboard.Models.DTOs;
 using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Models.ViewModels;
 
@@ -101,6 +102,40 @@ FROM dbo.ChiSoChatLuong WHERE ChiSoChatLuongId = @Id", MapIndicator, Param("@Id"
             }
 
             return model;
+        }
+
+        public void Save(IndicatorSaveDto dto)
+        {
+            Save(new ChiSoViewModel
+            {
+                ChiSoChatLuongId = dto.ChiSoChatLuongId,
+                MaChiSo = dto.MaChiSo,
+                SoThuTu = dto.SoThuTu,
+                TenChiSo = dto.TenChiSo,
+                DinhNghia = dto.DinhNghia,
+                LinhVucApDung = dto.LinhVucApDung,
+                KhiaCanhChatLuong = dto.KhiaCanhChatLuong,
+                ThanhToChatLuong = dto.ThanhToChatLuong,
+                LyDoLuaChon = dto.LyDoLuaChon,
+                PhuongPhapTinh = dto.PhuongPhapTinh,
+                TuSoMoTa = dto.TuSoMoTa,
+                MauSoMoTa = dto.MauSoMoTa,
+                NguonSoLieu = dto.NguonSoLieu,
+                ThuThapTongHop = dto.ThuThapTongHop,
+                KhoaPhongThuThapId = dto.KhoaPhongThuThapId,
+                KhoaPhongTongHopId = dto.KhoaPhongTongHopId,
+                GiaTriSoLieu = dto.GiaTriSoLieu,
+                TanSuatBaoCao = dto.TanSuatBaoCao,
+                SelectedTanSuatBaoCaoValues = dto.SelectedTanSuatBaoCaoValues,
+                TanSuatBaoCaos = dto.TanSuatBaoCaos,
+                LoaiCongThuc = dto.LoaiCongThuc,
+                DonViTinh = dto.DonViTinh,
+                DangHoatDong = dto.DangHoatDong,
+                NamMucTieu = dto.NamMucTieu,
+                ToanTuSoSanh = dto.ToanTuSoSanh,
+                GiaTriMucTieu = dto.GiaTriMucTieu,
+                MoTaMucTieu = dto.MoTaMucTieu
+            });
         }
 
         public void Save(ChiSoViewModel model)
@@ -2044,6 +2079,11 @@ WHERE KhoaPhongId = @KhoaPhongId AND ChiSoChatLuongId = @ChiSoId AND DangHoatDon
             return result;
         }
 
+        public void Assign(AssignmentCommandDto dto)
+        {
+            Assign(dto.DepartmentIds, dto.IndicatorIds, dto.CurrentUserId);
+        }
+
         public void Assign(IEnumerable<int> departmentIds, IEnumerable<int> indicatorIds, int currentUserId)
         {
             var departments = (departmentIds ?? new int[0]).Distinct().ToList();
@@ -2210,6 +2250,20 @@ WHERE ky.KyBaoCaoId=@KyBaoCaoId AND ky.TrangThai=@Mo",
         {
             return QuerySingle(@"SELECT KyBaoCaoId, TenKyBaoCao, LoaiKyBaoCao, TuNgay, DenNgay, HanNop, TrangThai, 0 AS TongBaoCao, 0 AS DaGui FROM dbo.KyBaoCao WHERE KyBaoCaoId=@Id",
                 MapPeriod, Param("@Id", id));
+        }
+
+        public void Save(ReportingPeriodSaveDto dto)
+        {
+            Save(new KyBaoCaoViewModel
+            {
+                KyBaoCaoId = dto.KyBaoCaoId,
+                TenKyBaoCao = dto.TenKyBaoCao,
+                LoaiKyBaoCao = dto.LoaiKyBaoCao,
+                TuNgay = dto.TuNgay,
+                DenNgay = dto.DenNgay,
+                HanNop = dto.HanNop,
+                TrangThai = dto.TrangThai
+            });
         }
 
         public void Save(KyBaoCaoViewModel model)
@@ -2389,6 +2443,17 @@ SELECT
                 .OrderBy(x => x.TuNgay)
                 .ThenBy(x => GetFrequencyOrder(x.LoaiKyBaoCao))
                 .ToList();
+        }
+
+        public ReportingPeriodScheduleResultViewModel GenerateSchedule(ReportingPeriodScheduleDto dto, DateTime now)
+        {
+            return GenerateSchedule(new ReportingPeriodScheduleRequestViewModel
+            {
+                Year = dto.Year,
+                SelectedFrequencyValues = dto.SelectedFrequencyValues,
+                DueDayOffset = dto.DueDayOffset,
+                DefaultStatus = dto.DefaultStatus
+            }, now);
         }
 
         public ReportingPeriodScheduleResultViewModel GenerateSchedule(ReportingPeriodScheduleRequestViewModel request, DateTime now)

@@ -62,6 +62,7 @@ namespace HospitalQualityDashboard.Controllers
             var user = _authService.Authenticate(model.TenDangNhap, model.MatKhau);
             if (user == null)
             {
+                _authService.RecordFailedLogin(model.TenDangNhap);
                 ModelState.AddModelError("", "Ten dang nhap hoac mat khau khong dung.");
                 return View(viewName, model);
             }
@@ -80,9 +81,15 @@ namespace HospitalQualityDashboard.Controllers
 
             SessionUserAccessor.SetLoginSession(Session, user);
 
+            _authService.ResetFailedLogin(user.TaiKhoanId);
             _authService.UpdateLastLogin(user.TaiKhoanId);
 
-            return RedirectToAction("Index", "Dashboard");
+            if (user.LoaiTaiKhoan == LoaiTaiKhoan.Admin)
+            {
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+            }
+
+            return RedirectToAction("Index", "Dashboard", new { area = "User" });
         }
 
         [HttpPost]

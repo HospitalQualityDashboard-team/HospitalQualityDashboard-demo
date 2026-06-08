@@ -14,7 +14,6 @@ namespace HospitalQualityDashboard
     {
         protected void Application_Start()
         {
-            DatabaseBootstrapper.BootstrapIfDebug();
             new ReportingPeriodScheduleService().OpenDuePeriods(DateTime.Now);
 
             AreaRegistration.RegisterAllAreas();

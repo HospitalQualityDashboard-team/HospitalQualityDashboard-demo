@@ -553,7 +553,7 @@ Quy tắc:
 - Khi User bấm vào một thông báo có gắn `KyBaoCaoId`, hệ thống mở trang chi tiết thông báo.
 - Với thông báo `QuaHan`, trang chi tiết hiển thị danh sách chỉ số thuộc kỳ đó mà khoa/phòng chưa nộp và đã quá hạn.
 - Với thông báo nhắc hạn hoặc kỳ mở, trang chi tiết hiển thị danh sách chỉ số còn thiếu của kỳ tương ứng để User biết cần nhập báo cáo nào.
-- Khi User mở trang chi tiết thông báo, thông báo được đánh dấu là đã đọc.
+- Khi User mở trang chi tiết thông báo, hệ thống chỉ đọc dữ liệu; User đánh dấu đã đọc bằng thao tác POST riêng có anti-forgery.
 
 ## 16. Import Dữ Liệu
 
@@ -804,7 +804,7 @@ Khi User click vào một thông báo:
 - Hệ thống mở `Notification/Details/{id}`.
 - Nếu thông báo có `KyBaoCaoId`, trang chi tiết truy vấn các chỉ số còn thiếu của khoa/phòng trong kỳ đó.
 - Nếu là thông báo `QuaHan`, danh sách chỉ hiển thị các chỉ số đã quá hạn chưa nộp.
-- Thông báo được tự động đánh dấu đã đọc khi User mở chi tiết.
+- Thông báo được đánh dấu đã đọc bằng nút/form POST riêng khi User xem chi tiết.
 
 ## 25. Cập Nhật Import Công Thức Và Đơn Vị Tính Chỉ Số (Ngày 28/05/2026)
 

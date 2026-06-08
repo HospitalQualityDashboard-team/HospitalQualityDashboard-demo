@@ -16,10 +16,14 @@ namespace HospitalQualityDashboard.Services
         public int? KhoaPhongId { get; set; }
         public string TenKhoaPhong { get; set; }
         public bool IsLocked { get; set; }
+        public int FailedLoginCount { get; set; }
+        public DateTime? LockoutUntil { get; set; }
     }
 
     public class AuthService
     {
+        private const int MaxFailedLoginAttempts = 5;
+        private const int LockoutMinutes = 15;
         private readonly string _connectionString;
 
         public AuthService()
@@ -39,6 +43,8 @@ namespace HospitalQualityDashboard.Services
 
         public AuthenticatedUser Authenticate(string username, string password)
         {
+            EnsureLoginThrottleColumns();
+
             const string sql = @"
 SELECT TOP 1
     tk.TaiKhoanId,
@@ -48,6 +54,8 @@ SELECT TOP 1
     tk.NhanVienId,
     tk.KhoaPhongId,
     tk.DangHoatDong AS TaiKhoanDangHoatDong,
+    tk.FailedLoginCount,
+    tk.LockoutUntil,
     nv.DangHoatDong AS NhanVienDangHoatDong,
     kp.TenKhoaPhong
 FROM dbo.TaiKhoan tk
@@ -68,22 +76,59 @@ WHERE tk.TenDangNhap = @TenDangNhap";
                         return null;
                     }
 
+                    var lockoutUntil = ReadNullableDateTime(reader, "LockoutUntil");
+                    if (lockoutUntil.HasValue && lockoutUntil.Value > DateTime.Now)
+                    {
+                        return MapAuthenticatedUser(reader, true);
+                    }
+
                     var storedHash = reader.GetString(reader.GetOrdinal("MatKhauHash"));
                     if (!PasswordHasher.Verify(password, storedHash))
                     {
                         return null;
                     }
 
-                    return new AuthenticatedUser
+                    return MapAuthenticatedUser(reader, false);
+                }
+            }
+        }
+
+        public AuthenticatedUser GetAuthenticatedUser(int taiKhoanId)
+        {
+            EnsureLoginThrottleColumns();
+
+            const string sql = @"
+SELECT TOP 1
+    tk.TaiKhoanId,
+    tk.TenDangNhap,
+    tk.LoaiTaiKhoan,
+    tk.NhanVienId,
+    tk.KhoaPhongId,
+    tk.DangHoatDong AS TaiKhoanDangHoatDong,
+    tk.FailedLoginCount,
+    tk.LockoutUntil,
+    nv.DangHoatDong AS NhanVienDangHoatDong,
+    kp.TenKhoaPhong
+FROM dbo.TaiKhoan tk
+LEFT JOIN dbo.NhanVien nv ON nv.NhanVienId = tk.NhanVienId
+LEFT JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = tk.KhoaPhongId
+WHERE tk.TaiKhoanId = @TaiKhoanId";
+
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@TaiKhoanId", taiKhoanId);
+                connection.Open();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    if (!reader.Read())
                     {
-                        TaiKhoanId = reader.GetInt32(reader.GetOrdinal("TaiKhoanId")),
-                        TenDangNhap = reader.GetString(reader.GetOrdinal("TenDangNhap")),
-                        LoaiTaiKhoan = (LoaiTaiKhoan)reader.GetByte(reader.GetOrdinal("LoaiTaiKhoan")),
-                        NhanVienId = ReadNullableInt(reader, "NhanVienId"),
-                        KhoaPhongId = ReadNullableInt(reader, "KhoaPhongId"),
-                        TenKhoaPhong = ReadNullableString(reader, "TenKhoaPhong"),
-                        IsLocked = !reader.GetBoolean(reader.GetOrdinal("TaiKhoanDangHoatDong")) || IsEmployeeLocked(reader)
-                    };
+                        return null;
+                    }
+
+                    var lockoutUntil = ReadNullableDateTime(reader, "LockoutUntil");
+                    return MapAuthenticatedUser(reader, lockoutUntil.HasValue && lockoutUntil.Value > DateTime.Now);
                 }
             }
         }
@@ -92,6 +137,30 @@ WHERE tk.TenDangNhap = @TenDangNhap";
         {
             ExecuteNonQuery(
                 "UPDATE dbo.TaiKhoan SET LanDangNhapCuoi = GETDATE(), NgayCapNhat = GETDATE() WHERE TaiKhoanId = @TaiKhoanId",
+                new SqlParameter("@TaiKhoanId", taiKhoanId));
+        }
+
+        public void RecordFailedLogin(string username)
+        {
+            EnsureLoginThrottleColumns();
+
+            ExecuteNonQuery(@"
+UPDATE dbo.TaiKhoan
+SET FailedLoginCount = FailedLoginCount + 1,
+    LockoutUntil = CASE WHEN FailedLoginCount + 1 >= @MaxAttempts THEN DATEADD(minute, @LockoutMinutes, GETDATE()) ELSE LockoutUntil END,
+    NgayCapNhat = GETDATE()
+WHERE TenDangNhap = @TenDangNhap",
+                new SqlParameter("@MaxAttempts", MaxFailedLoginAttempts),
+                new SqlParameter("@LockoutMinutes", LockoutMinutes),
+                new SqlParameter("@TenDangNhap", username ?? string.Empty));
+        }
+
+        public void ResetFailedLogin(int taiKhoanId)
+        {
+            EnsureLoginThrottleColumns();
+
+            ExecuteNonQuery(
+                "UPDATE dbo.TaiKhoan SET FailedLoginCount = 0, LockoutUntil = NULL, NgayCapNhat = GETDATE() WHERE TaiKhoanId = @TaiKhoanId",
                 new SqlParameter("@TaiKhoanId", taiKhoanId));
         }
 
@@ -208,6 +277,19 @@ WHERE tk.TaiKhoanId = @TaiKhoanId";
             return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
         }
 
+        private void EnsureLoginThrottleColumns()
+        {
+            ExecuteNonQuery(@"
+IF COL_LENGTH('dbo.TaiKhoan', 'FailedLoginCount') IS NULL
+BEGIN
+    ALTER TABLE dbo.TaiKhoan ADD FailedLoginCount INT NOT NULL CONSTRAINT DF_TaiKhoan_FailedLoginCount_Runtime DEFAULT (0);
+END;
+IF COL_LENGTH('dbo.TaiKhoan', 'LockoutUntil') IS NULL
+BEGIN
+    ALTER TABLE dbo.TaiKhoan ADD LockoutUntil DATETIME NULL;
+END;");
+        }
+
         private static DateTime? ReadNullableDateTime(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
@@ -224,6 +306,22 @@ WHERE tk.TaiKhoanId = @TaiKhoanId";
         {
             var ordinal = reader.GetOrdinal("NhanVienDangHoatDong");
             return !reader.IsDBNull(ordinal) && !reader.GetBoolean(ordinal);
+        }
+
+        private static AuthenticatedUser MapAuthenticatedUser(SqlDataReader reader, bool isTemporarilyLocked)
+        {
+            return new AuthenticatedUser
+            {
+                TaiKhoanId = reader.GetInt32(reader.GetOrdinal("TaiKhoanId")),
+                TenDangNhap = reader.GetString(reader.GetOrdinal("TenDangNhap")),
+                LoaiTaiKhoan = (LoaiTaiKhoan)reader.GetByte(reader.GetOrdinal("LoaiTaiKhoan")),
+                NhanVienId = ReadNullableInt(reader, "NhanVienId"),
+                KhoaPhongId = ReadNullableInt(reader, "KhoaPhongId"),
+                TenKhoaPhong = ReadNullableString(reader, "TenKhoaPhong"),
+                FailedLoginCount = reader.IsDBNull(reader.GetOrdinal("FailedLoginCount")) ? 0 : reader.GetInt32(reader.GetOrdinal("FailedLoginCount")),
+                LockoutUntil = ReadNullableDateTime(reader, "LockoutUntil"),
+                IsLocked = isTemporarilyLocked || !reader.GetBoolean(reader.GetOrdinal("TaiKhoanDangHoatDong")) || IsEmployeeLocked(reader)
+            };
         }
     }
 }

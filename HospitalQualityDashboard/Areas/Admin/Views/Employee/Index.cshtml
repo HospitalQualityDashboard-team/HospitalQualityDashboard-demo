@@ -1,0 +1,134 @@
+@* Mục đích: danh sách nhân viên, lọc theo khoa/phòng và import dữ liệu. *@
+@model HospitalQualityDashboard.Models.ViewModels.NhanVienIndexViewModel
+@using System.Linq
+@{
+    ViewBag.Title = "Nhân viên";
+    @* Chuyển danh sách về List để đếm số dòng và lặp bảng an toàn. *@
+    var items = (Model.Items ?? new System.Collections.Generic.List<HospitalQualityDashboard.Models.ViewModels.NhanVienViewModel>()).ToList();
+}
+
+<section class="management-page">
+    @* Tiêu đề trang và các nút thao tác chính. *@
+    <div class="page-header">
+        <div>
+            <span class="dashboard-role">Nhân sự vận hành</span>
+            <h1>Nhân viên</h1>
+            <p>Quản lý hồ sơ nhân viên, khoa/phòng phụ trách và liên kết tài khoản sử dụng hệ thống.</p>
+        </div>
+        <div class="management-toolbar">
+            @Html.ActionLink("Thêm nhân viên", "Create", null, new { @class = "btn btn-primary" })
+            @Html.ActionLink("Xuất CSV", "Employees", "Export", new { khoaPhongId = Model.KhoaPhongId }, new { @class = "btn btn-outline-secondary" })
+        </div>
+    </div>
+
+    @* Bộ lọc danh sách theo khoa/phòng. *@
+    <section class="filter-panel">
+        @using (Html.BeginForm("Index", "Employee", FormMethod.Get, new { @class = "filter-form management-filter-form" }))
+        {
+            <div class="filter-field">
+                <label for="KhoaPhongId">Khoa/phòng</label>
+                @Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "Tất cả khoa/phòng", new { @class = "form-select" })
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-outline-primary" type="submit">Lọc</button>
+            </div>
+        }
+    </section>
+
+    @* Form import file nhân viên vào khoa/phòng đang chọn. *@
+    <section class="import-panel">
+        <div>
+            <h2 class="import-panel-title">Import nhân viên</h2>
+            <div class="import-panel-note">Cập nhật hồ sơ nhân viên theo khoa/phòng đang chọn.</div>
+        </div>
+        @using (Html.BeginForm("Import", "Employee", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.KhoaPhongId)
+            <div class="input-group">
+                <input type="file" name="File" class="form-control" />
+                <button class="btn btn-outline-primary" type="submit">Import nhân viên</button>
+            </div>
+        }
+    </section>
+
+    @* Hiển thị kết quả import nếu vừa import file. *@
+    @if (Model.ImportResult != null)
+    {
+        <div class="alert alert-info">Thành công: @Model.ImportResult.SoDongThanhCong, lỗi: @Model.ImportResult.SoDongLoi</div>
+    }
+
+    @* Hiển thị lỗi từ các thao tác như xóa nhân viên có ràng buộc. *@
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @* Bảng danh sách nhân viên và các thao tác trên từng dòng. *@
+    <section class="data-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Danh sách nhân viên</h2>
+                <p>@items.Count nhân viên trong bộ lọc hiện tại.</p>
+            </div>
+            <span class="status-pill status-muted">@items.Count dòng</span>
+        </div>
+
+        @* Nếu có dữ liệu thì hiển thị bảng, ngược lại hiển thị empty state. *@
+        @if (items.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle data-table">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Họ tên</th>
+                            <th>Khoa/phòng</th>
+                            <th>Email</th>
+                            <th>Trạng thái</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @* Mỗi dòng là một nhân viên trong bộ lọc hiện tại. *@
+                    @foreach (var item in items)
+                    {
+                        <tr>
+                            <td>@item.MaNhanVien</td>
+                            <td><strong>@item.HoTen</strong></td>
+                            <td>@item.TenKhoaPhong</td>
+                            <td>@item.Email</td>
+                            <td><span class="status-pill @(item.DangHoatDong ? "status-active" : "status-muted")">@(item.DangHoatDong ? "Hoạt động" : "Đã khóa")</span></td>
+                            <td class="text-end table-actions">
+                                @* Các thao tác trên từng nhân viên: sửa, tạo tài khoản, khóa/mở khóa, xóa. *@
+                                @Html.ActionLink("Sửa", "Edit", new { id = item.NhanVienId }, new { @class = "btn btn-sm btn-outline-primary" })
+                                @* Chỉ hiển thị nút tạo tài khoản nếu nhân viên chưa có tài khoản. *@
+                                @if (!item.HasAccount)
+                                {
+                                    @Html.ActionLink("Tạo tài khoản", "CreateAccount", new { id = item.NhanVienId }, new { @class = "btn btn-sm btn-outline-secondary" })
+                                }
+                                @* Khóa hoặc mở khóa nhân viên theo trạng thái hiện tại. *@
+                                @using (Html.BeginForm(item.DangHoatDong ? "Lock" : "Unlock", "Employee", new { id = item.NhanVienId }, FormMethod.Post, new { @class = "d-inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-warning" type="submit">@(item.DangHoatDong ? "Khóa" : "Mở khóa")</button>
+                                }
+                                @* Xóa nhân viên sau khi người dùng xác nhận. *@
+                                @using (Html.BeginForm("Delete", "Employee", new { id = item.NhanVienId }, FormMethod.Post, new { @class = "d-inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xóa nhân viên này?')">Xóa</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">Chưa có nhân viên phù hợp với bộ lọc hiện tại.</div>
+        }
+    </section>
+</section>

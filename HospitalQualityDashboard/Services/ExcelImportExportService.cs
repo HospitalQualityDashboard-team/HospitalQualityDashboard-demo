@@ -15,12 +15,21 @@ namespace HospitalQualityDashboard.Services
 {
     public class ExcelImportExportService
     {
+        private const int MaxImportBytes = 5 * 1024 * 1024;
+        private const int MaxImportRows = 10000;
+        private const int MaxCsvLineLength = 1024 * 1024;
+        private const long MaxZipEntryBytes = 10 * 1024 * 1024;
+        private const int MaxSharedStrings = 50000;
+        private const int MaxZipExpansionRatio = 100;
+
         public IList<IDictionary<string, string>> ReadWorksheet(HttpPostedFileBase file)
         {
             if (file == null || file.ContentLength == 0)
             {
                 throw new InvalidOperationException("Vui long chon file import.");
             }
+
+            ValidateImportSize(file);
 
             var extension = Path.GetExtension(file.FileName);
             if (string.Equals(extension, ".csv", StringComparison.OrdinalIgnoreCase))
@@ -43,6 +52,8 @@ namespace HospitalQualityDashboard.Services
                 throw new InvalidOperationException("Vui long chon file import.");
             }
 
+            ValidateImportSize(file);
+
             var extension = Path.GetExtension(file.FileName);
             if (!string.Equals(extension, ".docx", StringComparison.OrdinalIgnoreCase))
             {
@@ -59,7 +70,7 @@ namespace HospitalQualityDashboard.Services
 
             foreach (var item in items)
             {
-                builder.AppendLine(string.Join(",", columns.Select(c => Escape(Convert.ToString(c.Value(item))))));
+                builder.AppendLine(string.Join(",", columns.Select(c => Escape(NeutralizeCsvFormula(Convert.ToString(c.Value(item)))))));
             }
 
             return Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(builder.ToString())).ToArray();
@@ -117,10 +128,20 @@ namespace HospitalQualityDashboard.Services
                     return rows;
                 }
 
+                if (headerLine.Length > MaxCsvLineLength)
+                {
+                    throw new InvalidOperationException("Dong CSV vuot qua gioi han cho phep.");
+                }
+
                 var headers = SplitCsv(headerLine).ToArray();
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
+                    if (line.Length > MaxCsvLineLength)
+                    {
+                        throw new InvalidOperationException("Dong CSV vuot qua gioi han cho phep.");
+                    }
+
                     if (string.IsNullOrWhiteSpace(line))
                     {
                         continue;
@@ -134,6 +155,10 @@ namespace HospitalQualityDashboard.Services
                     }
 
                     rows.Add(row);
+                    if (rows.Count > MaxImportRows)
+                    {
+                        throw new InvalidOperationException("File import vuot qua so dong toi da cho phep.");
+                    }
                 }
             }
 
@@ -152,6 +177,8 @@ namespace HospitalQualityDashboard.Services
                     throw new InvalidOperationException("Khong tim thay sheet dau tien trong file Excel.");
                 }
 
+                ValidateZipEntry(sheet);
+
                 XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
                 XDocument document;
                 using (var sheetStream = sheet.Open())
@@ -164,11 +191,17 @@ namespace HospitalQualityDashboard.Services
                         c => GetColumnName(Convert.ToString(c.Attribute("r").Value)),
                         c => ReadCellValue(c, ns, sharedStrings),
                         StringComparer.OrdinalIgnoreCase))
+                    .Take(MaxImportRows + 2)
                     .ToList();
 
                 if (rawRows.Count == 0)
                 {
                     return rows;
+                }
+
+                if (rawRows.Count > MaxImportRows + 1)
+                {
+                    throw new InvalidOperationException("File import vuot qua so dong toi da cho phep.");
                 }
 
                 var headerColumns = new List<KeyValuePair<string, string>>();
@@ -214,6 +247,8 @@ namespace HospitalQualityDashboard.Services
                     throw new InvalidOperationException("Khong tim thay noi dung document.xml trong file Word.");
                 }
 
+                ValidateZipEntry(documentEntry);
+
                 XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
                 XDocument document;
                 using (var documentStream = documentEntry.Open())
@@ -228,6 +263,10 @@ namespace HospitalQualityDashboard.Services
                     if (row.TryGetValue("TenChiSo", out name) && !string.IsNullOrWhiteSpace(name))
                     {
                         rows.Add(row);
+                        if (rows.Count > MaxImportRows)
+                        {
+                            throw new InvalidOperationException("File import vuot qua so dong toi da cho phep.");
+                        }
                     }
                 }
             }
@@ -389,9 +428,17 @@ namespace HospitalQualityDashboard.Services
             XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
             using (var stream = entry.Open())
             {
-                return XDocument.Load(stream).Descendants(ns + "si")
+                ValidateZipEntry(entry);
+                var values = XDocument.Load(stream).Descendants(ns + "si")
                     .Select(si => string.Concat(si.Descendants(ns + "t").Select(t => t.Value)))
+                    .Take(MaxSharedStrings + 1)
                     .ToList();
+                if (values.Count > MaxSharedStrings)
+                {
+                    throw new InvalidOperationException("File Excel vuot qua so shared strings toi da cho phep.");
+                }
+
+                return values;
             }
         }
 
@@ -459,6 +506,65 @@ namespace HospitalQualityDashboard.Services
         {
             value = value ?? string.Empty;
             return "\"" + value.Replace("\"", "\"\"") + "\"";
+        }
+
+        private static string NeutralizeCsvFormula(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            var trimmed = value.TrimStart();
+            if (StartsWithFormulaPrefix(value) || StartsWithFormulaPrefix(trimmed))
+            {
+                return "'" + value;
+            }
+
+            return value;
+        }
+
+        private static bool StartsWithFormulaPrefix(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+
+            switch (value[0])
+            {
+                case '=':
+                case '+':
+                case '-':
+                case '@':
+                case '\t':
+                case '\r':
+                case '\n':
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static void ValidateImportSize(HttpPostedFileBase file)
+        {
+            if (file.ContentLength > MaxImportBytes)
+            {
+                throw new InvalidOperationException("File import vuot qua dung luong toi da cho phep.");
+            }
+        }
+
+        private static void ValidateZipEntry(ZipArchiveEntry entry)
+        {
+            if (entry.Length > MaxZipEntryBytes)
+            {
+                throw new InvalidOperationException("Noi dung file Office vuot qua gioi han cho phep.");
+            }
+
+            if (entry.CompressedLength > 0 && entry.Length / entry.CompressedLength > MaxZipExpansionRatio)
+            {
+                throw new InvalidOperationException("Ti le giai nen file Office vuot qua gioi han cho phep.");
+            }
         }
 
         private static void AddTextEntry(ZipArchive archive, string name, string content)

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using HospitalQualityDashboard.Models.DTOs;
 using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Models.ViewModels;
 
@@ -62,6 +63,11 @@ namespace HospitalQualityDashboard.Services
     {
         private readonly IndicatorService _indicators = new IndicatorService();
         private readonly IndicatorCalculationService _calculator = new IndicatorCalculationService();
+
+        public IList<ReportEntryViewModel> GetAll(ReportListQueryDto dto)
+        {
+            return GetAll(dto.PeriodId, dto.DepartmentId, dto.IndicatorId, dto.IsAdmin, dto.CurrentDepartmentId);
+        }
 
         public IList<ReportEntryViewModel> GetAll(int? periodId, int? departmentId, int? indicatorId, bool admin, int? currentDepartmentId)
         {
@@ -132,11 +138,51 @@ WHERE bc.BaoCaoId=@Id";
             return Query(sql, MapReport, Param("@Id", id)).FirstOrDefault();
         }
 
+        public int SaveDraft(ReportDraftDto dto, int userId)
+        {
+            return SaveDraft(new ReportEntryViewModel
+            {
+                BaoCaoId = dto.BaoCaoId,
+                KyBaoCaoId = dto.KyBaoCaoId,
+                KhoaPhongId = dto.KhoaPhongId,
+                ChiSoChatLuongId = dto.ChiSoChatLuongId,
+                PhanCongChiSoId = dto.PhanCongChiSoId,
+                TrangThai = dto.TrangThai,
+                TuSo = dto.TuSo,
+                MauSo = dto.MauSo,
+                GiaTriNhap = dto.GiaTriNhap,
+                KetQua = dto.KetQua,
+                DatMucTieu = dto.DatMucTieu,
+                GhiChu = dto.GhiChu,
+                YKienPhanHoi = dto.YKienPhanHoi
+            }, userId);
+        }
+
         public int SaveDraft(ReportEntryViewModel model, int userId)
         {
+            var isNewReport = model.BaoCaoId == 0;
+            ReportEntryViewModel existingReport = null;
+            if (!isNewReport)
+            {
+                existingReport = Get(model.BaoCaoId);
+                if (existingReport == null)
+                {
+                    throw new InvalidOperationException("Khong tim thay bao cao can sua.");
+                }
+
+                if (existingReport.TrangThai != TrangThaiBaoCao.Nhap)
+                {
+                    throw new InvalidOperationException("Chi duoc sua bao cao o trang thai Nhap.");
+                }
+
+                model.KyBaoCaoId = existingReport.KyBaoCaoId;
+                model.KhoaPhongId = existingReport.KhoaPhongId;
+                model.ChiSoChatLuongId = existingReport.ChiSoChatLuongId;
+                model.PhanCongChiSoId = existingReport.PhanCongChiSoId;
+            }
+
             var indicator = _indicators.Get(model.ChiSoChatLuongId);
             _calculator.Calculate(model, indicator);
-            var isNewReport = model.BaoCaoId == 0;
             var beforeSnapshot = isNewReport ? null : GetReportDetailSnapshot(model.BaoCaoId);
 
             if (isNewReport)
@@ -160,13 +206,9 @@ OUTPUT INSERTED.BaoCaoId VALUES(@KyBaoCaoId, @KhoaPhongId, @ChiSoChatLuongId, @P
             }
             else
             {
-                var canEdit = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.BaoCao WHERE BaoCaoId=@Id AND TrangThai=@Nhap",
+                Execute("UPDATE dbo.BaoCao SET NgayCapNhat=GETDATE() WHERE BaoCaoId=@Id AND TrangThai=@Nhap",
                     Param("@Id", model.BaoCaoId),
-                    Param("@Nhap", (byte)TrangThaiBaoCao.Nhap)));
-                if (canEdit == 0)
-                {
-                    throw new InvalidOperationException("Chi duoc sua bao cao o trang thai Nhap.");
-                }
+                    Param("@Nhap", (byte)TrangThaiBaoCao.Nhap));
             }
 
             Execute(@"

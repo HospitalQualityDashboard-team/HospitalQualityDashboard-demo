@@ -1,0 +1,85 @@
+@* Layout rieng cho User Area: menu chi hien thi cac man hinh nghiep vu cua khoa/phong. *@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Bang dieu khien chat luong benh vien</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    @{
+        var currentController = Convert.ToString(ViewContext.RouteData.Values["controller"]);
+        var currentAction = Convert.ToString(ViewContext.RouteData.Values["action"]);
+        Func<string, string, string> navClass = (controller, action) =>
+        {
+            var controllerMatches = string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase);
+            var actionMatches = string.IsNullOrEmpty(action) || string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase);
+            return controllerMatches && actionMatches ? "nav-link active" : "nav-link";
+        };
+    }
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar">
+            <div class="app-sidebar-brand">
+                @Html.ActionLink("HQ", "Index", "Dashboard", new { area = "User" }, new { @class = "app-brand-mark", aria_label = "Trang chu User" })
+                <div class="app-brand-copy">
+                    <span class="app-brand-title">Chat luong benh vien</span>
+                    <span class="app-brand-subtitle">User workspace</span>
+                </div>
+            </div>
+
+            <nav class="app-sidebar-nav" aria-label="Dieu huong User">
+                @Html.ActionLink("Tong quan", "Index", "Dashboard", new { area = "User" }, new { @class = navClass("Dashboard", "Index") })
+                @Html.ActionLink("Chi so", "Index", "Indicator", new { area = "User" }, new { @class = navClass("Indicator", "") })
+                @Html.ActionLink("Bao cao cua toi", "Index", "Report", new { area = "User" }, new { @class = navClass("Report", "") })
+                @Html.ActionLink("Thong bao", "Index", "Notification", new { area = "User" }, new { @class = navClass("Notification", "") })
+            </nav>
+        </aside>
+
+        <div class="app-content">
+            <header class="app-topbar app-navbar">
+                <button type="button" class="app-sidebar-toggle" data-app-sidebar-toggle aria-controls="appSidebar" aria-expanded="false" aria-label="Mo menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="app-topbar-title">@ViewBag.Title</div>
+                <div class="app-topbar-actions">
+                    <span class="app-role-chip">User</span>
+                    @Html.ActionLink("Ho so", "Profile", "Account", new { area = "" }, new { @class = navClass("Account", "Profile") })
+                    @using (Html.BeginForm("Logout", "Account", new { area = "" }, FormMethod.Post, new { @class = "d-inline" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-link app-topbar-link">Dang xuat</button>
+                    }
+                </div>
+            </header>
+
+            <main class="app-main body-content">
+                @RenderBody()
+            </main>
+
+            <footer class="app-footer">
+                <span>&copy; @DateTime.Now.Year - Bang dieu khien chat luong benh vien</span>
+            </footer>
+        </div>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+    <script>
+        (function () {
+            var toggle = document.querySelector('[data-app-sidebar-toggle]');
+            var shell = document.querySelector('.app-shell');
+            if (!toggle || !shell) return;
+
+            toggle.addEventListener('click', function () {
+                var isOpen = shell.classList.toggle('is-sidebar-open');
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        })();
+    </script>
+</body>
+</html>

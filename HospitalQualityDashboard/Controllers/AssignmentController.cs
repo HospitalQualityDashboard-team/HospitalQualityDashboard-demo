@@ -1,17 +1,11 @@
-// Mục đích: quản lý phân công chỉ số chất lượng cho các khoa/phòng.
+// Muc dich: chuyen huong Admin sang Area de quan ly phan cong chi so chat luong.
 using System.Web.Mvc;
 using HospitalQualityDashboard.Models.ViewModels;
-using HospitalQualityDashboard.Services;
 
 namespace HospitalQualityDashboard.Controllers
 {
     public class AssignmentController : PageController
     {
-        private readonly AssignmentService _service = new AssignmentService();
-        private readonly DepartmentService _departments = new DepartmentService();
-        private readonly IndicatorService _indicators = new IndicatorService();
-        private const int PageSize = 20;
-
         public ActionResult Index(
             int? khoaPhongId,
             int? chiSoId,
@@ -23,61 +17,17 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-
-            // Đặt chế độ xem mặc định là theo chỉ số.
-            if (string.IsNullOrEmpty(viewMode))
+            return RedirectToAction("Index", "Assignment", new
             {
-                viewMode = "byIndicator";
-            }
-
-            var model = _service.GetStatistics();
-            model.KhoaPhongId = khoaPhongId.GetValueOrDefault();
-            model.ChiSoChatLuongId = chiSoId.GetValueOrDefault();
-            model.FilterKhoaPhongId = khoaPhongId;
-            model.FilterChiSoId = chiSoId;
-            model.FilterTrangThai = trangThai;
-            model.FilterTrangThaiPhanCong = trangThaiPhanCong;
-            model.Search = search;
-            model.ViewMode = viewMode;
-            model.PageSize = PageSize;
-
-            model.KhoaPhongOptions = _departments.GetOptions();
-            model.ChiSoOptions = _indicators.GetOptions();
-
-            int totalItems = 0;
-
-            if (viewMode == "byDepartment")
-            {
-                totalItems = _service.GetDepartmentsCount(search, khoaPhongId, chiSoId, trangThai);
-                model.TotalItems = totalItems;
-                model.TotalPages = totalItems > 0 ? (int)System.Math.Ceiling((double)totalItems / PageSize) : 1;
-                model.CurrentPage = System.Math.Max(1, System.Math.Min(page, model.TotalPages));
-                model.DepartmentGroups = _service.GetAllDepartmentGroups(search, model.CurrentPage, PageSize, khoaPhongId, chiSoId, trangThai);
-                model.Items = new System.Collections.Generic.List<AssignmentItemViewModel>();
-                model.IndicatorGroups = new System.Collections.Generic.List<IndicatorAssignmentGroup>();
-            }
-            else if (viewMode == "byIndicator")
-            {
-                totalItems = _service.GetIndicatorsCount(trangThaiPhanCong, search, khoaPhongId, chiSoId, trangThai);
-                model.TotalItems = totalItems;
-                model.TotalPages = totalItems > 0 ? (int)System.Math.Ceiling((double)totalItems / PageSize) : 1;
-                model.CurrentPage = System.Math.Max(1, System.Math.Min(page, model.TotalPages));
-                model.IndicatorGroups = _service.GetAllIndicatorGroups(trangThaiPhanCong, search, model.CurrentPage, PageSize, khoaPhongId, chiSoId, trangThai);
-                model.Items = new System.Collections.Generic.List<AssignmentItemViewModel>();
-                model.DepartmentGroups = new System.Collections.Generic.List<DepartmentAssignmentGroup>();
-            }
-            else
-            {
-                totalItems = _service.GetCount(khoaPhongId, chiSoId, trangThai, search);
-                model.TotalItems = totalItems;
-                model.TotalPages = totalItems > 0 ? (int)System.Math.Ceiling((double)totalItems / PageSize) : 1;
-                model.CurrentPage = System.Math.Max(1, System.Math.Min(page, model.TotalPages));
-                model.Items = _service.GetAll(khoaPhongId, chiSoId, trangThai, search, model.CurrentPage, PageSize);
-                model.DepartmentGroups = new System.Collections.Generic.List<DepartmentAssignmentGroup>();
-                model.IndicatorGroups = new System.Collections.Generic.List<IndicatorAssignmentGroup>();
-            }
-
-            return View(model);
+                area = "Admin",
+                khoaPhongId,
+                chiSoId,
+                trangThai,
+                trangThaiPhanCong,
+                search,
+                viewMode,
+                page
+            });
         }
 
         [HttpPost]
@@ -86,9 +36,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            _service.Assign(model.SelectedKhoaPhongIds, model.SelectedChiSoIds, CurrentTaiKhoanId.Value);
-            TempData["Success"] = "Đã phân công chỉ số thành công!";
-            return RedirectToAction("Index", new { viewMode = model.ViewMode });
+            return RedirectToAction("Assign", "Assignment", new { area = "Admin" });
         }
 
         [HttpPost]
@@ -97,9 +45,17 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            _service.Deactivate(id);
-            TempData["Success"] = "Đã tạm dừng phân công thành công!";
-            return RedirectToAction("Index", new { viewMode = viewMode, khoaPhongId = khoaPhongId, chiSoId = chiSoId, trangThai = trangThai, search = search, page = page });
+            return RedirectToAction("Deactivate", "Assignment", new
+            {
+                area = "Admin",
+                id,
+                viewMode,
+                khoaPhongId,
+                chiSoId,
+                trangThai,
+                search,
+                page
+            });
         }
 
         [HttpPost]
@@ -108,9 +64,17 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            _service.Activate(id);
-            TempData["Success"] = "Đã kích hoạt lại phân công thành công!";
-            return RedirectToAction("Index", new { viewMode = viewMode, khoaPhongId = khoaPhongId, chiSoId = chiSoId, trangThai = trangThai, search = search, page = page });
+            return RedirectToAction("Activate", "Assignment", new
+            {
+                area = "Admin",
+                id,
+                viewMode,
+                khoaPhongId,
+                chiSoId,
+                trangThai,
+                search,
+                page
+            });
         }
 
         [HttpPost]
@@ -119,9 +83,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            var changed = _service.SyncFromIndicatorSources(CurrentTaiKhoanId.Value);
-            TempData["Success"] = "Đã đồng bộ " + changed + " phân công từ dữ liệu chỉ số.";
-            return RedirectToAction("Index", new { viewMode = viewMode });
+            return RedirectToAction("SyncFromIndicators", "Assignment", new { area = "Admin", viewMode });
         }
 
         [HttpPost]
@@ -130,26 +92,25 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            try
+            return RedirectToAction("Delete", "Assignment", new
             {
-                _service.Delete(id);
-                TempData["Success"] = "Đã xóa phân công thành công!";
-            }
-            catch (System.InvalidOperationException ex)
-            {
-                TempData["Error"] = ex.Message;
-            }
-
-            return RedirectToAction("Index", new { viewMode = viewMode, khoaPhongId = khoaPhongId, chiSoId = chiSoId, trangThai = trangThai, search = search, page = page });
+                area = "Admin",
+                id,
+                viewMode,
+                khoaPhongId,
+                chiSoId,
+                trangThai,
+                search,
+                page
+            });
         }
 
         [HttpPost]
-        public JsonResult Preview(int[] departmentIds, int[] indicatorIds)
+        public ActionResult Preview(int[] departmentIds, int[] indicatorIds)
         {
             var admin = RequireAdmin();
-            if (admin != null) return Json(new { error = "Unauthorized" });
-            var result = _service.Preview(departmentIds, indicatorIds);
-            return Json(result);
+            if (admin != null) return new HttpUnauthorizedResult();
+            return RedirectToAction("Preview", "Assignment", new { area = "Admin", departmentIds, indicatorIds });
         }
 
         [HttpPost]
@@ -158,12 +119,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            if (ids != null && ids.Length > 0)
-            {
-                _service.BulkDeactivate(ids);
-                TempData["Success"] = $"Đã tạm dừng {ids.Length} phân công chỉ số thành công!";
-            }
-            return RedirectToAction("Index", new { viewMode = viewMode });
+            return RedirectToAction("BulkDeactivate", "Assignment", new { area = "Admin", ids, viewMode });
         }
 
         [HttpPost]
@@ -172,12 +128,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            if (ids != null && ids.Length > 0)
-            {
-                _service.BulkActivate(ids);
-                TempData["Success"] = $"Đã kích hoạt {ids.Length} phân công chỉ số thành công!";
-            }
-            return RedirectToAction("Index", new { viewMode = viewMode });
+            return RedirectToAction("BulkActivate", "Assignment", new { area = "Admin", ids, viewMode });
         }
 
         [HttpPost]
@@ -186,19 +137,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             var admin = RequireAdmin();
             if (admin != null) return admin;
-            if (ids != null && ids.Length > 0)
-            {
-                try
-                {
-                    _service.BulkDelete(ids);
-                    TempData["Success"] = $"Đã xóa {ids.Length} phân công chỉ số thành công!";
-                }
-                catch (System.InvalidOperationException ex)
-                {
-                    TempData["Error"] = ex.Message;
-                }
-            }
-            return RedirectToAction("Index", new { viewMode = viewMode });
+            return RedirectToAction("BulkDelete", "Assignment", new { area = "Admin", ids, viewMode });
         }
     }
 }

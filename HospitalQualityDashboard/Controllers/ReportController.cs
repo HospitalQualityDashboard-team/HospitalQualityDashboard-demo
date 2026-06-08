@@ -102,10 +102,27 @@ namespace HospitalQualityDashboard.Controllers
                 return new HttpUnauthorizedResult();
             }
 
-            var gate = EnsureUserDepartment(model.KhoaPhongId);
-            if (gate != null) return gate;
-            var periodGate = EnsureOpenPeriodForUser(model.KyBaoCaoId);
-            if (periodGate != null) return periodGate;
+            if (model.BaoCaoId > 0)
+            {
+                var existingReport = _service.Get(model.BaoCaoId);
+                if (existingReport == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var gate = EnsureUserDepartment(existingReport.KhoaPhongId);
+                if (gate != null) return gate;
+                var existingPeriodGate = EnsureOpenPeriodForUser(existingReport.KyBaoCaoId);
+                if (existingPeriodGate != null) return existingPeriodGate;
+            }
+            else
+            {
+                var gate = EnsureUserDepartment(model.KhoaPhongId);
+                if (gate != null) return gate;
+                var periodGate = EnsureOpenPeriodForUser(model.KyBaoCaoId);
+                if (periodGate != null) return periodGate;
+            }
+
             if (!ModelState.IsValid) return View(model);
             var id = _service.SaveDraft(model, CurrentTaiKhoanId.Value);
             return RedirectToAction("Edit", new { id = id });

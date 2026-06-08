@@ -1,0 +1,18 @@
+﻿@* Mục đích: trang chi tiết định nghĩa và cách tính chỉ số chất lượng. *@
+@model HospitalQualityDashboard.Models.ViewModels.ChiSoViewModel
+@{
+    ViewBag.Title = "Chi tiết chỉ số";
+}
+<h2>@Model.MaChiSo - @Model.TenChiSo</h2>
+<dl class="row">
+    <dt class="col-sm-3">Định nghĩa</dt><dd class="col-sm-9">@Model.DinhNghia</dd>
+    <dt class="col-sm-3">Tần suất</dt><dd class="col-sm-9">@Model.TanSuatBaoCaoText</dd>
+    <dt class="col-sm-3">Phương pháp tính</dt><dd class="col-sm-9">@Model.PhuongPhapTinh</dd>
+    <dt class="col-sm-3">Tử số</dt><dd class="col-sm-9">@Model.TuSoMoTa</dd>
+    <dt class="col-sm-3">Mẫu số</dt><dd class="col-sm-9">@Model.MauSoMoTa</dd>
+    <dt class="col-sm-3">Nguồn số liệu</dt><dd class="col-sm-9">@Model.NguonSoLieu</dd>
+    <dt class="col-sm-3">Mục tiêu</dt><dd class="col-sm-9">@Model.ToanTuSoSanh @Model.GiaTriMucTieu (@Model.NamMucTieu)</dd>
+</dl>
+@Html.ActionLink("Quay lại", "Index", null, new { @class = "btn btn-outline-secondary" })
+
+
