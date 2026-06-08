@@ -112,7 +112,7 @@ Các controller kế thừa `PageController` để dùng chung cơ chế session
 Sau đợt tái cấu trúc tháng 06/2026, các root controller (`Controllers/`) chỉ đóng vai trò chuyển hướng (redirect wrapper) tới Area controller tương ứng. Logic nghiệp vụ và render view được thực hiện trong `Areas/Admin/Controllers/` và `Areas/User/Controllers/`.
 
 - `AccountController`: đăng nhập Admin/User riêng biệt, đăng xuất, đổi mật khẩu (giữ nguyên root).
-- `HomeController`: trang giới thiệu và liên hệ (giữ nguyên root).
+- `HomeController`: trang landing page root, điều hướng người dùng theo trạng thái đăng nhập.
 - `PageController`: lớp cơ sở, cung cấp session guard, `RequireAdmin()`, `EnsureUserDepartment()`.
 - Các root controller khác: tất cả đều là redirect wrapper, chuyển hướng sang Area.
 - `Areas/Admin/Controllers/`: chứa logic quản trị cho khoa/phòng, nhân viên, chỉ số, phân công, kỳ báo cáo, báo cáo, thông báo, xuất dữ liệu và dashboard..

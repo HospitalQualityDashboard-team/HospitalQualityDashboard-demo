@@ -15,10 +15,15 @@ Hệ thống quản lý bộ chỉ số chất lượng bệnh viện bằng ASP
 ```text
 HospitalQualityDashboard/
 ├── App_Data/Sql/              # Script tạo schema và migration bổ sung
-├── Controllers/               # MVC controllers
-├── Models/                    # Entity, enum, view model
+├── Areas/                     # Area phân chia theo vai trò
+│   ├── Admin/Controllers/     # Controller quản trị
+│   ├── Admin/Views/           # View quản trị
+│   ├── User/Controllers/      # Controller khoa/phòng
+│   └── User/Views/            # View khoa/phòng
+├── Controllers/               # Root controllers (redirect wrapper)
+├── Models/                    # Entity, DTO, enum, view model
 ├── Services/                  # Nghiệp vụ và ADO.NET data access
-├── Views/                     # Razor views
+├── Views/                     # Root views (Account, Home, Shared)
 ├── Tai_Lieu/                  # Tài liệu nghiệp vụ, BA, SDD và file nguồn
 ├── tools/                     # Script verify/test nhanh
 ├── Web.config                 # Connection string và cấu hình ASP.NET
@@ -80,13 +85,14 @@ https://localhost:44387/
 Một số route hữu ích:
 
 ```text
-https://localhost:44387/Account/AdminLogin
-https://localhost:44387/Account/UserLogin
-https://localhost:44387/Dashboard
-https://localhost:44387/Indicator
-https://localhost:44387/Assignment
-https://localhost:44387/Report
+https://localhost:44387/Account/AdminLogin   # Đăng nhập Admin
+https://localhost:44387/Account/UserLogin    # Đăng nhập User
+https://localhost:44387/Admin/Dashboard      # Dashboard quản trị
+https://localhost:44387/Admin/Indicator      # Quản lý chỉ số
+https://localhost:44387/User/Report          # Báo cáo của khoa/phòng
 ```
+
+Lưu ý: sau khi đợt tái cấu trúc tháng 06/2026, các route `/Dashboard`, `/Indicator`, `/Assignment`, `/Report`, `/Notification` vẫn được redirect từ root controller sang Area tương ứng để giữ tương thích ngược. Route chính thức là `/Admin/{controller}` và `/User/{controller}`.
 
 ## 6. Build Bằng Command Line
 

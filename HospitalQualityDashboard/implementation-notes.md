@@ -22,6 +22,18 @@ Hoàn tất chuyển các root controller từ chứa full business logic sang t
 - Build 0 error, 0 warning, `MvcBuildViews=true` pass.
 - Tổng cộng 4 commits: Phase 1 → Phase 2 → Phase 3 → Phase 4.
 
+### 2. Dọn dẹp file dư thừa sau Areas migration
+
+- Xoá `Views/Home/About.cshtml`, `Views/Home/Contact.cshtml`, `Views/Account/ChangePassword.cshtml`, `Filters/RequireLoginAttribute.cs`.
+- Đơn giản hóa `HomeController` (bỏ `[RequireLogin]`, xóa About/Contact).
+- Xoá thư mục output build: `bin_unit/`, `obj/`, `obj_unit/`, `.csproj.user` (khỏi working tree).
+
+### 3. Chuẩn hóa giao diện và thông báo tiếng Việt có dấu
+
+- Việt hóa layout Admin/User, thông báo controller/service, AGENTS.md.
+- Cập nhật `README.md` phản ánh cấu trúc Areas.
+- Cập nhật `PROJECT_CONTEXT.md` mô tả HomeController đúng hiện trạng.
+
 ## 2026-06-06
 
 ### 1. Chuẩn hóa chú thích code tiếng Việt
