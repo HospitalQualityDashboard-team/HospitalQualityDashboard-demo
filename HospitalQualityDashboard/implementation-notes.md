@@ -2,6 +2,26 @@
 
 Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiết kế và lưu ý vận hành của dự án `HospitalQualityDashboard`.
 
+## 2026-06-08
+
+### 1. Root controller cleanup — chuyển sang Area redirect wrappers
+
+Hoàn tất chuyển các root controller từ chứa full business logic sang thin redirect wrapper theo kiến trúc Areas.
+
+**Phạm vi 4 Phase:**
+
+- **Phase 1 (Admin-only):** `AssignmentController`, `DepartmentController`, `EmployeeController`, `ReportingPeriodController` → redirect to `area = "Admin"`.
+- **Phase 2 (Dual-role read):** `DashboardController`, `IndicatorController` → switch bằng `IsAdmin` rồi redirect vào Admin hoặc User Area.
+- **Phase 3 (Dual-role write):** `ReportController`, `NotificationController`, `ExportController` → role-switch redirect, giữ 410 cho Approve/Reject.
+- **Phase 4 (Cleanup):** Xoá 8 thư mục root views; xoá 49 Content items khỏi `.csproj`; cập nhật `PROJECT_CONTEXT.md`.
+
+**Kết quả:**
+- Tất cả business logic đã chuyển xuống `Areas/Admin/Controllers/` và `Areas/User/Controllers/`.
+- Root controllers chỉ còn session guard + redirect.
+- Các file bug fix kèm theo: sửa `@using` trong Area layouts, sửa `JsonResult→ActionResult` ở Preview, set `Web.config debug=false`, cập nhật `VerifySecurityHardening.ps1` guardrail cho kiến trúc mới.
+- Build 0 error, 0 warning, `MvcBuildViews=true` pass.
+- Tổng cộng 4 commits: Phase 1 → Phase 2 → Phase 3 → Phase 4.
+
 ## 2026-06-06
 
 ### 1. Chuẩn hóa chú thích code tiếng Việt

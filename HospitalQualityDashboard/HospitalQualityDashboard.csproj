@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -228,39 +228,9 @@
     </Content>
     <Content Include="Areas\Admin\Views\Web.config" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
-    <Content Include="Areas\Admin\Views\Assignment\_DepartmentView.cshtml" />
-    <Content Include="Areas\Admin\Views\Assignment\_IndicatorView.cshtml" />
-    <Content Include="Areas\Admin\Views\Assignment\_TableView.cshtml" />
-    <Content Include="Areas\Admin\Views\Assignment\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\Dashboard\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\Department\Edit.cshtml" />
-    <Content Include="Areas\Admin\Views\Department\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\Employee\CreateAccount.cshtml" />
-    <Content Include="Areas\Admin\Views\Employee\Edit.cshtml" />
-    <Content Include="Areas\Admin\Views\Employee\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\Indicator\Details.cshtml" />
-    <Content Include="Areas\Admin\Views\Indicator\Edit.cshtml" />
-    <Content Include="Areas\Admin\Views\Indicator\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\Notification\Create.cshtml" />
-    <Content Include="Areas\Admin\Views\Notification\Details.cshtml" />
-    <Content Include="Areas\Admin\Views\Notification\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\Report\Edit.cshtml" />
-    <Content Include="Areas\Admin\Views\Report\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\Report\Nhap.cshtml" />
-    <Content Include="Areas\Admin\Views\ReportingPeriod\Edit.cshtml" />
-    <Content Include="Areas\Admin\Views\ReportingPeriod\GenerateSchedule.cshtml" />
-    <Content Include="Areas\Admin\Views\ReportingPeriod\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Shared\_AdminLayout.cshtml" />
     <Content Include="Areas\User\Views\Web.config" />
     <Content Include="Areas\User\Views\_ViewStart.cshtml" />
-    <Content Include="Areas\User\Views\Dashboard\Index.cshtml" />
-    <Content Include="Areas\User\Views\Indicator\Details.cshtml" />
-    <Content Include="Areas\User\Views\Indicator\Index.cshtml" />
-    <Content Include="Areas\User\Views\Notification\Details.cshtml" />
-    <Content Include="Areas\User\Views\Notification\Index.cshtml" />
-    <Content Include="Areas\User\Views\Report\Edit.cshtml" />
-    <Content Include="Areas\User\Views\Report\Index.cshtml" />
-    <Content Include="Areas\User\Views\Report\Nhap.cshtml" />
     <Content Include="Areas\User\Views\Shared\_UserLayout.cshtml" />
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
@@ -270,28 +240,9 @@
     <Content Include="Views\Account\ChangePassword.cshtml" />
     <Content Include="Views\Account\Profile.cshtml" />
     <Content Include="Views\Account\UserLogin.cshtml" />
-    <Content Include="Views\Assignment\Index.cshtml" />
-    <Content Include="Views\Dashboard\Index.cshtml" />
-    <Content Include="Views\Department\Edit.cshtml" />
-    <Content Include="Views\Department\Index.cshtml" />
-    <Content Include="Views\Employee\CreateAccount.cshtml" />
-    <Content Include="Views\Employee\Edit.cshtml" />
-    <Content Include="Views\Employee\Index.cshtml" />
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
-    <Content Include="Views\Indicator\Details.cshtml" />
-    <Content Include="Views\Indicator\Edit.cshtml" />
-    <Content Include="Views\Indicator\Index.cshtml" />
-    <Content Include="Views\Notification\Create.cshtml" />
-    <Content Include="Views\Notification\Details.cshtml" />
-    <Content Include="Views\Notification\Index.cshtml" />
-    <Content Include="Views\Report\Edit.cshtml" />
-    <Content Include="Views\Report\Index.cshtml" />
-    <Content Include="Views\Report\Nhap.cshtml" />
-    <Content Include="Views\ReportingPeriod\Edit.cshtml" />
-    <Content Include="Views\ReportingPeriod\GenerateSchedule.cshtml" />
-    <Content Include="Views\ReportingPeriod\Index.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

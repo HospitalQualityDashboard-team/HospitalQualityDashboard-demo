@@ -56,24 +56,25 @@ HospitalQualityDashboard/
 │   ├── BundleConfig.cs
 │   ├── FilterConfig.cs
 │   └── RouteConfig.cs
+├── Areas/
+│   ├── Admin/
+│   │   ├── Controllers/      # Controller cho Admin workflows
+│   │   ├── Views/            # View cho Admin workflows
+│   │   └── AdminAreaRegistration.cs
+│   └── User/
+│       ├── Controllers/      # Controller cho User khoa/phòng
+│       ├── Views/            # View cho User khoa/phòng
+│       └── UserAreaRegistration.cs
 ├── Content/
 │   └── Site.css
 ├── Controllers/
-│   ├── AccountController.cs
-│   ├── AssignmentController.cs
-│   ├── DashboardController.cs
-│   ├── DepartmentController.cs
-│   ├── EmployeeController.cs
-│   ├── ExportController.cs
-│   ├── HomeController.cs
-│   ├── IndicatorController.cs
-│   ├── NotificationController.cs
-│   ├── PageController.cs
-│   ├── ReportController.cs
-│   └── ReportingPeriodController.cs
+│   ├── AccountController.cs  # Login/logout (giữ nguyên)
+│   ├── HomeController.cs     # Landing page (giữ nguyên)
+│   └── PageController.cs     # Lớp base, session guard
 ├── Models/
 │   ├── Entities/CoreEntities.cs
 │   ├── Enums/SystemEnums.cs
+│   ├── DTOs/                 # Data Transfer Objects
 │   └── ViewModels/
 │       ├── AppViewModels.cs
 │       └── AuthViewModels.cs
@@ -89,14 +90,7 @@ HospitalQualityDashboard/
 │   └── SessionUserAccessor.cs
 ├── Views/
 │   ├── Account/
-│   ├── Assignment/
-│   ├── Dashboard/
-│   ├── Department/
-│   ├── Employee/
-│   ├── Indicator/
-│   ├── Notification/
-│   ├── Report/
-│   ├── ReportingPeriod/
+│   ├── Home/
 │   └── Shared/
 ├── tools/
 │   ├── VerifyExcelParser.ps1
@@ -115,17 +109,14 @@ HospitalQualityDashboard/
 ### 4.1. Controller
 
 Các controller kế thừa `PageController` để dùng chung cơ chế session và phân quyền.
+Sau đợt tái cấu trúc tháng 06/2026, các root controller (`Controllers/`) chỉ đóng vai trò chuyển hướng (redirect wrapper) tới Area controller tương ứng. Logic nghiệp vụ và render view được thực hiện trong `Areas/Admin/Controllers/` và `Areas/User/Controllers/`.
 
-- `AccountController`: đăng nhập Admin/User riêng biệt, đăng xuất, đổi mật khẩu.
-- `DepartmentController`: quản lý khoa/phòng, import/export khoa/phòng.
-- `EmployeeController`: quản lý nhân viên, import nhân viên, tạo tài khoản User cho nhân viên.
-- `IndicatorController`: quản lý chỉ số chất lượng, import chỉ số từ Excel/Word.
-- `AssignmentController`: phân công chỉ số cho khoa/phòng, đồng bộ phân công từ trường nguồn trong chỉ số.
-- `ReportingPeriodController`: quản lý kỳ báo cáo.
-- `ReportController`: danh sách báo cáo, nhập/sửa báo cáo, gửi, khóa, xóa.
-- `DashboardController`: hiển thị dashboard theo quyền.
-- `NotificationController`: xem danh sách thông báo, xem chi tiết thông báo, gửi thông báo thủ công, đánh dấu đã đọc và kích hoạt kiểm tra thông báo tự động cho Admin.
-- `ExportController`: xuất dữ liệu, hiện tại chỉ dành cho Admin.
+- `AccountController`: đăng nhập Admin/User riêng biệt, đăng xuất, đổi mật khẩu (giữ nguyên root).
+- `HomeController`: trang giới thiệu và liên hệ (giữ nguyên root).
+- `PageController`: lớp cơ sở, cung cấp session guard, `RequireAdmin()`, `EnsureUserDepartment()`.
+- Các root controller khác: tất cả đều là redirect wrapper, chuyển hướng sang Area.
+- `Areas/Admin/Controllers/`: chứa logic quản trị cho khoa/phòng, nhân viên, chỉ số, phân công, kỳ báo cáo, báo cáo, thông báo, xuất dữ liệu và dashboard..
+- `Areas/User/Controllers/`: chứa logic cho User khoa/phòng: dashboard, báo cáo, chỉ số (xem), thông báo, xuất báo cáo.
 
 ### 4.2. Service
 
