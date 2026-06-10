@@ -1,6 +1,6 @@
 // Muc dich: dieu huong qua trinh bao cao theo vai tro sang Area tuong ung.
-using System.Web.Mvc;
 using HospitalQualityDashboard.Models.ViewModels;
+using System.Web.Mvc;
 
 namespace HospitalQualityDashboard.Controllers
 {

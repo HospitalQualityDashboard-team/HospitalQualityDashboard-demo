@@ -1,11 +1,11 @@
 // Mục đích: xử lý tính toán báo cáo, lưu quy trình báo cáo và dữ liệu dashboard.
+using HospitalQualityDashboard.Models.DTOs;
+using HospitalQualityDashboard.Models.Enums;
+using HospitalQualityDashboard.Models.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
-using HospitalQualityDashboard.Models.DTOs;
-using HospitalQualityDashboard.Models.Enums;
-using HospitalQualityDashboard.Models.ViewModels;
 
 namespace HospitalQualityDashboard.Services
 {
@@ -264,23 +264,6 @@ WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
                     id,
                     "Gửi báo cáo. Dữ liệu tại thời điểm gửi: " + GetReportDetailSnapshot(id));
             }
-        }
-
-        public void Approve(int id)
-        {
-            Execute("UPDATE dbo.BaoCao SET TrangThai=@TrangThai, NgayCapNhat=GETDATE() WHERE BaoCaoId=@Id AND TrangThai=@DaGui",
-                Param("@TrangThai", (byte)TrangThaiBaoCao.DaDuyet),
-                Param("@Id", id),
-                Param("@DaGui", (byte)TrangThaiBaoCao.DaGui));
-        }
-
-        public void Reject(int id, string yKienPhanHoi)
-        {
-            Execute("UPDATE dbo.BaoCao SET TrangThai=@TrangThai, YKienPhanHoi=@YKienPhanHoi, NgayCapNhat=GETDATE() WHERE BaoCaoId=@Id AND TrangThai=@DaGui",
-                Param("@TrangThai", (byte)TrangThaiBaoCao.TraLai),
-                Param("@YKienPhanHoi", yKienPhanHoi),
-                Param("@Id", id),
-                Param("@DaGui", (byte)TrangThaiBaoCao.DaGui));
         }
 
         public void Lock(int id)

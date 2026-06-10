@@ -40,7 +40,7 @@
             @using (Html.BeginForm("OpenDuePeriods", "ReportingPeriod", FormMethod.Post, new { @class = "d-inline" }))
             {
                 @Html.AntiForgeryToken()
-                <button class="btn btn-outline-success" type="submit">Mo ky den han</button>
+                <button class="btn btn-outline-success" type="submit">Mở kỳ đến hạn</button>
             }
             @Html.ActionLink("Thêm kỳ báo cáo", "Create", null, new { @class = "btn btn-primary" })
             @Html.ActionLink("Tạo lịch tự động", "GenerateSchedule", null, new { @class = "btn btn-outline-primary" })

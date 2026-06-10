@@ -524,13 +524,17 @@ User không được xuất báo cáo toàn viện hoặc báo cáo của khoa/p
 
 ---
 
-### 3.10. Đổi mật khẩu
+### 3.10. Quản lý hồ sơ cá nhân
 
-User có thể đổi mật khẩu tài khoản của mình.
+User có thể xem và chỉnh sửa thông tin cá nhân của mình.
 
-| Chức năng | Mô tả |
-|---|---|
-| Đổi mật khẩu | User nhập mật khẩu cũ và mật khẩu mới để cập nhật. |
+#### Chức năng chính
+
+| STT | Chức năng | Mô tả |
+|---:|---|---|
+| 1 | Xem hồ sơ cá nhân | Hiển thị thông tin tài khoản, nhân viên, khoa/phòng. |
+| 2 | Sửa hồ sơ cá nhân | Cập nhật họ tên, ngày sinh, giới tính, chức vụ, email, số điện thoại. |
+| 3 | Đổi mật khẩu | User nhập mật khẩu cũ và mật khẩu mới để cập nhật. |
 
 ---
 

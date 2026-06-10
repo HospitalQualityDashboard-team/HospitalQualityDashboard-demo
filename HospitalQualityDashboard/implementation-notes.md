@@ -2,6 +2,51 @@
 
 Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiết kế và lưu ý vận hành của dự án `HospitalQualityDashboard`.
 
+## 2026-06-10
+
+### Cleanup file dư thừa
+
+Chạy `cleanup.ps1` để xóa:
+
+- `bin/`, `obj/` — build artifact
+- `.claude/worktrees/`, `.superpowers/brainstorm/` — workspace tạm
+- `docs/superpowers/` — plan/spec cũ
+- `Content/` CSS không dùng (giữ `bootstrap.css`, `Site.css`)
+- `Scripts/` JS không dùng (giữ file cần cho bundle)
+- `packages/` NuGet trùng (các version `.0`, MVC5, Razor3, WebPages3)
+- `.csproj.user`
+
+**File đã cập nhật:** `PROJECT_CONTEXT.md`, `README.md`, `Chức_năng.md`, `implementation-notes.md`.
+
+## 2026-06-09
+
+### 1. Cho phép User chỉnh sửa thông tin cá nhân trên Profile
+
+Trang Profile (`/Account/Profile`) trước đây chỉ hiển thị thông tin readonly và form đổi mật khẩu. Đã bổ sung form chỉnh sửa thông tin cá nhân.
+
+**Các file thay đổi:**
+
+- `Models/DTOs/EmployeeDtos.cs` — Thêm `ProfileUpdateDto` với các trường: HoTen, NgaySinh, GioiTinh, ChucVu, Email, SoDienThoai.
+- `Services/AuthService.cs` — Thêm `UpdateProfile(int taiKhoanId, ProfileUpdateDto dto)`: lấy NhanVienId từ TaiKhoan, UPDATE dbo.NhanVien với các trường trên. Thêm `GetNhanVienId(int taiKhoanId)` helper.
+- `Controllers/AccountController.cs` — Thêm action `[HttpPost] UpdateProfile(ProfileUpdateDto model)`: kiểm tra auth, validate ModelState, gọi `_authService.UpdateProfile`, set `TempData["SuccessMessage"]` khi thành công, return về Profile. Nếu ModelState lỗi: reload profile và giữ nguyên dữ liệu vừa nhập.
+- `Views/Account/Profile.cshtml` — Thêm card **Cập nhật thông tin cá nhân** bên dưới card **Thông tin người dùng** hiện tại ở cột trái. Form gồm: Họ tên (required), Ngày sinh (date picker), Giới tính, Chức vụ, Email, Số điện thoại. Nút submit **Cập nhật thông tin**.
+
+**Kiến trúc:**
+- AuthService tự quản lý connection (không kế thừa DbServiceBase), dùng `ExecuteNonQuery` riêng.
+- Khi tài khoản chưa liên kết nhân viên (NhanVienId null), throw `InvalidOperationException` — Controller bắt và hiển thị lỗi trên form.
+
+### 2. Fix lỗi WebGrease NullReferenceException khi minify Bootstrap 5
+
+Lỗi: NullReferenceException tại `_Layout.cshtml:line 99` khi `@Scripts.Render("~/bundles/bootstrap")` gọi WebGrease JsMinify parse JS của Bootstrap 5.2 (syntax ES6+ không tương thích WebGrease 1.6.0 ~2014).
+
+**Sửa:** Đổi `ScriptBundle` / `StyleBundle` thành `Bundle` cho các file `.min.*` trong `App_Start/BundleConfig.cs`:
+- `~/bundles/jquery` (jquery-3.7.0.min.js)
+- `~/bundles/jqueryval` (jquery.validate.min.js + jquery.validate.unobtrusive.min.js)
+- `~/bundles/bootstrap` (bootstrap.bundle.min.js)
+- `~/Content/css` (bootstrap.min.css + site.css)
+
+Giữ `ScriptBundle` cho `~/bundles/modernizr` (modernizr-2.8.3.js — dev file, JS cũ, không minified).
+
 ## 2026-06-08
 
 ### 1. Root controller cleanup — chuyển sang Area redirect wrappers
@@ -210,7 +255,7 @@ Hệ thống đã trải qua một đợt nâng cấp nghiệp vụ quan trọng
   - Bổ sung 5 thẻ thống kê động (Tổng số chỉ số, Đã phân công, Chưa phân công, Tổng phân công, Đã tạm dừng) để giúp Admin có cái nhìn trực quan nhất. Card "Chưa phân công" giúp phát hiện ngay các chỉ số chưa được gán trách nhiệm.
 - **Khắc phục lỗi Tạm dừng phân công**:
   - *Vấn đề*: Trước đây, khi click "Tạm dừng", hệ thống hiểu sai và ẩn mất khoa phòng khỏi chỉ số, khiến Admin không thể kích hoạt lại.
-  - *Khắc phục*: Sửa đổi logic `bool isUnassigned = indAssignments.Count == 0;` trong phương thức `GetAllIndicatorGroups` thuộc `Services/IndicatorPeriodServices.cs`. Chỉ số chỉ được coi là "Chưa phân công" khi nó thực sự chưa được gán cho bất kỳ khoa phòng nào. Phân công bị tạm dừng (`DangHoatDong = 0`) vẫn hiển thị bình thường trong bảng với nhãn trạng thái màu cam và cung cấp tuỳ chọn **"Kích hoạt lại"**.
+  - *Khắc phục*: Sửa đổi logic `bool isUnassigned = indAssignments.Count == 0;` trong phương thức `GetAllIndicatorGroups` thuộc `Services/IndicatorServices.cs`. Chỉ số chỉ được coi là "Chưa phân công" khi nó thực sự chưa được gán cho bất kỳ khoa phòng nào. Phân công bị tạm dừng (`DangHoatDong = 0`) vẫn hiển thị bình thường trong bảng với nhãn trạng thái màu cam và cung cấp tuỳ chọn **"Kích hoạt lại"**.
 - **Kích hoạt & Xử lý bộ lọc**:
   - Thêm hành động `Activate` vào `AssignmentController` để bật lại phân công bị tạm dừng.
   - Khắc phục lỗi lọc Khoa/Phòng không hoạt động bằng cách sửa đổi câu truy vấn SQL trong các phương thức `GetDepartmentsCount`, `GetIndicatorsCount`, và `GetAllIndicatorGroups` để nhận diện chính xác `FilterKhoaPhongId` và `FilterChiSoId`.
@@ -435,7 +480,7 @@ Form vẫn giữ `DueDayOffset` ở mức model để tương thích code cũ, n
 
 ### 3. Thay đổi service
 
-`Services/IndicatorPeriodServices.cs` bổ sung `ReportingPeriodScheduleService`.
+Tách `Services/IndicatorPeriodServices.cs` thành `IndicatorServices.cs` (IndicatorService, AssignmentService) và `ReportingPeriodServices.cs` (ReportingPeriodService, ReportingPeriodScheduleService).
 
 Các trách nhiệm chính:
 
@@ -555,7 +600,7 @@ Khi tạo lịch tự động, hệ thống chỉ insert vào `KyBaoCao`. Không
 - `Global.asax.cs`
 - `HospitalQualityDashboard.csproj`
 - `Models/ViewModels/AppViewModels.cs`
-- `Services/IndicatorPeriodServices.cs`
+- `Services/IndicatorServices.cs`
 - `Services/NotificationExportServices.cs`
 - `Services/ReportDashboardServices.cs`
 - `Views/Dashboard/Index.cshtml`

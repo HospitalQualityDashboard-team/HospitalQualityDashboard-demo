@@ -52,7 +52,7 @@ $reportDtos = Read-ProjectFile 'Models\DTOs\ReportDtos.cs'
 $notificationDtos = Read-ProjectFile 'Models\DTOs\NotificationDtos.cs'
 $exportDtos = Read-ProjectFile 'Models\DTOs\ExportDtos.cs'
 $departmentService = Read-ProjectFile 'Services\ManagementServices.cs'
-$indicatorService = Read-ProjectFile 'Services\IndicatorPeriodServices.cs'
+$indicatorService = Read-ProjectFile 'Services\IndicatorServices.cs'
 $reportService = Read-ProjectFile 'Services\ReportDashboardServices.cs'
 $notificationService = Read-ProjectFile 'Services\NotificationExportServices.cs'
 

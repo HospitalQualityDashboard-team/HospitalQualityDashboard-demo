@@ -1,8 +1,8 @@
-using System.Collections.Generic;
-using System.Web.Mvc;
 using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Models.ViewModels;
 using HospitalQualityDashboard.Services;
+using System.Collections.Generic;
+using System.Web.Mvc;
 
 namespace HospitalQualityDashboard.Areas.User.Controllers
 {

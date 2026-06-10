@@ -42,7 +42,7 @@
             @Html.AntiForgeryToken()
             <div class="input-group">
                 <input type="file" name="File" class="form-control" />
-                <button class="btn btn-outline-primary" type="submit">Import DM_KHOA_PHONG</button>
+                <button class="btn btn-outline-primary" type="submit">Import</button>
             </div>
         }
     </section>
@@ -76,16 +76,19 @@
                 <table class="table table-sm align-middle data-table">
                     <thead>
                         <tr>
-                            <th>Mã nguồn</th>
+                            <th>STT</th>
+                            <th>Mã khoa/phòng</th>
                             <th>Tên khoa/phòng</th>
                             <th>Trạng thái</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
+                    @{ var stt = 1; }
                     @foreach (var item in items)
                     {
                         <tr>
+                            <td>@stt</td>
                             <td>@item.IdKhoaPhongNguon</td>
                             <td><strong>@item.TenKhoaPhong</strong></td>
                             <td><span class="status-pill @(item.Used ? "status-active" : "status-muted")">@(item.Used ? "Đang dùng" : "Đã khóa")</span></td>
@@ -102,7 +105,8 @@
                                     <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xóa khoa/phòng này?')">Xóa</button>
                                 }
                             </td>
-                        </tr>
+                        @{ stt++; }
+                    </tr>
                     }
                     </tbody>
                 </table>

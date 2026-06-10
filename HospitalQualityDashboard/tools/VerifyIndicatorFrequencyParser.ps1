@@ -23,7 +23,7 @@ $sources = @(
     (Join-Path $projectRoot 'Models\ViewModels\AppViewModels.cs'),
     (Join-Path $projectRoot 'Services\DbServiceBase.cs'),
     (Join-Path $projectRoot 'Services\ExcelImportExportService.cs'),
-    (Join-Path $projectRoot 'Services\IndicatorPeriodServices.cs')
+    (Join-Path $projectRoot 'Services\IndicatorServices.cs')
 )
 
 Add-Type -ReferencedAssemblies $references -Path $sources

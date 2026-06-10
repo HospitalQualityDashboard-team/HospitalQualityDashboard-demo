@@ -1,4 +1,4 @@
-# Hồ Sơ Bối Cảnh Dự Án
+﻿# Hồ Sơ Bối Cảnh Dự Án
 
 Tài liệu này là bản ghi nhớ kỹ thuật và nghiệp vụ tổng quan của dự án `HospitalQualityDashboard`. File được dùng để giúp lập trình viên, người kiểm thử, người viết báo cáo và trợ lý AI hiểu đúng hiện trạng dự án trước khi chỉnh sửa.
 
@@ -6,7 +6,7 @@ Tài liệu này là bản ghi nhớ kỹ thuật và nghiệp vụ tổng quan 
 
 **Tên dự án:** HospitalQualityDashboard
 
-**Mục tiêu:** xây dựng hệ thống quản lý chỉ số chất lượng bệnh viện, hỗ trợ Admin quản trị danh mục và hỗ trợ các khoa/phòng nhập, gửi, theo dõi số liệu báo cáo định kỳ.
+**Mục tiêu:** xây dựng hệ thống quản lý chỉ số chất lượng bệnh viện, hỗ trợ Admin quản trị danh mục và hỗ trợ các khoa/phòng nhập, gửi, theo dõi số liệu báo cáo định kỳ. User có thể tự chỉnh sửa thông tin cá nhân (họ tên, email, SĐT, chức vụ, giới tính, ngày sinh) trên trang Profile.
 
 **Bài toán chính:**
 
@@ -14,6 +14,7 @@ Tài liệu này là bản ghi nhớ kỹ thuật và nghiệp vụ tổng quan 
 - Quản lý danh mục chỉ số chất lượng bệnh viện, bao gồm định nghĩa, công thức, nguồn số liệu, tần suất báo cáo và mục tiêu.
 - Phân công chỉ số cho một hoặc nhiều khoa/phòng phụ trách.
 - Cho phép User khoa/phòng nhập số liệu theo kỳ báo cáo, lưu nháp và gửi báo cáo.
+- Cho phép User tự cập nhật thông tin cá nhân (họ tên, email, SĐT, chức vụ, giới tính, ngày sinh) trên trang Profile — dữ liệu được ghi vào bảng NhanVien thông qua AuthService.UpdateProfile.
 - Cho phép Admin theo dõi tiến độ, khóa hoặc xóa báo cáo khi cần.
 - Hiển thị dashboard tiến độ báo cáo theo phạm vi quyền hạn.
 - Gửi và theo dõi thông báo cho các khoa/phòng.
@@ -46,12 +47,7 @@ Connection string chính nằm trong `Web.config`:
 HospitalQualityDashboard/
 ├── App_Data/
 │   └── Sql/
-│       ├── 001_CreateSchema.sql
-│       ├── 002_CreateSchema_Revised.sql
-│       ├── 003_AddIndicatorFrequencies.sql
-│       ├── 004_AddAssignmentUniqueConstraint.sql
-│       ├── 005_AddApprovalAndRejection.sql
-│       └── 006_AddNotificationAutomationLog.sql
+│       └── 001_CreateSchema.sql
 ├── App_Start/
 │   ├── BundleConfig.cs
 │   ├── FilterConfig.cs
@@ -66,7 +62,8 @@ HospitalQualityDashboard/
 │       ├── Views/            # View cho User khoa/phòng
 │       └── UserAreaRegistration.cs
 ├── Content/
-│   └── Site.css
+│   ├── bootstrap.css          # Bundle CSS chính
+│   └── Site.css               # Style tùy biến
 ├── Controllers/
 │   ├── AccountController.cs  # Login/logout (giữ nguyên)
 │   ├── HomeController.cs     # Landing page (giữ nguyên)
@@ -82,8 +79,9 @@ HospitalQualityDashboard/
 │   ├── AuthService.cs
 │   ├── DbServiceBase.cs
 │   ├── ExcelImportExportService.cs
-│   ├── IndicatorPeriodServices.cs
+│   ├── IndicatorServices.cs
 │   ├── ManagementServices.cs
+│   ├── NotificationExportServices.cs
 │   ├── NotificationExportServices.cs
 │   ├── PasswordHasher.cs
 │   ├── ReportDashboardServices.cs
@@ -92,13 +90,7 @@ HospitalQualityDashboard/
 │   ├── Account/
 │   ├── Home/
 │   └── Shared/
-├── tools/
-│   ├── VerifyExcelParser.ps1
-│   ├── VerifyAssignmentExcelExport.ps1
-│   ├── VerifyIndicatorFormulaImport.ps1
-│   ├── VerifyReportWorkflowAndNotifications.ps1
-│   ├── VerifyIndicatorDepartmentAssignmentParser.ps1
-│   └── VerifyIndicatorFrequencyParser.ps1
+├── tools/                     # Script verify/test nhanh
 ├── implementation-notes.md
 ├── PROJECT_CONTEXT.md
 └── TAI_LIEU_NGHIEP_VU.md
@@ -127,7 +119,8 @@ Các service chứa nghiệp vụ và truy cập database trực tiếp qua ADO.
 - `SessionUserAccessor`: chuẩn hóa các key session như `TaiKhoanId`, `LoaiTaiKhoan`, `KhoaPhongId`.
 - `ManagementServices`: nghiệp vụ khoa/phòng và nhân viên.
 - `ExcelImportExportService`: đọc Excel, xử lý shared string, inline string và ô trống bị Excel lược bỏ trong XML.
-- `IndicatorPeriodServices`: nghiệp vụ chỉ số, import chỉ số, parser tần suất, parser khoa/phòng, suy luận loại công thức/đơn vị tính, phân công và kỳ báo cáo.
+- `IndicatorServices`: nghiệp vụ chỉ số, import chỉ số, parser tần suất, parser khoa/phòng, suy luận loại công thức/đơn vị tính, phân công.
+- `ReportingPeriodServices`: nghiệp vụ kỳ báo cáo và tạo lịch tự động.
 - `ReportDashboardServices`: nhập báo cáo, tính kết quả, gửi/khóa/xóa báo cáo, lấy dữ liệu dashboard.
 - `NotificationExportServices`: thông báo, thông báo tự động, chống gửi trùng và xuất dữ liệu.
 - `PasswordHasher`: hash/verify mật khẩu bằng PBKDF2.
@@ -560,11 +553,11 @@ Nhờ vậy, nếu Admin thay đổi phân công sau khi tạo kỳ, danh sách 
 ### 16.7. File kỹ thuật chính
 
 - `Models/ViewModels/AppViewModels.cs`: chứa ViewModel tạo lịch và preview.
-- `Services/IndicatorPeriodServices.cs`: chứa `ReportingPeriodScheduleService`, logic sinh kỳ, chống trùng, bỏ qua kỳ cũ và tự mở kỳ.
-- `Controllers/ReportingPeriodController.cs`: thêm action `GenerateSchedule`, `PreviewSchedule`, `CreateSchedule`.
-- `Views/ReportingPeriod/GenerateSchedule.cshtml`: màn hình Admin chọn năm, loại kỳ và xem preview.
-- `Views/ReportingPeriod/Index.cshtml`: thêm nút **Tạo lịch tự động**.
-- `Controllers/ReportingPeriodController.cs` và `Controllers/NotificationController.cs`: có endpoint POST có anti-forgery để Admin mở kỳ đến hạn hoặc chạy automation thủ công; các trang GET chính giữ nguyên read-only.
+- `Services/ReportingPeriodServices.cs`: chứa `ReportingPeriodScheduleService`, logic sinh kỳ, chống trùng, bỏ qua kỳ cũ và tự mở kỳ.
+- `Areas/Admin/Controllers/ReportingPeriodController.cs`: thêm action `GenerateSchedule`, `PreviewSchedule`, `CreateSchedule`.
+- `Areas/Admin/Views/ReportingPeriod/GenerateSchedule.cshtml`: màn hình Admin chọn năm, loại kỳ và xem preview.
+- `Areas/Admin/Views/ReportingPeriod/Index.cshtml`: thêm nút **Tạo lịch tự động**.
+- `Areas/Admin/Controllers/ReportingPeriodController.cs` và `Areas/Admin/Controllers/NotificationController.cs`: có endpoint POST có anti-forgery để Admin mở kỳ đến hạn hoặc chạy automation thủ công; các trang GET chính giữ nguyên read-only.
 - `Global.asax.cs`: gọi tự mở kỳ khi ứng dụng khởi động.
 - `Services/ReportDashboardServices.cs`: xác định báo cáo trễ theo ngày hạn nộp, phù hợp quy ước hạn cuối 23:59.
 - `tools/VerifyReportingPeriodSchedule.ps1`: script kiểm tra cấu trúc chức năng tạo lịch tự động.
@@ -592,3 +585,17 @@ powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\Verify
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportWorkflowAndNotifications.ps1
 & "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:MvcBuildViews=true
 ```
+
+## 17. Don Dep File Du Thua (Ngay 10/06/2026)
+
+Da chay script don dep, xoa cac nhom file sau:
+
+- bin/, obj/ - build artifact, co the rebuild lai.
+- .claude/worktrees/, .superpowers/brainstorm/ - workspace Claude Code tam.
+- docs/superpowers/ - plan/spec cu khong con gia tri.
+- Content/ CSS khong dung (chi giu bootstrap.css, Site.css).
+- Scripts/ JS khong dung (chi giu file duoc BundleConfig tham chieu).
+- packages/ NuGet trung - cac ban .0, MVC5, Razor3, WebPages3 khong duoc .csproj tham chieu.
+- HospitalQualityDashboard.csproj.user - file cau hinh VS ca nhan.
+
+**Tac dong:** Khong anh huong den ma nguon hoac chuc nang. Can NuGet restore va rebuild truoc khi chay lai.

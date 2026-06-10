@@ -1,13 +1,13 @@
 // Mục đích: chứa các service quản trị danh mục, nhân viên, chỉ số và phân công.
+using HospitalQualityDashboard.Models.DTOs;
+using HospitalQualityDashboard.Models.Enums;
+using HospitalQualityDashboard.Models.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using HospitalQualityDashboard.Models.DTOs;
-using HospitalQualityDashboard.Models.Enums;
-using HospitalQualityDashboard.Models.ViewModels;
 
 namespace HospitalQualityDashboard.Services
 {
@@ -22,7 +22,7 @@ SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong, Used, GhiChu
 FROM dbo.KhoaPhong
 WHERE (@Search IS NULL OR TenKhoaPhong LIKE @SearchLike OR CONVERT(NVARCHAR(20), IdKhoaPhongNguon) = @Search)
   AND (@IncludeInactive = 1 OR Used = 1)
-ORDER BY TenKhoaPhong";
+ORDER BY IdKhoaPhongNguon, TenKhoaPhong";
             return Query(sql, MapDepartment,
                 Param("@Search", string.IsNullOrWhiteSpace(search) ? null : search),
                 Param("@SearchLike", string.IsNullOrWhiteSpace(search) ? null : "%" + search + "%"),

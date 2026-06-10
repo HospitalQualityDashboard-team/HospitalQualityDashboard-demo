@@ -1,6 +1,6 @@
-using System.Web.Mvc;
 using HospitalQualityDashboard.Controllers;
 using HospitalQualityDashboard.Models.Enums;
+using System.Web.Mvc;
 
 namespace HospitalQualityDashboard.Areas.User.Controllers
 {

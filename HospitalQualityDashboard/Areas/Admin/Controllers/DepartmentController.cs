@@ -1,7 +1,7 @@
-using System.Web.Mvc;
 using HospitalQualityDashboard.Models.DTOs;
 using HospitalQualityDashboard.Models.ViewModels;
 using HospitalQualityDashboard.Services;
+using System.Web.Mvc;
 
 namespace HospitalQualityDashboard.Areas.Admin.Controllers
 {

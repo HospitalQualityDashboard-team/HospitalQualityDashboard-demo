@@ -21,7 +21,7 @@ function Assert-Contains {
 
 $reportController = Read-ProjectFile 'Controllers\ReportController.cs'
 $reportService = Read-ProjectFile 'Services\ReportDashboardServices.cs'
-$periodService = Read-ProjectFile 'Services\IndicatorPeriodServices.cs'
+$periodService = Read-ProjectFile 'Services\ReportingPeriodServices.cs'
 $reportIndex = Read-ProjectFile 'Views\Report\Index.cshtml'
 $siteCss = Read-ProjectFile 'Content\Site.css'
 

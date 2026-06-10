@@ -1,12 +1,9 @@
 ﻿// Mục đích: khởi động ứng dụng, bootstrap dữ liệu debug và đăng ký MVC pipeline.
+using HospitalQualityDashboard.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-using HospitalQualityDashboard.Services;
 
 namespace HospitalQualityDashboard
 {

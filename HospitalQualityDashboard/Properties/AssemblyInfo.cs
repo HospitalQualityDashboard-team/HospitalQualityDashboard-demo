@@ -1,6 +1,5 @@
 ﻿// Mục đích: thông tin metadata của assembly khi build ứng dụng .NET Framework.
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // Thông tin chung của assembly được điều khiển bằng các

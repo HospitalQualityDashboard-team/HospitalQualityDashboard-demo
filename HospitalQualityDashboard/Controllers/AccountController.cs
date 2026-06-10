@@ -1,8 +1,9 @@
 // Mục đích: xử lý đăng nhập, đăng xuất, hồ sơ và đổi mật khẩu người dùng.
-using System.Web.Mvc;
+using HospitalQualityDashboard.Models.DTOs;
 using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Models.ViewModels;
 using HospitalQualityDashboard.Services;
+using System.Web.Mvc;
 
 namespace HospitalQualityDashboard.Controllers
 {
@@ -194,5 +195,44 @@ namespace HospitalQualityDashboard.Controllers
             TempData["SuccessMessage"] = "Đổi mật khẩu thành công.";
             return RedirectToAction("Profile");
         }
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public ActionResult UpdateProfile(ProfileUpdateDto model)
+        //{
+        //    if (!SessionUserAccessor.IsAuthenticated(Session))
+        //    {
+        //        return RedirectToAction("UserLogin");
+        //    }
+
+        //    if (!ModelState.IsValid)
+        //    {
+        //        var taiKhoanId = SessionUserAccessor.GetInt(Session, SessionUserAccessor.TaiKhoanIdKey).Value;
+        //        var profile = _authService.GetUserProfile(taiKhoanId);
+        //        if (profile == null)
+        //        {
+        //            SessionUserAccessor.ClearLoginSession(Session);
+        //            return RedirectToAction("UserLogin");
+        //        }
+        //        return View("Profile", profile);
+        //    }
+
+        //    var accountId = SessionUserAccessor.GetInt(Session, SessionUserAccessor.TaiKhoanIdKey).Value;
+
+        //    try
+        //    {
+        //        _authService.UpdateProfile(accountId, model);
+        //        TempData["SuccessMessage"] = "Cập nhật thông tin cá nhân thành công.";
+        //    }
+        //    catch (InvalidOperationException ex)
+        //    {
+        //        var taiKhoanId = SessionUserAccessor.GetInt(Session, SessionUserAccessor.TaiKhoanIdKey).Value;
+        //        var profile = _authService.GetUserProfile(taiKhoanId);
+        //        ModelState.AddModelError("", ex.Message);
+        //        return View("Profile", profile ?? new UserProfileViewModel());
+        //    }
+
+        //    return RedirectToAction("Profile");
+        //}
     }
 }

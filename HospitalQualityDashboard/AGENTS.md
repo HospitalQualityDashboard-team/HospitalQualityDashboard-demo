@@ -2,7 +2,7 @@
 
 ## Cấu trúc dự án và module
 
-Repository này là ứng dụng web ASP.NET MVC 4 chạy trên .NET Framework 4.7.2. Code server chính nằm trong `Controllers/`, `Models/`, `Services/` và các Area `Areas/Admin`, `Areas/User`. Cấu hình khởi động MVC nằm trong `App_Start/`, entry point của ứng dụng là `Global.asax` và `Global.asax.cs`. Tài nguyên tĩnh nằm trong `Content/` cho CSS và `Scripts/` cho thư viện JavaScript. Tài liệu nghiệp vụ hệ thống chỉ số chất lượng bệnh viện nằm trong `Tai_Lieu/`. `App_Data/` dành cho dữ liệu ứng dụng local; không commit file database sinh ra hoặc dữ liệu riêng tư nếu không có yêu cầu rõ ràng.
+Repository này là ứng dụng web ASP.NET MVC 4 chạy trên .NET Framework 4.7.2. Code server chính nằm trong `Controllers/` (Account, Home, PageController base), `Areas/Admin/`, `Areas/User/`, `Models/`, `Services/`. Cấu hình khởi động MVC nằm trong `App_Start/`, entry point của ứng dụng là `Global.asax` và `Global.asax.cs`. Tài nguyên tĩnh nằm trong `Content/` (bootstrap.css, Site.css) và `Scripts/` (jQuery, Bootstrap, jQuery Validate). Tài liệu nghiệp vụ hệ thống chỉ số chất lượng bệnh viện nằm trong `Tai_Lieu/`. `App_Data/` dành cho dữ liệu ứng dụng local; không commit file database sinh ra hoặc dữ liệu riêng tư nếu không có yêu cầu rõ ràng.
 
 ## Lệnh build, kiểm thử và phát triển
 

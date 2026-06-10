@@ -1,10 +1,10 @@
 // Mục đích: gom view model cho màn hình nghiệp vụ và dữ liệu truyền sang Razor view.
+using HospitalQualityDashboard.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web;
 using System.Web.Mvc;
-using HospitalQualityDashboard.Models.Enums;
 
 namespace HospitalQualityDashboard.Models.ViewModels
 {

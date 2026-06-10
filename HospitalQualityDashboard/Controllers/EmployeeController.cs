@@ -1,6 +1,6 @@
 // Muc dich: chuyen huong Admin sang Area de quan ly nhan vien.
-using System.Web.Mvc;
 using HospitalQualityDashboard.Models.ViewModels;
+using System.Web.Mvc;
 
 namespace HospitalQualityDashboard.Controllers
 {

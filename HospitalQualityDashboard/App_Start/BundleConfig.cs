@@ -1,5 +1,4 @@
 ﻿// Mục đích: đăng ký các bundle CSS/JavaScript dùng chung cho ứng dụng MVC.
-using System.Web;
 using System.Web.Optimization;
 
 namespace HospitalQualityDashboard

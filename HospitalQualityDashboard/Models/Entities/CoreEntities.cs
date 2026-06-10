@@ -1,8 +1,8 @@
 // Mục đích: tập hợp entity thuần phản ánh các bảng dữ liệu cốt lõi của hệ thống.
+using HospitalQualityDashboard.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using HospitalQualityDashboard.Models.Enums;
 
 namespace HospitalQualityDashboard.Models.Entities
 {

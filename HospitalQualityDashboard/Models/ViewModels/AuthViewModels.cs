@@ -1,7 +1,7 @@
 // Mục đích: view model cho đăng nhập, đổi mật khẩu và hồ sơ người dùng.
+using HospitalQualityDashboard.Models.Enums;
 using System;
 using System.ComponentModel.DataAnnotations;
-using HospitalQualityDashboard.Models.Enums;
 
 namespace HospitalQualityDashboard.Models.ViewModels
 {

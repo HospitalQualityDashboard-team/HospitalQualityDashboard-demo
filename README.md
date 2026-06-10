@@ -2,6 +2,8 @@
 
 Hệ thống quản lý bộ chỉ số chất lượng bệnh viện bằng ASP.NET MVC 4. Ứng dụng hỗ trợ Admin quản lý danh mục, import dữ liệu từ Excel/Word, phân công chỉ số cho khoa/phòng, mở kỳ báo cáo, theo dõi tiến độ và hỗ trợ User khoa/phòng nhập báo cáo định kỳ.
 
+Xem thêm: `HospitalQualityDashboard/PROJECT_CONTEXT.md` (tổng quan kỹ thuật/nghiệp vụ), `HospitalQualityDashboard/TAI_LIEU_NGHIEP_VU.md` (nghiệp vụ chi tiết).
+
 ## 1. Công Nghệ
 
 - ASP.NET MVC 4 trên .NET Framework 4.7.2.
@@ -20,7 +22,7 @@ HospitalQualityDashboard/
 │   ├── Admin/Views/           # View quản trị
 │   ├── User/Controllers/      # Controller khoa/phòng
 │   └── User/Views/            # View khoa/phòng
-├── Controllers/               # Root controllers (redirect wrapper)
+├── Controllers/               # Root controllers (Account, Home + redirect wrappers)
 ├── Models/                    # Entity, DTO, enum, view model
 ├── Services/                  # Nghiệp vụ và ADO.NET data access
 ├── Views/                     # Root views (Account, Home, Shared)

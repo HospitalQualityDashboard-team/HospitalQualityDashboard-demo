@@ -1,5 +1,5 @@
-using System.Web.Mvc;
 using HospitalQualityDashboard.Controllers;
+using System.Web.Mvc;
 
 namespace HospitalQualityDashboard.Areas.Admin.Controllers
 {

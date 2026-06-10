@@ -1030,3 +1030,17 @@ Khi kiểm thử đăng nhập, người kiểm thử có thể dùng DevTools �
 Cookie này chỉ là mã phiên. Các thông tin nghiệp vụ như `TaiKhoanId`, `LoaiTaiKhoan`, `NhanVienId`, `KhoaPhongId` và `TenKhoaPhong` được lưu ở server-side `Session`, không nằm trong `localStorage` hoặc `sessionStorage`.
 
 Hiện `Web.config` chưa cấu hình timeout session riêng, nên ASP.NET dùng timeout mặc định khoảng 20 phút không hoạt động. Sau khi logout, hệ thống gọi `Session.Clear()` và `Session.Abandon()`, vì vậy truy cập lại trang cần đăng nhập phải quay về màn hình login.
+
+## 28. Don Dep File Du Thua (Ngay 10/06/2026)
+
+Da chay script don dep tai thu muc goc du an, xoa cac nhom file sau:
+
+- bin/, obj/ - build artifact tu qua trinh build truoc do.
+- .claude/worktrees/, .superpowers/brainstorm/ - workspace tam cua Claude Code.
+- docs/superpowers/ - plan/spec design cua cac phase phat trien cu.
+- Content/ CSS khong dung trong BundleConfig (chi giu bootstrap.css, Site.css).
+- Scripts/ JS khong dung trong BundleConfig (chi giu cac file duoc bundle tham chieu).
+- packages/ NuGet trung - cac ban MVC4.0.40804.0, MVC5, Razor3, WebPages3 khong duoc .csproj tham chieu.
+- HospitalQualityDashboard.csproj.user - file cau hinh Visual Studio ca nhan.
+
+**Tac dong:** Khong anh huong gi den ma nguon hoac chuc nang ung dung. Can chay NuGet restore va rebuild truoc khi chay lai.

@@ -1,5 +1,4 @@
 ﻿// Mục đích: cấu hình filter toàn cục cho pipeline MVC.
-using System.Web;
 using System.Web.Mvc;
 
 namespace HospitalQualityDashboard

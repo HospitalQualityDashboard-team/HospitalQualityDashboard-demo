@@ -1,7 +1,7 @@
 // Mục đích: controller nền tập trung kiểm tra session, role và phạm vi khoa/phòng.
-using System.Web.Mvc;
 using HospitalQualityDashboard.Models.Enums;
 using HospitalQualityDashboard.Services;
+using System.Web.Mvc;
 
 namespace HospitalQualityDashboard.Controllers
 {
@@ -51,7 +51,7 @@ namespace HospitalQualityDashboard.Controllers
         {
             if (!SessionUserAccessor.IsAuthenticated(Session))
             {
-                filterContext.Result = RedirectToAction("UserLogin", "Account");
+                filterContext.Result = RedirectToAction("UserLogin", "Account", new { area = "" });
                 return;
             }
 
@@ -71,14 +71,14 @@ namespace HospitalQualityDashboard.Controllers
             if (!accountId.HasValue)
             {
                 ClearLoginSession();
-                return RedirectToAction("UserLogin", "Account");
+                return RedirectToAction("UserLogin", "Account", new { area = "" });
             }
 
             var user = new AuthService().GetAuthenticatedUser(accountId.Value);
             if (user == null || user.IsLocked)
             {
                 ClearLoginSession();
-                return RedirectToAction("UserLogin", "Account");
+                return RedirectToAction("UserLogin", "Account", new { area = "" });
             }
 
             SetLoginSession(user);

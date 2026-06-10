@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using HospitalQualityDashboard.Models.Enums;
+using System.Collections.Generic;
 
 namespace HospitalQualityDashboard.Models.DTOs
 {

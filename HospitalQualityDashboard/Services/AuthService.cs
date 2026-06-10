@@ -1,9 +1,9 @@
 // Mục đích: xử lý xác thực, đổi mật khẩu và truy vấn hồ sơ tài khoản.
+using HospitalQualityDashboard.Models.Enums;
+using HospitalQualityDashboard.Models.ViewModels;
 using System;
 using System.Configuration;
 using System.Data.SqlClient;
-using HospitalQualityDashboard.Models.Enums;
-using HospitalQualityDashboard.Models.ViewModels;
 
 namespace HospitalQualityDashboard.Services
 {
