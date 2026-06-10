@@ -1,6 +1,7 @@
 ﻿# Visual Studio / ASP.NET MVC5
 .vs/
 .worktrees/
+.claude/worktrees/
 *.user
 *.suo
 *.userosscache
