@@ -41,6 +41,9 @@ scratch/
 ExcelDump/
 HospitalQualityDashboard-demo/Tai_Lieu/DM_KHOA_PHONG.zip
 
+# Local secrets
+HospitalQualityDashboard-demo/ConnectionStrings.config
+
 # IIS / publish artifacts
 _PublishedWebsites/
 *.Publish.xml
@@ -66,4 +69,3 @@ desktop.ini
 !Web.config
 !Web.Debug.config
 !Web.Release.config
-
