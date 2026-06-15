@@ -41,3 +41,7 @@ Dùng commit message ngắn gọn ở dạng mệnh lệnh, ví dụ `Add indica
 ## Bảo mật và cấu hình
 
 Không commit credential thật, connection string nhạy cảm, file upload bằng chứng hoặc dữ liệu nhạy cảm của bệnh viện. Cấu hình theo môi trường nên đặt trong transform file như `Web.Debug.config` và `Web.Release.config`. Luôn validate file upload/import và enforce quyền Admin/User ở server-side, không chỉ ẩn/hiện trên Razor view.
+
+`ConnectionStrings.config` là file local secret và đã được đưa vào `.gitignore`. Khi setup môi trường mới, copy `ConnectionStrings.example.config` thành `ConnectionStrings.config` rồi điền thông tin Azure SQL thật trên máy local hoặc môi trường deploy. Chỉ commit file example, không commit file config thật hoặc ảnh chụp có password.
+
+Khi thay đổi hành vi vận hành, cấu hình, database, import/export hoặc hiệu năng, cập nhật `README.md` trước, sau đó bổ sung ngắn gọn vào `PROJECT_CONTEXT.md` hoặc `implementation-notes.md` nếu thay đổi ảnh hưởng người phát triển/người vận hành.

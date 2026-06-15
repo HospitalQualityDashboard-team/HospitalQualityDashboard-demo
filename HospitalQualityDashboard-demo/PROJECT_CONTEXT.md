@@ -796,7 +796,8 @@ Lệnh kiểm tra:
 - **Badge màu sắc**: Giao diện hiển thị nhãn xếp loại bằng các thẻ Badge màu sắc Bootstrap tương ứng (`bg-success`, `bg-info`, `bg-warning`, `bg-danger`, `bg-secondary`).
 
 ### 19.3. Thống kê nâng cao & Tiến độ chi tiết
-- **Bảng tiến độ & Xuất Excel**: Bổ sung các cột thống kê nâng cao:
+  - **Bảng tiến độ & Xuất Excel**: Bổ sung các cột thống kê nâng cao: 
+
   - Số báo cáo lưu nháp (`LuuNhap`), Số báo cáo còn thiếu (`ConThieu`), Xếp loại tổng thể (`XepLoai`).
   - Chi tiết tiến độ nộp báo cáo (dưới dạng chuỗi "đã nộp/tổng") và Xếp loại hoàn thành của các tần suất Hàng tháng, Hàng quý, Hàng năm.
 - **Tối ưu hóa Database Access**: Sử dụng cơ chế truy vấn con (Subquery) cho từng khoa/phòng, đếm chính xác số lượng chỉ số và báo cáo theo từng tần suất để tránh Cartesian product từ phép JOIN trực tiếp.
@@ -808,3 +809,51 @@ Lệnh kiểm tra:
 - [DashboardController.cs (Admin)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Controllers/DashboardController.cs): Tiếp nhận tham số lọc `tanSuat`.
 - [ExportController.cs (Admin)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Controllers/ExportController.cs) & [ExportController.cs (Root)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Controllers/ExportController.cs): Tiếp nhận và truyền tham số `tanSuat`.
 - [Index.cshtml (Admin Dashboard)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Views/Dashboard/Index.cshtml): Thêm form lọc, hiển thị badge xếp loại và cập nhật cấu hình modal xuất Excel.
+
+## 20. Cập Nhật Ngày 15/06/2026 - Hướng Dẫn Sử Dụng, Bảo Mật Cấu Hình & Tối Ưu Tốc Độ
+
+### 20.1. Tài liệu sử dụng
+
+README root đã được viết lại để trở thành tài liệu sử dụng chính của dự án. Khi cần hướng dẫn chạy dự án, cấu hình Azure SQL, build, kiểm thử thủ công, import/export hoặc xử lý lỗi thường gặp, ưu tiên đọc:
+
+```text
+README.md
+```
+
+README hiện bao gồm yêu cầu môi trường, cách tạo `ConnectionStrings.config`, cách chạy bằng IIS Express, cách build bằng MSBuild, route chính, quy trình Admin/User, import/export, lưu ý hiệu năng Azure SQL, checklist kiểm thử thủ công và troubleshooting.
+
+### 20.2. Connection string và secret
+
+`ConnectionStrings.config` là file local secret và không được commit. Repo chỉ commit:
+
+```text
+HospitalQualityDashboard-demo/ConnectionStrings.example.config
+```
+
+Khi clone repo hoặc setup máy mới, developer cần copy file example thành file thật:
+
+```powershell
+Copy-Item .\HospitalQualityDashboard-demo\ConnectionStrings.example.config .\HospitalQualityDashboard-demo\ConnectionStrings.config
+```
+
+Sau đó điền `Server`, `Initial Catalog`, `User ID`, `Password` theo môi trường dev/test. Nếu password thật đã từng được commit hoặc xuất hiện trên GitHub, cần rotate password Azure SQL và rewrite history nếu muốn xóa khỏi lịch sử remote.
+
+### 20.3. Hiệu năng Azure SQL hiện tại
+
+Các tối ưu đã được áp dụng:
+
+- `PageController` không gọi `AuthService.GetAuthenticatedUser()` ở mọi request; session revalidate sau 5 phút hoặc khi thiếu dữ liệu bắt buộc.
+- Dashboard/Report không tự chạy `OpenDuePeriods` khi mở trang; thao tác mở kỳ đến hạn được giữ ở action thủ công.
+- `DbServiceBase` hỗ trợ `CommandTimeout`, mặc định 30 giây.
+- `DashboardService` dùng timeout 60 giây.
+- Dropdown khoa/phòng, chỉ số, kỳ báo cáo dùng query nhẹ và cache 5 phút.
+- Dashboard dùng query tổng hợp/CTE để giảm DB round-trip.
+- Nhân viên, báo cáo, thông báo dùng phân trang server-side mặc định 20 dòng/trang.
+- `App_Data/Sql/002_PerformanceIndexes.sql` bổ sung index đọc chính bằng `IF NOT EXISTS`.
+
+### 20.4. Lưu ý vận hành
+
+- Bootstrap database mặc định nên tắt trên môi trường đang dùng thật.
+- Chỉ bật bootstrap có kiểm soát khi cần tạo schema hoặc bổ sung index.
+- Với database Azure SQL đã tồn tại, nên chạy `002_PerformanceIndexes.sql` trực tiếp hoặc bật bootstrap tạm thời ở môi trường dev/test.
+- Import nhân viên vẫn là luồng đồng bộ trong request; nếu file lớn và Azure SQL chậm, nên chia file nhỏ hoặc tối ưu riêng bằng background job trong đợt khác.

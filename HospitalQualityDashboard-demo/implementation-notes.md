@@ -2,6 +2,35 @@
 
 Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiết kế và lưu ý vận hành của dự án `HospitalQualityDashboard-demo`.
 
+## 2026-06-15
+
+### Cập nhật tài liệu hướng dẫn sử dụng
+
+- Viết lại `README.md` ở root repo thành hướng dẫn sử dụng chi tiết cho developer và người vận hành.
+- Bổ sung hướng dẫn tạo `ConnectionStrings.config` từ `ConnectionStrings.example.config`.
+- Ghi rõ `ConnectionStrings.config` là file local secret, không được commit.
+- Bổ sung quy trình chạy bằng Visual Studio/IIS Express, build bằng MSBuild và kiểm tra Razor bằng `aspnet_compiler`.
+- Cập nhật luồng sử dụng Admin/User, import/export, phân trang, cache dropdown, dashboard tối ưu và index Azure SQL.
+- Bổ sung mục troubleshooting cho các lỗi thường gặp: thiếu connection string, thiếu bảng, timeout Azure SQL, contributor Claude trên GitHub.
+
+### Bảo vệ connection string thật
+
+- Thêm `HospitalQualityDashboard-demo/ConnectionStrings.config` vào `.gitignore`.
+- Bỏ tracking `ConnectionStrings.config` khỏi Git nhưng giữ file local trên máy dev.
+- Thêm `HospitalQualityDashboard-demo/ConnectionStrings.example.config` không chứa password thật.
+- Cập nhật `.csproj` để track file example thay vì file config thật.
+- Lưu ý vận hành: nếu password đã từng xuất hiện trong Git history hoặc trên GitHub, cần rotate password Azure SQL và rewrite history nếu muốn xóa khỏi lịch sử remote.
+
+### Tối ưu tốc độ web khi chạy với Azure SQL
+
+- Session revalidation được throttle 5 phút thay vì gọi `AuthService.GetAuthenticatedUser()` ở mọi request.
+- Không tự chạy `OpenDuePeriods` khi mở Dashboard/Report; chỉ giữ action thủ công.
+- Thêm `CommandTimeout` mặc định 30 giây trong `DbServiceBase`; dashboard dùng 60 giây.
+- Thêm cache dropdown 5 phút cho khoa/phòng, chỉ số, kỳ báo cáo.
+- Dashboard dùng query tổng hợp/CTE để giảm DB round-trip.
+- Nhân viên, báo cáo, thông báo dùng phân trang server-side mặc định 20 dòng/trang.
+- Thêm `App_Data/Sql/002_PerformanceIndexes.sql` để tạo các index đọc chính bằng `IF NOT EXISTS`.
+
 ## 2026-06-10
 
 ### Cleanup file dư thừa

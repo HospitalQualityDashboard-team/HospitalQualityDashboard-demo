@@ -1,454 +1,560 @@
 # HospitalQualityDashboard-demo
 
-Hệ thống quản lý bộ chỉ số chất lượng bệnh viện bằng ASP.NET MVC 4. Ứng dụng hỗ trợ Admin quản lý danh mục, import dữ liệu từ Excel/Word, phân công chỉ số cho khoa/phòng, mở kỳ báo cáo, theo dõi tiến độ và hỗ trợ User khoa/phòng nhập báo cáo định kỳ.
+HospitalQualityDashboard-demo là hệ thống quản lý bộ chỉ số chất lượng bệnh viện viết bằng ASP.NET MVC 4 trên .NET Framework 4.7.2. Ứng dụng hỗ trợ Admin quản lý danh mục, import dữ liệu từ Excel/Word, phân công chỉ số cho khoa/phòng, mở kỳ báo cáo, theo dõi tiến độ, gửi thông báo; đồng thời hỗ trợ User khoa/phòng nhập và gửi báo cáo định kỳ.
 
-Xem thêm: `HospitalQualityDashboard-demo/PROJECT_CONTEXT.md` (tổng quan kỹ thuật/nghiệp vụ), `HospitalQualityDashboard-demo/TAI_LIEU_NGHIEP_VU.md` (nghiệp vụ chi tiết).
+Tài liệu liên quan:
 
-## 1. Công Nghệ
+- `HospitalQualityDashboard-demo/PROJECT_CONTEXT.md`: bối cảnh kỹ thuật và nghiệp vụ.
+- `HospitalQualityDashboard-demo/TAI_LIEU_NGHIEP_VU.md`: mô tả nghiệp vụ tổng hợp.
+- `HospitalQualityDashboard-demo/implementation-notes.md`: nhật ký thay đổi kỹ thuật.
+- `HospitalQualityDashboard-demo/Tai_Lieu/`: tài liệu BA, phân tích thiết kế, file mẫu import.
 
-- ASP.NET MVC 4 trên .NET Framework 4.7.2.
+## 1. Công nghệ
+
+- ASP.NET MVC 4.
+- .NET Framework 4.7.2.
 - C# và Razor `.cshtml`.
-- Azure SQL qua ADO.NET thuần.
+- Azure SQL / SQL Server qua ADO.NET thuần.
 - Bootstrap, jQuery, jQuery Validate, Chart.js.
-- NuGet packages khai báo trong `HospitalQualityDashboard-demo/packages.config`.
+- NuGet packages trong `HospitalQualityDashboard-demo/packages.config`.
 
-## 2. Cấu Trúc Chính
+## 2. Chức năng chính
+
+### Admin
+
+- Dashboard tổng quan toàn viện.
+- Quản lý khoa/phòng.
+- Quản lý nhân viên.
+- Tạo tài khoản User từ nhân viên.
+- Quản lý chỉ số chất lượng.
+- Import chỉ số từ Excel/Word.
+- Import khoa/phòng từ Excel.
+- Import nhân viên từ Excel.
+- Phân công chỉ số cho khoa/phòng.
+- Tạo kỳ báo cáo thủ công hoặc tự động theo năm/tần suất.
+- Mở kỳ báo cáo đến hạn bằng action thủ công.
+- Xem danh sách báo cáo đã gửi/quá hạn/đã khóa.
+- Khóa hoặc xóa báo cáo theo nghiệp vụ.
+- Gửi thông báo thủ công.
+- Chạy kiểm tra thông báo tự động.
+- Xuất Excel cho dữ liệu cần theo dõi.
+
+### User khoa/phòng
+
+- Dashboard theo khoa/phòng đang đăng nhập.
+- Xem chỉ số được phân công.
+- Xem kỳ báo cáo đang mở phù hợp với tần suất chỉ số.
+- Nhập số liệu báo cáo.
+- Lưu nháp báo cáo.
+- Gửi báo cáo.
+- Xem thông báo, nhắc hạn, quá hạn.
+- Cập nhật hồ sơ cá nhân.
+- Đổi mật khẩu.
+
+## 3. Cấu trúc thư mục
 
 ```text
-HospitalQualityDashboard-demo/                      # Thư mục project ASP.NET MVC 4
-├── App_Data/                                  # Dữ liệu ứng dụng
-│   └── Sql/
-│       └── 001_CreateSchema.sql               # Script tạo CSDL
-├── App_Start/                                 # Cấu hình MVC khởi động
-│   ├── BundleConfig.cs                        # Bundle CSS/JS
-│   ├── FilterConfig.cs                        # Global filter
-│   └── RouteConfig.cs                         # Route MVC
-├── Areas/                                     # Phân vùng theo vai trò
-│   ├── Admin/                                 # ===== ADMIN =====
-│   │   ├── Controllers/                       # 10 controllers
-│   │   │   ├── AdminBaseController.cs         # Base
-│   │   │   ├── AssignmentController.cs        # Phân công chỉ số
-│   │   │   ├── DashboardController.cs         # Dashboard quản trị
-│   │   │   ├── DepartmentController.cs        # Khoa/phòng
-│   │   │   ├── EmployeeController.cs          # Nhân viên
-│   │   │   ├── ExportController.cs            # Xuất dữ liệu
-│   │   │   ├── IndicatorController.cs         # Chỉ số chất lượng
-│   │   │   ├── NotificationController.cs      # Thông báo
-│   │   │   ├── ReportController.cs            # Báo cáo
-│   │   │   └── ReportingPeriodController.cs   # Kỳ báo cáo
-│   │   ├── Views/                             # 24 views
-│   │   │   ├── Assignment/ (4 views)
-│   │   │   ├── Dashboard/ (1 view)
-│   │   │   ├── Department/ (2 views)
-│   │   │   ├── Employee/ (3 views)
-│   │   │   ├── Indicator/ (3 views)
-│   │   │   ├── Notification/ (3 views)
-│   │   │   ├── Report/ (3 views)
-│   │   │   ├── ReportingPeriod/ (3 views)
-│   │   │   ├── Shared/_AdminLayout.cshtml
-│   │   │   ├── Web.config + _ViewStart.cshtml
-│   │   └── AdminAreaRegistration.cs
-│   └── User/                                  # ===== USER =====
-│       ├── Controllers/                       # 6 controllers
-│       │   ├── DashboardController.cs         # Dashboard khoa/phòng
-│       │   ├── ExportController.cs            # Xuất Excel
-│       │   ├── IndicatorController.cs         # Xem chỉ số
-│       │   ├── NotificationController.cs      # Xem thông báo
-│       │   ├── ReportController.cs            # Nhập/gửi báo cáo
-│       │   └── UserBaseController.cs          # Base
-│       ├── Views/                             # 12 views
-│       │   ├── Dashboard/ (1 view)
-│       │   ├── Indicator/ (2 views)
-│       │   ├── Notification/ (2 views)
-│       │   ├── Report/ (3 views)
-│       │   ├── Shared/_UserLayout.cshtml
-│       │   ├── Web.config + _ViewStart.cshtml
-│       └── UserAreaRegistration.cs
-├── Content/                                   # CSS
-│   ├── bootstrap.css / bootstrap.min.css      # Bootstrap 5
-│   ├── bootstrap-grid.*, bootstrap-reboot.*, bootstrap-utilities.*, bootstrap.rtl.* (variants)
-│   └── Site.css                               # Style tùy biến
-├── Controllers/                               # Root controllers (redirect wrappers)
-│   ├── AccountController.cs                   # Login/logout, profile
-│   ├── AssignmentController.cs                # Redirect → Admin
-│   ├── DashboardController.cs                 # Redirect → Admin/User
-│   ├── DepartmentController.cs                # Redirect → Admin
-│   ├── EmployeeController.cs                  # Redirect → Admin
-│   ├── ExportController.cs                    # Redirect → Admin/User
-│   ├── HomeController.cs                      # Landing page
-│   ├── IndicatorController.cs                 # Redirect → Admin/User
-│   ├── NotificationController.cs              # Redirect → Admin/User
-│   ├── PageController.cs                      # Session guard & phân quyền
-│   ├── ReportController.cs                    # Redirect → Admin/User
-│   └── ReportingPeriodController.cs           # Redirect → Admin
-├── Filters/                                   # (Rỗng, hiện không dùng)
-├── Models/
-│   ├── DTOs/                                  # 8 DTO files
-│   │   ├── AssignmentDtos.cs, DepartmentDtos.cs, EmployeeDtos.cs
-│   │   ├── ExportDtos.cs, IndicatorDtos.cs, NotificationDtos.cs
-│   │   └── ReportDtos.cs, ReportingPeriodDtos.cs
-│   ├── Entities/CoreEntities.cs              # Entity classes
-│   ├── Enums/SystemEnums.cs                  # Enum classes
-│   └── ViewModels/
-│       ├── AppViewModels.cs                   # ViewModel chính
-│       └── AuthViewModels.cs                  # ViewModel xác thực
-├── Properties/
-│   └── AssemblyInfo.cs
-├── Scripts/                                   # JavaScript
-│   ├── jquery-3.7.0.js / .min.js             # jQuery
-│   ├── jquery.validate.js / .min.js           # Validation
-│   ├── jquery.validate.unobtrusive.js / .min.js
-│   ├── modernizr-2.8.3.js
-│   ├── bootstrap.js / .min.js                 # Bootstrap 5
-│   ├── bootstrap.bundle.*, bootstrap.esm.*    # Variants
-│   └── *.map                                  # Source maps
-├── Services/                                  # 12 service files
-│   ├── AuthService.cs, DatabaseConfiguration.cs, DatabaseBootstrapper.cs, DbServiceBase.cs
-│   ├── ExcelImportExportService.cs, IndicatorServices.cs
-│   ├── ManagementServices.cs, NotificationExportServices.cs
-│   ├── PasswordHasher.cs, ReportDashboardServices.cs
-│   ├── ReportingPeriodServices.cs, SessionUserAccessor.cs
-├── Tai_Lieu/                                  # Tài liệu nghiệp vụ
-│   ├── *.md (BACKEND_TASKS, Lỗ hổng, Phan Tich Thiet Ke, ...)
-│   ├── *.docx, *.xlsx (file nguồn import)
-│   └── danh_sach_chuc_nang_admin_user.md
-├── Views/                                     # Root views
-│   ├── Account/ (AdminLogin, UserLogin, Profile)
-│   ├── Home/Index.cshtml
-│   └── Shared/_Layout.cshtml + Error.cshtml
-├── AGENTS.md                                  # Hướng dẫn làm việc
-├── Global.asax + Global.asax.cs               # Entry point
-├── HospitalQualityDashboard-demo.csproj
-├── implementation-notes.md                    # Nhật ký triển khai
-├── packages.config                            # NuGet
-├── PROJECT_CONTEXT.md                         # Bối cảnh kỹ thuật/nghiệp vụ
-├── TAI_LIEU_NGHIEP_VU.md                      # Tài liệu nghiệp vụ tổng hợp
-├── Web.config + Web.Debug.config + Web.Release.config
-├── Chức_năng.md                               # Danh sách chức năng chi tiết
-└── favicon.ico
+HospitalQualityDashboard-demo/
+├── HospitalQualityDashboard-demo.slnx
+├── README.md
+├── Chức_năng.md
+└── HospitalQualityDashboard-demo/
+    ├── App_Data/
+    │   └── Sql/
+    │       ├── 001_CreateSchema.sql
+    │       └── 002_PerformanceIndexes.sql
+    ├── App_Start/
+    │   ├── BundleConfig.cs
+    │   ├── FilterConfig.cs
+    │   └── RouteConfig.cs
+    ├── Areas/
+    │   ├── Admin/
+    │   │   ├── Controllers/
+    │   │   └── Views/
+    │   └── User/
+    │       ├── Controllers/
+    │       └── Views/
+    ├── Content/
+    ├── Controllers/
+    ├── Models/
+    │   ├── DTOs/
+    │   ├── Entities/
+    │   ├── Enums/
+    │   └── ViewModels/
+    ├── Scripts/
+    ├── Services/
+    ├── Tai_Lieu/
+    ├── Views/
+    ├── AGENTS.md
+    ├── ConnectionStrings.example.config
+    ├── Global.asax
+    ├── HospitalQualityDashboard-demo.csproj
+    ├── implementation-notes.md
+    ├── packages.config
+    ├── PROJECT_CONTEXT.md
+    ├── TAI_LIEU_NGHIEP_VU.md
+    └── Web.config
 ```
 
-## 3. Yêu Cầu Môi Trường
+Các controller nghiệp vụ chính nằm trong `Areas/Admin` và `Areas/User`. Các root controller trong `Controllers/` chủ yếu giữ vai trò redirect tương thích hoặc xử lý login/profile.
 
-Cài đặt:
+## 4. Yêu cầu môi trường
+
+Cài đặt tối thiểu:
 
 - Windows.
 - Visual Studio có workload ASP.NET/.NET Framework.
 - .NET Framework 4.7.2 Developer Pack hoặc Targeting Pack.
-- Azure SQL database đã tạo sẵn và firewall cho phép máy/dev server kết nối.
+- IIS Express.
+- Azure SQL hoặc SQL Server tương thích.
 - PowerShell 5+.
-- NuGet restore khả dụng trong Visual Studio hoặc MSBuild.
+- NuGet restore khả dụng trong Visual Studio hoặc dòng lệnh.
 
-MSBuild thường nằm tại:
+MSBuild thường nằm ở:
 
 ```powershell
 C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe
 ```
 
-Nếu máy dùng Visual Studio khác phiên bản, thay đường dẫn MSBuild tương ứng.
+Nếu máy dùng Visual Studio phiên bản khác, thay đường dẫn MSBuild tương ứng.
 
-## 4. Cấu Hình Database
+## 5. Cấu hình connection string
 
-Connection string được tách ra file `HospitalQualityDashboard-demo/ConnectionStrings.config`. `Web.config` chỉ tham chiếu file này bằng:
+File cấu hình thật `HospitalQualityDashboard-demo/ConnectionStrings.config` không được commit lên Git vì có thể chứa mật khẩu database.
+
+Repo chỉ commit file mẫu:
+
+```text
+HospitalQualityDashboard-demo/ConnectionStrings.example.config
+```
+
+### 5.1. Tạo file cấu hình local
+
+Từ thư mục gốc repo, copy file mẫu:
+
+```powershell
+Copy-Item .\HospitalQualityDashboard-demo\ConnectionStrings.example.config .\HospitalQualityDashboard-demo\ConnectionStrings.config
+```
+
+Sau đó mở `HospitalQualityDashboard-demo/ConnectionStrings.config` và thay các giá trị:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<connectionStrings>
+  <add name="HospitalQualityConnection"
+       connectionString="Server=tcp:YOUR_SERVER.database.windows.net,1433;Initial Catalog=YOUR_DATABASE;Persist Security Info=False;User ID=YOUR_USER;Password=YOUR_PASSWORD;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=60;ConnectRetryCount=3;ConnectRetryInterval=10;"
+       providerName="System.Data.SqlClient" />
+</connectionStrings>
+```
+
+Không đưa mật khẩu thật vào `ConnectionStrings.example.config`, README, issue, pull request hoặc ảnh chụp màn hình.
+
+### 5.2. Web.config tham chiếu connection string
+
+`Web.config` dùng:
 
 ```xml
 <connectionStrings configSource="ConnectionStrings.config" />
 ```
 
-File `ConnectionStrings.config` dùng connection name `HospitalQualityConnection`, ví dụ:
+Vì vậy khi chạy local phải có file `ConnectionStrings.config` nằm cùng cấp với `Web.config`.
 
-```xml
-<connectionStrings>
-  <add name="HospitalQualityConnection"
-       connectionString="Server=tcp:hqd-dev-sql-server.database.windows.net,1433;Initial Catalog=HospitalQualityConnection-1;Persist Security Info=False;User ID=hqd_admin;Password=YOUR_PASSWORD;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-       providerName="System.Data.SqlClient" />
-</connectionStrings>
+### 5.3. Kiểm tra lỗi connection string
+
+Nếu gặp lỗi:
+
+```text
+Missing connection string: HospitalQualityConnection.
 ```
 
-Không commit mật khẩu thật. Khi chạy local hoặc publish, thay `Password=YOUR_PASSWORD` bằng mật khẩu thật theo kênh cấu hình an toàn của môi trường.
+Kiểm tra:
 
-Bootstrap database đang tắt mặc định:
+- File `HospitalQualityDashboard-demo/ConnectionStrings.config` đã tồn tại chưa.
+- Tên connection string có đúng là `HospitalQualityConnection` không.
+- XML có đúng root `<connectionStrings>` không.
+- File có nằm đúng thư mục project, không phải thư mục repo root.
+
+Nếu gặp lỗi login/timeout Azure SQL:
+
+- Kiểm tra `Server`, `Initial Catalog`, `User ID`, `Password`.
+- Kiểm tra firewall của Azure SQL đã cho IP máy dev truy cập chưa.
+- Kiểm tra database đã tồn tại.
+- Kiểm tra user SQL có quyền đọc/ghi schema ứng dụng.
+
+## 6. Bootstrap database
+
+Ứng dụng có `DatabaseBootstrapper` để chạy script SQL khi được bật cấu hình.
+
+Các script chính:
+
+- `App_Data/Sql/001_CreateSchema.sql`: tạo schema ban đầu.
+- `App_Data/Sql/002_PerformanceIndexes.sql`: tạo index tối ưu hiệu năng, có `IF NOT EXISTS`.
+
+Mặc định bootstrap nên tắt:
 
 ```xml
 <add key="HospitalQualityBootstrapEnabled" value="false" />
 <add key="HospitalQualityBootstrapCreateDatabase" value="false" />
 ```
 
-Nếu cần tạo schema lần đầu trên Azure SQL database đã tồn tại, đổi tạm `HospitalQualityBootstrapEnabled=true` sau khi đã điền mật khẩu đúng. Bootstrapper sẽ kết nối trực tiếp vào database trong `Initial Catalog`, chạy script trong `HospitalQualityDashboard-demo/App_Data/Sql`, và seed tài khoản admin mẫu nếu bảng chưa tồn tại. Chỉ bật `HospitalQualityBootstrapCreateDatabase=true` khi login có quyền tạo database và bạn thật sự muốn app tự tạo database qua `master`.
+Chỉ bật `HospitalQualityBootstrapEnabled=true` khi cần tạo schema hoặc bổ sung index trên môi trường dev/test. Sau khi chạy xong nên tắt lại.
 
-Admin đầu tiên phải được tạo bằng quy trình nội bộ an toàn hoặc script riêng có mật khẩu sinh một lần, sau đó đổi/rotate theo chính sách vận hành. Không dùng credential mặc định trong môi trường thật.
+Chỉ bật `HospitalQualityBootstrapCreateDatabase=true` khi tài khoản SQL có quyền tạo database và bạn thật sự muốn ứng dụng tự tạo database qua `master`.
 
-## 5. Chạy Dự Án Bằng Visual Studio
+## 7. Restore, build và chạy dự án
 
-1. Mở thư mục repo hoặc mở project `HospitalQualityDashboard-demo/HospitalQualityDashboard-demo.csproj`.
-2. Restore NuGet packages nếu Visual Studio chưa tự restore.
-3. Chọn project `HospitalQualityDashboard-demo` làm startup project.
-4. Chạy bằng IIS Express.
-5. Mở:
+### 7.1. Mở bằng Visual Studio
+
+1. Clone repo.
+2. Tạo `ConnectionStrings.config` từ file mẫu.
+3. Mở `HospitalQualityDashboard-demo.slnx` hoặc `HospitalQualityDashboard-demo/HospitalQualityDashboard-demo.csproj`.
+4. Restore NuGet packages nếu Visual Studio chưa tự restore.
+5. Chọn project `HospitalQualityDashboard-demo` làm startup project.
+6. Chạy bằng IIS Express.
+
+URL thường gặp:
 
 ```text
 https://localhost:44387/
 ```
 
-Một số route hữu ích:
+Port có thể khác tùy IIS Express local.
 
-```text
-https://localhost:44387/Account/AdminLogin   # Đăng nhập Admin
-https://localhost:44387/Account/UserLogin    # Đăng nhập User
-https://localhost:44387/Admin/Dashboard      # Dashboard quản trị
-https://localhost:44387/Admin/Indicator      # Quản lý chỉ số
-https://localhost:44387/User/Report          # Báo cáo của khoa/phòng
-```
-
-Lưu ý: sau khi đợt tái cấu trúc tháng 06/2026, các route `/Dashboard`, `/Indicator`, `/Assignment`, `/Report`, `/Notification` vẫn được redirect từ root controller sang Area tương ứng để giữ tương thích ngược. Route chính thức là `/Admin/{controller}` và `/User/{controller}`.
-
-## 6. Build Bằng Command Line
+### 7.2. Build bằng command line
 
 Từ thư mục gốc repo:
 
 ```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:Platform=AnyCPU /m
 ```
 
-Build kèm kiểm tra Razor view:
+Kiểm tra Razor view:
 
 ```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildViews=true
+$target = Join-Path $env:TEMP "hqd-aspnet-compiled"
+if (Test-Path $target) { Remove-Item -Recurse -Force $target }
+& "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\aspnet_compiler.exe" -p ".\HospitalQualityDashboard-demo" -v / $target
+if (Test-Path $target) { Remove-Item -Recurse -Force $target }
 ```
 
-Nếu IIS Express hoặc Visual Studio đang giữ file trong `bin/obj` và build báo lỗi access denied, dùng output riêng để verify code mà không cần tắt app:
+Nếu IIS Express đang giữ DLL, tắt IIS Express/Visual Studio rồi build lại.
 
-```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:BaseIntermediateOutputPath=obj_unit\ /p:OutputPath=bin_unit\
+## 8. Đường dẫn sử dụng chính
+
+```text
+/                           Trang Home
+/Account/AdminLogin          Đăng nhập Admin
+/Account/UserLogin           Đăng nhập User
+/Account/Profile             Hồ sơ cá nhân
+/Admin/Dashboard             Dashboard Admin
+/Admin/Department            Khoa/phòng
+/Admin/Employee              Nhân viên
+/Admin/Indicator             Chỉ số chất lượng
+/Admin/Assignment            Phân công chỉ số
+/Admin/ReportingPeriod       Kỳ báo cáo
+/Admin/Report                Báo cáo Admin
+/Admin/Notification          Thông báo Admin
+/User/Dashboard              Dashboard User
+/User/Indicator              Chỉ số User được xem
+/User/Report                 Báo cáo của khoa/phòng
+/User/Notification           Thông báo User
 ```
 
-Build Razor view với output riêng:
+Root controller như `/Dashboard`, `/Report`, `/Notification` vẫn redirect vào Area tương ứng để giữ tương thích, nhưng route chính nên dùng `/Admin/...` hoặc `/User/...`.
 
-```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildViews=true /p:BaseIntermediateOutputPath=obj_unit\ /p:OutputPath=bin_unit\
-```
+## 9. Quy trình sử dụng cho Admin
 
-## 7. Quy Ước Chú Thích Code
+### 9.1. Chuẩn bị danh mục khoa/phòng
 
-Các file code tự viết của dự án đã được bổ sung chú thích tiếng Việt có dấu ở đầu file theo mẫu `Mục đích:`. Quy ước này giúp người đọc nhanh chóng hiểu vai trò của từng controller, service, view model, Razor view hoặc file cấu hình trước khi đi vào chi tiết.
+1. Đăng nhập Admin.
+2. Vào `Admin > Khoa/phòng`.
+3. Tạo khoa/phòng thủ công hoặc import Excel.
+4. Kiểm tra trạng thái `Used` để đảm bảo khoa/phòng đang được dùng trong dropdown/filter.
 
-Phạm vi chú thích:
+### 9.2. Quản lý nhân viên
 
-- Có chú thích: `Controllers`, `Services`, `Models`, `Filters`, `App_Start`, `Global.asax.cs`, `Properties/AssemblyInfo.cs` và các Razor view tự viết trong `Views`.
-- Không chú thích vào thư viện bên thứ ba như Bootstrap, jQuery, Modernizr hoặc file minified.
-- Comment trong code ưu tiên giải thích vai trò, luồng nghiệp vụ hoặc lý do xử lý; tránh mô tả lại từng dòng code hiển nhiên.
+1. Vào `Admin > Nhân viên`.
+2. Chọn khoa/phòng nếu muốn lọc.
+3. Thêm nhân viên thủ công hoặc import Excel.
+4. Với nhân viên chưa có tài khoản, bấm `Tạo tài khoản`.
+5. Khóa/mở khóa nhân viên khi cần.
 
-## 8. Dữ Liệu Nguồn Và Import
+Danh sách nhân viên đã có phân trang server-side, mặc định 20 dòng/trang.
 
-Các file tài liệu/nghiệp vụ nằm trong:
+### 9.3. Quản lý chỉ số chất lượng
+
+1. Vào `Admin > Chỉ số`.
+2. Thêm/sửa chỉ số thủ công.
+3. Import chỉ số từ Excel/Word nếu có file chuẩn.
+4. Kiểm tra tần suất báo cáo, đơn vị tính, loại công thức, mục tiêu.
+
+Dropdown chỉ số dùng query nhẹ và cache ngắn hạn 5 phút để giảm tải Azure SQL.
+
+### 9.4. Phân công chỉ số
+
+1. Vào `Admin > Phân công`.
+2. Chọn một hoặc nhiều khoa/phòng.
+3. Chọn một hoặc nhiều chỉ số.
+4. Xem preview để tránh phân công trùng.
+5. Xác nhận phân công.
+6. Có thể tạm dừng, kích hoạt, xóa hoặc thao tác hàng loạt.
+
+### 9.5. Tạo và mở kỳ báo cáo
+
+Có hai cách:
+
+- Tạo thủ công từng kỳ trong `Admin > Kỳ báo cáo`.
+- Tạo lịch tự động theo năm/tần suất trong màn hình tạo lịch.
+
+Các trạng thái kỳ:
+
+| Trạng thái | Ý nghĩa |
+|---|---|
+| Nhập | Kỳ đã tạo nhưng chưa mở cho User nhập. |
+| Mở | User có thể nhập và gửi báo cáo. |
+| Khóa | User không tiếp tục nhập/sửa báo cáo. |
+
+Ứng dụng không tự chạy mở kỳ khi vào Dashboard/Report. Nếu cần mở các kỳ đã đến hạn, dùng action/nút thủ công trong module Kỳ báo cáo hoặc Thông báo.
+
+### 9.6. Theo dõi báo cáo
+
+1. Vào `Admin > Báo cáo`.
+2. Lọc theo kỳ, khoa/phòng, chỉ số.
+3. Xem báo cáo đã gửi, quá hạn, đã khóa.
+4. Khóa báo cáo nếu cần chốt dữ liệu.
+5. Xóa báo cáo nếu nghiệp vụ cho phép.
+
+Danh sách báo cáo đã có phân trang server-side, mặc định 20 dòng/trang.
+
+### 9.7. Gửi và kiểm tra thông báo
+
+1. Vào `Admin > Thông báo`.
+2. Gửi thông báo thủ công đến khoa/phòng.
+3. Chạy kiểm tra tự động để tạo thông báo nhắc hạn/quá hạn.
+4. Xem danh sách thông báo theo trang.
+
+## 10. Quy trình sử dụng cho User khoa/phòng
+
+### 10.1. Đăng nhập
+
+1. Vào `/Account/UserLogin`.
+2. Đăng nhập bằng tài khoản được Admin tạo từ nhân viên.
+3. Kiểm tra menu chỉ hiển thị chức năng thuộc User.
+
+### 10.2. Xem Dashboard
+
+Dashboard User chỉ hiển thị dữ liệu trong phạm vi khoa/phòng của tài khoản đăng nhập:
+
+- Chỉ số được phân công.
+- Báo cáo đã gửi.
+- Báo cáo còn thiếu.
+- Báo cáo quá hạn.
+- Danh sách cảnh báo thiếu báo cáo.
+
+### 10.3. Nhập báo cáo
+
+1. Vào `User > Báo cáo`.
+2. Chọn kỳ báo cáo đang mở.
+3. Bấm nhập báo cáo.
+4. Nhập tử số/mẫu số hoặc giá trị trực tiếp tùy loại công thức.
+5. Bấm `Lưu nháp` nếu chưa muốn gửi.
+6. Bấm `Gửi` khi hoàn tất.
+
+Sau khi gửi, báo cáo chuyển sang trạng thái đã gửi hoặc quá hạn tùy ngày gửi so với hạn nộp.
+
+### 10.4. Xem thông báo
+
+1. Vào `User > Thông báo`.
+2. Mở chi tiết thông báo.
+3. Với thông báo nhắc hạn/quá hạn, xem danh sách chỉ số còn thiếu nếu có.
+4. Thông báo được đánh dấu đã đọc theo tài khoản.
+
+Danh sách thông báo đã có phân trang server-side, mặc định 20 dòng/trang.
+
+### 10.5. Cập nhật hồ sơ
+
+1. Vào `/Account/Profile`.
+2. Cập nhật họ tên, ngày sinh, giới tính, chức vụ, email, số điện thoại.
+3. Đổi mật khẩu nếu cần.
+
+## 11. Import dữ liệu
+
+File mẫu/tài liệu nguồn nằm trong:
 
 ```text
 HospitalQualityDashboard-demo/Tai_Lieu/
 ```
 
-Các chức năng import chính:
+### 11.1. Import khoa/phòng
 
-- Khoa/phòng từ Excel.
-- Nhân viên từ Excel.
-- Chỉ số từ Excel/Word.
+File cần có các cột hệ thống mong đợi như ID, IDKHOAPHONG, TENKHOAPHONG, USED. Sau import, danh sách khoa/phòng trong dropdown được xóa cache để cập nhật lại.
 
-Import chỉ số hiện hỗ trợ:
+### 11.2. Import nhân viên
 
-- Đọc bảng chỉ số từ DOCX.
-- Map nhãn tiếng Việt sang field hệ thống.
-- Nhận diện nhiều tần suất báo cáo.
-- Nhận diện nhiều khoa/phòng từ `ThuThapTongHop`.
-- Suy luận `LoaiCongThuc` khi file không khai báo rõ.
-- Suy luận `DonViTinh` khi file không có cột đơn vị tính.
+Import nhân viên hỗ trợ:
 
-Với file `Phân chia các chỉ số dựa theo đơn vị thu thập và tổng hợp.docx`, hệ thống tự gán đủ đơn vị tính cho 55 chỉ số khi import mới. Dữ liệu đã import trước khi có logic này cần import lại hoặc chạy cập nhật bổ sung để điền `DonViTinh`.
+- Import theo khoa/phòng đang chọn.
+- Import toàn viện nếu file có thông tin khoa/phòng.
+- Tạo/cập nhật nhân viên theo mã nhân viên.
+- Tạo tài khoản User mặc định nếu nhân viên chưa có tài khoản.
 
-## 9. Test Và Verification
+Lưu ý: import nhân viên có thể mất thời gian nếu file lớn hoặc Azure SQL phản hồi chậm. Chức năng này chưa được chuyển sang background job.
 
-Hiện repository không còn giữ các script verify tạm trong `tools/`. Cách kiểm tra chính là build project và build kèm Razor view:
+### 11.3. Import chỉ số
 
-```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildViews=true
+Import chỉ số hỗ trợ:
+
+- Excel.
+- Word `.docx` dạng bảng.
+- Đọc tên chỉ số, mã chỉ số, định nghĩa, công thức, nguồn số liệu.
+- Đọc nhiều tần suất báo cáo.
+- Suy luận loại công thức khi file không khai báo rõ.
+- Suy luận đơn vị tính khi file không có cột đơn vị tính.
+- Phân công theo mô tả thu thập/tổng hợp nếu dữ liệu đủ rõ.
+
+## 12. Export dữ liệu
+
+Các màn hình Admin/User có nút xuất Excel tùy module:
+
+- Nhân viên.
+- Báo cáo.
+- Phân công.
+- Các danh sách nghiệp vụ khác nếu controller export hỗ trợ.
+
+Khi export báo cáo, nên dùng filter trước để giảm dung lượng file và thời gian truy vấn.
+
+## 13. Hiệu năng và vận hành Azure SQL
+
+Các tối ưu hiện có:
+
+- Session không gọi lại DB ở mọi request; revalidate sau 5 phút hoặc khi thiếu dữ liệu bắt buộc.
+- Dropdown ít đổi có cache 5 phút.
+- Query dropdown chỉ lấy cột cần thiết.
+- Dashboard dùng query tổng hợp/CTE thay vì nhiều round-trip nhỏ.
+- Danh sách nhân viên, báo cáo, thông báo có phân trang server-side.
+- `DbServiceBase` có `CommandTimeout` mặc định 30 giây.
+- Dashboard dùng timeout 60 giây.
+- Không tự chạy bảo trì kỳ báo cáo khi mở Dashboard/Report.
+- Script index hiệu năng nằm ở `App_Data/Sql/002_PerformanceIndexes.sql`.
+
+Các index được đề xuất/tạo idempotent:
+
+- `BaoCao(KyBaoCaoId, KhoaPhongId, ChiSoChatLuongId, TrangThai)`
+- `PhanCongChiSo(KhoaPhongId, DangHoatDong, ChiSoChatLuongId)`
+- `ChiSoTanSuatBaoCao(ChiSoChatLuongId, TanSuatBaoCao)`
+- `ThongBaoNguoiNhan(TaiKhoanId, DaDoc)`
+- `NhanVien(KhoaPhongId, HoTen)`
+
+Nếu database Azure SQL đã tồn tại từ trước, hãy chạy script index trên database thật hoặc bật bootstrap có kiểm soát ở môi trường dev/test.
+
+## 14. Bảo mật
+
+- Không commit `ConnectionStrings.config`.
+- Không commit password, token, file dump database, file bệnh án hoặc dữ liệu nhạy cảm.
+- Không đưa connection string thật vào ảnh chụp màn hình.
+- Sau khi lộ password trong Git history, cần rotate password Azure SQL và rewrite history nếu muốn xóa khỏi lịch sử public/private remote.
+- Phân quyền Admin/User phải kiểm tra ở server-side, không chỉ ẩn nút ở Razor.
+- Khi rewrite Git history, dùng `--force-with-lease`, không dùng `--force` thường.
+
+## 15. Kiểm tra thủ công sau khi thay đổi code
+
+### Admin
+
+1. Đăng nhập Admin.
+2. Mở Dashboard, kiểm tra số liệu tổng quan.
+3. Mở Nhân viên, kiểm tra filter và phân trang.
+4. Mở Báo cáo, kiểm tra filter và phân trang.
+5. Mở Thông báo, kiểm tra phân trang.
+6. Tạo/sửa khoa phòng.
+7. Tạo/sửa nhân viên.
+8. Tạo tài khoản User.
+9. Import một file nhỏ để kiểm tra luồng import.
+10. Tạo kỳ báo cáo.
+11. Chạy mở kỳ báo cáo thủ công nếu cần.
+12. Xuất Excel một danh sách có filter.
+
+### User
+
+1. Đăng nhập User.
+2. Mở Dashboard, kiểm tra chỉ thấy dữ liệu khoa/phòng của mình.
+3. Mở Báo cáo, nhập nháp.
+4. Gửi báo cáo.
+5. Mở Thông báo và xem chi tiết.
+6. Cập nhật hồ sơ cá nhân.
+7. Đổi mật khẩu.
+
+## 16. Lỗi thường gặp
+
+### Missing connection string
+
+Thông báo:
+
+```text
+Missing connection string: HospitalQualityConnection.
 ```
 
-Sau khi build, kiểm thử thủ công các luồng chính ở phần checklist bên dưới.
+Cách xử lý:
 
-## 10. Checklist Test Thủ Công Trên Trình Duyệt
+- Copy `ConnectionStrings.example.config` thành `ConnectionStrings.config`.
+- Đảm bảo file nằm trong `HospitalQualityDashboard-demo/`.
+- Đảm bảo connection name đúng là `HospitalQualityConnection`.
 
-### 10.1. Admin
-
-1. Đăng nhập tại `/Account/AdminLogin` bằng tài khoản Admin do môi trường test tạo riêng.
-2. Vào Dashboard, kiểm tra thống kê tổng quan.
-3. Vào Khoa/phòng, tạo/sửa/tạm dừng một khoa phòng thử nghiệm.
-4. Vào Nhân viên, tạo nhân viên và tạo tài khoản User từ nhân viên.
-5. Vào Chỉ số, tạo chỉ số mới và kiểm tra validation bắt buộc.
-6. Import file chỉ số Word/Excel, kiểm tra `LoaiCongThuc`, `DonViTinh`, tần suất và trường `ThuThapTongHop`.
-7. Vào Phân công, chọn nhiều khoa/phòng và nhiều chỉ số, kiểm tra preview AJAX.
-8. Kiểm tra tạm dừng, kích hoạt, xóa đơn lẻ và thao tác hàng loạt.
-9. Bấm xuất Excel ở trang Phân công, chọn một số cột và kiểm tra file tải về.
-10. Tạo kỳ báo cáo đang mở với tần suất phù hợp.
-11. Vào Báo cáo, kiểm tra Admin chỉ thấy báo cáo đã gửi/gửi trễ/đã khóa, không thấy bản nháp của User.
-12. Vào Thông báo, gửi thông báo thủ công hoặc chạy kiểm tra thông báo tự động.
-
-### 10.2. User khoa/phòng
-
-1. Đăng nhập tại `/Account/UserLogin` bằng tài khoản User đã tạo.
-2. Kiểm tra menu chỉ còn Tổng quan, Báo cáo của tôi, Thông báo, Đổi mật khẩu, Đăng xuất.
-3. Kiểm tra Dashboard chỉ hiển thị dữ liệu thuộc khoa/phòng của User.
-4. Vào Báo cáo của tôi, kiểm tra kỳ báo cáo được lọc theo tần suất chỉ số của khoa/phòng.
-5. Nhập báo cáo dạng tỷ lệ/tỷ số, kiểm tra mẫu số bằng 0 bị chặn.
-6. Nhập báo cáo dạng số lượng/thời gian/giá trị trực tiếp.
-7. Lưu nháp, đăng xuất/đăng nhập lại và kiểm tra dữ liệu nháp còn tồn tại.
-8. Gửi báo cáo, kiểm tra sau khi gửi giao diện chuyển sang chỉ đọc.
-9. Nếu gửi sau hạn, kiểm tra trạng thái là `QuaHan`.
-10. Mở thông báo có link chi tiết, kiểm tra danh sách chỉ số còn thiếu và trạng thái đã đọc.
-
-### 10.3. Inspect, Storage và session
-
-Khi cần kiểm tra trạng thái đăng nhập trên trình duyệt:
-
-1. Chạy app bằng IIS Express, thường tại `https://localhost:44387/`.
-2. Mở DevTools bằng `F12` hoặc `Ctrl + Shift + I`.
-3. Vào tab `Application` > `Storage` > `Cookies` > domain local của app.
-4. Kiểm tra cookie `ASP.NET_SessionId`. Cookie này chỉ chứa mã session; các giá trị như `TaiKhoanId`, `LoaiTaiKhoan`, `KhoaPhongId` được lưu phía server qua `SessionUserAccessor`.
-5. Nếu cột `Expires / Max-Age` hiển thị `Session`, cookie sẽ hết khi đóng phiên trình duyệt. Timeout server-side hiện chưa khai báo rõ trong `Web.config`, nên ASP.NET dùng mặc định khoảng 20 phút không hoạt động.
-6. Sau logout, truy cập lại trang cần đăng nhập như `/Dashboard`; hệ thống phải chuyển về trang login.
-
-## 11. Lỗi Thường Gặp
-
-### Không kết nối được Azure SQL
-
-Kiểm tra các điểm sau:
-
-- `ConnectionStrings.config` có đúng `Server`, `Initial Catalog`, `User ID` và mật khẩu thật.
-- Azure SQL firewall đã cho phép IP của máy đang chạy app hoặc môi trường deploy.
-- Database trong `Initial Catalog` đã tồn tại, trừ khi bạn bật `HospitalQualityBootstrapCreateDatabase=true`.
-- Login có quyền đọc/ghi schema ứng dụng và chạy script bootstrap nếu bạn bật `HospitalQualityBootstrapEnabled=true`.
-
-### Build lỗi access denied ở `bin` hoặc `obj`
-
-Thường do IIS Express hoặc Visual Studio đang giữ DLL. Có 2 cách:
-
-- Dừng IIS Express/Visual Studio rồi build lại.
-- Dùng output riêng `obj_unit/bin_unit` như mục build command line.
-
-### VerifyIndicatorFormulaImport báo thiếu DLL
-
-Build project trước khi chạy script:
-
-```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug
-```
-
-Nếu build bằng `bin_unit`, set `HQD_APP_ASSEMBLY` như mục 9.2.
-
-### Import DOCX xong dữ liệu cũ vẫn thiếu đơn vị
-
-Logic mới chỉ áp dụng khi import/chạy build model từ dòng import. Các bản ghi đã import trước đó cần import lại hoặc cập nhật lại dữ liệu trong database.
-
-## 12. Tài Liệu Tham Khảo Trong Repo
-
-- `HospitalQualityDashboard-demo/PROJECT_CONTEXT.md`: bối cảnh tổng quan.
-- `HospitalQualityDashboard-demo/TAI_LIEU_NGHIEP_VU.md`: nghiệp vụ hệ thống.
-- `HospitalQualityDashboard-demo/implementation-notes.md`: nhật ký triển khai.
-- `HospitalQualityDashboard-demo/Tai_Lieu/Phan Tich Thiet Ke He Thong Chi Tiet.md`: tài liệu phân tích thiết kế.
-- `HospitalQualityDashboard-demo/Tai_Lieu/Yeu Cau Nghiep Vu BA.md`: tài liệu yêu cầu BA.
-
-## 13. Cập Nhật Chức Năng Tạo Lịch Kỳ Báo Cáo Tự Động
-
-Từ ngày 30/05/2026, hệ thống bổ sung chức năng **Tạo lịch tự động** cho module Kỳ báo cáo. Chức năng này giúp Admin không phải tạo từng kỳ thủ công, nhưng vẫn giữ nguyên nguyên tắc dữ liệu sạch: hệ thống chỉ tạo các dòng `KyBaoCao`, không tạo trước các dòng `BaoCao` rỗng.
-
-### 13.1. Luồng sử dụng cho Admin
-
-1. Admin đăng nhập và vào menu **Kỳ báo cáo**.
-2. Bấm **Tạo lịch tự động**.
-3. Chọn năm cần tạo lịch.
-4. Chọn một hoặc nhiều loại kỳ:
-   - Hàng ngày.
-   - Hàng tháng.
-   - Hàng quý.
-   - 6 tháng.
-   - 9 tháng.
-   - Hàng năm.
-5. Bấm **Xem trước** để hệ thống hiển thị danh sách kỳ dự kiến.
-6. Kiểm tra các dòng **Sẽ tạo mới** và **Đã tồn tại**.
-7. Bấm **Tạo các kỳ chưa tồn tại** để lưu các kỳ mới.
-
-### 13.2. Quy tắc thời gian mở, đóng và hạn nộp
-
-Hệ thống xem `TuNgay` là thời điểm mở kỳ lúc **00:00** của ngày bắt đầu, và xem `DenNgay`/`HanNop` là thời điểm đóng/hết hạn lúc **23:59** của ngày kết thúc.
+### Invalid object name
 
 Ví dụ:
 
-| Loại kỳ | Tên kỳ | Mở lúc | Đóng lúc | Hạn nộp cuối cùng |
-|---|---|---|---|---|
-| Hàng ngày | Ngày 30/05/2026 | 30/05/2026 00:00 | 30/05/2026 23:59 | 30/05/2026 23:59 |
-| Hàng tháng | Tháng 06/2026 | 01/06/2026 00:00 | 30/06/2026 23:59 | 30/06/2026 23:59 |
-| Hàng quý | Quý II/2026 | 01/04/2026 00:00 | 30/06/2026 23:59 | 30/06/2026 23:59 |
-| 6 tháng | 6 tháng cuối năm 2026 | 01/07/2026 00:00 | 31/12/2026 23:59 | 31/12/2026 23:59 |
-| 9 tháng | 9 tháng năm 2026 | 01/01/2026 00:00 | 30/09/2026 23:59 | 30/09/2026 23:59 |
-| Hàng năm | Năm 2026 | 01/01/2026 00:00 | 31/12/2026 23:59 | 31/12/2026 23:59 |
+```text
+Invalid object name 'dbo.KyBaoCao'
+```
 
-Vì cột `KyBaoCao.HanNop` trong database đang lưu kiểu `DATE`, thời điểm `23:59` được hiểu theo quy ước nghiệp vụ và hiển thị ở giao diện. Khi User gửi báo cáo, hệ thống so sánh theo ngày: chỉ khi ngày hiện tại lớn hơn ngày hạn nộp thì báo cáo mới bị đánh trạng thái `QuaHan`.
+Cách xử lý:
 
-### 13.3. Quy tắc bỏ qua kỳ cũ
+- Database chưa có schema.
+- Chạy `001_CreateSchema.sql` hoặc bật bootstrap có kiểm soát.
+- Kiểm tra app đang trỏ đúng `Initial Catalog`.
 
-Khi tạo lịch cho năm hiện tại, hệ thống bỏ qua các kỳ đã kết thúc trước hôm nay.
+### Execution Timeout Expired
 
-Ví dụ nếu hôm nay là **30/05/2026**:
+Nguyên nhân thường gặp:
 
-- Tạo lịch hàng ngày năm 2026 sẽ bắt đầu từ **Ngày 30/05/2026**, không tạo các ngày 01/01/2026 đến 29/05/2026.
-- Tạo lịch hàng tháng năm 2026 sẽ không tạo Tháng 01, 02, 03, 04/2026 vì các kỳ này đã kết thúc.
-- Tháng 05/2026 vẫn được đưa vào preview vì ngày 30/05/2026 vẫn nằm trong kỳ.
-- Các kỳ tương lai như Tháng 06/2026, Quý III/2026 hoặc 6 tháng cuối năm 2026 được tạo ở trạng thái **Nhập**.
+- Azure SQL phản hồi chậm.
+- Thiếu index.
+- Query trả quá nhiều dòng.
+- Import file lớn chạy đồng bộ trong request.
 
-### 13.4. Quy tắc trạng thái kỳ
+Cách xử lý:
 
-Giao diện hiển thị tiếng Việt:
+- Đảm bảo đã có `002_PerformanceIndexes.sql`.
+- Dùng filter và phân trang.
+- Kiểm tra firewall/region Azure SQL.
+- Với import lớn, chia file nhỏ hơn hoặc tối ưu riêng luồng import.
 
-| Enum trong code | Hiển thị | Ý nghĩa |
-|---|---|---|
-| `Nhap` | Nhập | Kỳ đã được tạo nhưng chưa tới ngày bắt đầu, User chưa nhập báo cáo. |
-| `Mo` | Mở | Kỳ đã tới ngày bắt đầu, User có thể nhập và gửi báo cáo. |
-| `Khoa` | Khóa | Kỳ đã bị khóa, User không tiếp tục nhập/sửa báo cáo. |
+### GitHub vẫn hiện contributor Claude
 
-Khi tạo lịch tự động:
+Nguyên nhân thường gặp:
 
-- Kỳ có `TuNgay <= hôm nay` được tạo hoặc tự chuyển sang **Mở**.
-- Kỳ có `TuNgay > hôm nay` được tạo ở trạng thái **Nhập**.
-- Hệ thống tự mở các kỳ đến ngày bắt đầu khi app khởi động hoặc khi người dùng truy cập Dashboard, Báo cáo, Kỳ báo cáo, Thông báo.
+- Commit message cũ có `Co-Authored-By: Claude ...`.
+- Branch khác vẫn trỏ tới commit cũ.
+- GitHub contributor graph còn cache.
 
-### 13.5. Nguyên tắc không tạo báo cáo rỗng
-
-Chức năng tạo lịch tự động chỉ tạo dữ liệu trong bảng `KyBaoCao`. Hệ thống không tạo trước bản ghi trong bảng `BaoCao`.
-
-Danh sách việc User cần báo cáo vẫn được tính động bằng cách kết hợp:
-
-- kỳ báo cáo đang **Mở**;
-- tần suất của kỳ;
-- chỉ số đang hoạt động;
-- phân công chỉ số đang hoạt động;
-- khoa/phòng của User;
-- báo cáo thực tế đã lưu/gửi hay chưa.
-
-Chỉ khi User bấm **Lưu nháp** hoặc **Gửi báo cáo**, hệ thống mới tạo bản ghi `BaoCao` thật.
-
-### 13.6. Kiểm tra chức năng tạo lịch
-
-Checklist cần kiểm tra:
-
-- có ViewModel tạo lịch tự động;
-- có màn hình `Views/ReportingPeriod/GenerateSchedule.cshtml`;
-- có action preview và tạo lịch trong `ReportingPeriodController`;
-- có service tạo lịch và tự mở kỳ;
-- có loại kỳ hàng ngày, hàng tháng, hàng quý, 6 tháng, 9 tháng, hàng năm;
-- không tạo lịch cho `KhiPhatSinh` và `TruocSauKhiThucHien`;
-- bỏ qua kỳ đã kết thúc trước hôm nay;
-- hạn nộp mặc định bằng ngày kết thúc kỳ;
-- UI hiển thị trạng thái tiếng Việt và ghi chú 00:00/23:59.
-
-Nên chạy thêm build Razor view:
+Cách kiểm tra:
 
 ```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildViews=true
+git log --remotes --format="%H%n%B%n---END---" | Select-String -Pattern "Claude|noreply@anthropic.com"
 ```
+
+Nếu không còn kết quả trên remote branches, thường chỉ cần chờ GitHub cập nhật cache.
+
+## 17. Quy ước commit
+
+Gợi ý format:
+
+```text
+feat: add reporting period schedule
+fix: handle missing Azure SQL connection string
+perf: optimize dashboard reads and paginated lists
+docs: update project usage guide
+chore: ignore local connection strings config
+```
+
+Không thêm trailer `Co-Authored-By` nếu không muốn GitHub hiển thị thêm contributor.
