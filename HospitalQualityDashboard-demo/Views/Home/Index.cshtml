@@ -1,0 +1,19 @@
+﻿@* Mục đích: trang đầu vào điều hướng người dùng theo trạng thái đăng nhập. *@
+@{
+    ViewBag.Title = "Trang chủ";
+}
+
+<main class="py-4">
+    <h1>Bảng điều khiển chất lượng bệnh viện</h1>
+    <p class="lead">Hệ thống quản lý chỉ số chất lượng, phân công khoa/phòng và báo cáo định kỳ.</p>
+    @if (Session["TaiKhoanId"] == null)
+    {
+        @Html.ActionLink("Đăng nhập User", "UserLogin", "Account", null, new { @class = "btn btn-primary" })
+        @Html.ActionLink("Đăng nhập Admin", "AdminLogin", "Account", null, new { @class = "btn btn-outline-dark ms-2" })
+    }
+    else
+    {
+        var area = Convert.ToString(Session["LoaiTaiKhoan"]) == "Admin" ? "Admin" : "User";
+        @Html.ActionLink("Vào tổng quan", "Index", "Dashboard", new { area }, new { @class = "btn btn-primary" })
+    }
+</main>

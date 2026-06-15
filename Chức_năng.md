@@ -1,5 +1,5 @@
 
-# Danh sách chức năng và cấu trúc dự án HospitalQualityDashboard
+# Danh sách chức năng và cấu trúc dự án HospitalQualityDashboard-demo
 
 ## 1. Danh sách chức năng và tên nhánh tương ứng
 
@@ -25,7 +25,7 @@
 | Xem thông báo (User) | feature/user-notification-view |
 | Đổi mật khẩu | feature/change-password |
 | Cập nhật thông tin profile | feature/update-profile |
-| Xuất báo cáo CSV cho User | feature/user-export-reports |
+| Xuất báo cáo Excel cho User | feature/user-export-reports |
 | Khởi tạo CSDL tự động (DatabaseBootstrapper) | feature/database-bootstrap |
 | BaseController kiểm tra session và phân quyền (PageController) | feature/session-management |
 | Tính toán chỉ số tự động (IndicatorCalculationService) | feature/indicator-calculation |
@@ -152,13 +152,15 @@
   - Thống kê theo khoa/phòng
   - Thống kê theo chỉ số
   - Hiển thị biểu đồ cột (Chart.js) so sánh tiến độ các khoa/phòng
-  - Lọc theo kỳ báo cáo, khoa/phòng, chỉ số
-  - **Xuất file Excel/CSV** (qua `Areas/Admin/Controllers/ExportController.cs`):
-    - Xuất danh sách khoa/phòng (CSV)
-    - Xuất danh sách nhân viên (CSV, có lọc theo khoa)
-    - Xuất danh sách chỉ số chất lượng (CSV)
-    - Xuất phân công chỉ số (XLSX, có lọc theo khoa/chỉ số/trạng thái, chọn cột)
-    - Xuất báo cáo (CSV, có lọc theo kỳ/khoa/chỉ số)
+  - **Lọc theo Tần suất báo cáo** (dropdown Hàng tháng, Hàng quý, 6 tháng, Hàng năm, Tất cả) tự động cập nhật thống kê, biểu đồ và danh sách khoa/phòng
+  - Hiển thị các cột tiến độ nâng cao: Số báo cáo lưu nháp, Số báo cáo còn thiếu, Xếp loại hoàn thành tổng quan và tiến độ chi tiết từng tần suất chính kèm Badge màu tương ứng (Xuất sắc, Khá, Trung bình, Yếu, N/A)
+  - **Xuất file Excel (.xlsx)** (qua `Areas/Admin/Controllers/ExportController.cs`):
+    - Xuất danh sách khoa/phòng (Excel)
+    - Xuất danh sách nhân viên (Excel, có lọc theo khoa)
+    - Xuất danh sách chỉ số chất lượng (Excel)
+    - Xuất phân công chỉ số (Excel, có lọc theo khoa/chỉ số/trạng thái, chọn cột)
+    - Xuất báo cáo (Excel, có lọc theo kỳ/khoa/chỉ số)
+    - **Xuất Excel Tiến độ Dashboard** (hỗ trợ lọc theo Tần suất và tùy chọn bật/tắt các cột xuất nâng cao: Nháp, Còn thiếu, Xếp loại tổng thể, Tiến độ & Xếp loại Hàng tháng/Hàng quý/Hàng năm)
 
 ---
 
@@ -192,7 +194,7 @@
   - Lưu báo cáo ở trạng thái nháp
   - Gửi báo cáo
   - Xem trạng thái báo cáo (nháp, đã gửi, quá hạn)
-  - **Xuất báo cáo CSV** (qua `Areas/User/Controllers/ExportController.cs`, lọc theo kỳ/chỉ số)
+  - **Xuất báo cáo Excel** (qua `Areas/User/Controllers/ExportController.cs`, lọc theo kỳ/chỉ số)
   - *Lưu ý: Chưa cần chức năng sửa báo cáo bị trả lại và đính kèm file minh chứng*
 
 ---
@@ -252,29 +254,12 @@
   - Tự động gửi thông báo quá hạn
   - Ghi nhận lịch sử gửi thông báo tự động
 
-### 2.21 Hệ thống - Script kiểm thử (tools/)
-- **Thư mục**: `tools/`
-- **Danh sách script PowerShell xác minh**:
-  - `VerifyAreasAndDtos.ps1` — Kiểm tra cấu trúc Areas, Controllers và DTOs
-  - `VerifyAssignmentExcelExport.ps1` — Kiểm tra xuất Excel phân công chỉ số
-  - `VerifyDatabaseBootstrapper.ps1` — Kiểm tra khởi tạo CSDL
-  - `VerifyEmployeeAccountButton.ps1` — Kiểm tra nút tạo tài khoản nhân viên
-  - `VerifyExcelParser.ps1` — Kiểm tra parse Excel import
-  - `VerifyIndicatorDepartmentAssignmentParser.ps1` — Kiểm tra phân tích phân công từ file chỉ số
-  - `VerifyIndicatorFormulaImport.ps1` — Kiểm tra import công thức chỉ số
-  - `VerifyIndicatorFrequencyParser.ps1` — Kiểm tra parse tần suất báo cáo
-  - `VerifyLockedEmployeeLogin.ps1` — Kiểm tra chặn đăng nhập tài khoản bị khóa
-  - `VerifyMvc4Configuration.ps1` — Kiểm tra cấu hình MVC 4
-  - `VerifyProfilePage.ps1` — Kiểm tra trang hồ sơ cá nhân
-  - `VerifyReportAuditLog.ps1` — Kiểm tra audit log báo cáo
-  - `VerifyReportingPeriodSchedule.ps1` — Kiểm tra tạo lịch kỳ báo cáo
-  - `VerifyReportPeriodVisibility.ps1` — Kiểm tra hiển thị kỳ báo cáo theo khoa/phòng
-  - `VerifyReportWorkflowAndNotifications.ps1` — Kiểm tra luồng báo cáo và thông báo
-  - `VerifySecurityHardening.ps1` — Kiểm tra bảo mật
-  - `VerifyVisualRefresh.ps1` — Kiểm tra giao diện
+### 2.21 Hệ thống - Kiểm thử
+- Các script PowerShell xác minh tạm trong `tools/` đã được xóa khỏi repository vì chỉ còn file rỗng/placeholder.
+- Kiểm tra hiện tại thực hiện bằng build project, build Razor view và checklist test thủ công.
 
 ```
-HospitalQualityDashboard/
+HospitalQualityDashboard-demo/
 ├── App_Data/
 │   ├── Sql/
 │   │   └── 001_CreateSchema.sql
@@ -438,32 +423,14 @@ HospitalQualityDashboard/
 │   │   └── _Layout.cshtml
 │   ├── Web.config
 │   └── _ViewStart.cshtml
-├── docs/                     # Da xoa (superpowers plans/specs cu)
+├── docs/                     # Con ton dong (superpowers plans/specs cu can xoa tiep)
 ├── cleanup.ps1              # Script don dep file du thua
 ├── implementation-notes.md
 ├── packages.config
-├── tools/
-│   ├── VerifyAreasAndDtos.ps1
-│   ├── VerifyAssignmentExcelExport.ps1
-│   ├── VerifyDatabaseBootstrapper.ps1
-│   ├── VerifyEmployeeAccountButton.ps1
-│   ├── VerifyExcelParser.ps1
-│   ├── VerifyIndicatorDepartmentAssignmentParser.ps1
-│   ├── VerifyIndicatorFormulaImport.ps1
-│   ├── VerifyIndicatorFrequencyParser.ps1
-│   ├── VerifyLockedEmployeeLogin.ps1
-│   ├── VerifyMvc4Configuration.ps1
-│   ├── VerifyProfilePage.ps1
-│   ├── VerifyReportAuditLog.ps1
-│   ├── VerifyReportingPeriodSchedule.ps1
-│   ├── VerifyReportPeriodVisibility.ps1
-│   ├── VerifyReportWorkflowAndNotifications.ps1
-│   ├── VerifySecurityHardening.ps1
-│   └── VerifyVisualRefresh.ps1
 ├── AGENTS.md
 ├── Global.asax
 ├── Global.asax.cs
-├── HospitalQualityDashboard.csproj
+├── HospitalQualityDashboard-demo.csproj
 ├── PROJECT_CONTEXT.md
 ├── TAI_LIEU_NGHIEP_VU.md
 ├── Web.config

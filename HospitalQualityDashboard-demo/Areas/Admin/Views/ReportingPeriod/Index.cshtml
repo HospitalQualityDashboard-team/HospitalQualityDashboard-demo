@@ -1,0 +1,130 @@
+﻿@* Mục đích: danh sách kỳ báo cáo và thao tác mở/khóa/xóa. *@
+@model IEnumerable<HospitalQualityDashboardDemo.Models.ViewModels.KyBaoCaoViewModel>
+@using System.Linq
+@using HospitalQualityDashboardDemo.Models.Enums
+@{
+    ViewBag.Title = "Kỳ báo cáo";
+    var periods = (Model ?? Enumerable.Empty<HospitalQualityDashboardDemo.Models.ViewModels.KyBaoCaoViewModel>()).ToList();
+}
+@functions {
+    private string FormatPeriodStatus(TrangThaiKyBaoCao status)
+    {
+        switch (status)
+        {
+            case TrangThaiKyBaoCao.Nhap: return "Nháp";
+            case TrangThaiKyBaoCao.Mo: return "Mở";
+            case TrangThaiKyBaoCao.Khoa: return "Khóa";
+            default: return status.ToString();
+        }
+    }
+
+    private string StatusClass(TrangThaiKyBaoCao status)
+    {
+        switch (status)
+        {
+            case TrangThaiKyBaoCao.Mo: return "status-open";
+            case TrangThaiKyBaoCao.Khoa: return "status-locked";
+            default: return "status-draft";
+        }
+    }
+}
+
+<section class="management-page">
+    <div class="page-header">
+        <div>
+            <span class="dashboard-role">Chu kỳ báo cáo</span>
+            <h1>Kỳ báo cáo</h1>
+            <p>Quản lý thời gian mở, hạn nộp, trạng thái và tiến độ của các kỳ báo cáo.</p>
+        </div>
+        <div class="management-toolbar">
+            @using (Html.BeginForm("OpenDuePeriods", "ReportingPeriod", FormMethod.Post, new { @class = "d-inline" }))
+            {
+                @Html.AntiForgeryToken()
+                <button class="btn btn-outline-success" type="submit">Mở kỳ đến hạn</button>
+            }
+            @Html.ActionLink("Thêm kỳ báo cáo", "Create", null, new { @class = "btn btn-primary" })
+            @Html.ActionLink("Tạo lịch tự động", "GenerateSchedule", null, new { @class = "btn btn-outline-primary" })
+        </div>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <section class="data-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Danh sách kỳ báo cáo</h2>
+                <p>@periods.Count kỳ báo cáo đang được quản lý.</p>
+            </div>
+            <span class="status-pill status-muted">@periods.Count dòng</span>
+        </div>
+
+        @if (periods.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle data-table">
+                    <thead>
+                        <tr>
+                            <th>Tên kỳ</th>
+                            <th>Từ ngày</th>
+                            <th>Đến ngày</th>
+                            <th>Hạn nộp</th>
+                            <th>Trạng thái</th>
+                            <th>Tiến độ</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in periods)
+                    {
+                        var percent = item.TongBaoCao > 0 ? (int)System.Math.Round((decimal)item.DaGui * 100 / item.TongBaoCao) : 0;
+                        <tr>
+                            <td><strong>@item.TenKyBaoCao</strong></td>
+                            <td>@item.TuNgay.ToString("dd/MM/yyyy")</td>
+                            <td>@item.DenNgay.ToString("dd/MM/yyyy")</td>
+                            <td>@item.HanNop.ToString("dd/MM/yyyy") 23:59</td>
+                            <td><span class="status-pill @StatusClass(item.TrangThai)">@FormatPeriodStatus(item.TrangThai)</span></td>
+                            <td>
+                                <div class="period-progress mb-0">
+                                    <div class="progress-track">
+                                        <div class="progress-fill" style="width: @(percent)%"></div>
+                                    </div>
+                                    <span>@item.DaGui/@item.TongBaoCao</span>
+                                </div>
+                            </td>
+                            <td class="text-end table-actions">
+                                @Html.ActionLink("Sửa", "Edit", new { id = item.KyBaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
+                                @using (Html.BeginForm("Open", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-success" type="submit">Mở</button>
+                                }
+                                @using (Html.BeginForm("Lock", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-warning" type="submit">Khóa</button>
+                                }
+                                @using (Html.BeginForm("Delete", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xóa kỳ báo cáo này?')">Xóa</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">Chưa có kỳ báo cáo nào được tạo.</div>
+        }
+    </section>
+</section>

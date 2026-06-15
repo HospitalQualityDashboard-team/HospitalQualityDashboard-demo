@@ -1,37 +1,131 @@
-# HospitalQualityDashboard
+# HospitalQualityDashboard-demo
 
 Hệ thống quản lý bộ chỉ số chất lượng bệnh viện bằng ASP.NET MVC 4. Ứng dụng hỗ trợ Admin quản lý danh mục, import dữ liệu từ Excel/Word, phân công chỉ số cho khoa/phòng, mở kỳ báo cáo, theo dõi tiến độ và hỗ trợ User khoa/phòng nhập báo cáo định kỳ.
 
-Xem thêm: `HospitalQualityDashboard/PROJECT_CONTEXT.md` (tổng quan kỹ thuật/nghiệp vụ), `HospitalQualityDashboard/TAI_LIEU_NGHIEP_VU.md` (nghiệp vụ chi tiết).
+Xem thêm: `HospitalQualityDashboard-demo/PROJECT_CONTEXT.md` (tổng quan kỹ thuật/nghiệp vụ), `HospitalQualityDashboard-demo/TAI_LIEU_NGHIEP_VU.md` (nghiệp vụ chi tiết).
 
 ## 1. Công Nghệ
 
 - ASP.NET MVC 4 trên .NET Framework 4.7.2.
 - C# và Razor `.cshtml`.
-- SQL Server LocalDB qua ADO.NET thuần.
+- Azure SQL qua ADO.NET thuần.
 - Bootstrap, jQuery, jQuery Validate, Chart.js.
-- NuGet packages khai báo trong `HospitalQualityDashboard/packages.config`.
+- NuGet packages khai báo trong `HospitalQualityDashboard-demo/packages.config`.
 
 ## 2. Cấu Trúc Chính
 
 ```text
-HospitalQualityDashboard/
-├── App_Data/Sql/              # Script tạo schema và migration bổ sung
-├── Areas/                     # Area phân chia theo vai trò
-│   ├── Admin/Controllers/     # Controller quản trị
-│   ├── Admin/Views/           # View quản trị
-│   ├── User/Controllers/      # Controller khoa/phòng
-│   └── User/Views/            # View khoa/phòng
-├── Controllers/               # Root controllers (Account, Home + redirect wrappers)
-├── Models/                    # Entity, DTO, enum, view model
-├── Services/                  # Nghiệp vụ và ADO.NET data access
-├── Views/                     # Root views (Account, Home, Shared)
-├── Tai_Lieu/                  # Tài liệu nghiệp vụ, BA, SDD và file nguồn
-├── tools/                     # Script verify/test nhanh
-├── Web.config                 # Connection string và cấu hình ASP.NET
-├── PROJECT_CONTEXT.md         # Bối cảnh kỹ thuật/nghiệp vụ
-├── TAI_LIEU_NGHIEP_VU.md      # Tài liệu nghiệp vụ tổng hợp
-└── implementation-notes.md    # Nhật ký triển khai
+HospitalQualityDashboard-demo/                      # Thư mục project ASP.NET MVC 4
+├── App_Data/                                  # Dữ liệu ứng dụng
+│   └── Sql/
+│       └── 001_CreateSchema.sql               # Script tạo CSDL
+├── App_Start/                                 # Cấu hình MVC khởi động
+│   ├── BundleConfig.cs                        # Bundle CSS/JS
+│   ├── FilterConfig.cs                        # Global filter
+│   └── RouteConfig.cs                         # Route MVC
+├── Areas/                                     # Phân vùng theo vai trò
+│   ├── Admin/                                 # ===== ADMIN =====
+│   │   ├── Controllers/                       # 10 controllers
+│   │   │   ├── AdminBaseController.cs         # Base
+│   │   │   ├── AssignmentController.cs        # Phân công chỉ số
+│   │   │   ├── DashboardController.cs         # Dashboard quản trị
+│   │   │   ├── DepartmentController.cs        # Khoa/phòng
+│   │   │   ├── EmployeeController.cs          # Nhân viên
+│   │   │   ├── ExportController.cs            # Xuất dữ liệu
+│   │   │   ├── IndicatorController.cs         # Chỉ số chất lượng
+│   │   │   ├── NotificationController.cs      # Thông báo
+│   │   │   ├── ReportController.cs            # Báo cáo
+│   │   │   └── ReportingPeriodController.cs   # Kỳ báo cáo
+│   │   ├── Views/                             # 24 views
+│   │   │   ├── Assignment/ (4 views)
+│   │   │   ├── Dashboard/ (1 view)
+│   │   │   ├── Department/ (2 views)
+│   │   │   ├── Employee/ (3 views)
+│   │   │   ├── Indicator/ (3 views)
+│   │   │   ├── Notification/ (3 views)
+│   │   │   ├── Report/ (3 views)
+│   │   │   ├── ReportingPeriod/ (3 views)
+│   │   │   ├── Shared/_AdminLayout.cshtml
+│   │   │   ├── Web.config + _ViewStart.cshtml
+│   │   └── AdminAreaRegistration.cs
+│   └── User/                                  # ===== USER =====
+│       ├── Controllers/                       # 6 controllers
+│       │   ├── DashboardController.cs         # Dashboard khoa/phòng
+│       │   ├── ExportController.cs            # Xuất Excel
+│       │   ├── IndicatorController.cs         # Xem chỉ số
+│       │   ├── NotificationController.cs      # Xem thông báo
+│       │   ├── ReportController.cs            # Nhập/gửi báo cáo
+│       │   └── UserBaseController.cs          # Base
+│       ├── Views/                             # 12 views
+│       │   ├── Dashboard/ (1 view)
+│       │   ├── Indicator/ (2 views)
+│       │   ├── Notification/ (2 views)
+│       │   ├── Report/ (3 views)
+│       │   ├── Shared/_UserLayout.cshtml
+│       │   ├── Web.config + _ViewStart.cshtml
+│       └── UserAreaRegistration.cs
+├── Content/                                   # CSS
+│   ├── bootstrap.css / bootstrap.min.css      # Bootstrap 5
+│   ├── bootstrap-grid.*, bootstrap-reboot.*, bootstrap-utilities.*, bootstrap.rtl.* (variants)
+│   └── Site.css                               # Style tùy biến
+├── Controllers/                               # Root controllers (redirect wrappers)
+│   ├── AccountController.cs                   # Login/logout, profile
+│   ├── AssignmentController.cs                # Redirect → Admin
+│   ├── DashboardController.cs                 # Redirect → Admin/User
+│   ├── DepartmentController.cs                # Redirect → Admin
+│   ├── EmployeeController.cs                  # Redirect → Admin
+│   ├── ExportController.cs                    # Redirect → Admin/User
+│   ├── HomeController.cs                      # Landing page
+│   ├── IndicatorController.cs                 # Redirect → Admin/User
+│   ├── NotificationController.cs              # Redirect → Admin/User
+│   ├── PageController.cs                      # Session guard & phân quyền
+│   ├── ReportController.cs                    # Redirect → Admin/User
+│   └── ReportingPeriodController.cs           # Redirect → Admin
+├── Filters/                                   # (Rỗng, hiện không dùng)
+├── Models/
+│   ├── DTOs/                                  # 8 DTO files
+│   │   ├── AssignmentDtos.cs, DepartmentDtos.cs, EmployeeDtos.cs
+│   │   ├── ExportDtos.cs, IndicatorDtos.cs, NotificationDtos.cs
+│   │   └── ReportDtos.cs, ReportingPeriodDtos.cs
+│   ├── Entities/CoreEntities.cs              # Entity classes
+│   ├── Enums/SystemEnums.cs                  # Enum classes
+│   └── ViewModels/
+│       ├── AppViewModels.cs                   # ViewModel chính
+│       └── AuthViewModels.cs                  # ViewModel xác thực
+├── Properties/
+│   └── AssemblyInfo.cs
+├── Scripts/                                   # JavaScript
+│   ├── jquery-3.7.0.js / .min.js             # jQuery
+│   ├── jquery.validate.js / .min.js           # Validation
+│   ├── jquery.validate.unobtrusive.js / .min.js
+│   ├── modernizr-2.8.3.js
+│   ├── bootstrap.js / .min.js                 # Bootstrap 5
+│   ├── bootstrap.bundle.*, bootstrap.esm.*    # Variants
+│   └── *.map                                  # Source maps
+├── Services/                                  # 12 service files
+│   ├── AuthService.cs, DatabaseConfiguration.cs, DatabaseBootstrapper.cs, DbServiceBase.cs
+│   ├── ExcelImportExportService.cs, IndicatorServices.cs
+│   ├── ManagementServices.cs, NotificationExportServices.cs
+│   ├── PasswordHasher.cs, ReportDashboardServices.cs
+│   ├── ReportingPeriodServices.cs, SessionUserAccessor.cs
+├── Tai_Lieu/                                  # Tài liệu nghiệp vụ
+│   ├── *.md (BACKEND_TASKS, Lỗ hổng, Phan Tich Thiet Ke, ...)
+│   ├── *.docx, *.xlsx (file nguồn import)
+│   └── danh_sach_chuc_nang_admin_user.md
+├── Views/                                     # Root views
+│   ├── Account/ (AdminLogin, UserLogin, Profile)
+│   ├── Home/Index.cshtml
+│   └── Shared/_Layout.cshtml + Error.cshtml
+├── AGENTS.md                                  # Hướng dẫn làm việc
+├── Global.asax + Global.asax.cs               # Entry point
+├── HospitalQualityDashboard-demo.csproj
+├── implementation-notes.md                    # Nhật ký triển khai
+├── packages.config                            # NuGet
+├── PROJECT_CONTEXT.md                         # Bối cảnh kỹ thuật/nghiệp vụ
+├── TAI_LIEU_NGHIEP_VU.md                      # Tài liệu nghiệp vụ tổng hợp
+├── Web.config + Web.Debug.config + Web.Release.config
+├── Chức_năng.md                               # Danh sách chức năng chi tiết
+└── favicon.ico
 ```
 
 ## 3. Yêu Cầu Môi Trường
@@ -41,7 +135,7 @@ Cài đặt:
 - Windows.
 - Visual Studio có workload ASP.NET/.NET Framework.
 - .NET Framework 4.7.2 Developer Pack hoặc Targeting Pack.
-- SQL Server LocalDB.
+- Azure SQL database đã tạo sẵn và firewall cho phép máy/dev server kết nối.
 - PowerShell 5+.
 - NuGet restore khả dụng trong Visual Studio hoặc MSBuild.
 
@@ -55,28 +149,40 @@ Nếu máy dùng Visual Studio khác phiên bản, thay đường dẫn MSBuild 
 
 ## 4. Cấu Hình Database
 
-Connection string mặc định trong `HospitalQualityDashboard/Web.config`:
+Connection string được tách ra file `HospitalQualityDashboard-demo/ConnectionStrings.config`. `Web.config` chỉ tham chiếu file này bằng:
 
 ```xml
-<add name="HospitalQualityConnection"
-     connectionString="Data Source=(LocalDb)\MSSQLLocalDB;Initial Catalog=HospitalQualityDashboard;Integrated Security=True;MultipleActiveResultSets=True"
-     providerName="System.Data.SqlClient" />
+<connectionStrings configSource="ConnectionStrings.config" />
 ```
 
-Ứng dụng không tự seed tài khoản Admin khi khởi động. Nếu cần bootstrap database local cho môi trường phát triển, bật app setting `HospitalQualityBootstrapEnabled=true` và gọi `DatabaseBootstrapper.BootstrapIfExplicitlyEnabled()` trong tác vụ local-only hoặc công cụ nội bộ. Bootstrapper sẽ:
+File `ConnectionStrings.config` dùng connection name `HospitalQualityConnection`, ví dụ:
 
-1. Kiểm tra database `HospitalQualityDashboard`.
-2. Tạo database nếu chưa tồn tại.
-3. Chạy các script trong `HospitalQualityDashboard/App_Data/Sql`.
-4. Không tạo tài khoản Admin mặc định.
+```xml
+<connectionStrings>
+  <add name="HospitalQualityConnection"
+       connectionString="Server=tcp:hqd-dev-sql-server.database.windows.net,1433;Initial Catalog=HospitalQualityConnection-1;Persist Security Info=False;User ID=hqd_admin;Password=YOUR_PASSWORD;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+       providerName="System.Data.SqlClient" />
+</connectionStrings>
+```
+
+Không commit mật khẩu thật. Khi chạy local hoặc publish, thay `Password=YOUR_PASSWORD` bằng mật khẩu thật theo kênh cấu hình an toàn của môi trường.
+
+Bootstrap database đang tắt mặc định:
+
+```xml
+<add key="HospitalQualityBootstrapEnabled" value="false" />
+<add key="HospitalQualityBootstrapCreateDatabase" value="false" />
+```
+
+Nếu cần tạo schema lần đầu trên Azure SQL database đã tồn tại, đổi tạm `HospitalQualityBootstrapEnabled=true` sau khi đã điền mật khẩu đúng. Bootstrapper sẽ kết nối trực tiếp vào database trong `Initial Catalog`, chạy script trong `HospitalQualityDashboard-demo/App_Data/Sql`, và seed tài khoản admin mẫu nếu bảng chưa tồn tại. Chỉ bật `HospitalQualityBootstrapCreateDatabase=true` khi login có quyền tạo database và bạn thật sự muốn app tự tạo database qua `master`.
 
 Admin đầu tiên phải được tạo bằng quy trình nội bộ an toàn hoặc script riêng có mật khẩu sinh một lần, sau đó đổi/rotate theo chính sách vận hành. Không dùng credential mặc định trong môi trường thật.
 
 ## 5. Chạy Dự Án Bằng Visual Studio
 
-1. Mở thư mục repo hoặc mở project `HospitalQualityDashboard/HospitalQualityDashboard.csproj`.
+1. Mở thư mục repo hoặc mở project `HospitalQualityDashboard-demo/HospitalQualityDashboard-demo.csproj`.
 2. Restore NuGet packages nếu Visual Studio chưa tự restore.
-3. Chọn project `HospitalQualityDashboard` làm startup project.
+3. Chọn project `HospitalQualityDashboard-demo` làm startup project.
 4. Chạy bằng IIS Express.
 5. Mở:
 
@@ -101,25 +207,25 @@ Lưu ý: sau khi đợt tái cấu trúc tháng 06/2026, các route `/Dashboard`
 Từ thư mục gốc repo:
 
 ```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug
 ```
 
 Build kèm kiểm tra Razor view:
 
 ```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:MvcBuildViews=true
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildViews=true
 ```
 
 Nếu IIS Express hoặc Visual Studio đang giữ file trong `bin/obj` và build báo lỗi access denied, dùng output riêng để verify code mà không cần tắt app:
 
 ```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:BaseIntermediateOutputPath=obj_unit\ /p:OutputPath=bin_unit\
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:BaseIntermediateOutputPath=obj_unit\ /p:OutputPath=bin_unit\
 ```
 
 Build Razor view với output riêng:
 
 ```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:MvcBuildViews=true /p:BaseIntermediateOutputPath=obj_unit\ /p:OutputPath=bin_unit\
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildViews=true /p:BaseIntermediateOutputPath=obj_unit\ /p:OutputPath=bin_unit\
 ```
 
 ## 7. Quy Ước Chú Thích Code
@@ -137,7 +243,7 @@ Phạm vi chú thích:
 Các file tài liệu/nghiệp vụ nằm trong:
 
 ```text
-HospitalQualityDashboard/Tai_Lieu/
+HospitalQualityDashboard-demo/Tai_Lieu/
 ```
 
 Các chức năng import chính:
@@ -159,123 +265,13 @@ Với file `Phân chia các chỉ số dựa theo đơn vị thu thập và tổ
 
 ## 9. Test Và Verification
 
-Các script test nhanh nằm trong:
-
-```text
-HospitalQualityDashboard/tools/
-```
-
-Chạy từng script từ thư mục gốc repo.
-
-### 9.1. Verify cấu hình MVC và database bootstrap
+Hiện repository không còn giữ các script verify tạm trong `tools/`. Cách kiểm tra chính là build project và build kèm Razor view:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyMvc4Configuration.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifySecurityHardening.ps1
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildViews=true
 ```
 
-Mục tiêu:
-
-- Kiểm tra project đang dùng MVC 4, Razor 2, WebPages 2.
-- Kiểm tra bootstrap không còn chạy tự động ở `Global.asax.cs`.
-- Kiểm tra các guardrail security chính: không seed admin mặc định, GET không đổi trạng thái, CSV export chống formula injection, session revalidation và login lockout.
-
-### 9.2. Verify parser Excel/Word và import chỉ số
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyExcelParser.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyIndicatorFrequencyParser.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyIndicatorDepartmentAssignmentParser.ps1
-```
-
-Mục tiêu:
-
-- Excel parser xử lý đúng shared string, inline string và ô trống.
-- Parser nhận diện đúng tần suất báo cáo, đặc biệt các biến thể quý.
-- Parser nhận diện nhiều khoa/phòng trong trường thu thập/tổng hợp số liệu.
-
-Verify import công thức và đơn vị tính cần assembly đã build. Nếu dùng build mặc định:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyIndicatorFormulaImport.ps1
-```
-
-Nếu dùng output riêng `bin_unit`:
-
-```powershell
-$env:HQD_APP_ASSEMBLY = (Resolve-Path ".\HospitalQualityDashboard\bin_unit\HospitalQualityDashboard.dll")
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyIndicatorFormulaImport.ps1
-Remove-Item Env:HQD_APP_ASSEMBLY
-```
-
-Mục tiêu:
-
-- Kiểm tra alias nhãn DOCX như `Lý do chọn lựa`, `Thu nhập và tổng hợp số liệu`.
-- Kiểm tra suy luận `LoaiCongThuc`.
-- Kiểm tra suy luận `DonViTinh`.
-- Kiểm tra file có sẵn `DonViTinh` thì không bị override.
-
-### 9.3. Verify phân công và xuất Excel
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyAssignmentExcelExport.ps1
-```
-
-Mục tiêu:
-
-- Kiểm tra export Excel trên trang Phân công.
-- Kiểm tra workbook xuất tiếng Việt và đúng các cột được chọn.
-
-### 9.4. Verify tài khoản, đăng nhập và nút nhân viên
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyEmployeeAccountButton.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyLockedEmployeeLogin.ps1
-```
-
-Mục tiêu:
-
-- Kiểm tra luồng tạo tài khoản từ nhân viên.
-- Kiểm tra tài khoản bị khóa không đăng nhập được.
-
-### 9.5. Verify workflow báo cáo, thông báo và audit
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportWorkflowAndNotifications.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportAuditLog.ps1
-```
-
-Mục tiêu:
-
-- Kiểm tra luồng User lưu nháp/gửi báo cáo.
-- Kiểm tra Admin chỉ xem/khóa/xóa theo phạm vi hiện tại.
-- Kiểm tra dashboard cảnh báo thiếu báo cáo.
-- Kiểm tra thông báo tự động và chi tiết thông báo.
-- Kiểm tra ghi audit log các thao tác báo cáo.
-
-### 9.6. Chạy full verification suite
-
-Sau khi build project, có thể chạy lần lượt:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyMvc4Configuration.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifySecurityHardening.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyExcelParser.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyIndicatorFrequencyParser.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyIndicatorDepartmentAssignmentParser.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyIndicatorFormulaImport.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyAssignmentExcelExport.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyEmployeeAccountButton.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyLockedEmployeeLogin.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportWorkflowAndNotifications.ps1
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportAuditLog.ps1
-```
-
-Sau đó chạy build Razor view:
-
-```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:MvcBuildViews=true
-```
+Sau khi build, kiểm thử thủ công các luồng chính ở phần checklist bên dưới.
 
 ## 10. Checklist Test Thủ Công Trên Trình Duyệt
 
@@ -320,16 +316,14 @@ Khi cần kiểm tra trạng thái đăng nhập trên trình duyệt:
 
 ## 11. Lỗi Thường Gặp
 
-### Không kết nối được LocalDB
+### Không kết nối được Azure SQL
 
-Kiểm tra SQL Server LocalDB đã cài và chạy:
+Kiểm tra các điểm sau:
 
-```powershell
-sqllocaldb info
-sqllocaldb start MSSQLLocalDB
-```
-
-Nếu dùng SQL Server khác, sửa connection string trong `Web.config`.
+- `ConnectionStrings.config` có đúng `Server`, `Initial Catalog`, `User ID` và mật khẩu thật.
+- Azure SQL firewall đã cho phép IP của máy đang chạy app hoặc môi trường deploy.
+- Database trong `Initial Catalog` đã tồn tại, trừ khi bạn bật `HospitalQualityBootstrapCreateDatabase=true`.
+- Login có quyền đọc/ghi schema ứng dụng và chạy script bootstrap nếu bạn bật `HospitalQualityBootstrapEnabled=true`.
 
 ### Build lỗi access denied ở `bin` hoặc `obj`
 
@@ -343,7 +337,7 @@ Thường do IIS Express hoặc Visual Studio đang giữ DLL. Có 2 cách:
 Build project trước khi chạy script:
 
 ```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug
 ```
 
 Nếu build bằng `bin_unit`, set `HQD_APP_ASSEMBLY` như mục 9.2.
@@ -354,11 +348,11 @@ Logic mới chỉ áp dụng khi import/chạy build model từ dòng import. C�
 
 ## 12. Tài Liệu Tham Khảo Trong Repo
 
-- `HospitalQualityDashboard/PROJECT_CONTEXT.md`: bối cảnh tổng quan.
-- `HospitalQualityDashboard/TAI_LIEU_NGHIEP_VU.md`: nghiệp vụ hệ thống.
-- `HospitalQualityDashboard/implementation-notes.md`: nhật ký triển khai.
-- `HospitalQualityDashboard/Tai_Lieu/Phan Tich Thiet Ke He Thong Chi Tiet.md`: tài liệu phân tích thiết kế.
-- `HospitalQualityDashboard/Tai_Lieu/Yeu Cau Nghiep Vu BA.md`: tài liệu yêu cầu BA.
+- `HospitalQualityDashboard-demo/PROJECT_CONTEXT.md`: bối cảnh tổng quan.
+- `HospitalQualityDashboard-demo/TAI_LIEU_NGHIEP_VU.md`: nghiệp vụ hệ thống.
+- `HospitalQualityDashboard-demo/implementation-notes.md`: nhật ký triển khai.
+- `HospitalQualityDashboard-demo/Tai_Lieu/Phan Tich Thiet Ke He Thong Chi Tiet.md`: tài liệu phân tích thiết kế.
+- `HospitalQualityDashboard-demo/Tai_Lieu/Yeu Cau Nghiep Vu BA.md`: tài liệu yêu cầu BA.
 
 ## 13. Cập Nhật Chức Năng Tạo Lịch Kỳ Báo Cáo Tự Động
 
@@ -441,13 +435,7 @@ Chỉ khi User bấm **Lưu nháp** hoặc **Gửi báo cáo**, hệ thống m�
 
 ### 13.6. Kiểm tra chức năng tạo lịch
 
-Script kiểm tra mới:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportingPeriodSchedule.ps1
-```
-
-Script này kiểm tra:
+Checklist cần kiểm tra:
 
 - có ViewModel tạo lịch tự động;
 - có màn hình `Views/ReportingPeriod/GenerateSchedule.cshtml`;
@@ -459,9 +447,8 @@ Script này kiểm tra:
 - hạn nộp mặc định bằng ngày kết thúc kỳ;
 - UI hiển thị trạng thái tiếng Việt và ghi chú 00:00/23:59.
 
-Nên chạy thêm:
+Nên chạy thêm build Razor view:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard\tools\VerifyReportWorkflowAndNotifications.ps1
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard\HospitalQualityDashboard.csproj /p:Configuration=Debug /p:MvcBuildViews=true
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildViews=true
 ```

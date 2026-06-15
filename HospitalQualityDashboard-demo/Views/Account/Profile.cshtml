@@ -1,0 +1,194 @@
+﻿@* Mục đích: hiển thị thông tin hồ sơ và khu vực đổi mật khẩu của người dùng. *@
+@model HospitalQualityDashboardDemo.Models.ViewModels.UserProfileViewModel
+
+@{
+    ViewBag.Title = "Hồ sơ cá nhân";
+}
+
+<main class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h2 class="mb-1">Hồ sơ cá nhân</h2>
+            <p class="text-muted mb-0">Thông tin tài khoản, nhân viên và khoa/phòng được lấy từ dữ liệu đã import vào hệ thống.</p>
+        </div>
+        <span class="badge bg-primary fs-6">@Model.LoaiTaiKhoanText</span>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="row g-4">
+        <section class="col-lg-7">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <strong>Thông tin người dùng</strong>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="text-muted small">Tên đăng nhập</div>
+                            <div class="fw-semibold">@DisplayValue(Model.TenDangNhap)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Trạng thái tài khoản</div>
+                            <div>
+                                @if (Model.TaiKhoanDangHoatDong)
+                                {
+                                    <span class="badge bg-success">Đang hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Đã khóa</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Mã nhân viên</div>
+                            <div class="fw-semibold">@DisplayValue(Model.MaNhanVien)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Họ tên</div>
+                            <div class="fw-semibold">@DisplayValue(Model.HoTen)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Ngày sinh</div>
+                            <div>@(Model.NgaySinh.HasValue ? Model.NgaySinh.Value.ToString("dd/MM/yyyy") : "Chưa có dữ liệu")</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Giới tính</div>
+                            <div>@DisplayValue(Model.GioiTinh)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Chức vụ</div>
+                            <div>@DisplayValue(Model.ChucVu)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Khoa/phòng</div>
+                            <div>@DisplayValue(Model.TenKhoaPhong)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Email</div>
+                            <div>@DisplayValue(Model.Email)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Số điện thoại</div>
+                            <div>@DisplayValue(Model.SoDienThoai)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Lần đăng nhập cuối</div>
+                            <div>@(Model.LanDangNhapCuoi.HasValue ? Model.LanDangNhapCuoi.Value.ToString("dd/MM/yyyy HH:mm") : "Chưa có dữ liệu")</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Trạng thái nhân viên</div>
+                            <div>
+                                @if (!Model.NhanVienDangHoatDong.HasValue)
+                                {
+                                    <span class="badge bg-light text-dark">Chưa liên kết nhân viên</span>
+                                }
+                                else if (Model.NhanVienDangHoatDong.Value)
+                                {
+                                    <span class="badge bg-success">Đang hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Đã khóa</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <strong>Cập nhật thông tin cá nhân</strong>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm("UpdateProfile", "Account", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="mb-3">
+                            @Html.Label("HoTen", "Họ tên", new { @class = "form-label" })
+                            @Html.TextBox("HoTen", Model.HoTen, new { @class = "form-control" })
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                @Html.Label("NgaySinh", "Ngày sinh", new { @class = "form-label" })
+                                @Html.TextBox("NgaySinh", Model.NgaySinh?.ToString("yyyy-MM-dd"), new { @class = "form-control", type = "date" })
+                            </div>
+                            <div class="col-md-6">
+                                @Html.Label("GioiTinh", "Giới tính", new { @class = "form-label" })
+                                @Html.TextBox("GioiTinh", Model.GioiTinh, new { @class = "form-control" })
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.Label("ChucVu", "Chức vụ", new { @class = "form-label" })
+                            @Html.TextBox("ChucVu", Model.ChucVu, new { @class = "form-control" })
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                @Html.Label("Email", "Email", new { @class = "form-label" })
+                                @Html.TextBox("Email", Model.Email, new { @class = "form-control", type = "email" })
+                            </div>
+                            <div class="col-md-6">
+                                @Html.Label("SoDienThoai", "Số điện thoại", new { @class = "form-label" })
+                                @Html.TextBox("SoDienThoai", Model.SoDienThoai, new { @class = "form-control" })
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Cập nhật thông tin</button>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <strong>Đổi mật khẩu</strong>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm("Profile", "Account", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.ChangePassword.MatKhauCu, new { @class = "form-label" })
+                            @Html.PasswordFor(m => m.ChangePassword.MatKhauCu, new { @class = "form-control", autocomplete = "current-password" })
+                            @Html.ValidationMessageFor(m => m.ChangePassword.MatKhauCu, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.ChangePassword.MatKhauMoi, new { @class = "form-label" })
+                            @Html.PasswordFor(m => m.ChangePassword.MatKhauMoi, new { @class = "form-control", autocomplete = "new-password" })
+                            @Html.ValidationMessageFor(m => m.ChangePassword.MatKhauMoi, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.ChangePassword.XacNhanMatKhauMoi, new { @class = "form-label" })
+                            @Html.PasswordFor(m => m.ChangePassword.XacNhanMatKhauMoi, new { @class = "form-control", autocomplete = "new-password" })
+                            @Html.ValidationMessageFor(m => m.ChangePassword.XacNhanMatKhauMoi, "", new { @class = "text-danger" })
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Cập nhật mật khẩu</button>
+                    }
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+@functions {
+    private static string DisplayValue(string value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? "Chưa có dữ liệu" : value;
+    }
+}

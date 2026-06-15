@@ -1,0 +1,155 @@
+﻿@* Mục đích: màn hình xem trước và tạo lịch kỳ báo cáo hàng loạt. *@
+@model HospitalQualityDashboardDemo.Models.ViewModels.ReportingPeriodScheduleRequestViewModel
+@using System.Linq
+@using HospitalQualityDashboardDemo.Models.Enums
+@{
+    ViewBag.Title = "Tạo lịch kỳ báo cáo tự động";
+    var previewItems = (Model.PreviewItems ?? new System.Collections.Generic.List<HospitalQualityDashboardDemo.Models.ViewModels.ReportingPeriodSchedulePreviewItemViewModel>()).ToList();
+}
+
+<section class="schedule-page">
+    <div class="page-header">
+        <div>
+            <span class="dashboard-role">Tự động hóa kỳ báo cáo</span>
+            <h1 id="schedule-page-title">Tạo lịch kỳ báo cáo tự động</h1>
+            <p>Admin chọn năm và loại kỳ, hệ thống preview trước khi tạo hàng loạt các kỳ chưa tồn tại.</p>
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+    @if (Model.Result != null)
+    {
+        <section class="dashboard-panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Kết quả tạo lịch</h2>
+                    <p>Tóm tắt các kỳ đã tạo, đã mở và bị bỏ qua vì đã tồn tại.</p>
+                </div>
+            </div>
+            <div class="schedule-result">
+                <div class="schedule-result-item"><span>Preview</span><strong>@Model.Result.TotalPreviewed</strong></div>
+                <div class="schedule-result-item"><span>Đã tạo</span><strong>@Model.Result.CreatedCount</strong></div>
+                <div class="schedule-result-item"><span>Đã mở</span><strong>@Model.Result.OpenedCount</strong></div>
+                <div class="schedule-result-item"><span>Bỏ qua</span><strong>@Model.Result.SkippedExistingCount</strong></div>
+            </div>
+        </section>
+    }
+
+    <section class="schedule-form-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Thông tin lịch</h2>
+                <p>Kỳ mở lúc 00:00 ngày bắt đầu, đóng và hết hạn lúc 23:59 ngày kết thúc kỳ.</p>
+            </div>
+        </div>
+
+        @using (Html.BeginForm("PreviewSchedule", "ReportingPeriod", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <div class="row g-3">
+                <div class="col-md-3">
+                    @Html.LabelFor(m => m.Year, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Year, new { @class = "form-control", type = "number", min = "2000", max = "2100" })
+                    @Html.ValidationMessageFor(m => m.Year, "", new { @class = "text-danger" })
+                </div>
+                @Html.HiddenFor(m => m.DueDayOffset)
+                <div class="col-md-3">
+                    @Html.LabelFor(m => m.DefaultStatus, new { @class = "form-label" })
+                    @Html.DropDownListFor(m => m.DefaultStatus, Model.StatusOptions, new { @class = "form-select" })
+                    <div class="form-text">Kỳ tương lai vẫn được tạo là Nháp; kỳ đã tới ngày bắt đầu là Mở.</div>
+                    <div class="form-text expired-period-note">Hệ thống bỏ qua các kỳ đã kết thúc trước hôm nay.</div>
+                    <div class="form-text deadline-end-of-period-note">Hạn nộp dùng ngày kết thúc kỳ để tránh lệch lịch vận hành.</div>
+                    <div class="form-text status-text-note">Các trạng thái hiển thị: Nháp, Mở, Khóa.</div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label">Loại kỳ báo cáo</label>
+                <div class="schedule-frequency-grid">
+                    @foreach (var option in Model.FrequencyOptions)
+                    {
+                        var optionValue = int.Parse(option.Value);
+                        var isChecked = Model.SelectedFrequencyValues != null && Model.SelectedFrequencyValues.Contains(optionValue);
+                        var inputClass = optionValue == (int)TanSuatBaoCao.HangNgay ? "form-check-input daily-period-option" : "form-check-input";
+                        <label class="schedule-option">
+                            <input class="@inputClass" type="checkbox" name="SelectedFrequencyValues" value="@option.Value" @(isChecked ? "checked=\"checked\"" : "") />
+                            <span>@option.Text</span>
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="form-actions mt-4">
+                <button class="btn btn-primary" type="submit">Xem trước</button>
+                @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn btn-outline-secondary" })
+            </div>
+        }
+    </section>
+
+    @if (previewItems.Any())
+    {
+        <section class="data-panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Danh sách kỳ dự kiến</h2>
+                    <p>@previewItems.Count kỳ trong bản preview hiện tại.</p>
+                </div>
+                @using (Html.BeginForm("CreateSchedule", "ReportingPeriod", FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Year)
+                    @Html.HiddenFor(m => m.DueDayOffset)
+                    @Html.HiddenFor(m => m.DefaultStatus)
+                    if (Model.SelectedFrequencyValues != null)
+                    {
+                        foreach (var frequency in Model.SelectedFrequencyValues)
+                        {
+                            <input type="hidden" name="SelectedFrequencyValues" value="@frequency" />
+                        }
+                    }
+                    <button class="btn btn-success" type="submit">Tạo các kỳ chưa tồn tại</button>
+                }
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm align-middle data-table">
+                    <thead>
+                        <tr>
+                            <th>Tên kỳ</th>
+                            <th>Loại kỳ</th>
+                            <th>Từ ngày</th>
+                            <th>Đến ngày</th>
+                            <th>Hạn nộp</th>
+                            <th>Trạng thái</th>
+                            <th>Kết quả</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in previewItems)
+                    {
+                        <tr>
+                            <td><strong>@item.TenKyBaoCao</strong></td>
+                            <td>@item.LoaiKyBaoCaoText</td>
+                            <td>@item.TuNgay.ToString("dd/MM/yyyy") 00:00</td>
+                            <td>@item.DenNgay.ToString("dd/MM/yyyy") 23:59</td>
+                            <td>@item.HanNop.ToString("dd/MM/yyyy") 23:59</td>
+                            <td><span class="status-pill @(item.TrangThai == TrangThaiKyBaoCao.Mo ? "status-open" : item.TrangThai == TrangThaiKyBaoCao.Khoa ? "status-locked" : "status-draft")">@item.TrangThaiText</span></td>
+                            <td>
+                                @if (item.AlreadyExists)
+                                {
+                                    <span class="status-pill status-muted existing-period-badge">Đã tồn tại</span>
+                                }
+                                else
+                                {
+                                    <span class="status-pill status-success new-period-badge">Sẽ tạo mới</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</section>

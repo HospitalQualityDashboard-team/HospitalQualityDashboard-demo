@@ -1,4 +1,4 @@
-﻿# Visual Studio / ASP.NET MVC5
+# Visual Studio / ASP.NET MVC4
 .vs/
 .worktrees/
 .claude/worktrees/
@@ -39,7 +39,7 @@ logs/
 *.temp
 scratch/
 ExcelDump/
-HospitalQualityDashboard/Tai_Lieu/DM_KHOA_PHONG.zip
+HospitalQualityDashboard-demo/Tai_Lieu/DM_KHOA_PHONG.zip
 
 # IIS / publish artifacts
 _PublishedWebsites/
