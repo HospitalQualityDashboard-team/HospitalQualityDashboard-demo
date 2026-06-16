@@ -496,6 +496,11 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int LuuNhap { get; set; }
         public int ConThieu => Tong - DaGui;
         public string XepLoai { get; set; }
+        public int SoBaoCaoDatMucTieuNam { get; set; }
+        public int SoBaoCaoDanhGiaMucTieuNam { get; set; }
+        public decimal TyLeDatMucTieuNam => SoBaoCaoDanhGiaMucTieuNam > 0
+            ? Math.Round((decimal)SoBaoCaoDatMucTieuNam * 100 / SoBaoCaoDanhGiaMucTieuNam, 1)
+            : 0;
 
         // Chi tiết theo tần suất
         public int TongThang { get; set; }
@@ -512,6 +517,33 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int DaGuiNam { get; set; }
         public string TiendoHangNam => $"{DaGuiNam}/{TongNam}";
         public string XepLoaiNam { get; set; }
+    }
+
+    public class DashboardReportDetailExportRow
+    {
+        public string TenKhoaPhong { get; set; }
+        public string TenKyBaoCao { get; set; }
+        public int NamBaoCao { get; set; }
+        public string MaChiSo { get; set; }
+        public string TenChiSo { get; set; }
+        public string TanSuatBaoCaoText { get; set; }
+        public decimal? TuSo { get; set; }
+        public decimal? MauSo { get; set; }
+        public decimal? GiaTriNhap { get; set; }
+        public decimal? KetQua { get; set; }
+        public string MucTieuNam { get; set; }
+        public bool? DatMucTieu { get; set; }
+        public string DatMucTieuText
+        {
+            get
+            {
+                if (!DatMucTieu.HasValue) return "Chưa đánh giá";
+                return DatMucTieu.Value ? "Đạt" : "Không đạt";
+            }
+        }
+        public string TrangThaiBaoCaoText { get; set; }
+        public DateTime? NgayGui { get; set; }
+        public string GhiChu { get; set; }
     }
 
     // Kết quả sau khi import dữ liệu từ file.

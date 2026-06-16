@@ -4,6 +4,7 @@ using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Data.SqlClient;
 using System.Linq;
 
@@ -495,8 +496,15 @@ WHERE tk.LoaiTaiKhoan=@AdminType
             var columns = ResolveDashboardProgressExportColumns(selectedColumnKeys)
                 .Select(x => new KeyValuePair<string, Func<DepartmentProgressViewModel, object>>(x.Header, x.Value))
                 .ToList();
+            var detailRows = QueryDashboardReportDetails(tanSuatFilter);
 
-            return _excel.CreateXlsx(rows, columns);
+            return _excel.CreateXlsxWorkbook(new List<ExcelWorksheetExport>
+            {
+                ExcelWorksheetExport.From("TongHopTienDo", rows, columns),
+                ExcelWorksheetExport.From("ChiTietSoLieu", detailRows, DashboardReportDetailExportColumns
+                    .Select(x => new KeyValuePair<string, Func<DashboardReportDetailExportRow, object>>(x.Header, x.Value))
+                    .ToList())
+            });
         }
 
         private IList<DepartmentProgressViewModel> QueryDepartmentProgress(int? tanSuatFilter = null)
@@ -512,6 +520,8 @@ SELECT
     (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = @TanSuat) AS Tong,
     (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = @TanSuat AND bc.TrangThai IN (2,3,4)) AS DaGui,
     (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = @TanSuat AND bc.TrangThai = 1) AS LuuNhap,
+    (SELECT COUNT(*) FROM dbo.BaoCao bc INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId INNER JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId WHERE bc.KhoaPhongId = kp.KhoaPhongId AND ky.LoaiKyBaoCao = @TanSuat AND YEAR(ky.TuNgay) = YEAR(GETDATE()) AND bc.TrangThai IN (2,3,4) AND ct.DatMucTieu = 1) AS SoBaoCaoDatMucTieuNam,
+    (SELECT COUNT(*) FROM dbo.BaoCao bc INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId INNER JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId WHERE bc.KhoaPhongId = kp.KhoaPhongId AND ky.LoaiKyBaoCao = @TanSuat AND YEAR(ky.TuNgay) = YEAR(GETDATE()) AND bc.TrangThai IN (2,3,4) AND ct.DatMucTieu IS NOT NULL) AS SoBaoCaoDanhGiaMucTieuNam,
     
     (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 3) AS TongThang,
     (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 3 AND bc.TrangThai IN (2,3,4)) AS DaGuiThang,
@@ -533,6 +543,8 @@ SELECT
     (SELECT COUNT(*) FROM dbo.PhanCongChiSo pc WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1) AS Tong,
     (SELECT COUNT(*) FROM dbo.PhanCongChiSo pc JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND bc.TrangThai IN (2,3,4)) AS DaGui,
     (SELECT COUNT(*) FROM dbo.PhanCongChiSo pc JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND bc.TrangThai = 1) AS LuuNhap,
+    (SELECT COUNT(*) FROM dbo.BaoCao bc INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId INNER JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId WHERE bc.KhoaPhongId = kp.KhoaPhongId AND YEAR(ky.TuNgay) = YEAR(GETDATE()) AND bc.TrangThai IN (2,3,4) AND ct.DatMucTieu = 1) AS SoBaoCaoDatMucTieuNam,
+    (SELECT COUNT(*) FROM dbo.BaoCao bc INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId INNER JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId WHERE bc.KhoaPhongId = kp.KhoaPhongId AND YEAR(ky.TuNgay) = YEAR(GETDATE()) AND bc.TrangThai IN (2,3,4) AND ct.DatMucTieu IS NOT NULL) AS SoBaoCaoDanhGiaMucTieuNam,
     
     (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 3) AS TongThang,
     (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 3 AND bc.TrangThai IN (2,3,4)) AS DaGuiThang,
@@ -552,6 +564,8 @@ ORDER BY kp.TenKhoaPhong";
                 Tong = Int(r, "Tong"),
                 DaGui = Int(r, "DaGui"),
                 LuuNhap = Int(r, "LuuNhap"),
+                SoBaoCaoDatMucTieuNam = Int(r, "SoBaoCaoDatMucTieuNam"),
+                SoBaoCaoDanhGiaMucTieuNam = Int(r, "SoBaoCaoDanhGiaMucTieuNam"),
                 
                 TongThang = Int(r, "TongThang"),
                 DaGuiThang = Int(r, "DaGuiThang"),
@@ -574,6 +588,56 @@ ORDER BY kp.TenKhoaPhong";
             return list;
         }
 
+        private IList<DashboardReportDetailExportRow> QueryDashboardReportDetails(int? tanSuatFilter = null)
+        {
+            var sql = @"
+SELECT
+    kp.TenKhoaPhong,
+    ky.TenKyBaoCao,
+    DATEPART(YEAR, ky.TuNgay) AS NamBaoCao,
+    cs.MaChiSo,
+    cs.TenChiSo,
+    ky.LoaiKyBaoCao AS TanSuatBaoCao,
+    ct.TuSo,
+    ct.MauSo,
+    ct.GiaTriNhap,
+    ct.KetQua,
+    mt.ToanTuSoSanh,
+    mt.GiaTriMucTieu,
+    mt.MoTaMucTieu,
+    ct.DatMucTieu,
+    bc.TrangThai,
+    bc.NgayGui,
+    ct.GhiChu
+FROM dbo.BaoCao bc
+INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId
+INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = bc.KhoaPhongId
+INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = bc.ChiSoChatLuongId
+LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
+LEFT JOIN dbo.ChiSoMucTieu mt ON mt.ChiSoChatLuongId = bc.ChiSoChatLuongId AND mt.Nam = DATEPART(YEAR, ky.TuNgay)
+WHERE (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
+ORDER BY kp.TenKhoaPhong, ky.TuNgay DESC, cs.MaChiSo";
+
+            return Query(sql, r => new DashboardReportDetailExportRow
+            {
+                TenKhoaPhong = String(r, "TenKhoaPhong"),
+                TenKyBaoCao = String(r, "TenKyBaoCao"),
+                NamBaoCao = Int(r, "NamBaoCao"),
+                MaChiSo = String(r, "MaChiSo"),
+                TenChiSo = String(r, "TenChiSo"),
+                TanSuatBaoCaoText = FormatTanSuatBaoCao((TanSuatBaoCao)Convert.ToByte(r["TanSuatBaoCao"])),
+                TuSo = NullableDecimal(r, "TuSo"),
+                MauSo = NullableDecimal(r, "MauSo"),
+                GiaTriNhap = NullableDecimal(r, "GiaTriNhap"),
+                KetQua = NullableDecimal(r, "KetQua"),
+                MucTieuNam = FormatMucTieuNam(String(r, "ToanTuSoSanh"), NullableDecimal(r, "GiaTriMucTieu"), String(r, "MoTaMucTieu")),
+                DatMucTieu = r.IsDBNull(r.GetOrdinal("DatMucTieu")) ? (bool?)null : r.GetBoolean(r.GetOrdinal("DatMucTieu")),
+                TrangThaiBaoCaoText = FormatTrangThaiBaoCao((TrangThaiBaoCao)Convert.ToByte(r["TrangThai"])),
+                NgayGui = NullableDateTime(r, "NgayGui"),
+                GhiChu = String(r, "GhiChu")
+            }, Param("@TanSuat", tanSuatFilter));
+        }
+
         private static string CalculateXepLoai(int daGui, int tong)
         {
             if (tong == 0) return "N/A";
@@ -582,6 +646,57 @@ ORDER BY kp.TenKhoaPhong";
             if (rate >= 70) return "Khá";
             if (rate >= 50) return "Trung bình";
             return "Yếu";
+        }
+
+        private static string FormatMucTieuNam(string op, decimal? value, string description)
+        {
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                return description;
+            }
+
+            if (string.IsNullOrWhiteSpace(op) || !value.HasValue)
+            {
+                return string.Empty;
+            }
+
+            return op.Trim() + " " + FormatDecimal(value);
+        }
+
+        private static string FormatDecimal(decimal? value)
+        {
+            return value.HasValue ? value.Value.ToString("0.####", CultureInfo.InvariantCulture) : string.Empty;
+        }
+
+        private static string FormatTanSuatBaoCao(TanSuatBaoCao frequency)
+        {
+            switch (frequency)
+            {
+                case TanSuatBaoCao.HangNgay: return "Hàng ngày";
+                case TanSuatBaoCao.HangTuan: return "Hàng tuần";
+                case TanSuatBaoCao.HangThang: return "Hàng tháng";
+                case TanSuatBaoCao.HangQuy: return "Hàng quý";
+                case TanSuatBaoCao.SauThang: return "6 tháng";
+                case TanSuatBaoCao.ChinThang: return "9 tháng";
+                case TanSuatBaoCao.HangNam: return "Hàng năm";
+                case TanSuatBaoCao.KhiPhatSinh: return "Khi phát sinh";
+                case TanSuatBaoCao.TruocSauKhiThucHien: return "Trước/sau khi thực hiện";
+                default: return frequency.ToString();
+            }
+        }
+
+        private static string FormatTrangThaiBaoCao(TrangThaiBaoCao status)
+        {
+            switch (status)
+            {
+                case TrangThaiBaoCao.Nhap: return "Nháp";
+                case TrangThaiBaoCao.DaGui: return "Đã gửi";
+                case TrangThaiBaoCao.QuaHan: return "Quá hạn";
+                case TrangThaiBaoCao.DaKhoa: return "Đã khóa";
+                case TrangThaiBaoCao.DaDuyet: return "Đã duyệt";
+                case TrangThaiBaoCao.TraLai: return "Trả lại";
+                default: return status.ToString();
+            }
         }
 
         private static IList<AssignmentExportColumn> ResolveAssignmentExportColumns(string[] selectedColumnKeys)
@@ -625,12 +740,12 @@ ORDER BY kp.TenKhoaPhong";
         {
             if (selectedColumnKeys == null || selectedColumnKeys.Length == 0)
             {
-                return DashboardProgressExportColumns.ToList();
+                return AllDashboardProgressExportColumns().ToList();
             }
 
             var selected = new HashSet<string>(selectedColumnKeys.Where(x => !string.IsNullOrWhiteSpace(x)), StringComparer.OrdinalIgnoreCase);
-            var columns = DashboardProgressExportColumns.Where(x => selected.Contains(x.Key)).ToList();
-            return columns.Count == 0 ? DashboardProgressExportColumns.ToList() : columns;
+            var columns = AllDashboardProgressExportColumns().Where(x => selected.Contains(x.Key)).ToList();
+            return columns.Count == 0 ? AllDashboardProgressExportColumns().ToList() : columns;
         }
 
         private static readonly IList<DashboardProgressExportColumn> DashboardProgressExportColumns = new List<DashboardProgressExportColumn>
@@ -650,6 +765,37 @@ ORDER BY kp.TenKhoaPhong";
             new DashboardProgressExportColumn("XepLoaiNam", "Xếp loại Hàng năm", x => x.XepLoaiNam)
         };
 
+        private static IEnumerable<DashboardProgressExportColumn> AllDashboardProgressExportColumns()
+        {
+            return DashboardProgressExportColumns.Concat(DashboardProgressTargetYearExportColumns);
+        }
+
+        private static readonly IList<DashboardProgressExportColumn> DashboardProgressTargetYearExportColumns = new List<DashboardProgressExportColumn>
+        {
+            new DashboardProgressExportColumn("SoBaoCaoDatMucTieuNam", "Số báo cáo đạt mục tiêu năm", x => x.SoBaoCaoDatMucTieuNam),
+            new DashboardProgressExportColumn("SoBaoCaoDanhGiaMucTieuNam", "Số báo cáo đã đánh giá mục tiêu năm", x => x.SoBaoCaoDanhGiaMucTieuNam),
+            new DashboardProgressExportColumn("TyLeDatMucTieuNam", "Tỷ lệ đạt mục tiêu năm (%)", x => x.TyLeDatMucTieuNam)
+        };
+
+        private static readonly IList<DashboardReportDetailExportColumn> DashboardReportDetailExportColumns = new List<DashboardReportDetailExportColumn>
+        {
+            new DashboardReportDetailExportColumn("TenKhoaPhong", "Khoa / Phòng", x => x.TenKhoaPhong),
+            new DashboardReportDetailExportColumn("TenKyBaoCao", "Kỳ báo cáo", x => x.TenKyBaoCao),
+            new DashboardReportDetailExportColumn("NamBaoCao", "Năm báo cáo", x => x.NamBaoCao),
+            new DashboardReportDetailExportColumn("MaChiSo", "Mã chỉ số", x => x.MaChiSo),
+            new DashboardReportDetailExportColumn("TenChiSo", "Tên chỉ số", x => x.TenChiSo),
+            new DashboardReportDetailExportColumn("TanSuatBaoCao", "Tần suất báo cáo", x => x.TanSuatBaoCaoText),
+            new DashboardReportDetailExportColumn("TuSo", "Tử số", x => x.TuSo),
+            new DashboardReportDetailExportColumn("MauSo", "Mẫu số", x => x.MauSo),
+            new DashboardReportDetailExportColumn("GiaTriNhap", "Giá trị nhập", x => x.GiaTriNhap),
+            new DashboardReportDetailExportColumn("KetQua", "Kết quả", x => x.KetQua),
+            new DashboardReportDetailExportColumn("MucTieuNam", "Mục tiêu năm", x => x.MucTieuNam),
+            new DashboardReportDetailExportColumn("DatMucTieu", "Đạt mục tiêu", x => x.DatMucTieuText),
+            new DashboardReportDetailExportColumn("TrangThaiBaoCao", "Trạng thái báo cáo", x => x.TrangThaiBaoCaoText),
+            new DashboardReportDetailExportColumn("NgayGui", "Ngày gửi", x => x.NgayGui.HasValue ? x.NgayGui.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture) : string.Empty),
+            new DashboardReportDetailExportColumn("GhiChu", "Ghi chú", x => x.GhiChu)
+        };
+
         private class DashboardProgressExportColumn
         {
             public DashboardProgressExportColumn(string key, string header, Func<DepartmentProgressViewModel, object> value)
@@ -662,6 +808,20 @@ ORDER BY kp.TenKhoaPhong";
             public string Key { get; private set; }
             public string Header { get; private set; }
             public Func<DepartmentProgressViewModel, object> Value { get; private set; }
+        }
+
+        private class DashboardReportDetailExportColumn
+        {
+            public DashboardReportDetailExportColumn(string key, string header, Func<DashboardReportDetailExportRow, object> value)
+            {
+                Key = key;
+                Header = header;
+                Value = value;
+            }
+
+            public string Key { get; private set; }
+            public string Header { get; private set; }
+            public Func<DashboardReportDetailExportRow, object> Value { get; private set; }
         }
     }
 }

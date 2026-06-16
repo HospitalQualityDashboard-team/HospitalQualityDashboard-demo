@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -78,43 +79,138 @@ namespace HospitalQualityDashboardDemo.Services
 
         public byte[] CreateXlsx<T>(IEnumerable<T> items, IList<KeyValuePair<string, Func<T, object>>> columns)
         {
-            items = items ?? Enumerable.Empty<T>();
-            columns = columns ?? new List<KeyValuePair<string, Func<T, object>>>();
+            return CreateXlsxWorkbook(new List<ExcelWorksheetExport>
+            {
+                ExcelWorksheetExport.From("Sheet1", items, columns)
+            });
+        }
+
+        public byte[] CreateXlsxWorkbook(IList<ExcelWorksheetExport> worksheets)
+        {
+            worksheets = NormalizeWorksheets(worksheets);
 
             using (var stream = new MemoryStream())
             {
                 using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, true))
                 {
-                    AddTextEntry(archive, "[Content_Types].xml", @"<?xml version=""1.0"" encoding=""UTF-8""?>
-<Types xmlns=""http://schemas.openxmlformats.org/package/2006/content-types"">
-  <Default Extension=""rels"" ContentType=""application/vnd.openxmlformats-package.relationships+xml""/>
-  <Default Extension=""xml"" ContentType=""application/xml""/>
-  <Override PartName=""/xl/workbook.xml"" ContentType=""application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml""/>
-  <Override PartName=""/xl/worksheets/sheet1.xml"" ContentType=""application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml""/>
-</Types>");
-
+                    AddTextEntry(archive, "[Content_Types].xml", BuildContentTypesXml(worksheets.Count));
                     AddTextEntry(archive, "_rels/.rels", @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <Relationships xmlns=""http://schemas.openxmlformats.org/package/2006/relationships"">
   <Relationship Id=""rId1"" Type=""http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"" Target=""xl/workbook.xml""/>
 </Relationships>");
+                    AddTextEntry(archive, "xl/workbook.xml", BuildWorkbookXml(worksheets));
+                    AddTextEntry(archive, "xl/_rels/workbook.xml.rels", BuildWorkbookRelationshipsXml(worksheets.Count));
 
-                    AddTextEntry(archive, "xl/workbook.xml", @"<?xml version=""1.0"" encoding=""UTF-8""?>
-<workbook xmlns=""http://schemas.openxmlformats.org/spreadsheetml/2006/main"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"">
-  <sheets>
-    <sheet name=""Sheet1"" sheetId=""1"" r:id=""rId1""/>
-  </sheets>
-</workbook>");
-
-                    AddTextEntry(archive, "xl/_rels/workbook.xml.rels", @"<?xml version=""1.0"" encoding=""UTF-8""?>
-<Relationships xmlns=""http://schemas.openxmlformats.org/package/2006/relationships"">
-  <Relationship Id=""rId1"" Type=""http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"" Target=""worksheets/sheet1.xml""/>
-</Relationships>");
-
-                    WriteWorksheetEntry(archive, "xl/worksheets/sheet1.xml", items, columns);
+                    for (var i = 0; i < worksheets.Count; i++)
+                    {
+                        WriteWorksheetEntry(archive, string.Format(CultureInfo.InvariantCulture, "xl/worksheets/sheet{0}.xml", i + 1), worksheets[i].Items, worksheets[i].Columns);
+                    }
                 }
 
                 return stream.ToArray();
             }
+        }
+
+        private static IList<ExcelWorksheetExport> NormalizeWorksheets(IList<ExcelWorksheetExport> worksheets)
+        {
+            if (worksheets == null || worksheets.Count == 0)
+            {
+                return new List<ExcelWorksheetExport>
+                {
+                    ExcelWorksheetExport.From("Sheet1", Enumerable.Empty<object>(), new List<KeyValuePair<string, Func<object, object>>>())
+                };
+            }
+
+            for (var i = 0; i < worksheets.Count; i++)
+            {
+                if (worksheets[i] == null)
+                {
+                    worksheets[i] = ExcelWorksheetExport.From("Sheet" + (i + 1).ToString(CultureInfo.InvariantCulture), Enumerable.Empty<object>(), new List<KeyValuePair<string, Func<object, object>>>());
+                    continue;
+                }
+
+                worksheets[i].Name = SanitizeWorksheetName(worksheets[i].Name, i + 1);
+                worksheets[i].Items = worksheets[i].Items ?? Enumerable.Empty<object>();
+                worksheets[i].Columns = worksheets[i].Columns ?? new List<KeyValuePair<string, Func<object, object>>>();
+            }
+
+            return worksheets;
+        }
+
+        private static string BuildContentTypesXml(int sheetCount)
+        {
+            var builder = new StringBuilder();
+            builder.Append(@"<?xml version=""1.0"" encoding=""UTF-8""?>
+<Types xmlns=""http://schemas.openxmlformats.org/package/2006/content-types"">
+  <Default Extension=""rels"" ContentType=""application/vnd.openxmlformats-package.relationships+xml""/>
+  <Default Extension=""xml"" ContentType=""application/xml""/>
+  <Override PartName=""/xl/workbook.xml"" ContentType=""application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml""/>");
+            for (var i = 1; i <= sheetCount; i++)
+            {
+                builder.AppendFormat(CultureInfo.InvariantCulture, @"
+  <Override PartName=""/xl/worksheets/sheet{0}.xml"" ContentType=""application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml""/>", i);
+            }
+
+            builder.Append(@"
+</Types>");
+            return builder.ToString();
+        }
+
+        private static string BuildWorkbookXml(IList<ExcelWorksheetExport> worksheets)
+        {
+            var builder = new StringBuilder();
+            builder.Append(@"<?xml version=""1.0"" encoding=""UTF-8""?>
+<workbook xmlns=""http://schemas.openxmlformats.org/spreadsheetml/2006/main"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"">
+  <sheets>");
+            for (var i = 0; i < worksheets.Count; i++)
+            {
+                builder.AppendFormat(CultureInfo.InvariantCulture, @"
+    <sheet name=""{0}"" sheetId=""{1}"" r:id=""rId{1}""/>", EscapeXmlAttribute(worksheets[i].Name), i + 1);
+            }
+
+            builder.Append(@"
+  </sheets>
+</workbook>");
+            return builder.ToString();
+        }
+
+        private static string BuildWorkbookRelationshipsXml(int sheetCount)
+        {
+            var builder = new StringBuilder();
+            builder.Append(@"<?xml version=""1.0"" encoding=""UTF-8""?>
+<Relationships xmlns=""http://schemas.openxmlformats.org/package/2006/relationships"">");
+            for (var i = 1; i <= sheetCount; i++)
+            {
+                builder.AppendFormat(CultureInfo.InvariantCulture, @"
+  <Relationship Id=""rId{0}"" Type=""http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"" Target=""worksheets/sheet{0}.xml""/>", i);
+            }
+
+            builder.Append(@"
+</Relationships>");
+            return builder.ToString();
+        }
+
+        private static string SanitizeWorksheetName(string name, int fallbackIndex)
+        {
+            var value = string.IsNullOrWhiteSpace(name) ? "Sheet" + fallbackIndex.ToString(CultureInfo.InvariantCulture) : name.Trim();
+            var invalidChars = new[] { '[', ']', ':', '*', '?', '/', '\\' };
+            foreach (var ch in invalidChars)
+            {
+                value = value.Replace(ch, ' ');
+            }
+
+            value = Regex.Replace(value, @"\s+", " ").Trim(' ', '\'');
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                value = "Sheet" + fallbackIndex.ToString(CultureInfo.InvariantCulture);
+            }
+
+            return value.Length > 31 ? value.Substring(0, 31) : value;
+        }
+
+        private static string EscapeXmlAttribute(string value)
+        {
+            return SecurityElement.Escape(SanitizeXmlText(value)) ?? string.Empty;
         }
 
         private static IList<IDictionary<string, string>> ReadCsv(Stream stream)
@@ -684,5 +780,24 @@ namespace HospitalQualityDashboardDemo.Services
             return index;
         }
 
+    }
+
+    public class ExcelWorksheetExport
+    {
+        public string Name { get; set; }
+        public IEnumerable<object> Items { get; set; }
+        public IList<KeyValuePair<string, Func<object, object>>> Columns { get; set; }
+
+        public static ExcelWorksheetExport From<T>(string name, IEnumerable<T> items, IList<KeyValuePair<string, Func<T, object>>> columns)
+        {
+            return new ExcelWorksheetExport
+            {
+                Name = name,
+                Items = (items ?? Enumerable.Empty<T>()).Cast<object>(),
+                Columns = (columns ?? new List<KeyValuePair<string, Func<T, object>>>())
+                    .Select(column => new KeyValuePair<string, Func<object, object>>(column.Key, item => column.Value((T)item)))
+                    .ToList()
+            };
+        }
     }
 }

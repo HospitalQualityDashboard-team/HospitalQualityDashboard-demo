@@ -175,7 +175,7 @@
                 <h2>Bảng tiến độ</h2>
                 <p>Tỷ lệ hoàn tất của từng khoa/phòng.</p>
             </div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="mobile-stack-actions align-items-center dashboard-panel-actions">
                 @using (Html.BeginForm("Index", "Dashboard", FormMethod.Get, new { id = "dashboardFilterForm", @class = "d-flex align-items-center gap-2" }))
                 {
                     @Html.DropDownList("tanSuat", Model.TanSuatOptions, new { @class = "form-select form-select-sm border rounded-pill px-3", onchange = "this.form.submit();" })
@@ -297,6 +297,24 @@
                             <div class="form-check py-1">
                                 <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="XepLoai" id="db_export_XepLoai" checked />
                                 <label class="form-check-label" for="db_export_XepLoai">Xếp loại tổng thể</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check py-1">
+                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="SoBaoCaoDatMucTieuNam" id="db_export_SoBaoCaoDatMucTieuNam" checked />
+                                <label class="form-check-label" for="db_export_SoBaoCaoDatMucTieuNam">Đạt mục tiêu năm</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check py-1">
+                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="SoBaoCaoDanhGiaMucTieuNam" id="db_export_SoBaoCaoDanhGiaMucTieuNam" checked />
+                                <label class="form-check-label" for="db_export_SoBaoCaoDanhGiaMucTieuNam">Đã đánh giá mục tiêu</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check py-1">
+                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="TyLeDatMucTieuNam" id="db_export_TyLeDatMucTieuNam" checked />
+                                <label class="form-check-label" for="db_export_TyLeDatMucTieuNam">Tỷ lệ đạt mục tiêu năm (%)</label>
                             </div>
                         </div>
                         

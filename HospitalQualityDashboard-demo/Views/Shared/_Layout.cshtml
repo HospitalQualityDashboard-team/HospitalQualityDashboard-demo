@@ -70,6 +70,7 @@
                 }
             </nav>
         </aside>
+            <div class="app-sidebar-backdrop" data-app-sidebar-close></div>
         }
 
         <div class="app-content">
@@ -117,9 +118,26 @@
             var shell = document.querySelector('.app-shell');
             if (!toggle || !shell) return;
 
-            toggle.addEventListener('click', function () {
-                var isOpen = shell.classList.toggle('is-sidebar-open');
+            function setSidebarOpen(isOpen) {
+                shell.classList.toggle('is-sidebar-open', isOpen);
                 toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                document.body.classList.toggle('is-sidebar-open', isOpen);
+            }
+
+            toggle.addEventListener('click', function () {
+                setSidebarOpen(!shell.classList.contains('is-sidebar-open'));
+            });
+
+            document.querySelectorAll('[data-app-sidebar-close], .app-sidebar-nav .nav-link').forEach(function (element) {
+                element.addEventListener('click', function () {
+                    setSidebarOpen(false);
+                });
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    setSidebarOpen(false);
+                }
             });
         })();
     </script>

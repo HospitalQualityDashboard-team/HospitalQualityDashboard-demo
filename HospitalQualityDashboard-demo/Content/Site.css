@@ -39,6 +39,10 @@ body {
     letter-spacing: 0;
 }
 
+body.is-sidebar-open {
+    overflow: hidden;
+}
+
 a {
     color: var(--app-primary);
 }
@@ -65,6 +69,10 @@ a:focus {
     border-right: 1px solid var(--app-border);
     box-shadow: 8px 0 26px rgba(20, 32, 51, .06);
     z-index: 1040;
+}
+
+.app-sidebar-backdrop {
+    display: none;
 }
 
 .app-sidebar-brand {
@@ -249,8 +257,17 @@ a:focus {
     flex: 1;
     width: 100%;
     max-width: 1480px;
+    min-width: 0;
     margin: 0 auto;
     padding: 28px 24px 36px;
+}
+
+.app-main > .container,
+.app-main > main.container {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .body-content {
@@ -480,6 +497,13 @@ a:focus {
 .schedule-page {
     display: grid;
     gap: 18px;
+    min-width: 0;
+}
+
+.management-page > *,
+.report-page > *,
+.schedule-page > * {
+    min-width: 0;
 }
 
 .panel-header {
@@ -853,6 +877,20 @@ a:focus {
     overflow-x: auto;
 }
 
+.table-responsive {
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+.data-table,
+.report-table {
+    min-width: 820px;
+}
+
+.assignment-table {
+    min-width: 980px;
+}
+
 form.row,
 .input-group {
     background: var(--app-surface);
@@ -1043,6 +1081,76 @@ footer {
     color: var(--app-muted);
 }
 
+.app-responsive-page {
+    width: 100%;
+}
+
+.mobile-stack-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.mobile-stack-actions form {
+    display: inline-flex;
+    min-width: 0;
+}
+
+.mobile-scroll-region {
+    overflow-y: auto;
+}
+
+.auth-page {
+    margin: 0 auto;
+    padding: 24px 0;
+}
+
+.profile-page,
+.report-edit-page,
+.form-page,
+.assignment-page,
+.employee-account-page {
+    width: 100%;
+}
+
+.assignment-header-actions {
+    justify-content: flex-end;
+}
+
+.assignment-view-switch {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.assignment-view-switch::-webkit-scrollbar {
+    display: none;
+}
+
+.assignment-row-actions,
+.bulk-action-buttons {
+    flex-wrap: wrap;
+}
+
+.assignment-group-list {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.assignment-group-list > [class*="col-"] {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.bulk-action-buttons form {
+    display: inline-flex;
+}
+
+.form-page-header {
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 @media (max-width: 1200px) {
     .dashboard-hero,
     .dashboard-grid {
@@ -1073,8 +1181,24 @@ footer {
         transition: transform .24s cubic-bezier(.16, 1, .3, 1);
     }
 
+    .app-sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1035;
+        background: rgba(20, 32, 51, .38);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .24s cubic-bezier(.16, 1, .3, 1);
+    }
+
     .app-shell.is-sidebar-open .app-sidebar {
         transform: translateX(0);
+    }
+
+    .app-shell.is-sidebar-open .app-sidebar-backdrop {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
     }
 
     .app-sidebar-toggle {
@@ -1098,6 +1222,12 @@ footer {
     .filter-actions {
         justify-content: flex-start;
     }
+
+    .app-main > .container,
+    .app-main > main.container {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1119,10 +1249,23 @@ footer {
         display: block;
     }
 
+    .panel-header.d-flex,
+    .progress-row.d-flex {
+        display: block !important;
+    }
+
     .page-actions,
     .management-toolbar,
     .panel-toolbar {
         margin-top: 12px;
+    }
+
+    .page-actions,
+    .management-toolbar,
+    .filter-actions,
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .dashboard-hero {
@@ -1131,6 +1274,16 @@ footer {
 
     .dashboard-hero h1 {
         font-size: 1.55rem;
+    }
+
+    .dashboard-panel,
+    .data-panel,
+    .schedule-form-panel {
+        padding: 14px;
+    }
+
+    .chart-shell {
+        min-height: 240px;
     }
 
     .dashboard-summary-strip,
@@ -1147,22 +1300,55 @@ footer {
         min-width: 0;
     }
 
+    .metric-card {
+        min-height: 0;
+        padding: 16px;
+    }
+
+    .metric-value {
+        font-size: 1.9rem;
+    }
+
     .period-card {
         min-height: 0;
     }
 
     .filter-actions .btn,
     .management-toolbar .btn,
-    .form-actions .btn {
+    .form-actions .btn,
+    .page-actions .btn,
+    .mobile-stack-actions .btn {
+        width: 100%;
+    }
+
+    .management-toolbar form,
+    .page-actions form,
+    .form-actions form {
+        width: 100%;
+    }
+
+    .management-toolbar form .btn,
+    .page-actions form .btn,
+    .form-actions form .btn {
         width: 100%;
     }
 
     .progress-number {
         text-align: left;
+        margin-top: 8px;
     }
 
     .table-responsive {
         overflow-x: auto;
+    }
+
+    .table-actions {
+        min-width: 168px;
+    }
+
+    .table-actions .btn,
+    .table-actions form {
+        margin-top: 4px;
     }
 
     .notification-item {
@@ -1171,6 +1357,237 @@ footer {
 
     .notification-item .table-actions {
         text-align: left !important;
+    }
+
+    .modal-dialog {
+        margin: 12px;
+    }
+
+    .modal-footer {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .modal-footer > * {
+        margin: 0 !important;
+    }
+
+    .bulk-action-bar {
+        left: 12px !important;
+        right: 12px;
+        bottom: 12px !important;
+        width: auto !important;
+        max-width: none;
+        margin-bottom: 0 !important;
+        transform: translateY(120%);
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 12px;
+    }
+
+    .bulk-action-bar:not(.d-none) {
+        transform: translateY(0) !important;
+    }
+
+    .bulk-action-bar > div {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .mobile-stack-actions form,
+    .bulk-action-buttons form {
+        width: 100%;
+    }
+
+    .mobile-stack-actions form .btn,
+    .bulk-action-buttons form .btn {
+        width: 100%;
+    }
+
+    .assignment-header,
+    .report-edit-header,
+    .form-page-header {
+        align-items: flex-start !important;
+    }
+
+    .assignment-view-switch {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .assignment-view-switch .btn {
+        flex: 0 0 auto;
+        min-height: 38px;
+    }
+
+    .assignment-row-actions {
+        justify-content: flex-start !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .app-topbar {
+        min-height: 56px;
+        gap: 8px;
+        padding: 8px 12px;
+    }
+
+    .app-topbar-actions {
+        gap: 6px;
+        flex: 1 1 auto;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .app-topbar-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .app-topbar-actions .nav-link,
+    .app-topbar-link,
+    .app-role-chip {
+        flex: 0 0 auto;
+    }
+
+    .app-sidebar {
+        width: min(288px, 86vw);
+        padding: 16px 12px;
+    }
+
+    .app-main {
+        padding: 16px 10px 24px;
+    }
+
+    .app-footer {
+        padding: 14px 12px;
+    }
+
+    .page-header h1 {
+        font-size: 1.52rem;
+    }
+
+    .dashboard-hero {
+        padding: 16px;
+    }
+
+    .dashboard-summary-item,
+    .report-header-metrics div,
+    .schedule-result-item {
+        padding: 11px;
+    }
+
+    .filter-panel,
+    .import-panel {
+        padding: 12px;
+    }
+
+    .import-panel .input-group {
+        display: grid;
+        gap: 8px;
+    }
+
+    .import-panel .input-group > .form-control,
+    .import-panel .input-group > .btn {
+        width: 100%;
+        border-radius: 7px !important;
+    }
+
+    .form-control,
+    .form-select,
+    .btn {
+        min-height: 40px;
+    }
+
+    .btn-sm {
+        min-height: 36px;
+    }
+
+    .status-pill,
+    .status-badge {
+        white-space: normal;
+    }
+
+    .period-card,
+    .metric-card,
+    .dashboard-panel,
+    .data-panel,
+    .schedule-form-panel {
+        border-radius: 8px;
+    }
+
+    .period-card-top,
+    .period-progress {
+        grid-template-columns: 1fr;
+    }
+
+    .period-progress span {
+        text-align: left;
+    }
+
+    .notification-meta,
+    .status-stack {
+        gap: 6px;
+    }
+
+    .mobile-scroll-region {
+        max-height: 260px !important;
+    }
+
+    .mobile-stack-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .auth-page {
+        padding: 12px 0;
+    }
+
+    .profile-page .card-body,
+    .report-edit-page .card-body,
+    .form-page .card-body,
+    .employee-account-page .card-body {
+        padding: 18px !important;
+    }
+
+    .assignment-page .card-header,
+    .form-page-header {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    .assignment-page .card-body {
+        padding: 16px !important;
+    }
+
+    .assignment-page .card-body.p-0 {
+        padding: 0 !important;
+    }
+
+    .bulk-action-summary {
+        justify-content: center;
+        text-align: center;
+    }
+
+    .bulk-action-buttons {
+        display: grid !important;
+        grid-template-columns: 1fr;
+    }
+
+    .bulk-action-buttons .btn {
+        width: 100%;
+    }
+
+    .bulk-action-buttons #close-bulk-bar {
+        width: 40px;
+        justify-self: center;
+    }
+
+    .pagination {
+        max-width: 100%;
+        overflow-x: auto;
     }
 }
 
@@ -1264,4 +1681,16 @@ footer {
 }
 .app-shell.no-sidebar .app-sidebar-toggle {
     display: none !important;
+}
+
+@media (max-width: 768px) {
+    .bulk-action-bar.translate-middle-x {
+        left: 12px !important;
+        right: 12px !important;
+        transform: translateY(120%) !important;
+    }
+
+    .bulk-action-bar.translate-middle-x:not(.d-none) {
+        transform: translateY(0) !important;
+    }
 }
