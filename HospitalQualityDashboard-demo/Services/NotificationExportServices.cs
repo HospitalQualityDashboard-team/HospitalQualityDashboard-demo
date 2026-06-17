@@ -463,7 +463,7 @@ WHERE tk.LoaiTaiKhoan=@AdminType
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("KhoaPhong", x => x.TenKhoaPhong),
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("MaChiSo", x => x.MaChiSo),
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("TenChiSo", x => x.TenChiSo),
-                new KeyValuePair<string, Func<ReportEntryViewModel, object>>("KetQua", x => x.KetQua),
+                new KeyValuePair<string, Func<ReportEntryViewModel, object>>("KetQua", x => FormatDecimal(x.KetQua)),
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("TrangThai", x => x.TrangThai),
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("DatMucTieu", x => x.DatMucTieu)
             });
@@ -674,7 +674,7 @@ ORDER BY kp.TenKhoaPhong, ky.TuNgay DESC, cs.MaChiSo";
 
         private static string FormatDecimal(decimal? value)
         {
-            return value.HasValue ? value.Value.ToString("0.####", CultureInfo.InvariantCulture) : string.Empty;
+            return value.HasValue ? value.Value.ToString("0.##", CultureInfo.InvariantCulture) : string.Empty;
         }
 
         private static string FormatTanSuatBaoCao(TanSuatBaoCao frequency)
@@ -797,7 +797,7 @@ ORDER BY kp.TenKhoaPhong, ky.TuNgay DESC, cs.MaChiSo";
             new DashboardReportDetailExportColumn("TuSo", "Tử số", x => x.TuSo),
             new DashboardReportDetailExportColumn("MauSo", "Mẫu số", x => x.MauSo),
             new DashboardReportDetailExportColumn("GiaTriNhap", "Giá trị nhập", x => x.GiaTriNhap),
-            new DashboardReportDetailExportColumn("KetQua", "Kết quả", x => x.KetQua),
+            new DashboardReportDetailExportColumn("KetQua", "Kết quả", x => FormatDecimal(x.KetQua)),
             new DashboardReportDetailExportColumn("MucTieuNam", "Mục tiêu năm", x => x.MucTieuNam),
             new DashboardReportDetailExportColumn("DatMucTieu", "Đạt mục tiêu", x => x.DatMucTieuText),
             new DashboardReportDetailExportColumn("TrangThaiBaoCao", "Trạng thái báo cáo", x => x.TrangThaiBaoCaoText),

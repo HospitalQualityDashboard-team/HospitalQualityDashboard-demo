@@ -166,7 +166,7 @@ SELECT
     cs.TenChiSo,
     kp.TenKhoaPhong,
     cs.LinhVucApDung,
-    DATEDIFF(day, CAST(GETDATE() AS date), ky.HanNop) AS DaysUntilDue
+    DATEDIFF(day, @Today, ky.HanNop) AS DaysUntilDue
 FROM dbo.KyBaoCao ky
 INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
@@ -281,7 +281,8 @@ ORDER BY log.ThoiGian DESC";
                 Param("@DaKhoa", (byte)TrangThaiBaoCao.DaKhoa),
                 Param("@DaDuyet", (byte)TrangThaiBaoCao.DaDuyet),
                 Param("@TraLai", (byte)TrangThaiBaoCao.TraLai),
-                Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap)
+                Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap),
+                Param("@Today", GetVietnamLocalNow().Date)
             };
         }
 
@@ -390,16 +391,16 @@ ORDER BY log.ThoiGian DESC";
                 new ExcelColumn<DashboardExcelDetailRow>("Lĩnh vực", x => x.LinhVuc),
                 new ExcelColumn<DashboardExcelDetailRow>("Tử số", x => x.TuSo),
                 new ExcelColumn<DashboardExcelDetailRow>("Mẫu số", x => x.MauSo),
-                new ExcelColumn<DashboardExcelDetailRow>("Kết quả", x => x.KetQua),
+                new ExcelColumn<DashboardExcelDetailRow>("Kết quả", x => x.KetQua.HasValue ? (object)Math.Round(x.KetQua.Value, 2, MidpointRounding.AwayFromZero) : null),
                 new ExcelColumn<DashboardExcelDetailRow>("Đơn vị tính", x => x.DonViTinh),
                 new ExcelColumn<DashboardExcelDetailRow>("Mục tiêu", x => x.MucTieu),
                 new ExcelColumn<DashboardExcelDetailRow>("Đánh giá đạt/chưa đạt", x => x.DanhGiaDatMucTieu),
                 new ExcelColumn<DashboardExcelDetailRow>("Trạng thái nhập liệu", x => x.TrangThaiNhapLieu),
                 new ExcelColumn<DashboardExcelDetailRow>("Trạng thái duyệt", x => x.TrangThaiDuyet),
                 new ExcelColumn<DashboardExcelDetailRow>("Người nhập", x => x.NguoiNhap),
-                new ExcelColumn<DashboardExcelDetailRow>("Ngày nhập", x => x.NgayNhap),
+                new ExcelColumn<DashboardExcelDetailRow>("Ngày nhập", x => FormatExcelDateTime(x.NgayNhap)),
                 new ExcelColumn<DashboardExcelDetailRow>("Người duyệt", x => x.NguoiDuyet),
-                new ExcelColumn<DashboardExcelDetailRow>("Ngày duyệt", x => x.NgayDuyet),
+                new ExcelColumn<DashboardExcelDetailRow>("Ngày duyệt", x => FormatExcelDateTime(x.NgayDuyet)),
                 new ExcelColumn<DashboardExcelDetailRow>("Ghi chú", x => x.GhiChu)
             }, ApplyDetailRowStyle);
         }
@@ -477,7 +478,7 @@ ORDER BY log.ThoiGian DESC";
             worksheet.Cell(6, 1).Value = "Khoa/phòng";
             worksheet.Cell(6, 2).Value = query.KhoaPhongId.HasValue ? GetDepartmentName(query.KhoaPhongId.Value) : (userContext.IsAdmin ? "Toàn viện" : userContext.TenKhoaPhong);
             worksheet.Cell(7, 1).Value = "Ngày xuất file";
-            worksheet.Cell(7, 2).Value = DateTime.Now;
+            worksheet.Cell(7, 2).Value = GetVietnamLocalNow();
             worksheet.Cell(8, 1).Value = "Người xuất file";
             worksheet.Cell(8, 2).Value = userContext.TenDangNhap;
             worksheet.Range(4, 1, 8, 1).Style.Font.Bold = true;
@@ -563,6 +564,28 @@ ORDER BY log.ThoiGian DESC";
             cell.Value = Convert.ToString(value, CultureInfo.InvariantCulture);
         }
 
+        private static string FormatExcelDateTime(DateTime? value)
+        {
+            return value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture) : string.Empty;
+        }
+
+        private static DateTime GetVietnamLocalNow()
+        {
+            try
+            {
+                var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return DateTime.Now;
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return DateTime.Now;
+            }
+        }
+
         private static void ApplyDetailRowStyle(IXLRow row, DashboardExcelDetailRow item)
         {
             if (item.DatMucTieu == true)
@@ -616,8 +639,8 @@ END");
         private void LogExportHistory(DashboardExcelExportQueryDto query, ExportUserContextDto userContext, string fileName, int rowCount)
         {
             Execute(@"
-INSERT INTO dbo.LichSuXuatBaoCao(NguoiDungId, LoaiBaoCao, BoLoc, TenFile, SoDongDuLieu, DiaChiIP, VaiTro, KhoaPhongId)
-VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @VaiTro, @KhoaPhongId)",
+INSERT INTO dbo.LichSuXuatBaoCao(NguoiDungId, LoaiBaoCao, BoLoc, TenFile, SoDongDuLieu, DiaChiIP, VaiTro, KhoaPhongId, NgayXuat)
+VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @VaiTro, @KhoaPhongId, @NgayXuat)",
                 Param("@NguoiDungId", userContext.TaiKhoanId),
                 Param("@LoaiBaoCao", ReportType),
                 Param("@BoLoc", JsonConvert.SerializeObject(query)),
@@ -625,7 +648,8 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
                 Param("@SoDongDuLieu", rowCount),
                 Param("@DiaChiIP", userContext.DiaChiIP),
                 Param("@VaiTro", userContext.IsAdmin ? "Admin" : "User"),
-                Param("@KhoaPhongId", query.KhoaPhongId));
+                Param("@KhoaPhongId", query.KhoaPhongId),
+                Param("@NgayXuat", GetVietnamLocalNow()));
         }
 
         private string BuildFileName(DashboardExcelExportQueryDto query, ExportUserContextDto userContext)

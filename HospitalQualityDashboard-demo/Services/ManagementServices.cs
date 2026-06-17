@@ -220,7 +220,7 @@ SELECT nv.NhanVienId, nv.MaNhanVien, nv.HoTen, nv.NgaySinh, nv.GioiTinh, nv.Chuc
 FROM dbo.NhanVien nv
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = nv.KhoaPhongId
 WHERE (@KhoaPhongId IS NULL OR nv.KhoaPhongId = @KhoaPhongId)
-ORDER BY kp.TenKhoaPhong, nv.HoTen";
+ORDER BY nv.NhanVienId";
             // Map từng dòng SQL thành NhanVienViewModel cho màn hình danh sách.
             return Query(sql, MapEmployee, Param("@KhoaPhongId", khoaPhongId));
         }
@@ -246,7 +246,7 @@ SELECT nv.NhanVienId, nv.MaNhanVien, nv.HoTen, nv.NgaySinh, nv.GioiTinh, nv.Chuc
 FROM dbo.NhanVien nv
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = nv.KhoaPhongId
 WHERE (@KhoaPhongId IS NULL OR nv.KhoaPhongId = @KhoaPhongId)
-ORDER BY kp.TenKhoaPhong, nv.HoTen
+ORDER BY nv.NhanVienId
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
             return Query(sql, MapEmployee,

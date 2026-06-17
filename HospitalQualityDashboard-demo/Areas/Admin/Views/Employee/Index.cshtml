@@ -81,6 +81,7 @@
                 <table class="table table-sm align-middle data-table">
                     <thead>
                         <tr>
+                            <th>STT</th>
                             <th>Mã</th>
                             <th>Họ tên</th>
                             <th>Khoa/phòng</th>
@@ -91,9 +92,11 @@
                     </thead>
                     <tbody>
                     @* Mỗi dòng là một nhân viên trong bộ lọc hiện tại. *@
+                    @{ var stt = ((Model.Page < 1 ? 1 : Model.Page) - 1) * Model.PageSize + 1; }
                     @foreach (var item in items)
                     {
                         <tr>
+                            <td>@stt</td>
                             <td>@item.MaNhanVien</td>
                             <td><strong>@item.HoTen</strong></td>
                             <td>@item.TenKhoaPhong</td>
@@ -121,6 +124,7 @@
                                 }
                             </td>
                         </tr>
+                        stt++;
                     }
                     </tbody>
                 </table>

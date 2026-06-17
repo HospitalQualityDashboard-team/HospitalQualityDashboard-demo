@@ -89,6 +89,7 @@ namespace HospitalQualityDashboardDemo.Services
                 report.KetQua = report.TuSo.GetValueOrDefault() / report.MauSo.Value;
             }
 
+            report.KetQua = RoundResult(report.KetQua);
             report.DatMucTieu = CompareTarget(report.KetQua, indicator.ToanTuSoSanh, indicator.GiaTriMucTieu);
         }
 
@@ -207,6 +208,11 @@ namespace HospitalQualityDashboardDemo.Services
                 case "==": return result.Value == target.Value;
                 default: return null;
             }
+        }
+
+        private static decimal? RoundResult(decimal? value)
+        {
+            return value.HasValue ? Math.Round(value.Value, 2, MidpointRounding.AwayFromZero) : (decimal?)null;
         }
     }
 
@@ -406,6 +412,7 @@ WHERE bc.BaoCaoId=@Id";
             var indicator = _indicators.Get(model.ChiSoChatLuongId, targetYear);
             _calculator.Calculate(model, indicator);
             var beforeSnapshot = isNewReport ? null : GetReportDetailSnapshot(model.BaoCaoId);
+            var now = GetVietnamLocalNow();
 
             ExecuteInTransaction((conn, trans) =>
             {
@@ -419,25 +426,27 @@ ORDER BY DangHoatDong DESC, PhanCongChiSoId",
                             Param("@KhoaPhongId", model.KhoaPhongId),
                             Param("@ChiSoChatLuongId", model.ChiSoChatLuongId)));
 
-                    model.BaoCaoId = Convert.ToInt32(Scalar(conn, trans, @"INSERT INTO dbo.BaoCao(KyBaoCaoId, KhoaPhongId, ChiSoChatLuongId, PhanCongChiSoId, TrangThai, NguoiTaoId)
-OUTPUT INSERTED.BaoCaoId VALUES(@KyBaoCaoId, @KhoaPhongId, @ChiSoChatLuongId, @PhanCongChiSoId, @TrangThai, @NguoiTaoId)",
+                    model.BaoCaoId = Convert.ToInt32(Scalar(conn, trans, @"INSERT INTO dbo.BaoCao(KyBaoCaoId, KhoaPhongId, ChiSoChatLuongId, PhanCongChiSoId, TrangThai, NguoiTaoId, NgayTao, NgayCapNhat)
+OUTPUT INSERTED.BaoCaoId VALUES(@KyBaoCaoId, @KhoaPhongId, @ChiSoChatLuongId, @PhanCongChiSoId, @TrangThai, @NguoiTaoId, @Now, @Now)",
                         Param("@KyBaoCaoId", model.KyBaoCaoId),
                         Param("@KhoaPhongId", model.KhoaPhongId),
                         Param("@ChiSoChatLuongId", model.ChiSoChatLuongId),
                         Param("@PhanCongChiSoId", assignmentId),
                         Param("@TrangThai", (byte)TrangThaiBaoCao.Nhap),
-                        Param("@NguoiTaoId", userId)));
+                        Param("@NguoiTaoId", userId),
+                        Param("@Now", now)));
                 }
                 else
                 {
-                    Execute(conn, trans, "UPDATE dbo.BaoCao SET NgayCapNhat=GETDATE() WHERE BaoCaoId=@Id AND TrangThai=@Nhap",
+                    Execute(conn, trans, "UPDATE dbo.BaoCao SET NgayCapNhat=@Now WHERE BaoCaoId=@Id AND TrangThai=@Nhap",
                         Param("@Id", model.BaoCaoId),
-                        Param("@Nhap", (byte)TrangThaiBaoCao.Nhap));
+                        Param("@Nhap", (byte)TrangThaiBaoCao.Nhap),
+                        Param("@Now", now));
                 }
 
                 Execute(conn, trans, @"
 IF EXISTS (SELECT 1 FROM dbo.BaoCaoChiTiet WHERE BaoCaoId=@BaoCaoId)
-    UPDATE dbo.BaoCaoChiTiet SET TuSo=@TuSo, MauSo=@MauSo, GiaTriNhap=@GiaTriNhap, KetQua=@KetQua, DatMucTieu=@DatMucTieu, GhiChu=@GhiChu, NgayCapNhat=GETDATE() WHERE BaoCaoId=@BaoCaoId
+    UPDATE dbo.BaoCaoChiTiet SET TuSo=@TuSo, MauSo=@MauSo, GiaTriNhap=@GiaTriNhap, KetQua=@KetQua, DatMucTieu=@DatMucTieu, GhiChu=@GhiChu, NgayCapNhat=@Now WHERE BaoCaoId=@BaoCaoId
 ELSE
     INSERT INTO dbo.BaoCaoChiTiet(BaoCaoId, TuSo, MauSo, GiaTriNhap, KetQua, DatMucTieu, GhiChu) VALUES(@BaoCaoId, @TuSo, @MauSo, @GiaTriNhap, @KetQua, @DatMucTieu, @GhiChu)",
                     Param("@BaoCaoId", model.BaoCaoId),
@@ -446,7 +455,8 @@ ELSE
                     Param("@GiaTriNhap", model.GiaTriNhap),
                     Param("@KetQua", model.KetQua),
                     Param("@DatMucTieu", model.DatMucTieu),
-                    Param("@GhiChu", model.GhiChu));
+                    Param("@GhiChu", model.GhiChu),
+                    Param("@Now", now));
 
                 var afterSnapshot = BuildReportDetailSnapshot(model);
                 LogSystemAction(conn, trans,
@@ -472,11 +482,12 @@ ELSE
 
         public void Submit(int id, int userId)
         {
+            var now = GetVietnamLocalNow();
             var affectedRows = Execute(@"UPDATE bc
-SET TrangThai=CASE WHEN CAST(GETDATE() AS date) > ky.HanNop THEN @QuaHan ELSE @DaGui END,
+SET TrangThai=CASE WHEN CAST(@Now AS date) > ky.HanNop THEN @QuaHan ELSE @DaGui END,
     NguoiGuiId=@NguoiGuiId,
-    NgayGui=GETDATE(),
-    NgayCapNhat=GETDATE()
+    NgayGui=@Now,
+    NgayCapNhat=@Now
 FROM dbo.BaoCao bc
 INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId
 WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
@@ -484,7 +495,8 @@ WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
                 Param("@QuaHan", (byte)TrangThaiBaoCao.QuaHan),
                 Param("@NguoiGuiId", userId),
                 Param("@Id", id),
-                Param("@Nhap", (byte)TrangThaiBaoCao.Nhap));
+                Param("@Nhap", (byte)TrangThaiBaoCao.Nhap),
+                Param("@Now", now));
 
             if (affectedRows > 0)
             {
@@ -500,11 +512,12 @@ WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
 
         public void Lock(int id)
         {
-            Execute("UPDATE dbo.BaoCao SET TrangThai=@TrangThai, NgayCapNhat=GETDATE() WHERE BaoCaoId=@Id AND TrangThai IN (@DaGui, @QuaHan)",
+            Execute("UPDATE dbo.BaoCao SET TrangThai=@TrangThai, NgayCapNhat=@Now WHERE BaoCaoId=@Id AND TrangThai IN (@DaGui, @QuaHan)",
                 Param("@TrangThai", (byte)TrangThaiBaoCao.DaKhoa),
                 Param("@Id", id),
                 Param("@DaGui", (byte)TrangThaiBaoCao.DaGui),
-                Param("@QuaHan", (byte)TrangThaiBaoCao.QuaHan));
+                Param("@QuaHan", (byte)TrangThaiBaoCao.QuaHan),
+                Param("@Now", GetVietnamLocalNow()));
         }
 
         public void Delete(int id, int userId)
@@ -600,6 +613,23 @@ WHERE bc.BaoCaoId = @BaoCaoId",
         private static string FormatValue(decimal? value)
         {
             return value.HasValue ? value.Value.ToString("0.####") : "NULL";
+        }
+
+        private static DateTime GetVietnamLocalNow()
+        {
+            try
+            {
+                var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return DateTime.Now;
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return DateTime.Now;
+            }
         }
 
         private void LogSystemAction(int userId, string feature, string action, string entityName, int? entityId, string content)
@@ -1251,7 +1281,7 @@ SELECT
         {
             const string sql = @"
 SELECT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.HanNop, cs.ChiSoChatLuongId, pc.PhanCongChiSoId,
-       cs.MaChiSo, cs.TenChiSo, DATEDIFF(day, CAST(GETDATE() AS date), ky.HanNop) AS DaysUntilDue
+       cs.MaChiSo, cs.TenChiSo, DATEDIFF(day, @Today, ky.HanNop) AS DaysUntilDue
 FROM dbo.KyBaoCao ky
 INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
 INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cs.DangHoatDong = 1
@@ -1263,7 +1293,7 @@ LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
 WHERE ky.TrangThai = @Mo
   AND pc.KhoaPhongId = @KhoaPhongId
   AND (@KyBaoCaoId IS NULL OR ky.KyBaoCaoId = @KyBaoCaoId)
-  AND (@OverdueOnly = 0 OR DATEDIFF(day, CAST(GETDATE() AS date), ky.HanNop) < 0)
+  AND (@OverdueOnly = 0 OR DATEDIFF(day, @Today, ky.HanNop) < 0)
   AND bc.BaoCaoId IS NULL
 ORDER BY ky.HanNop, cs.MaChiSo";
 
@@ -1290,7 +1320,25 @@ ORDER BY ky.HanNop, cs.MaChiSo";
                 Param("@Mo", (byte)TrangThaiKyBaoCao.Mo),
                 Param("@KhoaPhongId", departmentId),
                 Param("@KyBaoCaoId", periodId),
-                Param("@OverdueOnly", overdueOnly ? 1 : 0));
+                Param("@OverdueOnly", overdueOnly ? 1 : 0),
+                Param("@Today", GetVietnamLocalNow().Date));
+        }
+
+        private static DateTime GetVietnamLocalNow()
+        {
+            try
+            {
+                var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return DateTime.Now;
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return DateTime.Now;
+            }
         }
     }
 }

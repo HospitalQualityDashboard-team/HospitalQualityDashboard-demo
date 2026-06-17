@@ -287,6 +287,8 @@
     <Content Include="Views\Account\Profile.cshtml" />
     <Content Include="Views\Account\UserLogin.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="tools\VerifyEmployeeOrder.ps1" />
+    <Content Include="tools\VerifyReportResultAndExcelTime.ps1" />
     <Content Include="tools\VerifyDashboardExcelDetailedExport.ps1" />
     <Content Include="tools\VerifyDashboardExcelUpgrade.ps1" />
   </ItemGroup>
