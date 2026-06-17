@@ -59,7 +59,7 @@
         <div class="panel-header">
             <div>
                 <h2>Danh sách chỉ số</h2>
-                <p>@items.Count chỉ số trong phạm vi được phép xem.</p>
+                <p>@Model.TotalItems chỉ số trong phạm vi được phép xem.</p>
             </div>
             <span class="status-pill status-muted">@items.Count dòng</span>
         </div>
@@ -113,6 +113,15 @@
         else
         {
             <div class="empty-state">Chưa có chỉ số chất lượng trong phạm vi hiện tại.</div>
+        }
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="management-toolbar mt-3 d-flex justify-content-center align-items-center gap-3">
+                @Html.ActionLink("Trước", "Index", new { page = Model.Page - 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page <= 1 ? "disabled" : "") })
+                <span class="status-pill status-muted">Trang @Model.Page / @Model.TotalPages</span>
+                @Html.ActionLink("Sau", "Index", new { page = Model.Page + 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page >= Model.TotalPages ? "disabled" : "") })
+            </div>
         }
     </section>
 </section>

@@ -154,7 +154,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             if (submitAction == "submit")
             {
                 _service.Submit(id, CurrentTaiKhoanId.Value);
-                return RedirectToAction("Index");
+                return RedirectToAction("Nhap", new { kyBaoCaoId = model.KyBaoCaoId });
             }
 
             return RedirectToAction("Edit", new { id = id });
@@ -175,7 +175,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             var periodGate = EnsureOpenPeriodForUser(report.KyBaoCaoId);
             if (periodGate != null) return periodGate;
             _service.Submit(id, CurrentTaiKhoanId.Value);
-            return RedirectToAction("Index");
+            return RedirectToAction("Nhap", new { kyBaoCaoId = report.KyBaoCaoId });
         }
 
         private IList<KyBaoCaoViewModel> GetActivePeriodsForCurrentViewer()

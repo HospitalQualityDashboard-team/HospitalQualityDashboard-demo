@@ -26,6 +26,27 @@ ORDER BY ky.TuNgay DESC";
             return Query(sql, MapPeriod);
         }
 
+        public IList<KyBaoCaoViewModel> GetAll(int page, int pageSize, out int totalItems)
+        {
+            page = NormalizePage(page);
+            pageSize = NormalizePageSize(pageSize);
+            totalItems = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.KyBaoCao"));
+
+            const string sql = @"
+SELECT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay, ky.HanNop, ky.TrangThai,
+       COUNT(bc.BaoCaoId) AS TongBaoCao,
+       ISNULL(SUM(CASE WHEN bc.TrangThai IN (2,3,4) THEN 1 ELSE 0 END), 0) AS DaGui
+FROM dbo.KyBaoCao ky
+LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
+GROUP BY ky.KyBaoCaoId, ky.TenKyBaoCao, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay, ky.HanNop, ky.TrangThai
+ORDER BY ky.TuNgay DESC
+OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+            return Query(sql, MapPeriod,
+                Param("@Offset", (page - 1) * pageSize),
+                Param("@PageSize", pageSize));
+        }
+
         public IList<TanSuatBaoCao> GetFrequenciesForDepartment(int departmentId)
         {
             const string sql = @"
@@ -156,6 +177,17 @@ SELECT
                 TongBaoCao = Int(reader, "TongBaoCao"),
                 DaGui = Int(reader, "DaGui")
             };
+        }
+
+        private static int NormalizePage(int page)
+        {
+            return page < 1 ? 1 : page;
+        }
+
+        private static int NormalizePageSize(int pageSize)
+        {
+            if (pageSize < 1) return 20;
+            return pageSize > 100 ? 100 : pageSize;
         }
     }
 

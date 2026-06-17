@@ -9,12 +9,22 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
 {
     public class ReportingPeriodController : AdminBaseController
     {
+        private const int DefaultPageSize = 20;
         private readonly ReportingPeriodService _service = new ReportingPeriodService();
         private readonly ReportingPeriodScheduleService _schedule = new ReportingPeriodScheduleService();
 
-        public ActionResult Index()
+        public ActionResult Index(int page = 1)
         {
-            return View(_service.GetAll());
+            int totalItems;
+            var items = _service.GetAll(page, DefaultPageSize, out totalItems);
+            return View(new KyBaoCaoIndexViewModel
+            {
+                Items = items,
+                Page = NormalizePage(page),
+                PageSize = DefaultPageSize,
+                TotalItems = totalItems,
+                TotalPages = GetTotalPages(totalItems, DefaultPageSize)
+            });
         }
 
         [HttpPost]
@@ -152,6 +162,16 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
                 TrangThai = model.TrangThai
             });
             return RedirectToAction("Index");
+        }
+
+        private static int NormalizePage(int page)
+        {
+            return page < 1 ? 1 : page;
+        }
+
+        private static int GetTotalPages(int totalItems, int pageSize)
+        {
+            return totalItems <= 0 ? 1 : (int)System.Math.Ceiling((decimal)totalItems / pageSize);
         }
     }
 }

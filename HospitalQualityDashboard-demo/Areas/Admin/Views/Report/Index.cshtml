@@ -191,6 +191,8 @@
                             <th>Chỉ số</th>
                             <th>Kết quả</th>
                             <th>Trạng thái</th>
+                            <th>Ngày giờ nộp</th>
+                            <th>Người nộp</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -222,6 +224,8 @@
                                         break;
                                 }
                             </td>
+                            <td>@(item.NgayGui.HasValue ? item.NgayGui.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
+                            <td>@item.TenNguoiGui</td>
                             <td class="text-end table-actions">
                                 @{
                                     var detailLabel = Model.IsAdmin ? "Xem" : (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap ? "Sửa" : "Xem");
@@ -266,7 +270,7 @@
 
         @if (Model.TotalPages > 1)
         {
-            <div class="management-toolbar mt-3">
+            <div class="management-toolbar mt-3 d-flex justify-content-center align-items-center gap-3">
                 @Html.ActionLink("Trước", "Index", new { kyBaoCaoId = Model.KyBaoCaoId, khoaPhongId = Model.KhoaPhongId, chiSoChatLuongId = Model.ChiSoChatLuongId, page = Model.Page - 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page <= 1 ? "disabled" : "") })
                 <span class="status-pill status-muted">Trang @Model.Page / @Model.TotalPages</span>
                 @Html.ActionLink("Sau", "Index", new { kyBaoCaoId = Model.KyBaoCaoId, khoaPhongId = Model.KhoaPhongId, chiSoChatLuongId = Model.ChiSoChatLuongId, page = Model.Page + 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page >= Model.TotalPages ? "disabled" : "") })

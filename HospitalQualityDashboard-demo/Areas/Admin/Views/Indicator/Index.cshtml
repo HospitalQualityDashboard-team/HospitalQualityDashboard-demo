@@ -55,30 +55,30 @@
         <div class="alert alert-danger">@TempData["Error"]</div>
     }
 
-    <section class="data-panel">
-        <div class="panel-header">
-            <div>
-                <h2>Danh sách chỉ số</h2>
-                <p>@items.Count chỉ số trong phạm vi được phép xem.</p>
-            </div>
-            <span class="status-pill status-muted">@items.Count dòng</span>
+<section class="data-panel">
+    <div class="panel-header">
+        <div>
+            <h2>Danh sách chỉ số</h2>
+            <p>@Model.TotalItems chỉ số trong phạm vi được phép xem.</p>
         </div>
+        <span class="status-pill status-muted">@items.Count dòng</span>
+    </div>
 
-        @if (items.Any())
-        {
-            <div class="table-responsive">
-                <table class="table table-sm align-middle data-table">
-                    <thead>
-                        <tr>
-                            <th>Mã</th>
-                            <th>Tên chỉ số</th>
-                            <th>Tần suất</th>
-                            <th>Công thức</th>
-                            <th>Trạng thái</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
+    @if (items.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle data-table">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Tên chỉ số</th>
+                        <th>Tần suất</th>
+                        <th>Công thức</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
                     @foreach (var item in items)
                     {
                         <tr>
@@ -106,13 +106,22 @@
                             </td>
                         </tr>
                     }
-                    </tbody>
-                </table>
-            </div>
-        }
-        else
-        {
-            <div class="empty-state">Chưa có chỉ số chất lượng trong phạm vi hiện tại.</div>
-        }
-    </section>
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">Chưa có chỉ số chất lượng trong phạm vi hiện tại.</div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="management-toolbar mt-3 d-flex justify-content-center align-items-center gap-3">
+            @Html.ActionLink("Trước", "Index", new { page = Model.Page - 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page <= 1 ? "disabled" : "") })
+            <span class="status-pill status-muted">Trang @Model.Page / @Model.TotalPages</span>
+            @Html.ActionLink("Sau", "Index", new { page = Model.Page + 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page >= Model.TotalPages ? "disabled" : "") })
+        </div>
+    }
+</section>
 </section>

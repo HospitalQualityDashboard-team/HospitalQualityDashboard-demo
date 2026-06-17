@@ -8,11 +8,14 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
 {
     public class IndicatorController : AdminBaseController
     {
+        private const int DefaultPageSize = 20;
         private readonly IndicatorService _service = new IndicatorService();
 
-        public ActionResult Index()
+        public ActionResult Index(int page = 1)
         {
-            return View(new ChiSoIndexViewModel { Items = _service.GetAll() });
+            int totalItems;
+            var items = _service.GetAll(true, null, page, DefaultPageSize, out totalItems);
+            return View(CreateIndexViewModel(items, page, totalItems));
         }
 
         public ActionResult Details(int id)
@@ -89,7 +92,11 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         public ActionResult Import(ImportFileViewModel model)
         {
             var result = _service.Import(model.File, CurrentTaiKhoanId.Value);
-            return View("Index", new ChiSoIndexViewModel { Items = _service.GetAll(), ImportResult = result });
+            int totalItems;
+            var items = _service.GetAll(true, null, 1, DefaultPageSize, out totalItems);
+            var viewModel = CreateIndexViewModel(items, 1, totalItems);
+            viewModel.ImportResult = result;
+            return View("Index", viewModel);
         }
 
         private ActionResult Save(ChiSoViewModel model)
@@ -132,6 +139,28 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         {
             model.TanSuatBaoCaoOptions = FrequencyHelper.GetFrequencyOptions(model.TanSuatBaoCaos ?? new[] { model.TanSuatBaoCao });
             return model;
+        }
+
+        private static ChiSoIndexViewModel CreateIndexViewModel(System.Collections.Generic.IList<ChiSoViewModel> items, int page, int totalItems)
+        {
+            return new ChiSoIndexViewModel
+            {
+                Items = items,
+                Page = NormalizePage(page),
+                PageSize = DefaultPageSize,
+                TotalItems = totalItems,
+                TotalPages = GetTotalPages(totalItems, DefaultPageSize)
+            };
+        }
+
+        private static int NormalizePage(int page)
+        {
+            return page < 1 ? 1 : page;
+        }
+
+        private static int GetTotalPages(int totalItems, int pageSize)
+        {
+            return totalItems <= 0 ? 1 : (int)System.Math.Ceiling((decimal)totalItems / pageSize);
         }
     }
 }

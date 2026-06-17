@@ -52,6 +52,66 @@ ORDER BY ISNULL(SoThuTu, 9999), MaChiSo";
             return items;
         }
 
+        public IList<ChiSoViewModel> GetAll(bool includeInactive, int? filterKhoaPhongId, int page, int pageSize, out int totalItems)
+        {
+            page = NormalizePage(page);
+            pageSize = NormalizePageSize(pageSize);
+
+            string countSql;
+            string sql;
+            if (filterKhoaPhongId.HasValue)
+            {
+                countSql = @"
+SELECT COUNT(*)
+FROM dbo.ChiSoChatLuong cs
+INNER JOIN dbo.PhanCongChiSo pc ON pc.ChiSoChatLuongId = cs.ChiSoChatLuongId
+WHERE pc.KhoaPhongId = @KhoaPhongId AND pc.DangHoatDong = 1
+  AND (@IncludeInactive = 1 OR cs.DangHoatDong = 1)";
+
+                sql = @"
+SELECT cs.ChiSoChatLuongId, cs.MaChiSo, cs.SoThuTu, cs.TenChiSo, cs.DinhNghia, cs.LinhVucApDung, cs.KhiaCanhChatLuong, cs.ThanhToChatLuong,
+       cs.LyDoLuaChon, cs.PhuongPhapTinh, cs.TuSoMoTa, cs.MauSoMoTa, cs.NguonSoLieu, cs.ThuThapTongHop,
+       cs.KhoaPhongThuThapId, cs.KhoaPhongTongHopId, cs.GiaTriSoLieu, cs.LoaiCongThuc, cs.DonViTinh, cs.DangHoatDong
+FROM dbo.ChiSoChatLuong cs
+INNER JOIN dbo.PhanCongChiSo pc ON pc.ChiSoChatLuongId = cs.ChiSoChatLuongId
+WHERE pc.KhoaPhongId = @KhoaPhongId AND pc.DangHoatDong = 1
+  AND (@IncludeInactive = 1 OR cs.DangHoatDong = 1)
+ORDER BY ISNULL(cs.SoThuTu, 9999), cs.MaChiSo
+OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+            }
+            else
+            {
+                countSql = @"
+SELECT COUNT(*)
+FROM dbo.ChiSoChatLuong
+WHERE (@IncludeInactive = 1 OR DangHoatDong = 1)";
+
+                sql = @"
+SELECT ChiSoChatLuongId, MaChiSo, SoThuTu, TenChiSo, DinhNghia, LinhVucApDung, KhiaCanhChatLuong, ThanhToChatLuong,
+       LyDoLuaChon, PhuongPhapTinh, TuSoMoTa, MauSoMoTa, NguonSoLieu, ThuThapTongHop,
+       KhoaPhongThuThapId, KhoaPhongTongHopId, GiaTriSoLieu, LoaiCongThuc, DonViTinh, DangHoatDong
+FROM dbo.ChiSoChatLuong
+WHERE (@IncludeInactive = 1 OR DangHoatDong = 1)
+ORDER BY ISNULL(SoThuTu, 9999), MaChiSo
+OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+            }
+
+            var countParameters = new[]
+            {
+                Param("@IncludeInactive", includeInactive),
+                Param("@KhoaPhongId", filterKhoaPhongId)
+            };
+            totalItems = Convert.ToInt32(Scalar(countSql, countParameters));
+
+            var items = Query(sql, MapIndicator,
+                Param("@IncludeInactive", includeInactive),
+                Param("@KhoaPhongId", filterKhoaPhongId),
+                Param("@Offset", (page - 1) * pageSize),
+                Param("@PageSize", pageSize));
+            PopulateIndicatorFrequencies(items);
+            return items;
+        }
+
         public bool IsAssigned(int indicatorId, int khoaPhongId)
         {
             var count = Convert.ToInt32(Scalar(@"
@@ -60,6 +120,17 @@ WHERE ChiSoChatLuongId = @IndicatorId AND KhoaPhongId = @KhoaPhongId AND DangHoa
                 Param("@IndicatorId", indicatorId),
                 Param("@KhoaPhongId", khoaPhongId)));
             return count > 0;
+        }
+
+        private static int NormalizePage(int page)
+        {
+            return page < 1 ? 1 : page;
+        }
+
+        private static int NormalizePageSize(int pageSize)
+        {
+            if (pageSize < 1) return 20;
+            return pageSize > 100 ? 100 : pageSize;
         }
 
         public IList<SelectListItem> GetOptions()

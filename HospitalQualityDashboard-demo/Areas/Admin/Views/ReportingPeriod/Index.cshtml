@@ -1,10 +1,10 @@
 ﻿@* Mục đích: danh sách kỳ báo cáo và thao tác mở/khóa/xóa. *@
-@model IEnumerable<HospitalQualityDashboardDemo.Models.ViewModels.KyBaoCaoViewModel>
+@model HospitalQualityDashboardDemo.Models.ViewModels.KyBaoCaoIndexViewModel
 @using System.Linq
 @using HospitalQualityDashboardDemo.Models.Enums
 @{
     ViewBag.Title = "Kỳ báo cáo";
-    var periods = (Model ?? Enumerable.Empty<HospitalQualityDashboardDemo.Models.ViewModels.KyBaoCaoViewModel>()).ToList();
+    var periods = (Model.Items ?? Enumerable.Empty<HospitalQualityDashboardDemo.Models.ViewModels.KyBaoCaoViewModel>()).ToList();
 }
 @functions {
     private string FormatPeriodStatus(TrangThaiKyBaoCao status)
@@ -60,7 +60,7 @@
         <div class="panel-header">
             <div>
                 <h2>Danh sách kỳ báo cáo</h2>
-                <p>@periods.Count kỳ báo cáo đang được quản lý.</p>
+                <p>@Model.TotalItems kỳ báo cáo đang được quản lý.</p>
             </div>
             <span class="status-pill status-muted">@periods.Count dòng</span>
         </div>
@@ -125,6 +125,15 @@
         else
         {
             <div class="empty-state">Chưa có kỳ báo cáo nào được tạo.</div>
+        }
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="management-toolbar mt-3 d-flex justify-content-center align-items-center gap-3">
+                @Html.ActionLink("Trước", "Index", new { page = Model.Page - 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page <= 1 ? "disabled" : "") })
+                <span class="status-pill status-muted">Trang @Model.Page / @Model.TotalPages</span>
+                @Html.ActionLink("Sau", "Index", new { page = Model.Page + 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page >= Model.TotalPages ? "disabled" : "") })
+            </div>
         }
     </section>
 </section>

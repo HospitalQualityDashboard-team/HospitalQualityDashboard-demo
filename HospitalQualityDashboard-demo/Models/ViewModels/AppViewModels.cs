@@ -180,6 +180,10 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
     {
         public IList<ChiSoViewModel> Items { get; set; }
         public ImportResultViewModel ImportResult { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalItems { get; set; }
+        public int TotalPages { get; set; }
     }
 
     public class AssignmentViewModel
@@ -316,6 +320,15 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int DaGui { get; set; }
     }
 
+    public class KyBaoCaoIndexViewModel
+    {
+        public IList<KyBaoCaoViewModel> Items { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalItems { get; set; }
+        public int TotalPages { get; set; }
+    }
+
     public class ReportingPeriodScheduleRequestViewModel
     {
         [Range(2000, 2100, ErrorMessage = "Năm phải nằm trong khoảng 2000 đến 2100.")]
@@ -405,6 +418,8 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         [Display(Name = "Ghi chú")]
         public string GhiChu { get; set; }
         public string YKienPhanHoi { get; set; }
+        public DateTime? NgayGui { get; set; }
+        public string TenNguoiGui { get; set; }
     }
 
     public class ReportListViewModel

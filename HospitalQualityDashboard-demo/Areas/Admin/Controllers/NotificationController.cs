@@ -109,5 +109,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         {
             return totalItems <= 0 ? 1 : (int)System.Math.Ceiling((decimal)totalItems / pageSize);
         }
+
+
     }
 }

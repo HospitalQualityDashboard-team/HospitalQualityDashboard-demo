@@ -137,11 +137,12 @@
 
         @if (Model.TotalPages > 1)
         {
-            <div class="management-toolbar mt-3">
+            <div class="management-toolbar mt-3 d-flex justify-content-center align-items-center gap-3">
                 @Html.ActionLink("Trước", "Index", new { khoaPhongId = Model.KhoaPhongId, page = Model.Page - 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page <= 1 ? "disabled" : "") })
                 <span class="status-pill status-muted">Trang @Model.Page / @Model.TotalPages</span>
                 @Html.ActionLink("Sau", "Index", new { khoaPhongId = Model.KhoaPhongId, page = Model.Page + 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page >= Model.TotalPages ? "disabled" : "") })
             </div>
         }
+
     </section>
 </section>

@@ -248,12 +248,15 @@ WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
             const string sql = @"
 SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, kp.TenKhoaPhong,
        cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, bc.TrangThai, bc.YKienPhanHoi,
-       ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu
+       ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
+       bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
 FROM dbo.BaoCao bc
 INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = bc.KhoaPhongId
 INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = bc.ChiSoChatLuongId
 LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
+LEFT JOIN dbo.TaiKhoan nguoiGui ON nguoiGui.TaiKhoanId = bc.NguoiGuiId
+LEFT JOIN dbo.NhanVien nvNguoiGui ON nvNguoiGui.NhanVienId = nguoiGui.NhanVienId
 WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
   AND (@KhoaPhongId IS NULL OR bc.KhoaPhongId = @KhoaPhongId)
   AND (@ChiSoChatLuongId IS NULL OR bc.ChiSoChatLuongId = @ChiSoChatLuongId)
@@ -302,12 +305,15 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             const string sql = @"
 SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, kp.TenKhoaPhong,
        cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, bc.TrangThai, bc.YKienPhanHoi,
-       ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu
+       ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
+       bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
 FROM dbo.BaoCao bc
 INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = bc.KhoaPhongId
 INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = bc.ChiSoChatLuongId
 LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
+LEFT JOIN dbo.TaiKhoan nguoiGui ON nguoiGui.TaiKhoanId = bc.NguoiGuiId
+LEFT JOIN dbo.NhanVien nvNguoiGui ON nvNguoiGui.NhanVienId = nguoiGui.NhanVienId
 WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
   AND (@KhoaPhongId IS NULL OR bc.KhoaPhongId = @KhoaPhongId)
   AND (@ChiSoChatLuongId IS NULL OR bc.ChiSoChatLuongId = @ChiSoChatLuongId)
@@ -333,7 +339,8 @@ ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
 SELECT ISNULL(bc.BaoCaoId, 0) AS BaoCaoId, @KyBaoCaoId AS KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, pc.PhanCongChiSoId,
        ky.TenKyBaoCao, kp.TenKhoaPhong, cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc,
        ISNULL(bc.TrangThai, 1) AS TrangThai, bc.YKienPhanHoi,
-       ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu
+       ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
+       bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
 FROM dbo.PhanCongChiSo pc
 INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = @KyBaoCaoId
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
@@ -341,6 +348,8 @@ INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
 INNER JOIN dbo.ChiSoTanSuatBaoCao cst ON cst.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cst.TanSuatBaoCao = ky.LoaiKyBaoCao
 LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId AND bc.KhoaPhongId = pc.KhoaPhongId AND bc.ChiSoChatLuongId = pc.ChiSoChatLuongId
 LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
+LEFT JOIN dbo.TaiKhoan nguoiGui ON nguoiGui.TaiKhoanId = bc.NguoiGuiId
+LEFT JOIN dbo.NhanVien nvNguoiGui ON nvNguoiGui.NhanVienId = nguoiGui.NhanVienId
 WHERE pc.DangHoatDong = 1 AND pc.KhoaPhongId = @KhoaPhongId
 AND ky.TrangThai = @Mo
 ORDER BY cs.MaChiSo";
@@ -355,12 +364,15 @@ ORDER BY cs.MaChiSo";
             const string sql = @"
 SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, kp.TenKhoaPhong,
        cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, bc.TrangThai, bc.YKienPhanHoi,
-       ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu
+       ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
+       bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
 FROM dbo.BaoCao bc
 INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = bc.KhoaPhongId
 INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = bc.ChiSoChatLuongId
 LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
+LEFT JOIN dbo.TaiKhoan nguoiGui ON nguoiGui.TaiKhoanId = bc.NguoiGuiId
+LEFT JOIN dbo.NhanVien nvNguoiGui ON nvNguoiGui.NhanVienId = nguoiGui.NhanVienId
 WHERE bc.BaoCaoId=@Id";
             return Query(sql, MapReport, Param("@Id", id)).FirstOrDefault();
         }
@@ -562,7 +574,9 @@ WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
                 KetQua = NullableDecimal(reader, "KetQua"),
                 DatMucTieu = reader.IsDBNull(reader.GetOrdinal("DatMucTieu")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("DatMucTieu")),
                 GhiChu = String(reader, "GhiChu"),
-                YKienPhanHoi = String(reader, "YKienPhanHoi")
+                YKienPhanHoi = String(reader, "YKienPhanHoi"),
+                NgayGui = NullableDateTime(reader, "NgayGui"),
+                TenNguoiGui = String(reader, "TenNguoiGui")
             };
         }
 
