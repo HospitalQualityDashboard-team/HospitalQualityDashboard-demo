@@ -5,18 +5,78 @@ using HospitalQualityDashboardDemo.Models.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Web.Mvc;
 
 namespace HospitalQualityDashboardDemo.Services
 {
     public class IndicatorCalculationService
     {
+        public const string NumeratorCannotExceedDenominatorMessage = "Tử số không được lớn hơn mẫu số";
+
+        private static readonly ISet<string> NumeratorWithinDenominatorIndicatorCodes =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "CS01",
+                "CS02",
+                "CS05",
+                "CS13",
+                "CS15",
+                "CS16",
+                "CS22",
+                "CS24",
+                "CS25",
+                "CS26",
+                "CS27",
+                "CS28",
+                "CS29",
+                "CS30",
+                "CS31",
+                "CS32",
+                "CS33",
+                "CS38",
+                "CS39",
+                "CS40",
+                "CS41",
+                "CS46",
+                "CS47"
+            };
+
+        private static readonly string[] NumeratorWithinDenominatorIndicatorNameTokens =
+        {
+            "ty le nguoi benh duoc cung cap hoa don",
+            "ty le nguoi benh thanh toan vien phi truc tuyen",
+            "ty le ho so bhyt chuyen cong giam dinh",
+            "dieu duong co kien thuc danh gia phan loai",
+            "dinh nhom mau tai giuong",
+            "ghi chep dung va du",
+            "ty le tuan thu ve sinh tay",
+            "ty le hien mac viem phoi benh vien",
+            "nhiem khuan tiet nieu",
+            "nhiem khuan vet mo",
+            "nhiem khuan huyet",
+            "nhiem khuan da mo mem",
+            "chi thi hoa hoc nhom 5",
+            "tiem an toan",
+            "loet do ti de",
+            "su co y khoa do dung thuoc",
+            "viem phoi do u dong",
+            "cong tac di buong",
+            "tu van giao duc suc khoe",
+            "ky thuat chuyen mon theo phan tuyen",
+            "phau thuat tu loai ii",
+            "tu vong va tien luong tu vong",
+            "chuyen sang benh vien khac"
+        };
+
         public void Calculate(ReportEntryViewModel report, ChiSoViewModel indicator)
         {
             if (indicator.LoaiCongThuc == LoaiCongThuc.TyLe)
             {
                 EnsureDenominator(report.MauSo);
+                EnsureNumeratorWithinDenominator(report.TuSo, report.MauSo, indicator);
                 report.KetQua = report.TuSo.GetValueOrDefault() / report.MauSo.Value * 100;
             }
             else if (indicator.LoaiCongThuc == LoaiCongThuc.SoLuong || indicator.LoaiCongThuc == LoaiCongThuc.GiaTriTrucTiep || indicator.LoaiCongThuc == LoaiCongThuc.DiemTrungBinh)
@@ -30,6 +90,96 @@ namespace HospitalQualityDashboardDemo.Services
             }
 
             report.DatMucTieu = CompareTarget(report.KetQua, indicator.ToanTuSoSanh, indicator.GiaTriMucTieu);
+        }
+
+        public static bool RequiresNumeratorWithinDenominator(ChiSoViewModel indicator)
+        {
+            return indicator != null && RequiresNumeratorWithinDenominator(indicator.MaChiSo, indicator.TenChiSo);
+        }
+
+        public static bool RequiresNumeratorWithinDenominator(string indicatorCode)
+        {
+            return RequiresNumeratorWithinDenominator(indicatorCode, null);
+        }
+
+        public static bool RequiresNumeratorWithinDenominator(string indicatorCode, string indicatorName)
+        {
+            var normalizedCode = NormalizeIndicatorCode(indicatorCode);
+            if (!string.IsNullOrWhiteSpace(normalizedCode) &&
+                NumeratorWithinDenominatorIndicatorCodes.Contains(normalizedCode))
+            {
+                return true;
+            }
+
+            var normalizedName = NormalizeText(indicatorName);
+            return !string.IsNullOrWhiteSpace(normalizedName) &&
+                NumeratorWithinDenominatorIndicatorNameTokens.Any(normalizedName.Contains);
+        }
+
+        private static void EnsureNumeratorWithinDenominator(decimal? numerator, decimal? denominator, ChiSoViewModel indicator)
+        {
+            if (!RequiresNumeratorWithinDenominator(indicator) || !numerator.HasValue || !denominator.HasValue)
+            {
+                return;
+            }
+
+            if (numerator.Value > denominator.Value)
+            {
+                throw new InvalidOperationException(NumeratorCannotExceedDenominatorMessage);
+            }
+        }
+
+        private static string NormalizeIndicatorCode(string indicatorCode)
+        {
+            if (string.IsNullOrWhiteSpace(indicatorCode))
+            {
+                return string.Empty;
+            }
+
+            var trimmed = indicatorCode.Trim().ToUpperInvariant();
+            if (trimmed.StartsWith("CS", StringComparison.OrdinalIgnoreCase))
+            {
+                int number;
+                if (int.TryParse(trimmed.Substring(2), out number))
+                {
+                    return "CS" + number.ToString("00");
+                }
+            }
+
+            return trimmed;
+        }
+
+        private static string NormalizeText(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            var normalized = value.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormD);
+            var builder = new StringBuilder(normalized.Length);
+            foreach (var character in normalized)
+            {
+                var category = CharUnicodeInfo.GetUnicodeCategory(character);
+                if (category != UnicodeCategory.NonSpacingMark)
+                {
+                    builder.Append(character == 'đ' ? 'd' : character);
+                }
+            }
+
+            var text = builder.ToString()
+                .Replace(",", " ")
+                .Replace("/", " ")
+                .Replace("-", " ")
+                .Replace("`", " ")
+                .Normalize(NormalizationForm.FormC);
+
+            while (text.Contains("  "))
+            {
+                text = text.Replace("  ", " ");
+            }
+
+            return text;
         }
 
         private static void EnsureDenominator(decimal? denominator)
@@ -252,7 +402,8 @@ WHERE bc.BaoCaoId=@Id";
                 model.PhanCongChiSoId = existingReport.PhanCongChiSoId;
             }
 
-            var indicator = _indicators.Get(model.ChiSoChatLuongId);
+            var targetYear = GetReportingYear(model.KyBaoCaoId);
+            var indicator = _indicators.Get(model.ChiSoChatLuongId, targetYear);
             _calculator.Calculate(model, indicator);
             var beforeSnapshot = isNewReport ? null : GetReportDetailSnapshot(model.BaoCaoId);
 
@@ -310,6 +461,13 @@ ELSE
             });
 
             return model.BaoCaoId;
+        }
+
+        private int? GetReportingYear(int reportingPeriodId)
+        {
+            var value = Scalar("SELECT DATEPART(YEAR, TuNgay) FROM dbo.KyBaoCao WHERE KyBaoCaoId=@KyBaoCaoId",
+                Param("@KyBaoCaoId", reportingPeriodId));
+            return value == null || value == DBNull.Value ? (int?)null : Convert.ToInt32(value);
         }
 
         public void Submit(int id, int userId)
@@ -383,6 +541,7 @@ WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
                 MaChiSo = String(reader, "MaChiSo"),
                 TenChiSo = String(reader, "TenChiSo"),
                 LoaiCongThuc = (LoaiCongThuc)reader.GetByte(reader.GetOrdinal("LoaiCongThuc")),
+                TuSoKhongVuotMauSo = IndicatorCalculationService.RequiresNumeratorWithinDenominator(String(reader, "MaChiSo"), String(reader, "TenChiSo")),
                 TrangThai = (TrangThaiBaoCao)Convert.ToByte(reader["TrangThai"]),
                 TuSo = NullableDecimal(reader, "TuSo"),
                 MauSo = NullableDecimal(reader, "MauSo"),
@@ -524,6 +683,161 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
                 new SelectListItem { Value = "6", Text = "Hàng năm", Selected = tanSuatFilter == 6 },
                 new SelectListItem { Value = "7", Text = "Khi phát sinh", Selected = tanSuatFilter == 7 },
                 new SelectListItem { Value = "8", Text = "Trước và sau khi thực hiện", Selected = tanSuatFilter == 8 }
+            };
+        }
+
+        public void PrepareExportFilters(DashboardViewModel model, DashboardExcelExportQueryDto query, bool admin, int? departmentId)
+        {
+            if (model == null)
+            {
+                return;
+            }
+
+            query = query ?? new DashboardExcelExportQueryDto();
+            model.NamBaoCao = query.NamBaoCao;
+            model.KyBaoCaoId = query.KyBaoCaoId;
+            model.KhoaPhongId = admin ? query.KhoaPhongId : departmentId;
+            model.LinhVuc = string.IsNullOrWhiteSpace(query.LinhVuc) ? null : query.LinhVuc.Trim();
+            model.TrangThaiNhapLieu = query.TrangThaiNhapLieu;
+            model.TrangThaiDuyet = query.TrangThaiDuyet;
+            model.DatMucTieu = query.DatMucTieu;
+            model.SelectedTanSuat = query.TanSuat ?? model.SelectedTanSuat;
+
+            model.NamBaoCaoOptions = BuildYearOptions(model.NamBaoCao);
+            model.KyBaoCaoOptions = BuildPeriodOptions(model.KyBaoCaoId);
+            model.KhoaPhongOptions = admin
+                ? BuildDepartmentOptions(model.KhoaPhongId)
+                : BuildCurrentDepartmentOptions(departmentId);
+            model.LinhVucOptions = BuildFieldOptions(model.LinhVuc);
+            model.TrangThaiNhapLieuOptions = BuildInputStatusOptions(model.TrangThaiNhapLieu);
+            model.TrangThaiDuyetOptions = BuildReviewStatusOptions(model.TrangThaiDuyet);
+            model.DatMucTieuOptions = BuildTargetStatusOptions(model.DatMucTieu);
+            model.TanSuatOptions = BuildDashboardFrequencyOptions(model.SelectedTanSuat);
+        }
+
+        private IList<SelectListItem> BuildYearOptions(int? selectedYear)
+        {
+            var years = Query("SELECT DISTINCT DATEPART(YEAR, TuNgay) AS Nam FROM dbo.KyBaoCao ORDER BY Nam DESC",
+                r => Int(r, "Nam"));
+
+            if (years.Count == 0)
+            {
+                years.Add(DateTime.Today.Year);
+            }
+
+            var options = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "Tất cả năm", Selected = !selectedYear.HasValue }
+            };
+            options.AddRange(years.Select(year => new SelectListItem
+            {
+                Value = year.ToString(),
+                Text = year.ToString(),
+                Selected = selectedYear == year
+            }));
+            return options;
+        }
+
+        private IList<SelectListItem> BuildPeriodOptions(int? selectedPeriodId)
+        {
+            var periods = Query("SELECT KyBaoCaoId, TenKyBaoCao FROM dbo.KyBaoCao ORDER BY TuNgay DESC",
+                r => new SelectListItem
+                {
+                    Value = Int(r, "KyBaoCaoId").ToString(),
+                    Text = String(r, "TenKyBaoCao"),
+                    Selected = selectedPeriodId == Int(r, "KyBaoCaoId")
+                });
+
+            periods.Insert(0, new SelectListItem { Value = "", Text = "Tất cả kỳ báo cáo", Selected = !selectedPeriodId.HasValue });
+            return periods;
+        }
+
+        private IList<SelectListItem> BuildDepartmentOptions(int? selectedDepartmentId)
+        {
+            var departments = Query("SELECT KhoaPhongId, TenKhoaPhong FROM dbo.KhoaPhong ORDER BY TenKhoaPhong",
+                r => new SelectListItem
+                {
+                    Value = Int(r, "KhoaPhongId").ToString(),
+                    Text = String(r, "TenKhoaPhong"),
+                    Selected = selectedDepartmentId == Int(r, "KhoaPhongId")
+                });
+
+            departments.Insert(0, new SelectListItem { Value = "", Text = "Toàn viện", Selected = !selectedDepartmentId.HasValue });
+            return departments;
+        }
+
+        private IList<SelectListItem> BuildCurrentDepartmentOptions(int? departmentId)
+        {
+            if (!departmentId.HasValue)
+            {
+                return new List<SelectListItem>();
+            }
+
+            return Query("SELECT KhoaPhongId, TenKhoaPhong FROM dbo.KhoaPhong WHERE KhoaPhongId=@KhoaPhongId",
+                r => new SelectListItem
+                {
+                    Value = Int(r, "KhoaPhongId").ToString(),
+                    Text = String(r, "TenKhoaPhong"),
+                    Selected = true
+                },
+                Param("@KhoaPhongId", departmentId.Value));
+        }
+
+        private IList<SelectListItem> BuildFieldOptions(string selectedField)
+        {
+            var fields = Query(@"
+SELECT DISTINCT LinhVucApDung
+FROM dbo.ChiSoChatLuong
+WHERE LinhVucApDung IS NOT NULL AND LTRIM(RTRIM(LinhVucApDung)) <> N''
+ORDER BY LinhVucApDung",
+                r => String(r, "LinhVucApDung"));
+
+            var options = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "Tất cả lĩnh vực", Selected = string.IsNullOrWhiteSpace(selectedField) }
+            };
+            options.AddRange(fields.Select(field => new SelectListItem
+            {
+                Value = field,
+                Text = field,
+                Selected = string.Equals(selectedField, field, StringComparison.OrdinalIgnoreCase)
+            }));
+            return options;
+        }
+
+        private static IList<SelectListItem> BuildInputStatusOptions(int? selectedStatus)
+        {
+            return new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "Tất cả trạng thái nhập liệu", Selected = !selectedStatus.HasValue },
+                new SelectListItem { Value = "0", Text = "Chưa nhập", Selected = selectedStatus == 0 },
+                new SelectListItem { Value = ((byte)TrangThaiBaoCao.Nhap).ToString(), Text = "Nháp", Selected = selectedStatus == (byte)TrangThaiBaoCao.Nhap },
+                new SelectListItem { Value = ((byte)TrangThaiBaoCao.DaGui).ToString(), Text = "Đã gửi", Selected = selectedStatus == (byte)TrangThaiBaoCao.DaGui },
+                new SelectListItem { Value = ((byte)TrangThaiBaoCao.QuaHan).ToString(), Text = "Quá hạn", Selected = selectedStatus == (byte)TrangThaiBaoCao.QuaHan },
+                new SelectListItem { Value = ((byte)TrangThaiBaoCao.DaKhoa).ToString(), Text = "Đã khóa", Selected = selectedStatus == (byte)TrangThaiBaoCao.DaKhoa },
+                new SelectListItem { Value = ((byte)TrangThaiBaoCao.DaDuyet).ToString(), Text = "Đã duyệt", Selected = selectedStatus == (byte)TrangThaiBaoCao.DaDuyet },
+                new SelectListItem { Value = ((byte)TrangThaiBaoCao.TraLai).ToString(), Text = "Trả lại", Selected = selectedStatus == (byte)TrangThaiBaoCao.TraLai }
+            };
+        }
+
+        private static IList<SelectListItem> BuildReviewStatusOptions(int? selectedStatus)
+        {
+            return new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "Tất cả trạng thái duyệt", Selected = !selectedStatus.HasValue },
+                new SelectListItem { Value = ((byte)TrangThaiBaoCao.DaKhoa).ToString(), Text = "Đã khóa", Selected = selectedStatus == (byte)TrangThaiBaoCao.DaKhoa },
+                new SelectListItem { Value = ((byte)TrangThaiBaoCao.DaDuyet).ToString(), Text = "Đã duyệt", Selected = selectedStatus == (byte)TrangThaiBaoCao.DaDuyet },
+                new SelectListItem { Value = ((byte)TrangThaiBaoCao.TraLai).ToString(), Text = "Trả lại", Selected = selectedStatus == (byte)TrangThaiBaoCao.TraLai }
+            };
+        }
+
+        private static IList<SelectListItem> BuildTargetStatusOptions(bool? selectedStatus)
+        {
+            return new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "Tất cả đánh giá", Selected = !selectedStatus.HasValue },
+                new SelectListItem { Value = "true", Text = "Đạt mục tiêu", Selected = selectedStatus == true },
+                new SelectListItem { Value = "false", Text = "Chưa đạt mục tiêu", Selected = selectedStatus == false }
             };
         }
 

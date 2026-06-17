@@ -7,6 +7,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
     public class ExportController : AdminBaseController
     {
         private readonly ExportService _service = new ExportService();
+        private readonly DashboardExcelExportService _dashboardExcelExport = new DashboardExcelExportService();
 
         public ActionResult Departments()
         {
@@ -59,6 +60,21 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         public ActionResult DashboardProgress(string[] columns, int? tanSuat)
         {
             return File(_service.ExportDashboardProgress(columns, tanSuat), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "tien-do-khoa-phong.xlsx");
+        }
+
+        public ActionResult Dashboard(DashboardExcelExportQueryDto query)
+        {
+            var result = _dashboardExcelExport.BuildDashboardExcel(query, new ExportUserContextDto
+            {
+                TaiKhoanId = CurrentTaiKhoanId.Value,
+                TenDangNhap = CurrentTenDangNhap,
+                IsAdmin = true,
+                KhoaPhongId = null,
+                TenKhoaPhong = null,
+                DiaChiIP = Request.UserHostAddress
+            });
+
+            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
         }
     }
 }

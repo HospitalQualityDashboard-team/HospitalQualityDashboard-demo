@@ -2,6 +2,7 @@ using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using HospitalQualityDashboardDemo.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
@@ -116,22 +117,39 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             if (periodGate != null) return periodGate;
             if (!ModelState.IsValid) return View(model);
 
-            var id = _service.SaveDraft(new ReportDraftDto
+            int id;
+            try
             {
-                BaoCaoId = model.BaoCaoId,
-                KyBaoCaoId = model.KyBaoCaoId,
-                KhoaPhongId = model.KhoaPhongId,
-                ChiSoChatLuongId = model.ChiSoChatLuongId,
-                PhanCongChiSoId = model.PhanCongChiSoId,
-                TrangThai = model.TrangThai,
-                TuSo = model.TuSo,
-                MauSo = model.MauSo,
-                GiaTriNhap = model.GiaTriNhap,
-                KetQua = model.KetQua,
-                DatMucTieu = model.DatMucTieu,
-                GhiChu = model.GhiChu,
-                YKienPhanHoi = model.YKienPhanHoi
-            }, CurrentTaiKhoanId.Value);
+                id = _service.SaveDraft(new ReportDraftDto
+                {
+                    BaoCaoId = model.BaoCaoId,
+                    KyBaoCaoId = model.KyBaoCaoId,
+                    KhoaPhongId = model.KhoaPhongId,
+                    ChiSoChatLuongId = model.ChiSoChatLuongId,
+                    PhanCongChiSoId = model.PhanCongChiSoId,
+                    TrangThai = model.TrangThai,
+                    TuSo = model.TuSo,
+                    MauSo = model.MauSo,
+                    GiaTriNhap = model.GiaTriNhap,
+                    KetQua = model.KetQua,
+                    DatMucTieu = model.DatMucTieu,
+                    GhiChu = model.GhiChu,
+                    YKienPhanHoi = model.YKienPhanHoi
+                }, CurrentTaiKhoanId.Value);
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (ex.Message == IndicatorCalculationService.NumeratorCannotExceedDenominatorMessage)
+                {
+                    ModelState.AddModelError("TuSo", IndicatorCalculationService.NumeratorCannotExceedDenominatorMessage);
+                }
+                else
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+
+                return View(model);
+            }
 
             if (submitAction == "submit")
             {

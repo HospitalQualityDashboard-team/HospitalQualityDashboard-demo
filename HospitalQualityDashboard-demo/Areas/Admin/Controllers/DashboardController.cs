@@ -1,3 +1,4 @@
+using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Services;
 using System.Web.Mvc;
 
@@ -7,9 +8,12 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
     {
         private readonly DashboardService _service = new DashboardService();
 
-        public ActionResult Index(int? tanSuat)
+        public ActionResult Index(DashboardExcelExportQueryDto query)
         {
-            return View(_service.GetDashboard(true, null, tanSuat));
+            query = query ?? new DashboardExcelExportQueryDto();
+            var model = _service.GetDashboard(true, null, query.TanSuat);
+            _service.PrepareExportFilters(model, query, true, null);
+            return View(model);
         }
     }
 }

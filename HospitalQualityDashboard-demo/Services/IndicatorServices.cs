@@ -78,6 +78,11 @@ ORDER BY ISNULL(SoThuTu, 9999), MaChiSo",
 
         public ChiSoViewModel Get(int id)
         {
+            return Get(id, null);
+        }
+
+        public ChiSoViewModel Get(int id, int? targetYear)
+        {
             var model = QuerySingle(@"SELECT ChiSoChatLuongId, MaChiSo, SoThuTu, TenChiSo, DinhNghia, LinhVucApDung, KhiaCanhChatLuong, ThanhToChatLuong,
 LyDoLuaChon, PhuongPhapTinh, TuSoMoTa, MauSoMoTa, NguonSoLieu, ThuThapTongHop, KhoaPhongThuThapId, KhoaPhongTongHopId, GiaTriSoLieu, LoaiCongThuc, DonViTinh, DangHoatDong
 FROM dbo.ChiSoChatLuong WHERE ChiSoChatLuongId = @Id", MapIndicator, Param("@Id", id));
@@ -88,7 +93,20 @@ FROM dbo.ChiSoChatLuong WHERE ChiSoChatLuongId = @Id", MapIndicator, Param("@Id"
 
             PopulateIndicatorFrequencies(new[] { model });
 
-            var target = QuerySingle("SELECT TOP 1 Nam, ToanTuSoSanh, GiaTriMucTieu, MoTaMucTieu FROM dbo.ChiSoMucTieu WHERE ChiSoChatLuongId = @Id ORDER BY Nam DESC",
+            var targetSql = targetYear.HasValue
+                ? @"SELECT TOP 1 Nam, ToanTuSoSanh, GiaTriMucTieu, MoTaMucTieu
+FROM dbo.ChiSoMucTieu
+WHERE ChiSoChatLuongId = @Id
+ORDER BY
+    CASE WHEN Nam = @TargetYear THEN 0 ELSE 1 END,
+    CASE WHEN Nam <= @TargetYear THEN 0 ELSE 1 END,
+    CASE WHEN Nam <= @TargetYear THEN Nam END DESC,
+    Nam DESC"
+                : "SELECT TOP 1 Nam, ToanTuSoSanh, GiaTriMucTieu, MoTaMucTieu FROM dbo.ChiSoMucTieu WHERE ChiSoChatLuongId = @Id ORDER BY Nam DESC";
+            var targetParameters = targetYear.HasValue
+                ? new[] { Param("@Id", id), Param("@TargetYear", targetYear.Value) }
+                : new[] { Param("@Id", id) };
+            var target = QuerySingle(targetSql,
                 r => new ChiSoViewModel
                 {
                     NamMucTieu = Int(r, "Nam"),
@@ -96,7 +114,7 @@ FROM dbo.ChiSoChatLuong WHERE ChiSoChatLuongId = @Id", MapIndicator, Param("@Id"
                     GiaTriMucTieu = NullableDecimal(r, "GiaTriMucTieu"),
                     MoTaMucTieu = String(r, "MoTaMucTieu")
                 },
-                Param("@Id", id));
+                targetParameters);
             if (target != null)
             {
                 model.NamMucTieu = target.NamMucTieu;

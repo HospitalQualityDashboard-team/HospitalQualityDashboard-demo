@@ -238,16 +238,46 @@
 <div class="modal fade" id="dashboardExportModal" tabindex="-1" aria-labelledby="dashboardExportModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-3">
-            @using (Html.BeginForm("DashboardProgress", "Export", new { area = "Admin" }, FormMethod.Post, new { id = "dashboardExportForm" }))
+            @using (Html.BeginForm("Dashboard", "Export", new { area = "Admin" }, FormMethod.Get, new { id = "dashboardExportForm" }))
             {
-                <input type="hidden" name="tanSuat" value="@Model.SelectedTanSuat" />
+                <input type="hidden" name="TanSuat" value="@Model.SelectedTanSuat" />
                 <div class="modal-header border-0 pb-2">
                     <h5 class="modal-title fw-bold text-secondary" id="dashboardExportModalLabel">
-                        <i class="bi bi-file-earmark-excel me-1 text-success"></i> Xuất Excel tiến độ
+                        <i class="bi bi-file-earmark-excel me-1 text-success"></i> Xuất Excel Dashboard
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
                 <div class="modal-body pt-0">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="NamBaoCao">Năm báo cáo</label>
+                            @Html.DropDownList("NamBaoCao", Model.NamBaoCaoOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="KyBaoCaoId">Kỳ báo cáo</label>
+                            @Html.DropDownList("KyBaoCaoId", Model.KyBaoCaoOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="KhoaPhongId">Khoa/phòng</label>
+                            @Html.DropDownList("KhoaPhongId", Model.KhoaPhongOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="LinhVuc">Lĩnh vực</label>
+                            @Html.DropDownList("LinhVuc", Model.LinhVucOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="TrangThaiNhapLieu">Trạng thái nhập liệu</label>
+                            @Html.DropDownList("TrangThaiNhapLieu", Model.TrangThaiNhapLieuOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="TrangThaiDuyet">Trạng thái duyệt</label>
+                            @Html.DropDownList("TrangThaiDuyet", Model.TrangThaiDuyetOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="DatMucTieu">Đạt/chưa đạt mục tiêu</label>
+                            @Html.DropDownList("DatMucTieu", Model.DatMucTieuOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                    </div>
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted small fw-semibold">Cột xuất file</span>
                         <div class="d-flex gap-2">

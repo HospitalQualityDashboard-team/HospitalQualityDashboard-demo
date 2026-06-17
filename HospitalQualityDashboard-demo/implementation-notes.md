@@ -2,6 +2,14 @@
 
 Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiết kế và lưu ý vận hành của dự án `HospitalQualityDashboard-demo`.
 
+## 2026-06-16
+
+### Sua xuat Excel thieu muc tieu chi so
+
+- Khi xuat Excel dashboard, cot muc tieu uu tien muc tieu dung nam ky bao cao.
+- Neu chi so chua co muc tieu dung nam, he thong fallback sang muc tieu gan nhat truoc nam bao cao; neu khong co thi lay muc tieu moi nhat cua chi so.
+- Dong bo logic tinh dat/chua dat khi luu bao cao voi logic hien thi muc tieu trong file Excel de tranh cot muc tieu trong nhung van bi danh gia sai.
+
 ## 2026-06-15
 
 ### Cập nhật tài liệu hướng dẫn sử dụng

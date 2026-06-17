@@ -20,6 +20,14 @@
         numberAttributes.Add("readonly", "readonly");
         textAttributes.Add("readonly", "readonly");
     }
+
+    var tuSoAttributes = new Dictionary<string, object>(numberAttributes);
+    var mauSoAttributes = new Dictionary<string, object>(numberAttributes);
+    if (Model.TuSoKhongVuotMauSo && !isDirect)
+    {
+        tuSoAttributes["data-bound-tu-so-mau-so"] = "true";
+        mauSoAttributes["data-bound-tu-so-mau-so"] = "true";
+    }
 }
 
 <div class="app-responsive-page report-edit-page">
@@ -130,19 +138,21 @@
                         @Html.HiddenFor(m => m.MaChiSo)
                         @Html.HiddenFor(m => m.TenChiSo)
                         @Html.HiddenFor(m => m.LoaiCongThuc)
+                        @Html.HiddenFor(m => m.TuSoKhongVuotMauSo)
                         @Html.HiddenFor(m => m.TrangThai)
                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                         <div class="row g-3">
                             <div class="col-md-6" style="@(isDirect ? "display:none;" : "")">
                                 @Html.LabelFor(m => m.TuSo, new { @class = "form-label fw-semibold text-secondary" })
-                                @Html.TextBoxFor(m => m.TuSo, "{0:0.####}", numberAttributes)
+                                @Html.TextBoxFor(m => m.TuSo, "{0:0.####}", tuSoAttributes)
                                 @Html.ValidationMessageFor(m => m.TuSo, "", new { @class = "text-danger" })
+                                <span id="tu-so-mau-so-client-error" class="text-danger d-none">Tử số không được lớn hơn mẫu số</span>
                             </div>
                             
                             <div class="col-md-6" style="@(isDirect ? "display:none;" : "")">
                                 @Html.LabelFor(m => m.MauSo, new { @class = "form-label fw-semibold text-secondary" })
-                                @Html.TextBoxFor(m => m.MauSo, "{0:0.####}", numberAttributes)
+                                @Html.TextBoxFor(m => m.MauSo, "{0:0.####}", mauSoAttributes)
                                 @Html.ValidationMessageFor(m => m.MauSo, "", new { @class = "text-danger" })
                             </div>
                             
@@ -177,3 +187,66 @@
         </div>
     </div>
 </div>
+
+@if (Model.TuSoKhongVuotMauSo && !isDirect && isEditable)
+{
+    <script>
+        (function () {
+            var message = 'Tử số không được lớn hơn mẫu số';
+            var numeratorInput = document.getElementById('TuSo');
+            var denominatorInput = document.getElementById('MauSo');
+            var clientError = document.getElementById('tu-so-mau-so-client-error');
+            var form = numeratorInput ? numeratorInput.form : null;
+            var submitButtons = form ? form.querySelectorAll('button[type="submit"]') : [];
+
+            function parseDecimal(input) {
+                if (!input || !input.value || !input.value.trim()) {
+                    return null;
+                }
+
+                var value = parseFloat(input.value.replace(',', '.'));
+                return isNaN(value) ? null : value;
+            }
+
+            function setInvalid(isInvalid) {
+                if (clientError) {
+                    clientError.classList.toggle('d-none', !isInvalid);
+                }
+
+                if (numeratorInput) {
+                    numeratorInput.classList.toggle('input-validation-error', isInvalid);
+                    numeratorInput.setCustomValidity(isInvalid ? message : '');
+                }
+
+                for (var i = 0; i < submitButtons.length; i++) {
+                    submitButtons[i].disabled = isInvalid;
+                }
+            }
+
+            function validateNumerator() {
+                var numerator = parseDecimal(numeratorInput);
+                var denominator = parseDecimal(denominatorInput);
+                var isInvalid = numerator !== null && denominator !== null && numerator > denominator;
+                setInvalid(isInvalid);
+                return !isInvalid;
+            }
+
+            if (numeratorInput && denominatorInput) {
+                numeratorInput.addEventListener('input', validateNumerator);
+                denominatorInput.addEventListener('input', validateNumerator);
+                numeratorInput.addEventListener('change', validateNumerator);
+                denominatorInput.addEventListener('change', validateNumerator);
+                validateNumerator();
+            }
+
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!validateNumerator()) {
+                        event.preventDefault();
+                        numeratorInput.focus();
+                    }
+                });
+            }
+        })();
+    </script>
+}

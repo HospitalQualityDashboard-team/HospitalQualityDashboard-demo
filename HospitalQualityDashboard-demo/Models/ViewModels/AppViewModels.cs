@@ -393,6 +393,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public string MaChiSo { get; set; }
         public string TenChiSo { get; set; }
         public LoaiCongThuc LoaiCongThuc { get; set; }
+        public bool TuSoKhongVuotMauSo { get; set; }
         public TrangThaiBaoCao TrangThai { get; set; }
         [Display(Name = "Tử số")]
         public decimal? TuSo { get; set; }
@@ -472,6 +473,20 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public IList<DepartmentProgressViewModel> DepartmentProgress { get; set; }
         public int? SelectedTanSuat { get; set; }
         public IList<SelectListItem> TanSuatOptions { get; set; }
+        public int? NamBaoCao { get; set; }
+        public int? KyBaoCaoId { get; set; }
+        public int? KhoaPhongId { get; set; }
+        public string LinhVuc { get; set; }
+        public int? TrangThaiNhapLieu { get; set; }
+        public int? TrangThaiDuyet { get; set; }
+        public bool? DatMucTieu { get; set; }
+        public IList<SelectListItem> NamBaoCaoOptions { get; set; }
+        public IList<SelectListItem> KyBaoCaoOptions { get; set; }
+        public IList<SelectListItem> KhoaPhongOptions { get; set; }
+        public IList<SelectListItem> LinhVucOptions { get; set; }
+        public IList<SelectListItem> TrangThaiNhapLieuOptions { get; set; }
+        public IList<SelectListItem> TrangThaiDuyetOptions { get; set; }
+        public IList<SelectListItem> DatMucTieuOptions { get; set; }
     }
 
     public class MissingReportAlertViewModel
@@ -544,6 +559,87 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public string TrangThaiBaoCaoText { get; set; }
         public DateTime? NgayGui { get; set; }
         public string GhiChu { get; set; }
+    }
+
+    public class DashboardExcelDetailRow
+    {
+        public int STT { get; set; }
+        public int? BaoCaoId { get; set; }
+        public int KhoaPhongId { get; set; }
+        public int ChiSoChatLuongId { get; set; }
+        public string MaChiSo { get; set; }
+        public string TenChiSo { get; set; }
+        public string TenKhoaPhong { get; set; }
+        public string LinhVuc { get; set; }
+        public string TenKyBaoCao { get; set; }
+        public int NamBaoCao { get; set; }
+        public string TanSuatBaoCaoText { get; set; }
+        public decimal? TuSo { get; set; }
+        public decimal? MauSo { get; set; }
+        public decimal? KetQua { get; set; }
+        public string DonViTinh { get; set; }
+        public string MucTieu { get; set; }
+        public bool? DatMucTieu { get; set; }
+        public string DanhGiaDatMucTieu { get; set; }
+        public string TrangThaiNhapLieu { get; set; }
+        public string TrangThaiDuyet { get; set; }
+        public string NguoiNhap { get; set; }
+        public DateTime? NgayNhap { get; set; }
+        public string NguoiDuyet { get; set; }
+        public DateTime? NgayDuyet { get; set; }
+        public string GhiChu { get; set; }
+    }
+
+    public class DashboardDepartmentSummaryRow
+    {
+        public string TenKhoaPhong { get; set; }
+        public int TongChiSo { get; set; }
+        public int DaNhap { get; set; }
+        public int ChuaNhap { get; set; }
+        public int DaGui { get; set; }
+        public int QuaHan { get; set; }
+        public int DatMucTieu { get; set; }
+        public int ChuaDatMucTieu { get; set; }
+        public decimal TyLeHoanTat { get; set; }
+    }
+
+    public class DashboardMissingIndicatorRow
+    {
+        public int STT { get; set; }
+        public string TenKyBaoCao { get; set; }
+        public DateTime HanNop { get; set; }
+        public string MaChiSo { get; set; }
+        public string TenChiSo { get; set; }
+        public string TenKhoaPhong { get; set; }
+        public string LinhVuc { get; set; }
+        public string TrangThai { get; set; }
+    }
+
+    public class DashboardReviewHistoryRow
+    {
+        public int STT { get; set; }
+        public string TenKyBaoCao { get; set; }
+        public string TenKhoaPhong { get; set; }
+        public string MaChiSo { get; set; }
+        public string TenChiSo { get; set; }
+        public string HanhDong { get; set; }
+        public string NguoiThucHien { get; set; }
+        public DateTime ThoiGian { get; set; }
+        public string NoiDung { get; set; }
+    }
+
+    public class ExportHistoryViewModel
+    {
+        public int LichSuXuatBaoCaoId { get; set; }
+        public int NguoiDungId { get; set; }
+        public string LoaiBaoCao { get; set; }
+        public string BoLoc { get; set; }
+        public string TenFile { get; set; }
+        public int SoDongDuLieu { get; set; }
+        public DateTime NgayXuat { get; set; }
+        public string DiaChiIP { get; set; }
+        public string VaiTro { get; set; }
+        public int? KhoaPhongId { get; set; }
     }
 
     // Kết quả sau khi import dữ liệu từ file.

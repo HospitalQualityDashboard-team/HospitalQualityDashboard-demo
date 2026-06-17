@@ -175,6 +175,11 @@
                 <h2>Bảng tiến độ</h2>
                 <p>Tỷ lệ hoàn tất của từng khoa/phòng.</p>
             </div>
+            <div class="panel-toolbar">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dashboardExportModal">
+                    Xuất Excel
+                </button>
+            </div>
         </div>
         @if (progressItems.Any())
         {
@@ -201,6 +206,57 @@
         }
     </div>
 </section>
+
+<div class="modal fade" id="dashboardExportModal" tabindex="-1" aria-labelledby="dashboardExportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-3">
+            @using (Html.BeginForm("Dashboard", "Export", new { area = "User" }, FormMethod.Get, new { id = "dashboardExportForm" }))
+            {
+                <input type="hidden" name="KhoaPhongId" value="@Model.KhoaPhongId" />
+                <div class="modal-header border-0 pb-2">
+                    <h5 class="modal-title fw-bold text-secondary" id="dashboardExportModalLabel">Xuất Excel Dashboard</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label" for="NamBaoCao">Năm báo cáo</label>
+                            @Html.DropDownList("NamBaoCao", Model.NamBaoCaoOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="KyBaoCaoId">Kỳ báo cáo</label>
+                            @Html.DropDownList("KyBaoCaoId", Model.KyBaoCaoOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="TanSuat">Tần suất</label>
+                            @Html.DropDownList("TanSuat", Model.TanSuatOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="LinhVuc">Lĩnh vực</label>
+                            @Html.DropDownList("LinhVuc", Model.LinhVucOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="TrangThaiNhapLieu">Trạng thái nhập liệu</label>
+                            @Html.DropDownList("TrangThaiNhapLieu", Model.TrangThaiNhapLieuOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="TrangThaiDuyet">Trạng thái duyệt</label>
+                            @Html.DropDownList("TrangThaiDuyet", Model.TrangThaiDuyetOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="DatMucTieu">Đạt/chưa đạt mục tiêu</label>
+                            @Html.DropDownList("DatMucTieu", Model.DatMucTieuOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4">Xuất Excel</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
 @section scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

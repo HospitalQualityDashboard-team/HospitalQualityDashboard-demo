@@ -602,9 +602,9 @@ SELECT
     ct.MauSo,
     ct.GiaTriNhap,
     ct.KetQua,
-    mt.ToanTuSoSanh,
-    mt.GiaTriMucTieu,
-    mt.MoTaMucTieu,
+    COALESCE(mt.ToanTuSoSanh, mtFallback.ToanTuSoSanh) AS ToanTuSoSanh,
+    COALESCE(mt.GiaTriMucTieu, mtFallback.GiaTriMucTieu) AS GiaTriMucTieu,
+    COALESCE(mt.MoTaMucTieu, mtFallback.MoTaMucTieu) AS MoTaMucTieu,
     ct.DatMucTieu,
     bc.TrangThai,
     bc.NgayGui,
@@ -615,6 +615,15 @@ INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = bc.KhoaPhongId
 INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = bc.ChiSoChatLuongId
 LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
 LEFT JOIN dbo.ChiSoMucTieu mt ON mt.ChiSoChatLuongId = bc.ChiSoChatLuongId AND mt.Nam = DATEPART(YEAR, ky.TuNgay)
+OUTER APPLY (
+    SELECT TOP 1 mt2.ToanTuSoSanh, mt2.GiaTriMucTieu, mt2.MoTaMucTieu
+    FROM dbo.ChiSoMucTieu mt2
+    WHERE mt2.ChiSoChatLuongId = bc.ChiSoChatLuongId
+    ORDER BY
+        CASE WHEN mt2.Nam <= DATEPART(YEAR, ky.TuNgay) THEN 0 ELSE 1 END,
+        CASE WHEN mt2.Nam <= DATEPART(YEAR, ky.TuNgay) THEN mt2.Nam END DESC,
+        mt2.Nam DESC
+) mtFallback
 WHERE (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
 ORDER BY kp.TenKhoaPhong, ky.TuNgay DESC, cs.MaChiSo";
 
