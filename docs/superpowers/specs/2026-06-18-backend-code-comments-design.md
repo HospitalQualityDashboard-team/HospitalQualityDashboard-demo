@@ -6,8 +6,8 @@ Bo sung chu thich tieng Viet ngan gon cho ma nguon backend tu viet cua du an de 
 
 ## Pham vi
 
-- Bao gom cac tep `.cs`, `.sql` va `.ps1` do du an tu viet.
-- Khong sua Razor view, CSS, JavaScript, thu vien ben thu ba, tep minify, source map, cau hinh hoac tai lieu nghiep vu.
+- Bao gom cac tep `.cs` do du an tu viet trong `Controllers/`, `Areas/Admin/Controllers/`, `Areas/User/Controllers/`, `Models/` va `Services/`.
+- Khong sua `App_Start/`, `Properties/`, `Global.asax.cs`, Razor view, CSS, JavaScript, SQL, PowerShell, thu vien ben thu ba, tep minify, source map, cau hinh hoac tai lieu nghiep vu.
 - Ton trong cac thay doi chua commit dang co va khong hoan tac noi dung cua nguoi dung.
 
 ## Quy tac chu thich
@@ -22,10 +22,9 @@ Bo sung chu thich tieng Viet ngan gon cho ma nguon backend tu viet cua du an de 
 ## Trinh tu thuc hien
 
 1. Lap danh sach tep backend tu viet va danh gia muc chu thich hien co.
-2. Xu ly cac tep C# theo nhom: khoi dong/cau hinh, model/DTO, controller, service.
-3. Xu ly cac script SQL va PowerShell.
-4. Ra soat diff de loai bo chu thich du thua va xac nhan khong co thay doi hanh vi.
-5. Build project va chay cac kiem tra tinh phu hop khong can ung dung/database neu co.
+2. Xu ly cac tep C# theo nhom: model/DTO, controller va service.
+3. Ra soat diff de loai bo chu thich du thua va xac nhan khong co thay doi hanh vi.
+4. Build project va chay cac kiem tra tinh phu hop khong can ung dung/database neu co.
 
 ## Tieu chi hoan thanh
 
