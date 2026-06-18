@@ -2,6 +2,16 @@
 
 Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiết kế và lưu ý vận hành của dự án `HospitalQualityDashboard-demo`.
 
+## 2026-06-17
+
+### Cập nhật đồng bộ tài liệu Markdown toàn dự án
+
+- Cập nhật README, AGENTS, danh sách chức năng, bối cảnh dự án, tài liệu nghiệp vụ, thiết kế hệ thống và báo cáo lỗ hổng để phản ánh hiện trạng mới nhất.
+- Ghi nhận `App_Data/Sql/003_AddExportHistory.sql` tạo bảng `LichSuXuatBaoCao` phục vụ audit lịch sử xuất Excel Dashboard chi tiết.
+- Ghi nhận `DashboardExcelExportService` xuất workbook nhiều sheet, áp dụng filter theo vai trò và log lịch sử xuất.
+- Cập nhật lại phần kiểm thử: thư mục `tools/` hiện có các script verify cho Dashboard Excel, phân trang quản lý, thứ tự nhân viên, kết quả/thời gian báo cáo và audit điều hướng sau khi gửi báo cáo.
+- Không khôi phục các tài liệu trong `Tai_Lieu/` đang bị xóa sẵn trong working tree.
+
 ## 2026-06-16
 
 ### Sua xuat Excel thieu muc tieu chi so

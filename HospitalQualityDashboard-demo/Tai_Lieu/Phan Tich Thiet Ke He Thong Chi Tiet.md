@@ -569,3 +569,50 @@ Xử lý tại Controller:
 Kết quả:
   --> Admin vẫn đứng yên tại trang số 3, bộ lọc khoa phòng 5 và từ khóa tìm kiếm "Nhiễm khuẩn" được giữ nguyên, mang lại cảm giác mượt mà và không gây gián đoạn trải nghiệm.
 ```
+
+---
+
+## 6. Thiết Kế Xuất Dashboard Chi Tiết Và Audit
+
+### 6.1. Thành phần chính
+
+Chức năng xuất Dashboard chi tiết được triển khai bằng `DashboardExcelExportService`. Controller Admin gọi service với quyền toàn viện; Controller User gọi cùng service nhưng truyền `KhoaPhongId` của tài khoản đăng nhập để giới hạn phạm vi dữ liệu.
+
+Các file chính:
+
+- `Services/DashboardExcelExportService.cs`
+- `Areas/Admin/Controllers/ExportController.cs`
+- `Areas/User/Controllers/ExportController.cs`
+- `Models/DTOs/ExportDtos.cs`
+- `App_Data/Sql/003_AddExportHistory.sql`
+
+### 6.2. Workbook xuất ra
+
+Workbook Dashboard chi tiết gom dữ liệu theo nhiều góc nhìn:
+
+- chi tiết báo cáo đã nhập;
+- tổng hợp theo khoa/phòng;
+- danh sách chỉ số còn thiếu;
+- danh sách báo cáo chưa đạt mục tiêu;
+- lịch sử duyệt/trả lại nếu có log trong `NhatKyHeThong`.
+
+Bộ lọc được chuẩn hóa trước khi query: năm báo cáo, kỳ báo cáo, tần suất, khoa/phòng, lĩnh vực, trạng thái nhập liệu, trạng thái duyệt và trạng thái đạt mục tiêu. Với User, `KhoaPhongId` trong query luôn bị ép về khoa/phòng của phiên đăng nhập.
+
+### 6.3. Bảng `LichSuXuatBaoCao`
+
+Script `003_AddExportHistory.sql` tạo bảng audit:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `LichSuXuatBaoCaoId` | Khóa chính identity. |
+| `NguoiDungId` | Tài khoản thực hiện xuất. |
+| `LoaiBaoCao` | Loại báo cáo, hiện dùng cho Dashboard chi tiết. |
+| `BoLoc` | Bộ lọc export dạng JSON/text. |
+| `TenFile` | Tên file `.xlsx` đã trả về cho người dùng. |
+| `SoDongDuLieu` | Số dòng dữ liệu chi tiết trong lần export. |
+| `NgayXuat` | Thời điểm xuất. |
+| `DiaChiIP` | IP request nếu lấy được. |
+| `VaiTro` | Vai trò Admin/User khi xuất. |
+| `KhoaPhongId` | Khoa/phòng liên quan, thường có giá trị với User. |
+
+Bảng có index theo `NgayXuat` và theo `(NguoiDungId, NgayXuat)` để hỗ trợ truy vết nhanh.

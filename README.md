@@ -189,6 +189,7 @@ Các script chính:
 
 - `App_Data/Sql/001_CreateSchema.sql`: tạo schema ban đầu.
 - `App_Data/Sql/002_PerformanceIndexes.sql`: tạo index tối ưu hiệu năng, có `IF NOT EXISTS`.
+- `App_Data/Sql/003_AddExportHistory.sql`: tạo bảng `LichSuXuatBaoCao` và index phục vụ audit lịch sử xuất Excel.
 
 Mặc định bootstrap nên tắt:
 
@@ -419,9 +420,13 @@ Các màn hình Admin/User có nút xuất Excel tùy module:
 - Nhân viên.
 - Báo cáo.
 - Phân công.
+- Dashboard tiến độ (`DashboardProgress`): xuất bảng tổng hợp theo khoa/phòng, có thể chọn cột và lọc theo tần suất.
+- Dashboard chi tiết (`Dashboard`): xuất workbook nhiều sheet gồm dữ liệu chi tiết, tổng hợp khoa/phòng, chỉ số còn thiếu, báo cáo chưa đạt mục tiêu và lịch sử duyệt/trả lại nếu có dữ liệu.
 - Các danh sách nghiệp vụ khác nếu controller export hỗ trợ.
 
 Khi export báo cáo, nên dùng filter trước để giảm dung lượng file và thời gian truy vấn.
+
+Mỗi lần xuất Dashboard chi tiết sẽ được ghi vào `LichSuXuatBaoCao` với người xuất, vai trò, bộ lọc, tên file, số dòng dữ liệu, thời gian xuất và địa chỉ IP. Nếu database đã tồn tại từ trước, cần chạy `App_Data/Sql/003_AddExportHistory.sql` hoặc bật bootstrap có kiểm soát để tạo bảng audit này.
 
 ## 13. Hiệu năng và vận hành Azure SQL
 
@@ -436,6 +441,7 @@ Các tối ưu hiện có:
 - Dashboard dùng timeout 60 giây.
 - Không tự chạy bảo trì kỳ báo cáo khi mở Dashboard/Report.
 - Script index hiệu năng nằm ở `App_Data/Sql/002_PerformanceIndexes.sql`.
+- Script audit lịch sử xuất Excel nằm ở `App_Data/Sql/003_AddExportHistory.sql`.
 
 Các index được đề xuất/tạo idempotent:
 
@@ -446,6 +452,8 @@ Các index được đề xuất/tạo idempotent:
 - `NhanVien(KhoaPhongId, HoTen)`
 
 Nếu database Azure SQL đã tồn tại từ trước, hãy chạy script index trên database thật hoặc bật bootstrap có kiểm soát ở môi trường dev/test.
+
+Nếu dùng chức năng xuất Dashboard chi tiết trên database cũ, hãy chạy thêm `003_AddExportHistory.sql` để tránh lỗi thiếu bảng `LichSuXuatBaoCao`.
 
 ## 14. Bảo mật
 
@@ -472,6 +480,8 @@ Nếu database Azure SQL đã tồn tại từ trước, hãy chạy script inde
 10. Tạo kỳ báo cáo.
 11. Chạy mở kỳ báo cáo thủ công nếu cần.
 12. Xuất Excel một danh sách có filter.
+13. Xuất Dashboard chi tiết và kiểm tra file `.xlsx` có các sheet tổng hợp/chi tiết/còn thiếu.
+14. Nếu có quyền truy cập DB, kiểm tra `LichSuXuatBaoCao` ghi nhận lịch sử xuất.
 
 ### User
 
@@ -482,6 +492,22 @@ Nếu database Azure SQL đã tồn tại từ trước, hãy chạy script inde
 5. Mở Thông báo và xem chi tiết.
 6. Cập nhật hồ sơ cá nhân.
 7. Đổi mật khẩu.
+8. Xuất Dashboard/Báo cáo và xác nhận dữ liệu chỉ thuộc khoa/phòng của User.
+
+### Script verify hiện có
+
+Các script PowerShell trong `HospitalQualityDashboard-demo/tools/` dùng để kiểm tra nhanh các luồng đã từng sửa:
+
+```text
+VerifyDashboardExcelDetailedExport.ps1
+VerifyDashboardExcelUpgrade.ps1
+VerifyEmployeeOrder.ps1
+VerifyManagementPaging.ps1
+VerifyReportResultAndExcelTime.ps1
+VerifyReportSubmissionNavigationAndAdminAudit.ps1
+```
+
+Các script này cần app local chạy được và có dữ liệu phù hợp; dùng chúng như kiểm tra bổ sung bên cạnh build, Razor compile và checklist thủ công.
 
 ## 16. Lỗi thường gặp
 

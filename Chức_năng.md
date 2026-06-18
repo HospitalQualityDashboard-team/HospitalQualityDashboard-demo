@@ -255,8 +255,24 @@
   - Ghi nhận lịch sử gửi thông báo tự động
 
 ### 2.21 Hệ thống - Kiểm thử
-- Các script PowerShell xác minh tạm trong `tools/` đã được xóa khỏi repository vì chỉ còn file rỗng/placeholder.
-- Kiểm tra hiện tại thực hiện bằng build project, build Razor view và checklist test thủ công.
+- Các script PowerShell xác minh hiện nằm trong `HospitalQualityDashboard-demo/tools/`.
+- Script đang có:
+  - `VerifyDashboardExcelDetailedExport.ps1`
+  - `VerifyDashboardExcelUpgrade.ps1`
+  - `VerifyEmployeeOrder.ps1`
+  - `VerifyManagementPaging.ps1`
+  - `VerifyReportResultAndExcelTime.ps1`
+  - `VerifyReportSubmissionNavigationAndAdminAudit.ps1`
+- Kiểm tra nền tảng vẫn gồm build project, kiểm tra Razor view và checklist test thủ công. Các script verify dùng như kiểm tra bổ sung khi app local/database/dữ liệu mẫu đã sẵn sàng.
+
+### 2.22 Hệ thống - Audit xuất Excel Dashboard
+- **File**: `Services/DashboardExcelExportService.cs`, `App_Data/Sql/003_AddExportHistory.sql`
+- **Chức năng chính**:
+  - Xuất workbook Dashboard chi tiết cho Admin và User.
+  - Áp dụng bộ lọc năm, kỳ báo cáo, tần suất, khoa/phòng, lĩnh vực, trạng thái nhập liệu, trạng thái duyệt và trạng thái đạt mục tiêu.
+  - Với User, tự ép phạm vi xuất về khoa/phòng của tài khoản đang đăng nhập.
+  - Ghi lịch sử xuất vào bảng `LichSuXuatBaoCao`: người xuất, vai trò, bộ lọc, tên file, số dòng, IP và thời điểm xuất.
+  - Tự đảm bảo bảng audit khi service chạy; database cũ vẫn nên chạy script `003_AddExportHistory.sql` để chủ động tạo schema.
 
 ```
 HospitalQualityDashboard-demo/

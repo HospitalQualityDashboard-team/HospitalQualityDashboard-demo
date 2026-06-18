@@ -1,5 +1,7 @@
 # Báo cáo lỗ hổng bảo mật
 
+> Cập nhật tài liệu ngày 17/06/2026: một số phát hiện trong báo cáo này đã được giảm nhẹ bởi các thay đổi sau ngày rà soát ban đầu. Cụ thể, export CSV đã được chuyển sang Excel `.xlsx`, một số thao tác DB nhiều bước đã dùng transaction, `Web.config` đã có `httpOnlyCookies`, `sessionState timeout="30"` và `cookieSameSite="Lax"`, và Dashboard export chi tiết đã có audit `LichSuXuatBaoCao`. Các mục bên dưới vẫn nên được kiểm tra lại trên code hiện tại trước khi đóng hẳn.
+
 Ngày kiểm tra: 02/06/2026  
 Phạm vi: toàn bộ dự án `HospitalQualityDashboard` trong repository hiện tại.  
 Phương pháp: đọc mã nguồn, rà soát theo bề mặt runtime, đối chiếu controller, service, schema SQL, view Razor, cấu hình web và các luồng import/export. Không triển khai khai thác động vì dự án cần IIS Express/LocalDB và dữ liệu thật để chạy đầy đủ; các kết luận dưới đây được xác thực bằng truy vết tĩnh từ điểm vào đến sink/điểm kiểm soát.
@@ -414,8 +416,8 @@ Debug mode có thể làm lộ thông tin lỗi, giảm tối ưu và làm tăng
 3. Thêm cơ chế thu hồi session khi tài khoản bị khóa/đổi quyền/đổi khoa.
 4. Thêm lockout/rate limit và audit đăng nhập thất bại.
 5. Chốt chính sách export nhân viên: Admin-only hoặc user được phép nhưng phải giảm dữ liệu.
-6. Trung hòa công thức khi export CSV.
+6. Kiểm tra lại rủi ro formula injection trên export Excel `.xlsx`; mục CSV cũ không còn đúng nguyên trạng vì hệ thống đã bỏ CSV.
 7. Giới hạn upload và parser cho `.xlsx`/`.docx`.
-8. Bọc các thao tác DB nhiều bước bằng transaction.
-9. Hardening cookie/session/production config.
+8. Kiểm tra lại toàn bộ thao tác DB nhiều bước; một số luồng chính đã có transaction nhưng chưa nên giả định đã bao phủ 100%.
+9. Hardening cookie/session/production config, đặc biệt `requireSSL`, custom errors và HSTS cho môi trường production.
 10. Thêm anti-forgery cho mọi POST, bao gồm endpoint preview.

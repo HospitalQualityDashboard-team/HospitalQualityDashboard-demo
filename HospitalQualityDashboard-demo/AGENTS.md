@@ -26,6 +26,8 @@ msbuild HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildV
 
 Khi phát triển local, mở `HospitalQualityDashboard-demo.csproj` bằng Visual Studio và chạy bằng IIS Express. Project được cấu hình cho IIS Express với SSL port `44387`.
 
+Các script verify bổ sung nằm trong `tools/` và kiểm tra các luồng như Dashboard Excel, phân trang quản lý, thứ tự nhân viên, thời gian/kết quả báo cáo và audit điều hướng sau khi gửi báo cáo. Chỉ chạy các script này khi app local, database và dữ liệu mẫu đã sẵn sàng.
+
 ## Quy ước code và đặt tên
 
 Dùng quy ước C#: PascalCase cho class, controller, action method, view model và public property; camelCase cho biến local và parameter. Tên controller kết thúc bằng `Controller`, ví dụ `HomeController`. Razor view phải khớp với tên action và nằm đúng thư mục Area/View tương ứng. Giữ indent 4 spaces cho C# và Razor. Controller nên nhỏ gọn, chỉ điều phối request; logic dùng lại đặt trong service hoặc model phù hợp.
@@ -45,3 +47,5 @@ Không commit credential thật, connection string nhạy cảm, file upload b�
 `ConnectionStrings.config` là file local secret và đã được đưa vào `.gitignore`. Khi setup môi trường mới, copy `ConnectionStrings.example.config` thành `ConnectionStrings.config` rồi điền thông tin Azure SQL thật trên máy local hoặc môi trường deploy. Chỉ commit file example, không commit file config thật hoặc ảnh chụp có password.
 
 Khi thay đổi hành vi vận hành, cấu hình, database, import/export hoặc hiệu năng, cập nhật `README.md` trước, sau đó bổ sung ngắn gọn vào `PROJECT_CONTEXT.md` hoặc `implementation-notes.md` nếu thay đổi ảnh hưởng người phát triển/người vận hành.
+
+Hiện project có ba script SQL chính trong `App_Data/Sql/`: `001_CreateSchema.sql`, `002_PerformanceIndexes.sql` và `003_AddExportHistory.sql`. Nếu chỉnh export Dashboard chi tiết hoặc audit lịch sử xuất, nhớ cập nhật cả script `003` và phần hướng dẫn vận hành liên quan.

@@ -518,7 +518,7 @@ User chỉ được xuất dữ liệu thuộc khoa/phòng của mình.
 | 1 | Xuất báo cáo theo kỳ | Xuất báo cáo của khoa/phòng trong một kỳ. |
 | 2 | Xuất báo cáo theo chỉ số | Xuất báo cáo của một chỉ số được phân công. |
 | 3 | Xuất Excel | Xuất dữ liệu dạng Excel. |
-| 4 | Xuất PDF | Xuất báo cáo dạng PDF nếu cần. |
+| 4 | Xuất Dashboard chi tiết | Xuất workbook Dashboard chi tiết trong phạm vi khoa/phòng của User. |
 
 User không được xuất báo cáo toàn viện hoặc báo cáo của khoa/phòng khác.
 
@@ -555,8 +555,8 @@ User có thể xem và chỉnh sửa thông tin cá nhân của mình.
 | Nhập số liệu báo cáo | Có | Có, chỉ với chỉ số được phân công |
 | Lưu nháp báo cáo | Có | Có |
 | Gửi báo cáo | Có | Có |
-| Duyệt báo cáo | Có | Không |
-| Trả lại báo cáo | Có | Không |
+| Duyệt báo cáo | Tạm không sử dụng | Không |
+| Trả lại báo cáo | Tạm không sử dụng | Không |
 | Xem báo cáo toàn viện | Có | Không |
 | Xem báo cáo khoa/phòng mình | Có | Có |
 | Gửi thông báo | Có | Không |
@@ -565,6 +565,7 @@ User có thể xem và chỉnh sửa thông tin cá nhân của mình.
 | Dashboard khoa/phòng | Có | Có, nếu cần |
 | Xuất báo cáo toàn viện | Có | Không |
 | Xuất báo cáo khoa/phòng mình | Có | Có |
+| Xuất Dashboard chi tiết | Có, theo filter toàn viện | Có, chỉ khoa/phòng mình |
 | Đổi mật khẩu | Có | Có |
 
 ---
@@ -611,6 +612,7 @@ Các bảng chính nên có trong giai đoạn hiện tại:
 | `BaoCaoChiTiet` | Lưu số liệu chi tiết của báo cáo. |
 | `ThongBao` | Lưu thông báo hệ thống. |
 | `LichSuImport` | Lưu lịch sử import khoa/phòng, nhân viên và chỉ số ở mức tổng hợp. |
+| `LichSuXuatBaoCao` | Lưu audit lịch sử xuất Dashboard chi tiết/Excel: người xuất, filter, tên file, số dòng, IP và thời điểm xuất. |
 
 ---
 

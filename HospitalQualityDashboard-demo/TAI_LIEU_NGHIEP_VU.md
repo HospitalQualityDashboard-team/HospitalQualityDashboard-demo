@@ -1073,3 +1073,37 @@ Can chay lai cleanup script hoac xoa thu cong de don triet de. Chi giu lai cac f
   - Tiến độ (chuỗi "đã nộp/tổng") và Xếp loại chi tiết cho từng tần suất chính: Hàng tháng, Hàng quý, Hàng năm.
 - Tối ưu hóa ADO.NET: Sử dụng các Subquery để đếm số liệu của từng tần suất riêng biệt cho từng khoa phòng, tránh lỗi nhân đôi bản ghi (Cartesian product) khi một chỉ số thuộc nhiều tần suất báo cáo.
 
+## 30. Cập Nhật Xuất Dashboard Chi Tiết Và Audit Lịch Sử Xuất (Ngày 17/06/2026)
+
+### 30.1. Nhu cầu nghiệp vụ
+
+Bên cạnh báo cáo tiến độ tổng hợp, Admin cần xuất dữ liệu Dashboard chi tiết để đối chiếu chất lượng nhập liệu theo khoa/phòng, kỳ báo cáo, tần suất và trạng thái đạt mục tiêu. User khoa/phòng cũng cần xuất phần dữ liệu thuộc phạm vi của mình để tự kiểm tra trước khi chốt báo cáo.
+
+### 30.2. Phạm vi xuất Dashboard chi tiết
+
+Workbook xuất ra có thể gồm các nhóm dữ liệu:
+
+- dữ liệu báo cáo chi tiết theo khoa/phòng, kỳ, chỉ số, tử số, mẫu số, kết quả và mục tiêu năm;
+- tổng hợp tiến độ theo khoa/phòng;
+- danh sách chỉ số còn thiếu/chưa nhập;
+- danh sách báo cáo chưa đạt mục tiêu;
+- lịch sử duyệt/trả lại nếu hệ thống có log phù hợp.
+
+Các bộ lọc nghiệp vụ gồm năm báo cáo, kỳ báo cáo, tần suất, khoa/phòng, lĩnh vực, trạng thái nhập liệu, trạng thái duyệt và trạng thái đạt mục tiêu.
+
+### 30.3. Quy tắc phân quyền
+
+- Admin được xuất dữ liệu toàn viện theo filter.
+- User chỉ được xuất dữ liệu thuộc `KhoaPhongId` của tài khoản đăng nhập, dù request có truyền khoa/phòng khác.
+- Nếu User chưa gắn khoa/phòng, hệ thống không cho xuất vì không xác định được phạm vi dữ liệu hợp lệ.
+
+### 30.4. Audit lịch sử xuất
+
+Mỗi lần xuất Dashboard chi tiết được ghi vào bảng `LichSuXuatBaoCao`, gồm người xuất, vai trò, khoa/phòng, bộ lọc, tên file, số dòng dữ liệu, thời điểm xuất và địa chỉ IP. Với database đã tồn tại, cần đảm bảo đã chạy script:
+
+```text
+App_Data/Sql/003_AddExportHistory.sql
+```
+
+Audit này phục vụ truy vết vận hành và hỗ trợ kiểm tra khi có câu hỏi về dữ liệu đã được trích xuất khỏi hệ thống.
+

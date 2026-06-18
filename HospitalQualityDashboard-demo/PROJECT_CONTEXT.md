@@ -857,3 +857,40 @@ Các tối ưu đã được áp dụng:
 - Chỉ bật bootstrap có kiểm soát khi cần tạo schema hoặc bổ sung index.
 - Với database Azure SQL đã tồn tại, nên chạy `002_PerformanceIndexes.sql` trực tiếp hoặc bật bootstrap tạm thời ở môi trường dev/test.
 - Import nhân viên vẫn là luồng đồng bộ trong request; nếu file lớn và Azure SQL chậm, nên chia file nhỏ hoặc tối ưu riêng bằng background job trong đợt khác.
+
+## 21. Cập Nhật Ngày 17/06/2026 - Đồng Bộ Tài Liệu, Audit Xuất Excel Và Script Verify
+
+### 21.1. Tài liệu Markdown
+
+Các file Markdown chính đã được đồng bộ theo hiện trạng code:
+
+- `README.md`: hướng dẫn chạy, vận hành, export, audit và kiểm thử.
+- `AGENTS.md`: hướng dẫn làm việc cho agent/dev trong repo.
+- `Chức_năng.md`: danh sách chức năng và trạng thái script verify.
+- `TAI_LIEU_NGHIEP_VU.md`: cập nhật nghiệp vụ xuất Dashboard chi tiết.
+- `Tai_Lieu/danh_sach_chuc_nang_admin_user.md`: cập nhật phạm vi Admin/User, export và bảng DB liên quan.
+- `Tai_Lieu/Phan Tich Thiet Ke He Thong Chi Tiet.md`: bổ sung thiết kế audit export.
+- `Tai_Lieu/Lỗ hổng.md`: ghi chú trạng thái các rủi ro đã giảm nhẹ hoặc cần kiểm tra lại.
+
+### 21.2. Audit lịch sử xuất Excel Dashboard
+
+`DashboardExcelExportService` tạo workbook Dashboard chi tiết và ghi lịch sử xuất vào `LichSuXuatBaoCao`. Script schema tương ứng là:
+
+```text
+App_Data/Sql/003_AddExportHistory.sql
+```
+
+Thông tin audit gồm người xuất, vai trò, khoa/phòng, bộ lọc, tên file, số dòng dữ liệu, thời điểm xuất và địa chỉ IP. Admin có thể xuất toàn viện theo filter; User bị giới hạn về `KhoaPhongId` của tài khoản đăng nhập.
+
+### 21.3. Script verify hiện có
+
+Thư mục `tools/` hiện có các script:
+
+- `VerifyDashboardExcelDetailedExport.ps1`
+- `VerifyDashboardExcelUpgrade.ps1`
+- `VerifyEmployeeOrder.ps1`
+- `VerifyManagementPaging.ps1`
+- `VerifyReportResultAndExcelTime.ps1`
+- `VerifyReportSubmissionNavigationAndAdminAudit.ps1`
+
+Các script này không thay thế build/Razor compile/checklist thủ công, nhưng giúp kiểm tra nhanh những luồng nghiệp vụ đã từng phát sinh lỗi.
