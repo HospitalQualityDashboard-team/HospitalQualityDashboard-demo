@@ -25,6 +25,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
         public DateTime NgayTao { get; set; }
         public DateTime? NgayCapNhat { get; set; }
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của KhoaPhong.
         public KhoaPhong()
         {
             Used = true;
@@ -65,6 +66,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của NhanVien.
         public NhanVien()
         {
             DangHoatDong = true;
@@ -94,6 +96,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của TaiKhoan.
         public TaiKhoan()
         {
             DangHoatDong = true;
@@ -136,6 +139,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
         public DateTime NgayTao { get; set; }
         public DateTime? NgayCapNhat { get; set; }
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của ChiSoChatLuong.
         public ChiSoChatLuong()
         {
             DangHoatDong = true;
@@ -174,6 +178,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của PhanCongChiSo.
         public PhanCongChiSo()
         {
             DangHoatDong = true;
@@ -197,6 +202,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
         public DateTime NgayTao { get; set; }
         public DateTime? NgayCapNhat { get; set; }
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của KyBaoCao.
         public KyBaoCao()
         {
             TrangThai = TrangThaiKyBaoCao.Nhap;
@@ -220,6 +226,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của BaoCao.
         public BaoCao()
         {
             TrangThai = TrangThaiBaoCao.Nhap;
@@ -259,10 +266,12 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
         public LoaiThongBao LoaiThongBao { get; set; }
         public int? KyBaoCaoId { get; set; }
+        public int? ChiSoChatLuongId { get; set; }
         public int? BaoCaoId { get; set; }
         public int? NguoiTaoId { get; set; }
         public DateTime NgayTao { get; set; }
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của ThongBao.
         public ThongBao()
         {
             NgayTao = DateTime.UtcNow;
@@ -297,6 +306,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của LichSuImport.
         public LichSuImport()
         {
             NgayImport = DateTime.UtcNow;
@@ -325,6 +335,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của NhatKyHeThong.
         public NhatKyHeThong()
         {
             ThoiGian = DateTime.UtcNow;

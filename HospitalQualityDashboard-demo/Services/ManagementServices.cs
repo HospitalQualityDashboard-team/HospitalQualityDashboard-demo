@@ -15,6 +15,7 @@ namespace HospitalQualityDashboardDemo.Services
     {
         private readonly ExcelImportExportService _excel = new ExcelImportExportService();
 
+        // Truy vấn danh mục khoa/phòng theo điều kiện được cung cấp.
         public IList<KhoaPhongViewModel> GetAll(string search = null, bool includeInactive = true)
         {
             const string sql = @"
@@ -29,12 +30,14 @@ ORDER BY IdKhoaPhongNguon, TenKhoaPhong";
                 Param("@IncludeInactive", includeInactive));
         }
 
+        // Truy vấn danh mục khoa/phòng theo điều kiện được cung cấp.
         public KhoaPhongViewModel Get(int id)
         {
             return QuerySingle("SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong, Used, GhiChu FROM dbo.KhoaPhong WHERE KhoaPhongId = @Id",
                 MapDepartment, Param("@Id", id));
         }
 
+        // Truy vấn danh mục khoa/phòng theo điều kiện được cung cấp.
         public IList<SelectListItem> GetOptions()
         {
             return DropdownCache.GetOrAdd("dropdown:departments", () => Query(@"
@@ -49,6 +52,7 @@ ORDER BY TenKhoaPhong",
                 }).ToList());
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục khoa/phòng.
         public void Save(DepartmentSaveDto dto)
         {
             Save(new KhoaPhongViewModel
@@ -61,6 +65,7 @@ ORDER BY TenKhoaPhong",
             });
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục khoa/phòng.
         public void Save(KhoaPhongViewModel model)
         {
             if (model.KhoaPhongId == 0)
@@ -86,12 +91,14 @@ WHERE KhoaPhongId = @KhoaPhongId",
             DropdownCache.Remove("dropdown:departments");
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục khoa/phòng.
         public void SetUsed(int id, bool used)
         {
             Execute("UPDATE dbo.KhoaPhong SET Used = @Used, NgayCapNhat = GETDATE() WHERE KhoaPhongId = @Id", Param("@Used", used), Param("@Id", id));
             DropdownCache.Remove("dropdown:departments");
         }
 
+        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của danh mục khoa/phòng.
         public void Delete(int id)
         {
             var dependentCount = Convert.ToInt32(Scalar(@"
@@ -110,6 +117,7 @@ SELECT
             DropdownCache.Remove("dropdown:departments");
         }
 
+        // Đọc, kiểm tra và nhập dữ liệu từ tệp tải lên.
         public ImportResultViewModel Import(HttpPostedFileBase file, int userId)
         {
             var rows = _excel.ReadWorksheet(file);
@@ -187,6 +195,7 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
             return result;
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho danh mục khoa/phòng.
         private static KhoaPhongViewModel MapDepartment(SqlDataReader reader)
         {
             return new KhoaPhongViewModel
@@ -225,6 +234,7 @@ ORDER BY nv.NhanVienId";
             return Query(sql, MapEmployee, Param("@KhoaPhongId", khoaPhongId));
         }
 
+        // Truy vấn hồ sơ nhân viên theo điều kiện được cung cấp.
         public IList<NhanVienViewModel> GetAll(int? khoaPhongId, int page, int pageSize, out int totalItems)
         {
             page = NormalizePage(page);
@@ -291,6 +301,7 @@ WHERE nv.NhanVienId = @Id";
             });
         }
 
+        // Kiểm tra và cập nhật dữ liệu của hồ sơ nhân viên.
         public void Save(NhanVienViewModel model)
         {
             if (model.NhanVienId == 0)
@@ -346,6 +357,7 @@ WHERE tk.NhanVienId = nv.NhanVienId OR tk.TenDangNhap = nv.MaNhanVien;",
             });
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ hồ sơ nhân viên.
         public void CreateUserAccount(CreateUserAccountViewModel model)
         {
             var employee = Get(model.NhanVienId);
@@ -489,12 +501,14 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
             return page < 1 ? 1 : page;
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho hồ sơ nhân viên.
         private static int NormalizePageSize(int pageSize)
         {
             if (pageSize < 1) return 20;
             return pageSize > 100 ? 100 : pageSize;
         }
 
+        // Tạo tập tham số SQL từ model để dùng cho thao tác ghi dữ liệu.
         private static SqlParameter[] EmployeeParams(NhanVienViewModel model)
         {
             // Gom dữ liệu trên form thành tham số SQL, tránh nối chuỗi câu lệnh.

@@ -23,6 +23,7 @@ namespace HospitalQualityDashboardDemo.Services
         private const int MaxSharedStrings = 50000;
         private const int MaxZipExpansionRatio = 100;
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
         public IList<IDictionary<string, string>> ReadWorksheet(HttpPostedFileBase file)
         {
             if (file == null || file.ContentLength == 0)
@@ -46,6 +47,7 @@ namespace HospitalQualityDashboardDemo.Services
             return ReadXlsx(file.InputStream);
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
         public IList<IDictionary<string, string>> ReadIndicatorDocxTables(HttpPostedFileBase file)
         {
             if (file == null || file.ContentLength == 0)
@@ -64,6 +66,7 @@ namespace HospitalQualityDashboardDemo.Services
             return ReadIndicatorDocxTables(file.InputStream);
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
         public byte[] CreateCsv<T>(IEnumerable<T> items, IList<KeyValuePair<string, Func<T, object>>> columns)
         {
             var builder = new StringBuilder();
@@ -77,6 +80,7 @@ namespace HospitalQualityDashboardDemo.Services
             return Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(builder.ToString())).ToArray();
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
         public byte[] CreateXlsx<T>(IEnumerable<T> items, IList<KeyValuePair<string, Func<T, object>>> columns)
         {
             return CreateXlsxWorkbook(new List<ExcelWorksheetExport>
@@ -85,6 +89,7 @@ namespace HospitalQualityDashboardDemo.Services
             });
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
         public byte[] CreateXlsxWorkbook(IList<ExcelWorksheetExport> worksheets)
         {
             worksheets = NormalizeWorksheets(worksheets);
@@ -111,6 +116,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho nhập và xuất dữ liệu Excel.
         private static IList<ExcelWorksheetExport> NormalizeWorksheets(IList<ExcelWorksheetExport> worksheets)
         {
             if (worksheets == null || worksheets.Count == 0)
@@ -137,6 +143,7 @@ namespace HospitalQualityDashboardDemo.Services
             return worksheets;
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
         private static string BuildContentTypesXml(int sheetCount)
         {
             var builder = new StringBuilder();
@@ -156,6 +163,7 @@ namespace HospitalQualityDashboardDemo.Services
             return builder.ToString();
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
         private static string BuildWorkbookXml(IList<ExcelWorksheetExport> worksheets)
         {
             var builder = new StringBuilder();
@@ -174,6 +182,7 @@ namespace HospitalQualityDashboardDemo.Services
             return builder.ToString();
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
         private static string BuildWorkbookRelationshipsXml(int sheetCount)
         {
             var builder = new StringBuilder();
@@ -190,6 +199,7 @@ namespace HospitalQualityDashboardDemo.Services
             return builder.ToString();
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho nhập và xuất dữ liệu Excel.
         private static string SanitizeWorksheetName(string name, int fallbackIndex)
         {
             var value = string.IsNullOrWhiteSpace(name) ? "Sheet" + fallbackIndex.ToString(CultureInfo.InvariantCulture) : name.Trim();
@@ -208,11 +218,13 @@ namespace HospitalQualityDashboardDemo.Services
             return value.Length > 31 ? value.Substring(0, 31) : value;
         }
 
+        // Thoát và bao giá trị để tạo đầu ra an toàn, đúng định dạng.
         private static string EscapeXmlAttribute(string value)
         {
             return SecurityElement.Escape(SanitizeXmlText(value)) ?? string.Empty;
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
         private static IList<IDictionary<string, string>> ReadCsv(Stream stream)
         {
             var rows = new List<IDictionary<string, string>>();
@@ -261,6 +273,7 @@ namespace HospitalQualityDashboardDemo.Services
             return rows;
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
         private static IList<IDictionary<string, string>> ReadXlsx(Stream stream)
         {
             var rows = new List<IDictionary<string, string>>();
@@ -332,6 +345,7 @@ namespace HospitalQualityDashboardDemo.Services
             return rows;
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
         private static IList<IDictionary<string, string>> ReadIndicatorDocxTables(Stream stream)
         {
             var rows = new List<IDictionary<string, string>>();
@@ -370,6 +384,7 @@ namespace HospitalQualityDashboardDemo.Services
             return rows;
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
         private static IDictionary<string, string> ReadIndicatorTable(XElement table, XNamespace w)
         {
             var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -410,6 +425,7 @@ namespace HospitalQualityDashboardDemo.Services
             return result;
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
         private static string ReadWordCellText(XElement cell, XNamespace w)
         {
             var paragraphs = cell.Elements(w + "p")
@@ -425,6 +441,7 @@ namespace HospitalQualityDashboardDemo.Services
             return string.Concat(cell.Descendants(w + "t").Select(t => t.Value)).Trim();
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
         private static string MapIndicatorDocxLabel(string label)
         {
             var normalized = NormalizeLabel(label);
@@ -448,18 +465,21 @@ namespace HospitalQualityDashboardDemo.Services
             return null;
         }
 
+        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của nhập và xuất dữ liệu Excel hay không.
         private static bool IsDetailLabel(string label)
         {
             var normalized = NormalizeLabel(label);
             return normalized == "tu so" || normalized == "mau so";
         }
 
+        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của nhập và xuất dữ liệu Excel hay không.
         private static bool IsMethodOrBlank(string label)
         {
             var normalized = NormalizeLabel(label);
             return string.IsNullOrWhiteSpace(normalized) || normalized == "phuong phap tinh";
         }
 
+        // Bổ sung dữ liệu mới phục vụ nhập và xuất dữ liệu Excel.
         private static void AddOrAppend(IDictionary<string, string> row, string key, string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -477,6 +497,7 @@ namespace HospitalQualityDashboardDemo.Services
             row[key] = value;
         }
 
+        // Truy vấn nhập và xuất dữ liệu Excel theo điều kiện được cung cấp.
         private static int? FindYear(string value)
         {
             var match = Regex.Match(value ?? string.Empty, @"(19|20)\d{2}");
@@ -484,6 +505,7 @@ namespace HospitalQualityDashboardDemo.Services
             return match.Success && int.TryParse(match.Value, out year) ? year : (int?)null;
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho nhập và xuất dữ liệu Excel.
         private static string NormalizeLabel(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -513,6 +535,7 @@ namespace HospitalQualityDashboardDemo.Services
             return Regex.Replace(builder.ToString(), @"\s+", " ").Trim();
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
         private static IList<string> ReadSharedStrings(ZipArchive archive)
         {
             var entry = archive.GetEntry("xl/sharedStrings.xml");
@@ -538,6 +561,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
         private static string ReadCellValue(XElement cell, XNamespace ns, IList<string> sharedStrings)
         {
             var type = (string)cell.Attribute("t");
@@ -562,6 +586,7 @@ namespace HospitalQualityDashboardDemo.Services
             return value;
         }
 
+        // Tách nội dung đầu vào thành các phần tử độc lập để xử lý.
         private static IEnumerable<string> SplitCsv(string line)
         {
             var values = new List<string>();
@@ -598,12 +623,14 @@ namespace HospitalQualityDashboardDemo.Services
             return values;
         }
 
+        // Thoát và bao giá trị để tạo đầu ra an toàn, đúng định dạng.
         private static string Escape(string value)
         {
             value = value ?? string.Empty;
             return "\"" + value.Replace("\"", "\"\"") + "\"";
         }
 
+        // Vô hiệu hóa tiền tố công thức để ngăn Excel thực thi nội dung không tin cậy.
         private static string NeutralizeCsvFormula(string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -620,6 +647,7 @@ namespace HospitalQualityDashboardDemo.Services
             return value;
         }
 
+        // Kiểm tra nội dung có chứa mẫu cần nhận diện hay không.
         private static bool StartsWithFormulaPrefix(string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -642,6 +670,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý nhập và xuất dữ liệu Excel.
         private static void ValidateImportSize(HttpPostedFileBase file)
         {
             if (file.ContentLength > MaxImportBytes)
@@ -650,6 +679,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý nhập và xuất dữ liệu Excel.
         private static void ValidateZipEntry(ZipArchiveEntry entry)
         {
             if (entry.Length > MaxZipEntryBytes)
@@ -663,6 +693,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Bổ sung dữ liệu mới phục vụ nhập và xuất dữ liệu Excel.
         private static void AddTextEntry(ZipArchive archive, string name, string content)
         {
             var entry = archive.CreateEntry(name);
@@ -672,6 +703,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Ghi dữ liệu đã chuẩn hóa vào đầu ra của nhập và xuất dữ liệu Excel.
         private static void WriteWorksheetEntry<T>(
             ZipArchive archive,
             string name,
@@ -721,6 +753,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Ghi dữ liệu đã chuẩn hóa vào đầu ra của nhập và xuất dữ liệu Excel.
         private static void WriteInlineStringCell(XmlWriter writer, int rowNumber, int columnNumber, string value)
         {
             const string spreadsheetNamespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
@@ -735,6 +768,7 @@ namespace HospitalQualityDashboardDemo.Services
             writer.WriteEndElement();
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho nhập và xuất dữ liệu Excel.
         private static string SanitizeXmlText(string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -751,6 +785,7 @@ namespace HospitalQualityDashboardDemo.Services
             return builder.ToString();
         }
 
+        // Truy vấn nhập và xuất dữ liệu Excel theo điều kiện được cung cấp.
         private static string GetExcelColumnName(int columnNumber)
         {
             var builder = new StringBuilder();
@@ -764,11 +799,13 @@ namespace HospitalQualityDashboardDemo.Services
             return builder.ToString();
         }
 
+        // Truy vấn nhập và xuất dữ liệu Excel theo điều kiện được cung cấp.
         private static string GetColumnName(string cellReference)
         {
             return new string(cellReference.TakeWhile(char.IsLetter).ToArray());
         }
 
+        // Chuyển tên cột Excel thành chỉ số cột tương ứng.
         private static int ColumnIndex(string columnName)
         {
             var index = 0;
@@ -788,6 +825,7 @@ namespace HospitalQualityDashboardDemo.Services
         public IEnumerable<object> Items { get; set; }
         public IList<KeyValuePair<string, Func<object, object>>> Columns { get; set; }
 
+        // Tạo mô tả worksheet từ tập dữ liệu và danh sách cột được cung cấp.
         public static ExcelWorksheetExport From<T>(string name, IEnumerable<T> items, IList<KeyValuePair<string, Func<T, object>>> columns)
         {
             return new ExcelWorksheetExport

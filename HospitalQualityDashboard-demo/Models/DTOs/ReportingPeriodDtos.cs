@@ -1,3 +1,4 @@
+// Mục đích: đóng gói dữ liệu lưu kỳ báo cáo và yêu cầu sinh lịch hàng loạt.
 using HospitalQualityDashboardDemo.Models.Enums;
 
 namespace HospitalQualityDashboardDemo.Models.DTOs

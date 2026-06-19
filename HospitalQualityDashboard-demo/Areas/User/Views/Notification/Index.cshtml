@@ -1,5 +1,6 @@
 ﻿@* Mục đích: danh sách thông báo của người dùng và thao tác tự động của Admin. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.NotificationIndexViewModel
+@using HospitalQualityDashboardDemo.Models.Enums
 @using System.Linq
 @{
     ViewBag.Title = "Thông báo";
@@ -48,17 +49,39 @@
                 @foreach (var item in notifications)
                 {
                     var detailUrl = Url.Action("Details", new { id = item.ThongBaoId });
-                    <article class="notification-item @(item.DaDoc ? "" : "is-unread")">
+                    var urgencyClass = item.LoaiThongBao == LoaiThongBao.QuaHan
+                        ? "notification-item-overdue"
+                        : item.LoaiThongBao == LoaiThongBao.HanNopHomNay
+                            ? "notification-item-due-today"
+                            : item.LoaiThongBao == LoaiThongBao.NhacHan
+                                ? "notification-item-due-soon"
+                                : string.Empty;
+                    var urgencyStatusClass = item.LoaiThongBao == LoaiThongBao.QuaHan
+                        ? "status-danger"
+                        : item.LoaiThongBao == LoaiThongBao.HanNopHomNay
+                            ? "status-urgent"
+                            : item.LoaiThongBao == LoaiThongBao.NhacHan
+                                ? "status-warning"
+                                : "status-muted";
+                    <article class="notification-item @urgencyClass @(item.DaDoc ? "" : "is-unread")">
                         <div>
                             @Html.ActionLink(item.TieuDe, "Details", new { id = item.ThongBaoId }, new { @class = "notification-title" })
                             <a href="@detailUrl" class="notification-body notification-body-link">@item.NoiDung</a>
                             <div class="notification-meta">
-                                <span class="status-pill status-muted">@item.LoaiThongBao</span>
+                                <span class="status-pill @urgencyStatusClass">@item.LoaiThongBao</span>
                                 <span class="status-pill @(item.DaDoc ? "status-read" : "status-unread")">@(item.DaDoc ? "Đã đọc" : "Chưa đọc")</span>
                                 <span class="status-pill status-muted">@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
                             </div>
                         </div>
                         <div class="text-end table-actions">
+                            @if (!item.DaDoc)
+                            {
+                                using (Html.BeginForm("MarkAsRead", "Notification", new { id = item.ThongBaoId, page = Model.Page }, FormMethod.Post, new { @class = "d-inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Đánh dấu đã đọc</button>
+                                }
+                            }
                             @Html.ActionLink("Xem chi tiết", "Details", new { id = item.ThongBaoId }, new { @class = "btn btn-sm btn-outline-primary" })
                         </div>
                     </article>

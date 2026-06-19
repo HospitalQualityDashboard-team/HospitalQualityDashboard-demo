@@ -1,3 +1,4 @@
+// Mục đích: điều phối quy trình nhập, lưu nháp và gửi báo cáo của khoa/phòng được phân quyền.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -16,6 +17,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
         private readonly ReportingPeriodService _periods = new ReportingPeriodService();
         private readonly IndicatorService _indicators = new IndicatorService();
 
+        // Hiển thị danh sách và các bộ lọc của báo cáo định kỳ.
         public ActionResult Index(int? kyBaoCaoId, int? chiSoChatLuongId, int page = 1)
         {
             var activePeriods = GetActivePeriodsForCurrentViewer();
@@ -53,6 +55,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             });
         }
 
+        // Kiểm tra kỳ báo cáo và mở màn hình nhập số liệu cho khoa/phòng hiện tại.
         public ActionResult Nhap(int kyBaoCaoId)
         {
             var periodGate = EnsureOpenPeriodForUser(kyBaoCaoId);
@@ -60,6 +63,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return View(_service.GetAssignedForUser(kyBaoCaoId, CurrentKhoaPhongId.Value));
         }
 
+        // Tải dữ liệu hiện tại lên màn hình chỉnh sửa báo cáo định kỳ.
         public ActionResult Edit(int? id, int? kyBaoCaoId, int? chiSoChatLuongId)
         {
             ReportEntryViewModel model;
@@ -94,6 +98,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return View(model);
         }
 
+        // Kiểm tra và lưu các thay đổi của báo cáo định kỳ.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(ReportEntryViewModel model, string submitAction)
@@ -160,6 +165,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return RedirectToAction("Edit", new { id = id });
         }
 
+        // Gửi dữ liệu và cập nhật trạng thái tương ứng của báo cáo định kỳ.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Submit(int id)
@@ -178,6 +184,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return RedirectToAction("Nhap", new { kyBaoCaoId = report.KyBaoCaoId });
         }
 
+        // Truy vấn báo cáo định kỳ theo điều kiện được cung cấp.
         private IList<KyBaoCaoViewModel> GetActivePeriodsForCurrentViewer()
         {
             var activePeriods = _periods.GetAll()
@@ -190,6 +197,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
                 .ToList();
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ báo cáo định kỳ.
         private static IList<SelectListItem> BuildUserPeriodOptions(IEnumerable<KyBaoCaoViewModel> activePeriods)
         {
             return activePeriods
@@ -197,6 +205,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
                 .ToList();
         }
 
+        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý báo cáo định kỳ.
         private ActionResult EnsureOpenPeriodForUser(int kyBaoCaoId)
         {
             if (!_periods.IsOpenForDepartment(kyBaoCaoId, CurrentKhoaPhongId.Value))
@@ -207,11 +216,13 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return null;
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho báo cáo định kỳ.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
         }
 
+        // Tính tổng số trang từ số bản ghi và kích thước trang.
         private static int GetTotalPages(int totalItems, int pageSize)
         {
             return totalItems <= 0 ? 1 : (int)System.Math.Ceiling((decimal)totalItems / pageSize);

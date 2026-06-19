@@ -61,6 +61,15 @@ namespace HospitalQualityDashboardDemo.Models.Enums
         NhacHan = 3,
         QuaHan = 4,
         TongHopAdmin = 5,
-        TuDong = 6
+        TuDong = 6,
+        HanNopHomNay = 7
+    }
+
+    public enum IndicatorWarningResult : byte
+    {
+        Sent = 1,
+        AlreadySentToday = 2,
+        AlreadySubmitted = 3,
+        NotEligible = 4
     }
 }

@@ -1,3 +1,4 @@
+// Mục đích: cho người dùng xem các chỉ số được phân công cho khoa/phòng của mình.
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using HospitalQualityDashboardDemo.Services;
 using System.Web.Mvc;
@@ -9,6 +10,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
         private const int DefaultPageSize = 20;
         private readonly IndicatorService _service = new IndicatorService();
 
+        // Hiển thị danh sách và các bộ lọc của chỉ số chất lượng.
         public ActionResult Index(int page = 1)
         {
             int totalItems;
@@ -23,6 +25,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             });
         }
 
+        // Tải và hiển thị thông tin chi tiết của chỉ số chất lượng.
         public ActionResult Details(int id)
         {
             var model = _service.Get(id);
@@ -39,11 +42,13 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return View(model);
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho chỉ số chất lượng.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
         }
 
+        // Tính tổng số trang từ số bản ghi và kích thước trang.
         private static int GetTotalPages(int totalItems, int pageSize)
         {
             return totalItems <= 0 ? 1 : (int)System.Math.Ceiling((decimal)totalItems / pageSize);

@@ -12,28 +12,33 @@ namespace HospitalQualityDashboardDemo.Controllers
     {
         private readonly AuthService _authService;
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho tài khoản và hồ sơ người dùng.
         public AccountController()
             : this(new AuthService())
         {
         }
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho tài khoản và hồ sơ người dùng.
         public AccountController(AuthService authService)
         {
             _authService = authService;
         }
 
+        // Hiển thị biểu mẫu đăng nhập phù hợp với vai trò.
         [HttpGet]
         public ActionResult Login()
         {
             return RedirectToAction("UserLogin");
         }
 
+        // Hiển thị biểu mẫu đăng nhập dành cho Admin.
         [HttpGet]
         public ActionResult AdminLogin()
         {
             return View(new LoginViewModel());
         }
 
+        // Xác thực tài khoản Admin và chuyển vào khu vực quản trị.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult AdminLogin(LoginViewModel model)
@@ -41,12 +46,14 @@ namespace HospitalQualityDashboardDemo.Controllers
             return LoginForRole(model, LoaiTaiKhoan.Admin, "AdminLogin", "Tài khoản này không phải tài khoản Admin.");
         }
 
+        // Hiển thị biểu mẫu đăng nhập dành cho User.
         [HttpGet]
         public ActionResult UserLogin()
         {
             return View(new LoginViewModel());
         }
 
+        // Xác thực tài khoản User và chuyển vào khu vực khoa/phòng.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult UserLogin(LoginViewModel model)
@@ -54,6 +61,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             return LoginForRole(model, LoaiTaiKhoan.User, "UserLogin", "Tài khoản này không phải tài khoản User.");
         }
 
+        // Dùng chung quy trình xác thực và từ chối tài khoản sai vai trò.
         private ActionResult LoginForRole(LoginViewModel model, LoaiTaiKhoan expectedRole, string viewName, string wrongRoleMessage)
         {
             if (!ModelState.IsValid)
@@ -94,6 +102,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             return RedirectToAction("Index", "Dashboard", new { area = "User" });
         }
 
+        // Xóa session hiện tại và đưa người dùng về trang đăng nhập.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Logout()
@@ -102,6 +111,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             return RedirectToAction("UserLogin");
         }
 
+        // Kiểm tra mật khẩu hiện tại và lưu mật khẩu mới an toàn.
         [HttpGet]
         public ActionResult ChangePassword()
         {
@@ -113,6 +123,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             return RedirectToAction("Profile");
         }
 
+        // Kiểm tra mật khẩu hiện tại và lưu mật khẩu mới an toàn.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ChangePassword(ChangePasswordViewModel model)
@@ -138,6 +149,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             return RedirectToAction("Profile");
         }
 
+        // Tải hồ sơ của người dùng hiện tại để hiển thị.
         [HttpGet]
         public new ActionResult Profile()
         {
@@ -157,6 +169,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             return View(model);
         }
 
+        // Kiểm tra và cập nhật thông tin hồ sơ của người dùng hiện tại.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public new ActionResult Profile(UserProfileViewModel model)
@@ -197,6 +210,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             return RedirectToAction("Profile");
         }
 
+        // Kiểm tra và cập nhật dữ liệu của tài khoản và hồ sơ người dùng.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult UpdateProfile(ProfileUpdateDto model)

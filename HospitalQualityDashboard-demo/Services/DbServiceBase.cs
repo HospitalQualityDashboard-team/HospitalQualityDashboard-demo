@@ -12,16 +12,19 @@ namespace HospitalQualityDashboardDemo.Services
         protected readonly string ConnectionString;
         protected readonly int CommandTimeoutSeconds;
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho truy cập dữ liệu ADO.NET dùng chung.
         protected DbServiceBase()
             : this(DatabaseConfiguration.GetConnectionString())
         {
         }
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho truy cập dữ liệu ADO.NET dùng chung.
         protected DbServiceBase(string connectionString)
             : this(connectionString, DefaultCommandTimeoutSeconds)
         {
         }
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho truy cập dữ liệu ADO.NET dùng chung.
         protected DbServiceBase(string connectionString, int commandTimeoutSeconds)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -33,6 +36,7 @@ namespace HospitalQualityDashboardDemo.Services
             CommandTimeoutSeconds = commandTimeoutSeconds > 0 ? commandTimeoutSeconds : DefaultCommandTimeoutSeconds;
         }
 
+        // Truy vấn truy cập dữ liệu ADO.NET dùng chung theo điều kiện được cung cấp.
         protected List<T> Query<T>(string sql, Func<SqlDataReader, T> map, params SqlParameter[] parameters)
         {
             var items = new List<T>();
@@ -54,6 +58,7 @@ namespace HospitalQualityDashboardDemo.Services
             return items;
         }
 
+        // Truy vấn truy cập dữ liệu ADO.NET dùng chung theo điều kiện được cung cấp.
         protected T QuerySingle<T>(string sql, Func<SqlDataReader, T> map, params SqlParameter[] parameters) where T : class
         {
             using (var connection = new SqlConnection(ConnectionString))
@@ -69,6 +74,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Thực thi quy trình xử lý của truy cập dữ liệu ADO.NET dùng chung.
         protected void ExecuteInTransaction(Action<SqlConnection, SqlTransaction> action)
         {
             using (var connection = new SqlConnection(ConnectionString))
@@ -90,6 +96,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Thực thi quy trình xử lý của truy cập dữ liệu ADO.NET dùng chung.
         protected int Execute(string sql, params SqlParameter[] parameters)
         {
             using (var connection = new SqlConnection(ConnectionString))
@@ -102,6 +109,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Thực thi quy trình xử lý của truy cập dữ liệu ADO.NET dùng chung.
         protected int Execute(SqlConnection connection, SqlTransaction transaction, string sql, params SqlParameter[] parameters)
         {
             using (var command = new SqlCommand(sql, connection, transaction))
@@ -112,6 +120,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Thực thi câu lệnh SQL và trả về dạng kết quả cần thiết.
         protected object Scalar(string sql, params SqlParameter[] parameters)
         {
             using (var connection = new SqlConnection(ConnectionString))
@@ -124,6 +133,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Thực thi câu lệnh SQL và trả về dạng kết quả cần thiết.
         protected object Scalar(SqlConnection connection, SqlTransaction transaction, string sql, params SqlParameter[] parameters)
         {
             using (var command = new SqlCommand(sql, connection, transaction))
@@ -134,34 +144,40 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Tạo tham số SQL và chuyển giá trị null sang DBNull an toàn.
         protected static SqlParameter Param(string name, object value)
         {
             return new SqlParameter(name, value ?? DBNull.Value);
         }
 
+        // Đọc giá trị từ nguồn dữ liệu và xử lý trường hợp null an toàn.
         protected static string String(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
             return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
         }
 
+        // Đọc giá trị từ nguồn dữ liệu và xử lý trường hợp null an toàn.
         protected static int Int(SqlDataReader reader, string name)
         {
             return reader.GetInt32(reader.GetOrdinal(name));
         }
 
+        // Đọc giá trị từ nguồn dữ liệu và xử lý trường hợp null an toàn.
         protected static int? NullableInt(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
             return reader.IsDBNull(ordinal) ? (int?)null : reader.GetInt32(ordinal);
         }
 
+        // Đọc giá trị từ nguồn dữ liệu và xử lý trường hợp null an toàn.
         protected static decimal? NullableDecimal(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
             return reader.IsDBNull(ordinal) ? (decimal?)null : reader.GetDecimal(ordinal);
         }
 
+        // Đọc giá trị từ nguồn dữ liệu và xử lý trường hợp null an toàn.
         protected static DateTime? NullableDateTime(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);

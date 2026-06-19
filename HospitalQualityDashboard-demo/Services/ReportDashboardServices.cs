@@ -71,6 +71,7 @@ namespace HospitalQualityDashboardDemo.Services
             "chuyen sang benh vien khac"
         };
 
+        // Tính toán giá trị nghiệp vụ phục vụ tính kết quả chỉ số.
         public void Calculate(ReportEntryViewModel report, ChiSoViewModel indicator)
         {
             if (indicator.LoaiCongThuc == LoaiCongThuc.TyLe)
@@ -93,16 +94,19 @@ namespace HospitalQualityDashboardDemo.Services
             report.DatMucTieu = CompareTarget(report.KetQua, indicator.ToanTuSoSanh, indicator.GiaTriMucTieu);
         }
 
+        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của tính kết quả chỉ số hay không.
         public static bool RequiresNumeratorWithinDenominator(ChiSoViewModel indicator)
         {
             return indicator != null && RequiresNumeratorWithinDenominator(indicator.MaChiSo, indicator.TenChiSo);
         }
 
+        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của tính kết quả chỉ số hay không.
         public static bool RequiresNumeratorWithinDenominator(string indicatorCode)
         {
             return RequiresNumeratorWithinDenominator(indicatorCode, null);
         }
 
+        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của tính kết quả chỉ số hay không.
         public static bool RequiresNumeratorWithinDenominator(string indicatorCode, string indicatorName)
         {
             var normalizedCode = NormalizeIndicatorCode(indicatorCode);
@@ -117,6 +121,7 @@ namespace HospitalQualityDashboardDemo.Services
                 NumeratorWithinDenominatorIndicatorNameTokens.Any(normalizedName.Contains);
         }
 
+        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý tính kết quả chỉ số.
         private static void EnsureNumeratorWithinDenominator(decimal? numerator, decimal? denominator, ChiSoViewModel indicator)
         {
             if (!RequiresNumeratorWithinDenominator(indicator) || !numerator.HasValue || !denominator.HasValue)
@@ -130,6 +135,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho tính kết quả chỉ số.
         private static string NormalizeIndicatorCode(string indicatorCode)
         {
             if (string.IsNullOrWhiteSpace(indicatorCode))
@@ -150,6 +156,7 @@ namespace HospitalQualityDashboardDemo.Services
             return trimmed;
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho tính kết quả chỉ số.
         private static string NormalizeText(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -183,6 +190,7 @@ namespace HospitalQualityDashboardDemo.Services
             return text;
         }
 
+        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý tính kết quả chỉ số.
         private static void EnsureDenominator(decimal? denominator)
         {
             if (!denominator.HasValue || denominator.Value == 0)
@@ -191,6 +199,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // So sánh giá trị theo quy tắc nghiệp vụ của tính kết quả chỉ số.
         private static bool? CompareTarget(decimal? result, string op, decimal? target)
         {
             if (!result.HasValue || !target.HasValue || string.IsNullOrWhiteSpace(op))
@@ -210,6 +219,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Làm tròn kết quả theo độ chính xác quy định của tính kết quả chỉ số.
         private static decimal? RoundResult(decimal? value)
         {
             return value.HasValue ? Math.Round(value.Value, 2, MidpointRounding.AwayFromZero) : (decimal?)null;
@@ -221,11 +231,13 @@ namespace HospitalQualityDashboardDemo.Services
         private readonly IndicatorService _indicators = new IndicatorService();
         private readonly IndicatorCalculationService _calculator = new IndicatorCalculationService();
 
+        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
         public IList<ReportEntryViewModel> GetAll(ReportListQueryDto dto)
         {
             return GetAll(dto.PeriodId, dto.DepartmentId, dto.IndicatorId, dto.IsAdmin, dto.CurrentDepartmentId);
         }
 
+        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
         public IList<ReportEntryViewModel> GetAll(ReportListQueryDto dto, int page, int pageSize, out int totalItems)
         {
             page = NormalizePage(page);
@@ -273,6 +285,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             return Query(sql, MapReport, pagedParameters);
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ quy trình báo cáo.
         private static SqlParameter[] BuildReportListParameters(ReportListQueryDto dto)
         {
             return new[]
@@ -289,17 +302,20 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             };
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho quy trình báo cáo.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho quy trình báo cáo.
         private static int NormalizePageSize(int pageSize)
         {
             if (pageSize < 1) return 20;
             return pageSize > 100 ? 100 : pageSize;
         }
 
+        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
         public IList<ReportEntryViewModel> GetAll(int? periodId, int? departmentId, int? indicatorId, bool admin, int? currentDepartmentId)
         {
             const string sql = @"
@@ -333,6 +349,7 @@ ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
                 Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa));
         }
 
+        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
         public IList<ReportEntryViewModel> GetAssignedForUser(int periodId, int departmentId)
         {
             const string sql = @"
@@ -359,6 +376,7 @@ ORDER BY cs.MaChiSo";
                 Param("@Mo", (byte)TrangThaiKyBaoCao.Mo));
         }
 
+        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
         public ReportEntryViewModel Get(int id)
         {
             const string sql = @"
@@ -377,6 +395,7 @@ WHERE bc.BaoCaoId=@Id";
             return Query(sql, MapReport, Param("@Id", id)).FirstOrDefault();
         }
 
+        // Kiểm tra và cập nhật dữ liệu của quy trình báo cáo.
         public int SaveDraft(ReportDraftDto dto, int userId)
         {
             return SaveDraft(new ReportEntryViewModel
@@ -397,6 +416,7 @@ WHERE bc.BaoCaoId=@Id";
             }, userId);
         }
 
+        // Kiểm tra và cập nhật dữ liệu của quy trình báo cáo.
         public int SaveDraft(ReportEntryViewModel model, int userId)
         {
             var isNewReport = model.BaoCaoId == 0;
@@ -485,6 +505,7 @@ ELSE
             return model.BaoCaoId;
         }
 
+        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
         private int? GetReportingYear(int reportingPeriodId)
         {
             var value = Scalar("SELECT DATEPART(YEAR, TuNgay) FROM dbo.KyBaoCao WHERE KyBaoCaoId=@KyBaoCaoId",
@@ -492,6 +513,7 @@ ELSE
             return value == null || value == DBNull.Value ? (int?)null : Convert.ToInt32(value);
         }
 
+        // Gửi dữ liệu và cập nhật trạng thái tương ứng của quy trình báo cáo.
         public void Submit(int id, int userId)
         {
             var now = GetVietnamLocalNow();
@@ -522,6 +544,7 @@ WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
             }
         }
 
+        // Chuyển bản ghi sang trạng thái không còn cho phép chỉnh sửa.
         public void Lock(int id)
         {
             Execute("UPDATE dbo.BaoCao SET TrangThai=@TrangThai, NgayCapNhat=@Now WHERE BaoCaoId=@Id AND TrangThai IN (@DaGui, @QuaHan)",
@@ -532,6 +555,7 @@ WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
                 Param("@Now", GetVietnamLocalNow()));
         }
 
+        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của quy trình báo cáo.
         public void Delete(int id, int userId)
         {
             var beforeSnapshot = GetReportDetailSnapshot(id);
@@ -552,6 +576,7 @@ WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
             });
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho quy trình báo cáo.
         private static ReportEntryViewModel MapReport(SqlDataReader reader)
         {
             return new ReportEntryViewModel
@@ -580,6 +605,7 @@ WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
             };
         }
 
+        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
         private string GetReportDetailSnapshot(int reportId)
         {
             var snapshot = QuerySingle(@"
@@ -607,6 +633,7 @@ WHERE bc.BaoCaoId = @BaoCaoId",
             return snapshot == null ? "Không tìm thấy dữ liệu báo cáo." : BuildReportDetailSnapshot(snapshot);
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ quy trình báo cáo.
         private static string BuildReportDetailSnapshot(ReportEntryViewModel model)
         {
             return string.Format(
@@ -624,11 +651,13 @@ WHERE bc.BaoCaoId = @BaoCaoId",
                 string.IsNullOrWhiteSpace(model.GhiChu) ? "NULL" : model.GhiChu);
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của quy trình báo cáo.
         private static string FormatValue(decimal? value)
         {
             return value.HasValue ? value.Value.ToString("0.####") : "NULL";
         }
 
+        // Lấy thời điểm hiện tại theo múi giờ Việt Nam và có phương án dự phòng.
         private static DateTime GetVietnamLocalNow()
         {
             try
@@ -646,6 +675,7 @@ WHERE bc.BaoCaoId = @BaoCaoId",
             }
         }
 
+        // Ghi lại thông tin phục vụ theo dõi và kiểm toán quy trình báo cáo.
         private void LogSystemAction(int userId, string feature, string action, string entityName, int? entityId, string content)
         {
             Execute(@"INSERT INTO dbo.NhatKyHeThong(TaiKhoanId, ChucNang, HanhDong, DoiTuong, DoiTuongId, NoiDung)
@@ -658,6 +688,7 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
                 Param("@NoiDung", content));
         }
 
+        // Ghi lại thông tin phục vụ theo dõi và kiểm toán quy trình báo cáo.
         private void LogSystemAction(SqlConnection connection, SqlTransaction transaction, int userId, string feature, string action, string entityName, int? entityId, string content)
         {
             Execute(connection, transaction, @"INSERT INTO dbo.NhatKyHeThong(TaiKhoanId, ChucNang, HanhDong, DoiTuong, DoiTuongId, NoiDung)
@@ -673,11 +704,13 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
 
     public class DashboardService : DbServiceBase
     {
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu Dashboard.
         public DashboardService()
             : base(DatabaseConfiguration.GetConnectionString(), 60)
         {
         }
 
+        // Tính toán giá trị nghiệp vụ phục vụ dữ liệu Dashboard.
         private static string CalculateXepLoai(int daGui, int tong)
         {
             if (tong == 0) return "N/A";
@@ -688,6 +721,7 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
             return "Yếu";
         }
 
+        // Truy vấn dữ liệu Dashboard theo điều kiện được cung cấp.
         private DashboardViewModel GetDashboardOptimized(bool admin, int? departmentId, int? tanSuatFilter)
         {
             var model = new DashboardViewModel
@@ -695,6 +729,7 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
                 IsAdmin = admin,
                 DepartmentProgress = new List<DepartmentProgressViewModel>(),
                 MissingReports = new List<MissingReportAlertViewModel>(),
+                MetricDetails = new List<DashboardMetricDetailViewModel>(),
                 SelectedTanSuat = tanSuatFilter,
                 TanSuatOptions = BuildDashboardFrequencyOptions(tanSuatFilter)
             };
@@ -702,7 +737,11 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
             ApplyOptimizedDashboardSummary(model, admin, departmentId, tanSuatFilter);
             model.DepartmentProgress = GetOptimizedDepartmentProgress(admin ? null : departmentId, tanSuatFilter);
 
-            if (!admin && departmentId.HasValue)
+            if (admin)
+            {
+                model.MetricDetails = GetAdminMetricDetails(tanSuatFilter);
+            }
+            else if (departmentId.HasValue)
             {
                 model.MissingReports = GetMissingReportsForDepartment(departmentId.Value);
                 model.BaoCaoThieu = model.MissingReports.Count;
@@ -713,6 +752,7 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
             return model;
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
         private static IList<SelectListItem> BuildDashboardFrequencyOptions(int? tanSuatFilter)
         {
             return new List<SelectListItem>
@@ -730,6 +770,7 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
             };
         }
 
+        // Chuẩn bị các tùy chọn bộ lọc và phạm vi dữ liệu cho màn hình xuất.
         public void PrepareExportFilters(DashboardViewModel model, DashboardExcelExportQueryDto query, bool admin, int? departmentId)
         {
             if (model == null)
@@ -759,6 +800,7 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
             model.TanSuatOptions = BuildDashboardFrequencyOptions(model.SelectedTanSuat);
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
         private IList<SelectListItem> BuildYearOptions(int? selectedYear)
         {
             var years = Query("SELECT DISTINCT DATEPART(YEAR, TuNgay) AS Nam FROM dbo.KyBaoCao ORDER BY Nam DESC",
@@ -782,6 +824,7 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
             return options;
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
         private IList<SelectListItem> BuildPeriodOptions(int? selectedPeriodId)
         {
             var periods = Query("SELECT KyBaoCaoId, TenKyBaoCao FROM dbo.KyBaoCao ORDER BY TuNgay DESC",
@@ -796,6 +839,7 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
             return periods;
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
         private IList<SelectListItem> BuildDepartmentOptions(int? selectedDepartmentId)
         {
             var departments = Query("SELECT KhoaPhongId, TenKhoaPhong FROM dbo.KhoaPhong ORDER BY TenKhoaPhong",
@@ -810,6 +854,7 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
             return departments;
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
         private IList<SelectListItem> BuildCurrentDepartmentOptions(int? departmentId)
         {
             if (!departmentId.HasValue)
@@ -827,6 +872,7 @@ VALUES(@TaiKhoanId, @ChucNang, @HanhDong, @DoiTuong, @DoiTuongId, @NoiDung)",
                 Param("@KhoaPhongId", departmentId.Value));
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
         private IList<SelectListItem> BuildFieldOptions(string selectedField)
         {
             var fields = Query(@"
@@ -849,6 +895,7 @@ ORDER BY LinhVucApDung",
             return options;
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
         private static IList<SelectListItem> BuildInputStatusOptions(int? selectedStatus)
         {
             return new List<SelectListItem>
@@ -864,6 +911,7 @@ ORDER BY LinhVucApDung",
             };
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
         private static IList<SelectListItem> BuildReviewStatusOptions(int? selectedStatus)
         {
             return new List<SelectListItem>
@@ -875,6 +923,7 @@ ORDER BY LinhVucApDung",
             };
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
         private static IList<SelectListItem> BuildTargetStatusOptions(bool? selectedStatus)
         {
             return new List<SelectListItem>
@@ -885,15 +934,31 @@ ORDER BY LinhVucApDung",
             };
         }
 
+        // Áp dụng định dạng hoặc quy tắc trình bày cho dữ liệu Dashboard.
         private void ApplyOptimizedDashboardSummary(DashboardViewModel model, bool admin, int? departmentId, int? tanSuatFilter)
         {
             var sql = admin ? @"
+WITH ExpectedSlots AS
+(
+    SELECT DISTINCT ky.KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, ky.HanNop
+    FROM dbo.KyBaoCao ky
+    INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
+    INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cs.DangHoatDong = 1
+    INNER JOIN dbo.ChiSoTanSuatBaoCao ts
+        ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId
+       AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
+    WHERE ky.TrangThai <> @DraftPeriodStatus
+      AND (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
+),
+CompletedSlots AS
+(
+    SELECT DISTINCT bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId
+    FROM dbo.BaoCao bc
+    WHERE bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus)
+)
 SELECT
-    (SELECT COUNT(DISTINCT bc.BaoCaoId)
-     FROM dbo.BaoCao bc
-     LEFT JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = bc.ChiSoChatLuongId
-     WHERE bc.TrangThai IN (2,3,4)
-       AND (@TanSuat IS NULL OR ts.TanSuatBaoCao = @TanSuat)) AS BaoCaoDaGui,
+    COUNT(es.KyBaoCaoId) AS TongBaoCaoCanNop,
+    ISNULL(SUM(CASE WHEN completed.KyBaoCaoId IS NOT NULL THEN 1 ELSE 0 END), 0) AS BaoCaoDaGui,
     (SELECT COUNT(DISTINCT pc.PhanCongChiSoId)
      FROM dbo.PhanCongChiSo pc
      LEFT JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId
@@ -904,11 +969,15 @@ SELECT
      LEFT JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = cs.ChiSoChatLuongId
      WHERE cs.DangHoatDong = 1
        AND (@TanSuat IS NULL OR ts.TanSuatBaoCao = @TanSuat)) AS TongChiSo,
-    (SELECT COUNT(DISTINCT bc.BaoCaoId)
-     FROM dbo.BaoCao bc
-     LEFT JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = bc.ChiSoChatLuongId
-     WHERE bc.TrangThai = @QuaHanStatus
-       AND (@TanSuat IS NULL OR ts.TanSuatBaoCao = @TanSuat)) AS BaoCaoQuaHan"
+    ISNULL(SUM(CASE
+        WHEN completed.KyBaoCaoId IS NULL AND es.HanNop < @Today THEN 1
+        ELSE 0
+    END), 0) AS BaoCaoQuaHan
+FROM ExpectedSlots es
+LEFT JOIN CompletedSlots completed
+    ON completed.KyBaoCaoId = es.KyBaoCaoId
+   AND completed.KhoaPhongId = es.KhoaPhongId
+   AND completed.ChiSoChatLuongId = es.ChiSoChatLuongId"
             : @"
 SELECT
     (SELECT COUNT(DISTINCT bc.BaoCaoId)
@@ -938,6 +1007,7 @@ SELECT
 
             var summary = QuerySingle(sql, r => new DashboardSummaryRow
             {
+                TongBaoCaoCanNop = admin ? Int(r, "TongBaoCaoCanNop") : 0,
                 BaoCaoDaGui = Int(r, "BaoCaoDaGui"),
                 ChiSoDuocPhanCong = Int(r, "ChiSoDuocPhanCong"),
                 TongChiSo = Int(r, "TongChiSo"),
@@ -945,18 +1015,115 @@ SELECT
             },
                 Param("@KhoaPhongId", departmentId),
                 Param("@TanSuat", tanSuatFilter),
-                Param("@QuaHanStatus", (byte)TrangThaiBaoCao.QuaHan));
+                Param("@Today", GetVietnamLocalNow().Date),
+                Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap),
+                Param("@DaGuiStatus", (byte)TrangThaiBaoCao.DaGui),
+                Param("@QuaHanStatus", (byte)TrangThaiBaoCao.QuaHan),
+                Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa),
+                Param("@DaDuyetStatus", (byte)TrangThaiBaoCao.DaDuyet));
 
             if (summary == null)
             {
                 return;
             }
 
+            model.TongBaoCaoCanNop = summary.TongBaoCaoCanNop;
             model.BaoCaoDaGui = summary.BaoCaoDaGui;
             model.ChiSoDuocPhanCong = summary.ChiSoDuocPhanCong;
             model.TongChiSo = summary.TongChiSo;
             model.BaoCaoQuaHan = summary.BaoCaoQuaHan;
-            model.BaoCaoThieu = model.ChiSoDuocPhanCong - model.BaoCaoDaGui;
+            model.BaoCaoThieu = admin
+                ? summary.TongBaoCaoCanNop - summary.BaoCaoDaGui
+                : model.ChiSoDuocPhanCong - model.BaoCaoDaGui;
+        }
+
+        // Truy vấn dữ liệu Dashboard theo điều kiện được cung cấp.
+        private IList<DashboardMetricDetailViewModel> GetAdminMetricDetails(int? tanSuatFilter)
+        {
+            const string sql = @"
+WITH ExpectedSlots AS
+(
+    SELECT DISTINCT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.HanNop,
+           pc.KhoaPhongId, kp.TenKhoaPhong, pc.ChiSoChatLuongId,
+           cs.MaChiSo, cs.TenChiSo
+    FROM dbo.KyBaoCao ky
+    INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
+    INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
+    INNER JOIN dbo.ChiSoChatLuong cs
+        ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
+       AND cs.DangHoatDong = 1
+    INNER JOIN dbo.ChiSoTanSuatBaoCao ts
+        ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId
+       AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
+    WHERE ky.TrangThai <> @DraftPeriodStatus
+      AND (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
+)
+SELECT es.KyBaoCaoId, es.KhoaPhongId, es.ChiSoChatLuongId,
+       es.TenKyBaoCao, es.HanNop, es.TenKhoaPhong,
+       es.MaChiSo, es.TenChiSo, bc.BaoCaoId, bc.TrangThai,
+       ct.KetQua, ct.DatMucTieu,
+       CASE
+           WHEN bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus) THEN 1
+           ELSE 0
+       END AS IsSubmitted,
+       CASE
+           WHEN (bc.BaoCaoId IS NULL OR bc.TrangThai NOT IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus))
+                AND es.HanNop < @Today THEN 1
+           ELSE 0
+       END AS IsOverdueMissing,
+       CASE WHEN EXISTS (
+           SELECT 1
+           FROM dbo.ThongBaoTuDongLog warningLog
+           WHERE warningLog.LoaiThongBao = @NhacHan
+             AND warningLog.KyBaoCaoId = es.KyBaoCaoId
+             AND warningLog.KhoaPhongId = es.KhoaPhongId
+             AND warningLog.ChiSoChatLuongId = es.ChiSoChatLuongId
+             AND warningLog.NgayMoc = @Today
+       ) THEN 1 ELSE 0 END AS HasWarningToday
+FROM ExpectedSlots es
+LEFT JOIN dbo.BaoCao bc
+    ON bc.KyBaoCaoId = es.KyBaoCaoId
+   AND bc.KhoaPhongId = es.KhoaPhongId
+   AND bc.ChiSoChatLuongId = es.ChiSoChatLuongId
+LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
+ORDER BY es.HanNop, es.TenKhoaPhong, es.MaChiSo";
+
+            return Query(sql, reader =>
+            {
+                var isSubmitted = Int(reader, "IsSubmitted") == 1;
+                return new DashboardMetricDetailViewModel
+                {
+                    KyBaoCaoId = Int(reader, "KyBaoCaoId"),
+                    KhoaPhongId = Int(reader, "KhoaPhongId"),
+                    ChiSoChatLuongId = Int(reader, "ChiSoChatLuongId"),
+                    BaoCaoId = reader.IsDBNull(reader.GetOrdinal("BaoCaoId"))
+                        ? (int?)null
+                        : Int(reader, "BaoCaoId"),
+                    TenKyBaoCao = String(reader, "TenKyBaoCao"),
+                    HanNop = reader.GetDateTime(reader.GetOrdinal("HanNop")),
+                    TenKhoaPhong = String(reader, "TenKhoaPhong"),
+                    MaChiSo = String(reader, "MaChiSo"),
+                    TenChiSo = String(reader, "TenChiSo"),
+                    KetQua = isSubmitted ? NullableDecimal(reader, "KetQua") : null,
+                    DatMucTieu = isSubmitted && !reader.IsDBNull(reader.GetOrdinal("DatMucTieu"))
+                        ? (bool?)reader.GetBoolean(reader.GetOrdinal("DatMucTieu"))
+                        : null,
+                    TrangThaiBaoCao = reader.IsDBNull(reader.GetOrdinal("TrangThai"))
+                        ? (TrangThaiBaoCao?)null
+                        : (TrangThaiBaoCao)Convert.ToByte(reader["TrangThai"]),
+                    IsSubmitted = isSubmitted,
+                    IsOverdueMissing = Int(reader, "IsOverdueMissing") == 1,
+                    HasWarningToday = Int(reader, "HasWarningToday") == 1
+                };
+            },
+                Param("@TanSuat", tanSuatFilter),
+                Param("@Today", GetVietnamLocalNow().Date),
+                Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap),
+                Param("@DaGuiStatus", (byte)TrangThaiBaoCao.DaGui),
+                Param("@QuaHanStatus", (byte)TrangThaiBaoCao.QuaHan),
+                Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa),
+                Param("@DaDuyetStatus", (byte)TrangThaiBaoCao.DaDuyet),
+                Param("@NhacHan", (byte)LoaiThongBao.NhacHan));
         }
 
         private IList<DepartmentProgressViewModel> GetOptimizedDepartmentProgress(int? departmentId, int? tanSuatFilter)
@@ -1024,6 +1191,7 @@ ORDER BY kp.TenKhoaPhong";
 
         private class DashboardSummaryRow
         {
+            public int TongBaoCaoCanNop { get; set; }
             public int BaoCaoDaGui { get; set; }
             public int ChiSoDuocPhanCong { get; set; }
             public int TongChiSo { get; set; }
@@ -1031,6 +1199,7 @@ ORDER BY kp.TenKhoaPhong";
         }
 
         #pragma warning disable 0162
+        // Truy vấn dữ liệu Dashboard theo điều kiện được cung cấp.
         public DashboardViewModel GetDashboard(bool admin, int? departmentId, int? tanSuatFilter = null)
         {
             return GetDashboardOptimized(admin, departmentId, tanSuatFilter);
@@ -1286,12 +1455,23 @@ SELECT
         }
 
         #pragma warning restore 0162
+        // Truy vấn dữ liệu Dashboard theo điều kiện được cung cấp.
         public IList<MissingReportAlertViewModel> GetMissingReportsForDepartment(int departmentId)
         {
-            return GetMissingReportsForDepartment(departmentId, null, false);
+            return GetMissingReportsForDepartment(departmentId, null, false, null);
         }
 
+        // Truy vấn dữ liệu Dashboard theo điều kiện được cung cấp.
         public IList<MissingReportAlertViewModel> GetMissingReportsForDepartment(int departmentId, int? periodId, bool overdueOnly)
+        {
+            return GetMissingReportsForDepartment(departmentId, periodId, overdueOnly, null);
+        }
+
+        public IList<MissingReportAlertViewModel> GetMissingReportsForDepartment(
+            int departmentId,
+            int? periodId,
+            bool overdueOnly,
+            int? indicatorId)
         {
             const string sql = @"
 SELECT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.HanNop, cs.ChiSoChatLuongId, pc.PhanCongChiSoId,
@@ -1303,10 +1483,11 @@ INNER JOIN dbo.ChiSoTanSuatBaoCao cst ON cst.ChiSoChatLuongId = pc.ChiSoChatLuon
 LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
     AND bc.KhoaPhongId = pc.KhoaPhongId
     AND bc.ChiSoChatLuongId = pc.ChiSoChatLuongId
-    AND bc.TrangThai IN (@DaGui, @QuaHan, @DaKhoa)
+    AND bc.TrangThai IN (@DaGui, @QuaHan, @DaKhoa, @DaDuyet)
 WHERE ky.TrangThai = @Mo
   AND pc.KhoaPhongId = @KhoaPhongId
   AND (@KyBaoCaoId IS NULL OR ky.KyBaoCaoId = @KyBaoCaoId)
+  AND (@ChiSoChatLuongId IS NULL OR cs.ChiSoChatLuongId = @ChiSoChatLuongId)
   AND (@OverdueOnly = 0 OR DATEDIFF(day, @Today, ky.HanNop) < 0)
   AND bc.BaoCaoId IS NULL
 ORDER BY ky.HanNop, cs.MaChiSo";
@@ -1325,19 +1506,22 @@ ORDER BY ky.HanNop, cs.MaChiSo";
                     TenChiSo = String(reader, "TenChiSo"),
                     DaysUntilDue = daysUntilDue,
                     IsOverdue = daysUntilDue < 0,
-                    IsDueSoon = daysUntilDue >= 0 && daysUntilDue <= 7
+                    IsDueSoon = daysUntilDue >= 0 && daysUntilDue <= 10
                 };
             },
                 Param("@DaGui", (byte)TrangThaiBaoCao.DaGui),
                 Param("@QuaHan", (byte)TrangThaiBaoCao.QuaHan),
                 Param("@DaKhoa", (byte)TrangThaiBaoCao.DaKhoa),
+                Param("@DaDuyet", (byte)TrangThaiBaoCao.DaDuyet),
                 Param("@Mo", (byte)TrangThaiKyBaoCao.Mo),
                 Param("@KhoaPhongId", departmentId),
                 Param("@KyBaoCaoId", periodId),
+                Param("@ChiSoChatLuongId", indicatorId),
                 Param("@OverdueOnly", overdueOnly ? 1 : 0),
                 Param("@Today", GetVietnamLocalNow().Date));
         }
 
+        // Lấy thời điểm hiện tại theo múi giờ Việt Nam và có phương án dự phòng.
         private static DateTime GetVietnamLocalNow()
         {
             try

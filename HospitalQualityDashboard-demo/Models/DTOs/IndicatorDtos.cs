@@ -1,3 +1,4 @@
+// Mục đích: định nghĩa dữ liệu lưu chỉ số, mục tiêu theo năm và file import chỉ số.
 using HospitalQualityDashboardDemo.Models.Enums;
 using System.Collections.Generic;
 

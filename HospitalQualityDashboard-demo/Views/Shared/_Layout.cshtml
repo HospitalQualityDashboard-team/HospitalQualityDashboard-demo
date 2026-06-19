@@ -14,6 +14,9 @@
         var currentRole = Convert.ToString(Session["LoaiTaiKhoan"]);
         var isAdmin = isAuthenticated && currentRole == "Admin";
         var isUser = isAuthenticated && currentRole == "User";
+        var unreadNotificationCount = ViewBag.UnreadNotificationCount == null
+            ? 0
+            : Convert.ToInt32(ViewBag.UnreadNotificationCount);
         var currentController = Convert.ToString(ViewContext.RouteData.Values["controller"]);
         var currentAction = Convert.ToString(ViewContext.RouteData.Values["action"]);
         Func<string, string, string> navClass = (controller, action) =>
@@ -22,6 +25,7 @@
             var actionMatches = string.IsNullOrEmpty(action) || string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase);
             return controllerMatches && actionMatches ? "nav-link active" : "nav-link";
         };
+        var userNotificationNavClass = navClass("Notification", "");
     }
     <div class="app-shell@(isAuthenticated ? "" : " no-sidebar")">
         @if (isAuthenticated)
@@ -65,7 +69,13 @@
                         @Html.ActionLink("Tổng quan", "Index", "Dashboard", new { area = "User" }, new { @class = navClass("Dashboard", "Index") })
                         @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "User" }, new { @class = navClass("Indicator", "") })
                         @Html.ActionLink("Báo cáo của tôi", "Index", "Report", new { area = "User" }, new { @class = navClass("Report", "") })
-                        @Html.ActionLink("Thông báo", "Index", "Notification", new { area = "User" }, new { @class = navClass("Notification", "") })
+                        <a class="@userNotificationNavClass" href="@Url.Action("Index", "Notification", new { area = "User" })">
+                            <span>Thông báo</span>
+                            @if (unreadNotificationCount > 0)
+                            {
+                                <span class="notification-nav-badge" aria-label="@unreadNotificationCount thông báo chưa đọc">@unreadNotificationCount</span>
+                            }
+                        </a>
                     }
                 }
             </nav>

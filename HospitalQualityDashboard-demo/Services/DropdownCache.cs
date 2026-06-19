@@ -1,3 +1,4 @@
+// Mục đích: cache ngắn hạn dữ liệu dropdown dùng chung để giảm số lượt truy vấn Azure SQL.
 using System;
 using System.Web;
 using System.Web.Caching;
@@ -8,6 +9,7 @@ namespace HospitalQualityDashboardDemo.Services
     {
         private static readonly TimeSpan Duration = TimeSpan.FromMinutes(5);
 
+        // Truy vấn cache dữ liệu danh mục theo điều kiện được cung cấp.
         public static T GetOrAdd<T>(string key, Func<T> factory) where T : class
         {
             var cache = HttpRuntime.Cache;
@@ -20,12 +22,14 @@ namespace HospitalQualityDashboardDemo.Services
             value = factory();
             if (cache != null)
             {
+                // Hết hạn tuyệt đối giúp danh mục được làm mới định kỳ dù có truy cập liên tục.
                 cache.Insert(key, value, null, DateTime.UtcNow.Add(Duration), Cache.NoSlidingExpiration);
             }
 
             return value;
         }
 
+        // Loại bỏ dữ liệu đã chọn khỏi cache dữ liệu danh mục.
         public static void Remove(string key)
         {
             var cache = HttpRuntime.Cache;

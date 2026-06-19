@@ -13,6 +13,7 @@ namespace HospitalQualityDashboardDemo.Services
 {
     public class ReportingPeriodService : DbServiceBase
     {
+        // Truy vấn kỳ báo cáo theo điều kiện được cung cấp.
         public IList<KyBaoCaoViewModel> GetAll()
         {
             const string sql = @"
@@ -26,6 +27,7 @@ ORDER BY ky.TuNgay DESC";
             return Query(sql, MapPeriod);
         }
 
+        // Truy vấn kỳ báo cáo theo điều kiện được cung cấp.
         public IList<KyBaoCaoViewModel> GetAll(int page, int pageSize, out int totalItems)
         {
             page = NormalizePage(page);
@@ -47,6 +49,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
                 Param("@PageSize", pageSize));
         }
 
+        // Truy vấn kỳ báo cáo theo điều kiện được cung cấp.
         public IList<TanSuatBaoCao> GetFrequenciesForDepartment(int departmentId)
         {
             const string sql = @"
@@ -58,6 +61,7 @@ WHERE pc.KhoaPhongId = @KhoaPhongId AND pc.DangHoatDong = 1";
             return Query(sql, r => (TanSuatBaoCao)r.GetByte(0), Param("@KhoaPhongId", departmentId));
         }
 
+        // Truy vấn kỳ báo cáo theo điều kiện được cung cấp.
         public IList<SelectListItem> GetOptions()
         {
             return DropdownCache.GetOrAdd("dropdown:periods", () => Query(@"
@@ -71,6 +75,7 @@ ORDER BY TuNgay DESC",
                 }).ToList());
         }
 
+        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của kỳ báo cáo hay không.
         public bool IsOpenForDepartment(int periodId, int departmentId)
         {
             var count = Convert.ToInt32(Scalar(@"
@@ -86,12 +91,14 @@ WHERE ky.KyBaoCaoId=@KyBaoCaoId AND ky.TrangThai=@Mo",
             return count > 0;
         }
 
+        // Truy vấn kỳ báo cáo theo điều kiện được cung cấp.
         public KyBaoCaoViewModel Get(int id)
         {
             return QuerySingle(@"SELECT KyBaoCaoId, TenKyBaoCao, LoaiKyBaoCao, TuNgay, DenNgay, HanNop, TrangThai, 0 AS TongBaoCao, 0 AS DaGui FROM dbo.KyBaoCao WHERE KyBaoCaoId=@Id",
                 MapPeriod, Param("@Id", id));
         }
 
+        // Kiểm tra và cập nhật dữ liệu của kỳ báo cáo.
         public void Save(ReportingPeriodSaveDto dto)
         {
             Save(new KyBaoCaoViewModel
@@ -106,6 +113,7 @@ WHERE ky.KyBaoCaoId=@KyBaoCaoId AND ky.TrangThai=@Mo",
             });
         }
 
+        // Kiểm tra và cập nhật dữ liệu của kỳ báo cáo.
         public void Save(KyBaoCaoViewModel model)
         {
             if (model.TuNgay > model.DenNgay || model.HanNop < model.DenNgay)
@@ -128,12 +136,14 @@ HanNop=@HanNop, TrangThai=@TrangThai, NgayCapNhat=GETDATE() WHERE KyBaoCaoId=@Ky
             DropdownCache.Remove("dropdown:periods");
         }
 
+        // Kiểm tra và cập nhật dữ liệu của kỳ báo cáo.
         public void SetStatus(int id, TrangThaiKyBaoCao status)
         {
             Execute("UPDATE dbo.KyBaoCao SET TrangThai=@TrangThai, NgayCapNhat=GETDATE() WHERE KyBaoCaoId=@Id", Param("@TrangThai", (byte)status), Param("@Id", id));
             DropdownCache.Remove("dropdown:periods");
         }
 
+        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của kỳ báo cáo.
         public void Delete(int id)
         {
             var dependentCount = Convert.ToInt32(Scalar(@"
@@ -150,6 +160,7 @@ SELECT
             DropdownCache.Remove("dropdown:periods");
         }
 
+        // Tạo tập tham số SQL từ model để dùng cho thao tác ghi dữ liệu.
         private static SqlParameter[] PeriodParams(KyBaoCaoViewModel model)
         {
             return new[]
@@ -163,6 +174,7 @@ SELECT
             };
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho kỳ báo cáo.
         private static KyBaoCaoViewModel MapPeriod(SqlDataReader reader)
         {
             return new KyBaoCaoViewModel
@@ -179,11 +191,13 @@ SELECT
             };
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho kỳ báo cáo.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho kỳ báo cáo.
         private static int NormalizePageSize(int pageSize)
         {
             if (pageSize < 1) return 20;
@@ -203,11 +217,13 @@ SELECT
             TanSuatBaoCao.HangNam
         };
 
+        // Tạo cấu trúc dữ liệu phục vụ lịch kỳ báo cáo.
         public ReportingPeriodScheduleRequestViewModel CreateDefaultRequest()
         {
             return PopulateOptions(new ReportingPeriodScheduleRequestViewModel());
         }
 
+        // Nạp các tùy chọn cần thiết vào model của màn hình tạo lịch.
         public ReportingPeriodScheduleRequestViewModel PopulateOptions(ReportingPeriodScheduleRequestViewModel model)
         {
             if (model == null)
@@ -239,6 +255,7 @@ SELECT
             return model;
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ lịch kỳ báo cáo.
         public IList<ReportingPeriodSchedulePreviewItemViewModel> BuildSchedulePreview(ReportingPeriodScheduleRequestViewModel request, DateTime now)
         {
             ValidateScheduleRequest(request);
@@ -300,6 +317,7 @@ SELECT
                 .ToList();
         }
 
+        // Sinh các kỳ báo cáo theo tần suất và khoảng thời gian được yêu cầu.
         public ReportingPeriodScheduleResultViewModel GenerateSchedule(ReportingPeriodScheduleDto dto, DateTime now)
         {
             return GenerateSchedule(new ReportingPeriodScheduleRequestViewModel
@@ -311,6 +329,7 @@ SELECT
             }, now);
         }
 
+        // Sinh các kỳ báo cáo theo tần suất và khoảng thời gian được yêu cầu.
         public ReportingPeriodScheduleResultViewModel GenerateSchedule(ReportingPeriodScheduleRequestViewModel request, DateTime now)
         {
             var preview = BuildSchedulePreview(request, now);
@@ -337,6 +356,7 @@ SELECT
             return result;
         }
 
+        // Mở các bản ghi đủ điều kiện trong lịch kỳ báo cáo.
         public int OpenDuePeriods(DateTime now)
         {
             const string sql = @"
@@ -356,6 +376,7 @@ WHERE TrangThai=@Nhap AND TuNgay <= @Today";
             return openedCount;
         }
 
+        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý lịch kỳ báo cáo.
         private static void ValidateScheduleRequest(ReportingPeriodScheduleRequestViewModel request)
         {
             if (request == null)
@@ -379,6 +400,7 @@ WHERE TrangThai=@Nhap AND TuNgay <= @Today";
             }
         }
 
+        // Truy vấn lịch kỳ báo cáo theo điều kiện được cung cấp.
         private static IList<TanSuatBaoCao> GetSelectedFrequencies(ReportingPeriodScheduleRequestViewModel request)
         {
             if (request.SelectedFrequencyValues == null)
@@ -395,6 +417,7 @@ WHERE TrangThai=@Nhap AND TuNgay <= @Today";
                 .ToList();
         }
 
+        // Bổ sung dữ liệu mới phục vụ lịch kỳ báo cáo.
         private static void AddPeriod(
             IList<ReportingPeriodSchedulePreviewItemViewModel> items,
             string name,
@@ -421,6 +444,7 @@ WHERE TrangThai=@Nhap AND TuNgay <= @Today";
             });
         }
 
+        // Kiểm tra bản ghi hoặc đối tượng cần dùng đã tồn tại hay chưa.
         private bool PeriodExists(TanSuatBaoCao frequency, DateTime start, DateTime end)
         {
             const string sql = @"
@@ -434,6 +458,7 @@ WHERE LoaiKyBaoCao=@LoaiKyBaoCao AND TuNgay=@TuNgay AND DenNgay=@DenNgay";
                 Param("@DenNgay", end.Date))) > 0;
         }
 
+        // Bổ sung dữ liệu mới phục vụ lịch kỳ báo cáo.
         private void InsertPeriod(ReportingPeriodSchedulePreviewItemViewModel item)
         {
             Execute(@"INSERT INTO dbo.KyBaoCao(TenKyBaoCao, LoaiKyBaoCao, TuNgay, DenNgay, HanNop, TrangThai)
@@ -446,6 +471,7 @@ VALUES(@TenKyBaoCao, @LoaiKyBaoCao, @TuNgay, @DenNgay, @HanNop, @TrangThai)",
                 Param("@TrangThai", (byte)item.TrangThai));
         }
 
+        // Truy vấn lịch kỳ báo cáo theo điều kiện được cung cấp.
         private static int GetFrequencyOrder(TanSuatBaoCao frequency)
         {
             switch (frequency)
@@ -460,6 +486,7 @@ VALUES(@TenKyBaoCao, @LoaiKyBaoCao, @TuNgay, @DenNgay, @HanNop, @TrangThai)",
             }
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của lịch kỳ báo cáo.
         private static string FormatFrequencyForSchedule(TanSuatBaoCao frequency)
         {
             switch (frequency)
@@ -474,6 +501,7 @@ VALUES(@TenKyBaoCao, @LoaiKyBaoCao, @TuNgay, @DenNgay, @HanNop, @TrangThai)",
             }
         }
 
+        // Chuyển số quý sang chữ số La Mã dùng trong tên kỳ báo cáo.
         private static string ToRomanQuarter(int quarter)
         {
             switch (quarter)

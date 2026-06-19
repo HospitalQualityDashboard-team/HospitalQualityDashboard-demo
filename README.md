@@ -22,7 +22,8 @@ Tài liệu liên quan:
 
 ### Admin
 
-- Dashboard tổng quan toàn viện.
+- Dashboard tổng quan toàn viện theo từng slot cần nộp `(kỳ, khoa/phòng, chỉ số)`, bảo đảm tổng cần nộp bằng đã báo cáo cộng còn thiếu. Admin có thể bấm bốn thẻ tổng quan để xem danh sách chi tiết theo bộ lọc tần suất hiện tại; báo cáo đã nộp hiển thị thêm Đạt, Chưa đạt hoặc Chưa đánh giá.
+- Dashboard tự kiểm tra nhắc hạn ở các mốc 10, 7, 3, 1 và 0 ngày. Admin có thể gửi cảnh báo riêng cho từng chỉ số chưa nộp, tối đa một lần mỗi ngày.
 - Quản lý khoa/phòng.
 - Quản lý nhân viên.
 - Tạo tài khoản User từ nhân viên.
@@ -190,6 +191,7 @@ Các script chính:
 - `App_Data/Sql/001_CreateSchema.sql`: tạo schema ban đầu.
 - `App_Data/Sql/002_PerformanceIndexes.sql`: tạo index tối ưu hiệu năng, có `IF NOT EXISTS`.
 - `App_Data/Sql/003_AddExportHistory.sql`: tạo bảng `LichSuXuatBaoCao` và index phục vụ audit lịch sử xuất Excel.
+- `App_Data/Sql/004_AddIndicatorWarning.sql`: liên kết thông báo với chỉ số và bổ sung index chống gửi cảnh báo trùng.
 
 Mặc định bootstrap nên tắt:
 
@@ -454,6 +456,8 @@ Các index được đề xuất/tạo idempotent:
 Nếu database Azure SQL đã tồn tại từ trước, hãy chạy script index trên database thật hoặc bật bootstrap có kiểm soát ở môi trường dev/test.
 
 Nếu dùng chức năng xuất Dashboard chi tiết trên database cũ, hãy chạy thêm `003_AddExportHistory.sql` để tránh lỗi thiếu bảng `LichSuXuatBaoCao`.
+
+Nếu dùng cảnh báo chỉ số trên Dashboard với database cũ, phải chạy `App_Data/Sql/004_AddIndicatorWarning.sql` trước khi khởi động tính năng.
 
 ## 14. Bảo mật
 

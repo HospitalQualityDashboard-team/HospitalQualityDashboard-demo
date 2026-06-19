@@ -26,11 +26,13 @@ namespace HospitalQualityDashboardDemo.Services
         private const int LockoutMinutes = 15;
         private readonly string _connectionString;
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho xác thực và hồ sơ người dùng.
         public AuthService()
             : this(DatabaseConfiguration.GetConnectionString())
         {
         }
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho xác thực và hồ sơ người dùng.
         public AuthService(string connectionString)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -41,6 +43,7 @@ namespace HospitalQualityDashboardDemo.Services
             _connectionString = connectionString;
         }
 
+        // Xác thực tên đăng nhập, mật khẩu và trả về ngữ cảnh người dùng hợp lệ.
         public AuthenticatedUser Authenticate(string username, string password)
         {
             const string sql = @"
@@ -91,6 +94,7 @@ WHERE tk.TenDangNhap = @TenDangNhap";
             }
         }
 
+        // Truy vấn xác thực và hồ sơ người dùng theo điều kiện được cung cấp.
         public AuthenticatedUser GetAuthenticatedUser(int taiKhoanId)
         {
             const string sql = @"
@@ -129,6 +133,7 @@ WHERE tk.TaiKhoanId = @TaiKhoanId";
             }
         }
 
+        // Kiểm tra và cập nhật dữ liệu của xác thực và hồ sơ người dùng.
         public void UpdateLastLogin(int taiKhoanId)
         {
             ExecuteNonQuery(
@@ -136,6 +141,7 @@ WHERE tk.TaiKhoanId = @TaiKhoanId";
                 new SqlParameter("@TaiKhoanId", taiKhoanId));
         }
 
+        // Ghi nhận lần đăng nhập thất bại để phục vụ cơ chế khóa tạm thời.
         public void RecordFailedLogin(string username)
         {
             ExecuteNonQuery(@"
@@ -149,6 +155,7 @@ WHERE TenDangNhap = @TenDangNhap",
                 new SqlParameter("@TenDangNhap", username ?? string.Empty));
         }
 
+        // Xóa trạng thái tạm để chuẩn bị lượt xử lý mới của xác thực và hồ sơ người dùng.
         public void ResetFailedLogin(int taiKhoanId)
         {
             ExecuteNonQuery(
@@ -156,6 +163,7 @@ WHERE TenDangNhap = @TenDangNhap",
                 new SqlParameter("@TaiKhoanId", taiKhoanId));
         }
 
+        // Kiểm tra mật khẩu hiện tại và lưu mật khẩu mới an toàn.
         public bool ChangePassword(int taiKhoanId, string currentPassword, string newPassword)
         {
             var currentHash = GetPasswordHash(taiKhoanId);
@@ -172,6 +180,7 @@ WHERE TenDangNhap = @TenDangNhap",
             return true;
         }
 
+        // Truy vấn xác thực và hồ sơ người dùng theo điều kiện được cung cấp.
         public UserProfileViewModel GetUserProfile(int taiKhoanId)
         {
             const string sql = @"
@@ -235,6 +244,7 @@ WHERE tk.TaiKhoanId = @TaiKhoanId";
             }
         }
 
+        // Kiểm tra và cập nhật dữ liệu của xác thực và hồ sơ người dùng.
         public void UpdateProfile(int taiKhoanId, ProfileUpdateDto dto)
         {
             if (dto == null)
@@ -269,6 +279,7 @@ WHERE NhanVienId = @NhanVienId";
                 new SqlParameter("@NhanVienId", nhanVienId.Value));
         }
 
+        // Truy vấn xác thực và hồ sơ người dùng theo điều kiện được cung cấp.
         private int? GetNhanVienId(int taiKhoanId)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -281,6 +292,7 @@ WHERE NhanVienId = @NhanVienId";
             }
         }
 
+        // Truy vấn xác thực và hồ sơ người dùng theo điều kiện được cung cấp.
         private string GetPasswordHash(int taiKhoanId)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -292,6 +304,7 @@ WHERE NhanVienId = @NhanVienId";
             }
         }
 
+        // Thực thi quy trình xử lý của xác thực và hồ sơ người dùng.
         private void ExecuteNonQuery(string sql, params SqlParameter[] parameters)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -303,12 +316,14 @@ WHERE NhanVienId = @NhanVienId";
             }
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho xác thực và hồ sơ người dùng.
         private static int? ReadNullableInt(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
             return reader.IsDBNull(ordinal) ? (int?)null : reader.GetInt32(ordinal);
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho xác thực và hồ sơ người dùng.
         private static string ReadNullableString(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
@@ -317,24 +332,28 @@ WHERE NhanVienId = @NhanVienId";
 
 
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho xác thực và hồ sơ người dùng.
         private static DateTime? ReadNullableDateTime(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
             return reader.IsDBNull(ordinal) ? (DateTime?)null : reader.GetDateTime(ordinal);
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho xác thực và hồ sơ người dùng.
         private static bool? ReadNullableBool(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
             return reader.IsDBNull(ordinal) ? (bool?)null : reader.GetBoolean(ordinal);
         }
 
+        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của xác thực và hồ sơ người dùng hay không.
         private static bool IsEmployeeLocked(SqlDataReader reader)
         {
             var ordinal = reader.GetOrdinal("NhanVienDangHoatDong");
             return !reader.IsDBNull(ordinal) && !reader.GetBoolean(ordinal);
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho xác thực và hồ sơ người dùng.
         private static AuthenticatedUser MapAuthenticatedUser(SqlDataReader reader, bool isTemporarilyLocked)
         {
             return new AuthenticatedUser

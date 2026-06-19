@@ -1,3 +1,4 @@
+// Mục đích: định nghĩa dữ liệu ghi hồ sơ, tạo tài khoản, import và cập nhật hồ sơ cá nhân.
 using System;
 
 namespace HospitalQualityDashboardDemo.Models.DTOs

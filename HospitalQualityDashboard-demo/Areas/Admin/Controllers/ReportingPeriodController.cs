@@ -1,3 +1,4 @@
+// Mục đích: quản trị kỳ báo cáo và điều phối việc sinh lịch định kỳ theo tần suất chỉ số.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -13,6 +14,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         private readonly ReportingPeriodService _service = new ReportingPeriodService();
         private readonly ReportingPeriodScheduleService _schedule = new ReportingPeriodScheduleService();
 
+        // Hiển thị danh sách và các bộ lọc của kỳ báo cáo.
         public ActionResult Index(int page = 1)
         {
             int totalItems;
@@ -27,6 +29,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             });
         }
 
+        // Mở các bản ghi đủ điều kiện trong kỳ báo cáo.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult OpenDuePeriods()
@@ -36,11 +39,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Sinh các kỳ báo cáo theo tần suất và khoảng thời gian được yêu cầu.
         public ActionResult GenerateSchedule()
         {
             return View(_schedule.CreateDefaultRequest());
         }
 
+        // Tạo dữ liệu xem trước để người dùng kiểm tra trước khi ghi chính thức.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult PreviewSchedule(ReportingPeriodScheduleRequestViewModel model)
@@ -60,6 +65,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return View("GenerateSchedule", _schedule.PopulateOptions(model));
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ kỳ báo cáo.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateSchedule(ReportingPeriodScheduleRequestViewModel model)
@@ -92,11 +98,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             }
         }
 
+        // Khởi tạo dữ liệu cho màn hình tạo mới kỳ báo cáo.
         public ActionResult Create()
         {
             return View("Edit", new KyBaoCaoViewModel { TrangThai = TrangThaiKyBaoCao.Nhap });
         }
 
+        // Kiểm tra dữ liệu gửi lên và tạo mới kỳ báo cáo.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(KyBaoCaoViewModel model)
@@ -104,11 +112,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return Save(model);
         }
 
+        // Tải dữ liệu hiện tại lên màn hình chỉnh sửa kỳ báo cáo.
         public ActionResult Edit(int id)
         {
             return View(_service.Get(id));
         }
 
+        // Kiểm tra và lưu các thay đổi của kỳ báo cáo.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(KyBaoCaoViewModel model)
@@ -116,6 +126,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return Save(model);
         }
 
+        // Mở các bản ghi đủ điều kiện trong kỳ báo cáo.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Open(int id)
@@ -124,6 +135,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Chuyển bản ghi sang trạng thái không còn cho phép chỉnh sửa.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Lock(int id)
@@ -132,6 +144,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của kỳ báo cáo.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id)
@@ -148,6 +161,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Kiểm tra và cập nhật dữ liệu của kỳ báo cáo.
         private ActionResult Save(KyBaoCaoViewModel model)
         {
             if (!ModelState.IsValid) return View("Edit", model);
@@ -164,11 +178,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho kỳ báo cáo.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
         }
 
+        // Tính tổng số trang từ số bản ghi và kích thước trang.
         private static int GetTotalPages(int totalItems, int pageSize)
         {
             return totalItems <= 0 ? 1 : (int)System.Math.Ceiling((decimal)totalItems / pageSize);

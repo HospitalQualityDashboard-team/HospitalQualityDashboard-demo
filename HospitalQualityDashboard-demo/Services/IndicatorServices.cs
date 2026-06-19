@@ -19,6 +19,7 @@ namespace HospitalQualityDashboardDemo.Services
     {
         private readonly ExcelImportExportService _excel = new ExcelImportExportService();
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         public IList<ChiSoViewModel> GetAll(bool includeInactive = true, int? filterKhoaPhongId = null)
         {
             string sql;
@@ -52,6 +53,7 @@ ORDER BY ISNULL(SoThuTu, 9999), MaChiSo";
             return items;
         }
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         public IList<ChiSoViewModel> GetAll(bool includeInactive, int? filterKhoaPhongId, int page, int pageSize, out int totalItems)
         {
             page = NormalizePage(page);
@@ -112,6 +114,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             return items;
         }
 
+        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của danh mục chỉ số chất lượng hay không.
         public bool IsAssigned(int indicatorId, int khoaPhongId)
         {
             var count = Convert.ToInt32(Scalar(@"
@@ -122,17 +125,20 @@ WHERE ChiSoChatLuongId = @IndicatorId AND KhoaPhongId = @KhoaPhongId AND DangHoa
             return count > 0;
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho danh mục chỉ số chất lượng.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho danh mục chỉ số chất lượng.
         private static int NormalizePageSize(int pageSize)
         {
             if (pageSize < 1) return 20;
             return pageSize > 100 ? 100 : pageSize;
         }
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         public IList<SelectListItem> GetOptions()
         {
             return DropdownCache.GetOrAdd("dropdown:indicators", () => Query(@"
@@ -147,11 +153,13 @@ ORDER BY ISNULL(SoThuTu, 9999), MaChiSo",
                 }).ToList());
         }
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         public ChiSoViewModel Get(int id)
         {
             return Get(id, null);
         }
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         public ChiSoViewModel Get(int id, int? targetYear)
         {
             var model = QuerySingle(@"SELECT ChiSoChatLuongId, MaChiSo, SoThuTu, TenChiSo, DinhNghia, LinhVucApDung, KhiaCanhChatLuong, ThanhToChatLuong,
@@ -197,6 +205,7 @@ ORDER BY
             return model;
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
         public void Save(IndicatorSaveDto dto)
         {
             Save(new ChiSoViewModel
@@ -231,12 +240,14 @@ ORDER BY
             });
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
         public void Save(ChiSoViewModel model)
         {
             ExecuteInTransaction((conn, trans) => Save(conn, trans, model));
             DropdownCache.Remove("dropdown:indicators");
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
         public void Save(SqlConnection connection, SqlTransaction transaction, ChiSoViewModel model)
         {
             ApplySelectedFrequencies(model);
@@ -264,12 +275,14 @@ WHERE ChiSoChatLuongId=@ChiSoChatLuongId", parameters);
             SaveFrequencies(connection, transaction, model.ChiSoChatLuongId, model.TanSuatBaoCaos);
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
         public void SetActive(int id, bool active)
         {
             Execute("UPDATE dbo.ChiSoChatLuong SET DangHoatDong = @Active, NgayCapNhat = GETDATE() WHERE ChiSoChatLuongId = @Id", Param("@Active", active), Param("@Id", id));
             DropdownCache.Remove("dropdown:indicators");
         }
 
+        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của danh mục chỉ số chất lượng.
         public void Delete(int id)
         {
             ExecuteInTransaction((conn, trans) =>
@@ -288,6 +301,7 @@ WHERE ChiSoChatLuongId=@ChiSoChatLuongId", parameters);
             DropdownCache.Remove("dropdown:indicators");
         }
 
+        // Đọc, kiểm tra và nhập dữ liệu từ tệp tải lên.
         public ImportResultViewModel Import(HttpPostedFileBase file, int userId)
         {
             var rows = ReadIndicatorImportRows(file);
@@ -366,6 +380,7 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
             return result;
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho danh mục chỉ số chất lượng.
         private IList<IDictionary<string, string>> ReadIndicatorImportRows(HttpPostedFileBase file)
         {
             if (file == null || file.ContentLength == 0)
@@ -379,6 +394,7 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
                 : _excel.ReadWorksheet(file);
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ danh mục chỉ số chất lượng.
         private ChiSoViewModel BuildIndicatorFromRow(IDictionary<string, string> row)
         {
             var model = new ChiSoViewModel
@@ -436,6 +452,7 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
             return model;
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
         private void SaveImportedIndicator(SqlConnection connection, SqlTransaction transaction, ChiSoViewModel model, IList<int> departmentIds, int userId)
         {
             var existingId = FindIndicatorId(connection, transaction, model.MaChiSo, model.TenChiSo);
@@ -479,6 +496,7 @@ ELSE
             }
         }
 
+        // Điền dữ liệu suy ra hoặc dữ liệu liên quan vào model của danh mục chỉ số chất lượng.
         private void PopulateIndicatorFrequencies(IEnumerable<ChiSoViewModel> models)
         {
             var items = models == null ? new List<ChiSoViewModel>() : models.ToList();
@@ -530,6 +548,7 @@ ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
             }
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
         private void SaveFrequencies(int indicatorId, IEnumerable<TanSuatBaoCao> frequencies)
         {
             var values = FrequencyHelper.SortFrequencies(frequencies == null ? new[] { TanSuatBaoCao.HangThang } : frequencies)
@@ -550,6 +569,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             }
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
         private void SaveFrequencies(SqlConnection connection, SqlTransaction transaction, int indicatorId, IEnumerable<TanSuatBaoCao> frequencies)
         {
             var values = FrequencyHelper.SortFrequencies(frequencies == null ? new[] { TanSuatBaoCao.HangThang } : frequencies)
@@ -570,6 +590,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             }
         }
 
+        // Áp dụng định dạng hoặc quy tắc trình bày cho danh mục chỉ số chất lượng.
         private static void ApplySelectedFrequencies(ChiSoViewModel model)
         {
             var selected = model.SelectedTanSuatBaoCaoValues == null
@@ -601,6 +622,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
 
 
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         private int? FindIndicatorId(string code, string name)
         {
             if (!string.IsNullOrWhiteSpace(code))
@@ -616,6 +638,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return idByName == null ? (int?)null : Convert.ToInt32(idByName);
         }
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         private int? FindIndicatorId(SqlConnection connection, SqlTransaction transaction, string code, string name)
         {
             if (!string.IsNullOrWhiteSpace(code))
@@ -631,6 +654,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return idByName == null ? (int?)null : Convert.ToInt32(idByName);
         }
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         private IList<DepartmentLookup> GetDepartmentLookups()
         {
             return Query("SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong FROM dbo.KhoaPhong WHERE Used=1",
@@ -643,6 +667,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
                 });
         }
 
+        // Xác định giá trị phù hợp từ các nguồn dữ liệu của danh mục chỉ số chất lượng.
         internal static IList<int> ResolveDepartmentIds(string value, IList<DepartmentLookup> departments)
         {
             var ids = new List<int>();
@@ -711,6 +736,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return ids;
         }
 
+        // Bổ sung dữ liệu mới phục vụ danh mục chỉ số chất lượng.
         private static void AddAllMatchingDepartments(IList<int> ids, string normalizedValue, IList<DepartmentLookup> departments)
         {
             if (string.IsNullOrWhiteSpace(normalizedValue))
@@ -732,6 +758,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             }
         }
 
+        // Bổ sung dữ liệu mới phục vụ danh mục chỉ số chất lượng.
         private static void AddDepartmentId(IList<int> ids, DepartmentLookup department)
         {
             if (department != null && !ids.Contains(department.KhoaPhongId))
@@ -740,6 +767,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             }
         }
 
+        // Xác định giá trị phù hợp từ các nguồn dữ liệu của danh mục chỉ số chất lượng.
         private static IEnumerable<string> ResolveDepartmentAliases(string normalizedValue)
         {
             if (string.IsNullOrWhiteSpace(normalizedValue))
@@ -768,6 +796,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             }
         }
 
+        // Xác định giá trị phù hợp từ các nguồn dữ liệu của danh mục chỉ số chất lượng.
         private static string ResolveDepartmentAlias(string normalizedValue)
         {
             if (string.IsNullOrWhiteSpace(normalizedValue))
@@ -798,12 +827,14 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return null;
         }
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         private static string GetDepartmentSource(IDictionary<string, string> row, string collectionText)
         {
             var explicitValue = GetValue(row, "KhoaPhongQuanLy", "KHOAPHONGQUANLY", "Khoa phong quan ly", "Khoa/Phong quan ly", "Đơn vị thu thập", "Don vi thu thap");
             return string.IsNullOrWhiteSpace(explicitValue) ? collectionText : explicitValue;
         }
 
+        // Phân tích giá trị đầu vào và chuyển sang kiểu dữ liệu cần dùng.
         private static bool TryParseFrequencies(string value, out IList<TanSuatBaoCao> frequencies)
         {
             frequencies = new List<TanSuatBaoCao>();
@@ -849,6 +880,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return frequencies.Count > 0;
         }
 
+        // Phân tích giá trị đầu vào và chuyển sang kiểu dữ liệu cần dùng.
         private static bool TryParseFrequency(string value, out TanSuatBaoCao frequency)
         {
             var text = NormalizeKey(value);
@@ -915,6 +947,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return Enum.TryParse(value, true, out frequency);
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của danh mục chỉ số chất lượng.
         private static string FormatFrequency(TanSuatBaoCao frequency)
         {
             switch (frequency)
@@ -932,6 +965,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             }
         }
 
+        // Kiểm tra nội dung có chứa mẫu cần nhận diện hay không.
         private static bool ContainsQuarterFrequency(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
@@ -946,6 +980,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
 
 
 
+        // Phân tích giá trị đầu vào và chuyển sang kiểu dữ liệu cần dùng.
         private static LoaiCongThuc ParseFormulaType(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -968,6 +1003,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return LoaiCongThuc.GiaTriTrucTiep;
         }
 
+        // Suy ra giá trị phù hợp từ nội dung hiện có của danh mục chỉ số chất lượng.
         private static LoaiCongThuc InferFormulaType(ChiSoViewModel model)
         {
             var name = NormalizeIndicatorName(model == null ? null : model.TenChiSo);
@@ -1018,6 +1054,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return LoaiCongThuc.TyLe;
         }
 
+        // Suy ra giá trị phù hợp từ nội dung hiện có của danh mục chỉ số chất lượng.
         private static string InferUnit(ChiSoViewModel model)
         {
             if (model == null)
@@ -1135,22 +1172,26 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             }
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho danh mục chỉ số chất lượng.
         private static string NormalizeIndicatorName(string value)
         {
             return Regex.Replace(NormalizeKey(value), @"^\d+\s+", string.Empty).Trim();
         }
 
+        // Kiểm tra nội dung có chứa mẫu cần nhận diện hay không.
         private static bool StartsWithAnyWord(string text, params string[] phrases)
         {
             return phrases.Any(phrase => StartsWithWord(text, phrase));
         }
 
+        // Kiểm tra nội dung có chứa mẫu cần nhận diện hay không.
         private static bool StartsWithWord(string text, string phrase)
         {
             return !string.IsNullOrWhiteSpace(text) &&
                 (text == phrase || text.StartsWith(phrase + " ", StringComparison.OrdinalIgnoreCase));
         }
 
+        // Kiểm tra nội dung có chứa mẫu cần nhận diện hay không.
         private static bool ContainsFormulaPhrase(string text, string phrase)
         {
             if (string.IsNullOrWhiteSpace(text))
@@ -1164,6 +1205,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
                 text.IndexOf(" " + phrase + " ", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
+        // Điền dữ liệu suy ra hoặc dữ liệu liên quan vào model của danh mục chỉ số chất lượng.
         private static void FillTargetFromText(ChiSoViewModel model, string targetText)
         {
             if (string.IsNullOrWhiteSpace(model.ToanTuSoSanh))
@@ -1187,6 +1229,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             }
         }
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         private static string GetTargetText(IDictionary<string, string> row)
         {
             var explicitValue = GetValue(row, "MucTieuDatDuoc", "MUCTIEUDATDUOC", "Muc tieu dat duoc", "Mục tiêu đạt được");
@@ -1207,6 +1250,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return null;
         }
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         private static int? GetTargetYear(IDictionary<string, string> row)
         {
             foreach (var item in row)
@@ -1222,12 +1266,14 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return null;
         }
 
+        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
         private static string GetValue(IDictionary<string, string> row, params string[] names)
         {
             string value;
             return TryGetValue(row, out value, names) ? value : null;
         }
 
+        // Tìm và đọc giá trị theo nhiều tên cột có thể xuất hiện.
         private static bool TryGetValue(IDictionary<string, string> row, out string value, params string[] names)
         {
             foreach (var name in names)
@@ -1254,12 +1300,14 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return false;
         }
 
+        // Phân tích giá trị đầu vào và chuyển sang kiểu dữ liệu cần dùng.
         private static int? ParseNullableInt(string value)
         {
             int number;
             return int.TryParse(value, out number) ? number : (int?)null;
         }
 
+        // Phân tích giá trị đầu vào và chuyển sang kiểu dữ liệu cần dùng.
         private static decimal? ParseNullableDecimal(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -1271,6 +1319,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return decimal.TryParse(value.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out number) ? number : (decimal?)null;
         }
 
+        // Phân tích giá trị đầu vào và chuyển sang kiểu dữ liệu cần dùng.
         private static bool ParseBool(string value, bool defaultValue)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -1285,11 +1334,13 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             return bool.TryParse(value, out result) ? result : defaultValue;
         }
 
+        // Chuyển chuỗi rỗng hoặc chỉ có khoảng trắng thành null.
         private static string NullIfWhiteSpace(string value)
         {
             return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho danh mục chỉ số chất lượng.
         internal static string NormalizeKey(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -1338,6 +1389,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             public string NormalizedName { get; set; }
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
         private void SaveTarget(ChiSoViewModel model)
         {
             if (!model.NamMucTieu.HasValue || string.IsNullOrWhiteSpace(model.ToanTuSoSanh))
@@ -1357,6 +1409,7 @@ ELSE
                 Param("@MoTaMucTieu", model.MoTaMucTieu));
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
         private void SaveTarget(SqlConnection connection, SqlTransaction transaction, ChiSoViewModel model)
         {
             if (!model.NamMucTieu.HasValue || string.IsNullOrWhiteSpace(model.ToanTuSoSanh))
@@ -1376,6 +1429,7 @@ ELSE
                 Param("@MoTaMucTieu", model.MoTaMucTieu));
         }
 
+        // Tạo tập tham số SQL từ model để dùng cho thao tác ghi dữ liệu.
         private static SqlParameter[] IndicatorParams(ChiSoViewModel model)
         {
             return new[]
@@ -1402,6 +1456,7 @@ ELSE
             };
         }
 
+        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho danh mục chỉ số chất lượng.
         private static ChiSoViewModel MapIndicator(SqlDataReader reader)
         {
             return new ChiSoViewModel
@@ -1433,11 +1488,13 @@ ELSE
 
     public class AssignmentService : DbServiceBase
     {
+        // Định dạng giá trị theo quy ước hiển thị của phân công chỉ số.
         public static string FormatFrequencies(IEnumerable<TanSuatBaoCao> frequencies)
         {
             return FrequencyHelper.FormatFrequencies(frequencies);
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của phân công chỉ số.
         public static string FormatFormula(LoaiCongThuc formula)
         {
             switch (formula)
@@ -1452,6 +1509,7 @@ ELSE
             }
         }
 
+        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
         public int GetCount(int? khoaPhongId = null, int? chiSoId = null, string trangThai = null, string search = null)
         {
             var conditions = new List<string>();
@@ -1498,6 +1556,7 @@ INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
             return Convert.ToInt32(Scalar(sql, parameters.ToArray()));
         }
 
+        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
         public IList<AssignmentItemViewModel> GetAll(
             int? khoaPhongId = null,
             int? chiSoId = null,
@@ -1571,11 +1630,13 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             return items;
         }
 
+        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
         public IList<AssignmentItemViewModel> GetAll(int? khoaPhongId = null)
         {
             return GetAll(khoaPhongId, null, null, null, 1, 999999);
         }
 
+        // Điền dữ liệu suy ra hoặc dữ liệu liên quan vào model của phân công chỉ số.
         private void PopulateAssignmentItemFrequencies(IList<AssignmentItemViewModel> items)
         {
             if (items == null || items.Count == 0)
@@ -1591,6 +1652,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             }
         }
 
+        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
         private IDictionary<int, string> GetFrequencyTextByIndicatorIds(IEnumerable<int> indicatorIds)
         {
             var ids = (indicatorIds ?? new int[0]).Distinct().ToList();
@@ -1625,6 +1687,7 @@ ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
                 .ToDictionary(g => g.Key, g => FormatFrequencies(g.Select(x => x.TanSuatBaoCao)));
         }
 
+        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
         public IList<AssignmentExportRow> GetExportRows(
             int? khoaPhongId = null,
             int? chiSoId = null,
@@ -1698,6 +1761,7 @@ ORDER BY cs.MaChiSo, kp.TenKhoaPhong";
             return rows;
         }
 
+        // Điền dữ liệu suy ra hoặc dữ liệu liên quan vào model của phân công chỉ số.
         private void PopulateExportFrequencies(IList<AssignmentExportRow> rows)
         {
             if (rows == null || rows.Count == 0)
@@ -1741,6 +1805,7 @@ ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
             }
         }
 
+        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
         public int GetIndicatorsCount(string trangThaiPhanCong = null, string search = null, int? khoaPhongId = null, int? chiSoId = null, string trangThai = null)
         {
             var conditions = new List<string> { "cs.DangHoatDong = 1" };
@@ -1794,6 +1859,7 @@ ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
             return Convert.ToInt32(Scalar(sql, parameters.ToArray()));
         }
 
+        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
         public IList<IndicatorAssignmentGroup> GetAllIndicatorGroups(
             string trangThaiPhanCong = null,
             string search = null,
@@ -1950,6 +2016,7 @@ ORDER BY kp.TenKhoaPhong";
             return groups;
         }
 
+        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
         public int GetDepartmentsCount(string search = null, int? khoaPhongId = null, int? chiSoId = null, string trangThai = null)
         {
             var conditions = new List<string> { "kp.Used = 1" };
@@ -1991,6 +2058,7 @@ ORDER BY kp.TenKhoaPhong";
             return Convert.ToInt32(Scalar(sql, parameters.ToArray()));
         }
 
+        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
         public IList<DepartmentAssignmentGroup> GetAllDepartmentGroups(
             string search = null,
             int page = 1,
@@ -2126,6 +2194,7 @@ ORDER BY cs.MaChiSo";
             return groups;
         }
 
+        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
         public AssignmentViewModel GetStatistics()
         {
             var model = new AssignmentViewModel();
@@ -2139,11 +2208,13 @@ AND NOT EXISTS (SELECT 1 FROM dbo.PhanCongChiSo pc WHERE pc.ChiSoChatLuongId=cs.
             return model;
         }
 
+        // Tạo dữ liệu xem trước để người dùng kiểm tra trước khi ghi chính thức.
         public PreviewAssignmentResultViewModel Preview(PreviewAssignmentDto dto)
         {
             return Preview(dto.DepartmentIds, dto.IndicatorIds);
         }
 
+        // Tạo dữ liệu xem trước để người dùng kiểm tra trước khi ghi chính thức.
         public PreviewAssignmentResultViewModel Preview(IEnumerable<int> departmentIds, IEnumerable<int> indicatorIds)
         {
             var result = new PreviewAssignmentResultViewModel();
@@ -2204,11 +2275,13 @@ WHERE KhoaPhongId = @KhoaPhongId AND ChiSoChatLuongId = @ChiSoId AND DangHoatDon
             return result;
         }
 
+        // Tạo hoặc kích hoạt lại các phân công giữa khoa/phòng và chỉ số.
         public void Assign(AssignmentCommandDto dto)
         {
             Assign(dto.DepartmentIds, dto.IndicatorIds, dto.CurrentUserId);
         }
 
+        // Tạo hoặc kích hoạt lại các phân công giữa khoa/phòng và chỉ số.
         public void Assign(IEnumerable<int> departmentIds, IEnumerable<int> indicatorIds, int currentUserId)
         {
             var departments = (departmentIds ?? new int[0]).Distinct().ToList();
@@ -2230,6 +2303,7 @@ ELSE
             }
         }
 
+        // Đồng bộ phân công từ nguồn thu thập đã cấu hình trên chỉ số.
         public int SyncFromIndicatorSources(int currentUserId)
         {
             var departments = Query("SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong FROM dbo.KhoaPhong WHERE Used=1",
@@ -2278,16 +2352,19 @@ ELSE
             return changed;
         }
 
+        // Ngừng kích hoạt một hoặc nhiều phân công chỉ số đã chọn.
         public void Deactivate(int id)
         {
             Execute("UPDATE dbo.PhanCongChiSo SET DangHoatDong = 0 WHERE PhanCongChiSoId = @Id", Param("@Id", id));
         }
 
+        // Kích hoạt lại một hoặc nhiều phân công chỉ số đã chọn.
         public void Activate(int id)
         {
             Execute("UPDATE dbo.PhanCongChiSo SET DangHoatDong = 1 WHERE PhanCongChiSoId = @Id", Param("@Id", id));
         }
 
+        // Ngừng kích hoạt một hoặc nhiều phân công chỉ số đã chọn.
         public void BulkDeactivate(int[] ids)
         {
             if (ids == null || ids.Length == 0) return;
@@ -2296,6 +2373,7 @@ ELSE
             Execute("UPDATE dbo.PhanCongChiSo SET DangHoatDong = 0 WHERE PhanCongChiSoId IN (" + placeholders + ")", parameters);
         }
 
+        // Kích hoạt lại một hoặc nhiều phân công chỉ số đã chọn.
         public void BulkActivate(int[] ids)
         {
             if (ids == null || ids.Length == 0) return;
@@ -2304,6 +2382,7 @@ ELSE
             Execute("UPDATE dbo.PhanCongChiSo SET DangHoatDong = 1 WHERE PhanCongChiSoId IN (" + placeholders + ")", parameters);
         }
 
+        // Xóa hàng loạt các phân công chỉ số đã chọn.
         public void BulkDelete(int[] ids)
         {
             if (ids == null || ids.Length == 0) return;
@@ -2320,6 +2399,7 @@ ELSE
             Execute("DELETE FROM dbo.PhanCongChiSo WHERE PhanCongChiSoId IN (" + placeholders + ")", parameters);
         }
 
+        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của phân công chỉ số.
         public void Delete(int id)
         {
             var reportCount = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.BaoCao WHERE PhanCongChiSoId=@Id", Param("@Id", id)));

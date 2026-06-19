@@ -1,3 +1,4 @@
+// Mục đích: điều phối các thao tác xem trước, tạo, cập nhật và xuất phân công chỉ số cho khoa/phòng.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using HospitalQualityDashboardDemo.Services;
@@ -12,6 +13,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         private readonly IndicatorService _indicators = new IndicatorService();
         private const int PageSize = 20;
 
+        // Hiển thị danh sách và các bộ lọc của phân công chỉ số.
         public ActionResult Index(int? khoaPhongId, int? chiSoId, string trangThai, string trangThaiPhanCong, string search, string viewMode, int page = 1)
         {
             if (string.IsNullOrEmpty(viewMode))
@@ -79,6 +81,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return View(model);
         }
 
+        // Tạo hoặc kích hoạt lại các phân công giữa khoa/phòng và chỉ số.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Assign(AssignmentViewModel model)
@@ -93,12 +96,14 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index", new { viewMode = model.ViewMode });
         }
 
+        // Tạo dữ liệu xem trước để người dùng kiểm tra trước khi ghi chính thức.
         [HttpPost]
         public JsonResult Preview(int[] departmentIds, int[] indicatorIds)
         {
             return Json(_service.Preview(departmentIds, indicatorIds));
         }
 
+        // Ngừng kích hoạt một hoặc nhiều phân công chỉ số đã chọn.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Deactivate(int id, string viewMode, int? khoaPhongId, int? chiSoId, string trangThai, string search, int page = 1)
@@ -107,6 +112,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index", new { viewMode = viewMode, khoaPhongId = khoaPhongId, chiSoId = chiSoId, trangThai = trangThai, search = search, page = page });
         }
 
+        // Kích hoạt lại một hoặc nhiều phân công chỉ số đã chọn.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Activate(int id, string viewMode, int? khoaPhongId, int? chiSoId, string trangThai, string search, int page = 1)
@@ -115,6 +121,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index", new { viewMode = viewMode, khoaPhongId = khoaPhongId, chiSoId = chiSoId, trangThai = trangThai, search = search, page = page });
         }
 
+        // Điều phối yêu cầu HTTP và phản hồi cho phân công chỉ số.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult SyncFromIndicators(string viewMode)
@@ -124,6 +131,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index", new { viewMode = viewMode });
         }
 
+        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của phân công chỉ số.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, string viewMode, int? khoaPhongId, int? chiSoId, string trangThai, string search, int page = 1)
@@ -140,6 +148,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index", new { viewMode = viewMode, khoaPhongId = khoaPhongId, chiSoId = chiSoId, trangThai = trangThai, search = search, page = page });
         }
 
+        // Ngừng kích hoạt một hoặc nhiều phân công chỉ số đã chọn.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult BulkDeactivate(int[] ids, string viewMode)
@@ -148,6 +157,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index", new { viewMode = viewMode });
         }
 
+        // Kích hoạt lại một hoặc nhiều phân công chỉ số đã chọn.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult BulkActivate(int[] ids, string viewMode)
@@ -156,6 +166,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index", new { viewMode = viewMode });
         }
 
+        // Xóa hàng loạt các phân công chỉ số đã chọn.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult BulkDelete(int[] ids, string viewMode)

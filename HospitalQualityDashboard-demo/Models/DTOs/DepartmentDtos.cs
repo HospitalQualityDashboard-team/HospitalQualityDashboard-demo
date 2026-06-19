@@ -1,3 +1,4 @@
+// Mục đích: đóng gói dữ liệu lưu và file import của danh mục khoa/phòng.
 namespace HospitalQualityDashboardDemo.Models.DTOs
 {
     public class DepartmentSaveDto

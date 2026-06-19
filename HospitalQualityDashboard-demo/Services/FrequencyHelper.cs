@@ -1,3 +1,4 @@
+// Mục đích: chuẩn hóa nhãn, thứ tự hiển thị và tùy chọn chọn tần suất báo cáo trên toàn ứng dụng.
 using HospitalQualityDashboardDemo.Models.Enums;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ namespace HospitalQualityDashboardDemo.Services
 {
     public static class FrequencyHelper
     {
+        // Định dạng giá trị theo quy ước hiển thị của tần suất báo cáo.
         public static string FormatFrequency(TanSuatBaoCao frequency)
         {
             switch (frequency)
@@ -25,6 +27,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của tần suất báo cáo.
         public static string FormatFrequencies(IEnumerable<TanSuatBaoCao> frequencies)
         {
             var values = frequencies == null 
@@ -34,6 +37,7 @@ namespace HospitalQualityDashboardDemo.Services
             return values.Count == 0 ? string.Empty : string.Join(", ", values.Select(FormatFrequency));
         }
 
+        // Sắp xếp dữ liệu theo thứ tự hiển thị chuẩn của tần suất báo cáo.
         public static IEnumerable<TanSuatBaoCao> SortFrequencies(IEnumerable<TanSuatBaoCao> frequencies)
         {
             return (frequencies ?? new List<TanSuatBaoCao>())
@@ -41,8 +45,10 @@ namespace HospitalQualityDashboardDemo.Services
                 .OrderBy(GetFrequencyDisplayOrder);
         }
 
+        // Trả về thứ tự hiển thị ổn định cho từng tần suất báo cáo.
         public static int GetFrequencyDisplayOrder(TanSuatBaoCao frequency)
         {
+            // Khoảng cách 10 cho phép chèn thêm tần suất mà không phải đổi toàn bộ thứ tự hiện có.
             switch (frequency)
             {
                 case TanSuatBaoCao.HangNgay: return 10;
@@ -58,6 +64,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
+        // Truy vấn tần suất báo cáo theo điều kiện được cung cấp.
         public static IList<SelectListItem> GetFrequencyOptions(IEnumerable<TanSuatBaoCao> selectedFrequencies)
         {
             var selected = selectedFrequencies == null

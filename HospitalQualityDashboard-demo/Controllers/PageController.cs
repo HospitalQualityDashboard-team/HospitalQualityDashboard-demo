@@ -50,6 +50,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             get { return CurrentLoaiTaiKhoan == LoaiTaiKhoan.User; }
         }
 
+        // Kiểm tra session và quyền truy cập trước khi action được thực thi.
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             if (!SessionUserAccessor.IsAuthenticated(Session))
@@ -68,6 +69,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             base.OnActionExecuting(filterContext);
         }
 
+        // Điều phối yêu cầu HTTP và phản hồi cho session và phạm vi truy cập dùng chung.
         protected ActionResult RevalidateCurrentSession()
         {
             var accountId = CurrentTaiKhoanId;
@@ -93,6 +95,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             return null;
         }
 
+        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của session và phạm vi truy cập dùng chung hay không.
         private bool HasRequiredSessionData()
         {
             if (!CurrentLoaiTaiKhoan.HasValue || string.IsNullOrWhiteSpace(CurrentTenDangNhap))
@@ -103,17 +106,20 @@ namespace HospitalQualityDashboardDemo.Controllers
             return IsAdmin || CurrentKhoaPhongId.HasValue;
         }
 
+        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của session và phạm vi truy cập dùng chung hay không.
         private bool IsSessionRevalidationFresh()
         {
             var lastRevalidatedUtc = SessionUserAccessor.GetDateTime(Session, SessionUserAccessor.LastSessionRevalidatedUtcKey);
             return lastRevalidatedUtc.HasValue && DateTime.UtcNow - lastRevalidatedUtc.Value < SessionRevalidationInterval;
         }
 
+        // Điều phối yêu cầu HTTP và phản hồi cho session và phạm vi truy cập dùng chung.
         protected ActionResult RequireAdmin()
         {
             return IsAdmin ? null : new HttpUnauthorizedResult();
         }
 
+        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý session và phạm vi truy cập dùng chung.
         protected ActionResult EnsureUserDepartment(int khoaPhongId)
         {
             if (IsAdmin)
@@ -124,11 +130,13 @@ namespace HospitalQualityDashboardDemo.Controllers
             return CurrentKhoaPhongId == khoaPhongId ? null : new HttpUnauthorizedResult();
         }
 
+        // Kiểm tra và cập nhật dữ liệu của session và phạm vi truy cập dùng chung.
         protected void SetLoginSession(AuthenticatedUser user)
         {
             SessionUserAccessor.SetLoginSession(Session, user);
         }
 
+        // Xóa trạng thái tạm để chuẩn bị lượt xử lý mới của session và phạm vi truy cập dùng chung.
         protected void ClearLoginSession()
         {
             SessionUserAccessor.ClearLoginSession(Session);

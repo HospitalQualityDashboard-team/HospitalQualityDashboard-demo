@@ -1,3 +1,4 @@
+// Mục đích: quản lý hồ sơ nhân viên, tài khoản liên kết, phân trang và nhập dữ liệu nhân viên.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using HospitalQualityDashboardDemo.Services;
@@ -11,6 +12,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         private readonly EmployeeService _service = new EmployeeService();
         private readonly DepartmentService _departments = new DepartmentService();
 
+        // Hiển thị danh sách và các bộ lọc của hồ sơ nhân viên.
         public ActionResult Index(int? khoaPhongId, int page = 1)
         {
             int totalItems;
@@ -27,11 +29,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             });
         }
 
+        // Khởi tạo dữ liệu cho màn hình tạo mới hồ sơ nhân viên.
         public ActionResult Create()
         {
             return View("Edit", Prepare(new NhanVienViewModel { DangHoatDong = true }));
         }
 
+        // Kiểm tra dữ liệu gửi lên và tạo mới hồ sơ nhân viên.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(NhanVienViewModel model)
@@ -39,11 +43,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return Save(model);
         }
 
+        // Tải dữ liệu hiện tại lên màn hình chỉnh sửa hồ sơ nhân viên.
         public ActionResult Edit(int id)
         {
             return View(Prepare(_service.Get(id)));
         }
 
+        // Kiểm tra và lưu các thay đổi của hồ sơ nhân viên.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(NhanVienViewModel model)
@@ -51,6 +57,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return Save(model);
         }
 
+        // Chuyển bản ghi sang trạng thái không còn cho phép chỉnh sửa.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Lock(int id)
@@ -59,6 +66,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Điều phối yêu cầu HTTP và phản hồi cho hồ sơ nhân viên.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Unlock(int id)
@@ -67,6 +75,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của hồ sơ nhân viên.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id)
@@ -83,6 +92,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ hồ sơ nhân viên.
         public ActionResult CreateAccount(int id)
         {
             var employee = _service.Get(id);
@@ -95,6 +105,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return View(new CreateUserAccountViewModel { NhanVienId = id, HoTen = employee.HoTen, TenDangNhap = employee.MaNhanVien });
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ hồ sơ nhân viên.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateAccount(CreateUserAccountViewModel model)
@@ -121,6 +132,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Đọc, kiểm tra và nhập dữ liệu từ tệp tải lên.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Import(ImportFileViewModel model)
@@ -141,6 +153,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             });
         }
 
+        // Kiểm tra và cập nhật dữ liệu của hồ sơ nhân viên.
         private ActionResult Save(NhanVienViewModel model)
         {
             if (!ModelState.IsValid) return View("Edit", Prepare(model));
@@ -160,17 +173,20 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Điều phối yêu cầu HTTP và phản hồi cho hồ sơ nhân viên.
         private NhanVienViewModel Prepare(NhanVienViewModel model)
         {
             model.KhoaPhongOptions = _departments.GetOptions();
             return model;
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho hồ sơ nhân viên.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
         }
 
+        // Tính tổng số trang từ số bản ghi và kích thước trang.
         private static int GetTotalPages(int totalItems, int pageSize)
         {
             return totalItems <= 0 ? 1 : (int)System.Math.Ceiling((decimal)totalItems / pageSize);

@@ -1,5 +1,6 @@
 ﻿@* Mục đích: dashboard tổng hợp tiến độ báo cáo và cảnh báo thiếu/quá hạn. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.DashboardViewModel
+@using System.Globalization
 @using System.Linq
 @using System.Web
 @{
@@ -7,10 +8,14 @@
 
     var progressItems = (Model.DepartmentProgress ?? new System.Collections.Generic.List<HospitalQualityDashboardDemo.Models.ViewModels.DepartmentProgressViewModel>()).ToList();
     var missingReports = (Model.MissingReports ?? new System.Collections.Generic.List<HospitalQualityDashboardDemo.Models.ViewModels.MissingReportAlertViewModel>()).ToList();
-    var totalReportSlots = Model.BaoCaoDaGui + Model.BaoCaoThieu;
-    var completionRate = totalReportSlots > 0 ? (int)Math.Round((decimal)Model.BaoCaoDaGui * 100 / totalReportSlots) : 0;
+    var metricDetails = (Model.MetricDetails ?? new System.Collections.Generic.List<HospitalQualityDashboardDemo.Models.ViewModels.DashboardMetricDetailViewModel>()).ToList();
+    var totalReportSlots = Model.TongBaoCaoCanNop;
+    var completionRate = totalReportSlots > 0
+        ? Math.Round((decimal)Model.BaoCaoDaGui * 100 / totalReportSlots, 2)
+        : 0;
+    var completionRateText = completionRate.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN"));
     var roleLabel = Model.IsAdmin ? "Admin hệ thống" : "Khoa/phòng";
-    var totalMetricLabel = Model.IsAdmin ? "Tổng chỉ số" : "Chỉ số được phân công";
+    var totalMetricLabel = Model.IsAdmin ? "Tổng cần nộp" : "Chỉ số được phân công";
     var urgentCount = Model.OverdueMissingReportCount + Model.DueSoonReportCount;
 }
 
@@ -23,7 +28,7 @@
     <div class="dashboard-summary-strip" aria-label="Tóm tắt tiến độ">
         <div class="dashboard-summary-item">
             <span>Tỷ lệ hoàn tất</span>
-            <strong>@completionRate%</strong>
+            <strong>@completionRateText%</strong>
         </div>
         <div class="dashboard-summary-item">
             <span>Cần xử lý</span>
@@ -35,6 +40,11 @@
         </div>
     </div>
 </section>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info dashboard-feedback" role="status">@TempData["Message"]</div>
+}
 
 @if (!Model.IsAdmin)
 {
@@ -111,39 +121,157 @@
 }
 
 <section class="metric-grid" aria-label="Chỉ số tổng quan">
-    <article class="metric-card is-accent">
-        <div class="metric-card-header">
+    <button type="button" class="metric-card metric-card-button is-accent" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="total" data-title="Danh sách chỉ số cần nộp">
+        <span class="metric-card-header">
             <span class="metric-label">@totalMetricLabel</span>
             <span class="metric-icon">CS</span>
-        </div>
-        <strong class="metric-value">@Model.TongChiSo</strong>
-        <p class="metric-caption">Phạm vi chỉ số đang được theo dõi.</p>
-    </article>
-    <article class="metric-card is-success">
-        <div class="metric-card-header">
+        </span>
+        <strong class="metric-value">@Model.TongBaoCaoCanNop</strong>
+        <span class="metric-caption">Tổng số báo cáo cần nộp theo kỳ và khoa/phòng.</span>
+    </button>
+    <button type="button" class="metric-card metric-card-button is-success" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="submitted" data-title="Danh sách báo cáo đã nộp">
+        <span class="metric-card-header">
             <span class="metric-label">Đã báo cáo</span>
             <span class="metric-icon">ĐG</span>
-        </div>
+        </span>
         <strong class="metric-value">@Model.BaoCaoDaGui</strong>
-        <p class="metric-caption">@completionRate% hồ sơ báo cáo đã hoàn tất.</p>
-    </article>
-    <article class="metric-card is-warning">
-        <div class="metric-card-header">
+        <span class="metric-caption">@completionRateText% hồ sơ báo cáo đã hoàn tất.</span>
+    </button>
+    <button type="button" class="metric-card metric-card-button is-warning" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="missing" data-title="Danh sách chỉ số còn thiếu báo cáo">
+        <span class="metric-card-header">
             <span class="metric-label">Còn thiếu</span>
             <span class="metric-icon">CT</span>
-        </div>
+        </span>
         <strong class="metric-value">@Model.BaoCaoThieu</strong>
-        <p class="metric-caption">Chỉ số chưa có báo cáo hợp lệ.</p>
-    </article>
-    <article class="metric-card is-danger">
-        <div class="metric-card-header">
+        <span class="metric-caption">Chỉ số chưa có báo cáo hợp lệ.</span>
+    </button>
+    <button type="button" class="metric-card metric-card-button is-danger" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="overdue" data-title="Danh sách chỉ số quá hạn chưa nộp">
+        <span class="metric-card-header">
             <span class="metric-label">Quá hạn</span>
             <span class="metric-icon">QH</span>
-        </div>
+        </span>
         <strong class="metric-value">@Model.BaoCaoQuaHan</strong>
-        <p class="metric-caption">Cần rà soát và nhắc nộp bổ sung.</p>
-    </article>
+        <span class="metric-caption">Cần rà soát và nhắc nộp bổ sung.</span>
+    </button>
 </section>
+
+<div class="modal fade dashboard-metric-modal" id="dashboardMetricDetailModal" tabindex="-1" aria-labelledby="dashboardMetricDetailTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title fs-5" id="dashboardMetricDetailTitle" data-metric-title>Danh sách chỉ số cần nộp</h2>
+                    <p class="text-muted small mb-0">Dữ liệu theo bộ lọc tần suất hiện tại.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="status-pill status-muted" data-metric-count>0 dòng</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive dashboard-metric-table-wrap">
+                    <table class="table table-sm align-middle mb-0 dashboard-metric-table">
+                        <thead>
+                            <tr>
+                                <th>Kỳ báo cáo</th>
+                                <th>Hạn nộp</th>
+                                <th>Khoa/phòng</th>
+                                <th>Chỉ số</th>
+                                <th>Trạng thái</th>
+                                <th class="text-end">Kết quả</th>
+                                <th>Đánh giá</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var item in metricDetails)
+                        {
+                            var groups = item.IsSubmitted
+                                ? "total submitted"
+                                : item.IsOverdueMissing ? "total missing overdue" : "total missing";
+                            <tr data-metric-groups="@groups">
+                                <td>@item.TenKyBaoCao</td>
+                                <td class="text-nowrap">@item.HanNop.ToString("dd/MM/yyyy")</td>
+                                <td>@item.TenKhoaPhong</td>
+                                <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
+                                <td>
+                                    @if (item.IsSubmitted)
+                                    {
+                                        <span class="status-pill status-success">Đã nộp</span>
+                                    }
+                                    else if (item.IsOverdueMissing)
+                                    {
+                                        <span class="status-pill status-danger">Quá hạn</span>
+                                    }
+                                    else if (item.TrangThaiBaoCao == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap)
+                                    {
+                                        <span class="status-pill status-warning">Chưa nộp (đã lưu nháp)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill status-muted">Chưa nộp</span>
+                                    }
+                                </td>
+                                <td class="numeric-value text-end">
+                                    @(item.IsSubmitted && item.KetQua.HasValue ? item.KetQua.Value.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN")) : "-")
+                                </td>
+                                <td>
+                                    @if (!item.IsSubmitted)
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                    else if (item.DatMucTieu == true)
+                                    {
+                                        <span class="status-pill status-success">Đạt</span>
+                                    }
+                                    else if (item.DatMucTieu == false)
+                                    {
+                                        <span class="status-pill status-danger">Chưa đạt</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill status-muted">Chưa đánh giá</span>
+                                    }
+                                </td>
+                                <td class="text-end dashboard-warning-action">
+                                    @if (!item.IsSubmitted)
+                                    {
+                                        if (item.HasWarningToday)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" disabled>
+                                                <i class="bi bi-bell-fill me-1"></i>Đã cảnh báo hôm nay
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <form method="post" action="@Url.Action("WarnIndicator", "Dashboard")" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="kyBaoCaoId" value="@item.KyBaoCaoId" />
+                                                <input type="hidden" name="khoaPhongId" value="@item.KhoaPhongId" />
+                                                <input type="hidden" name="chiSoChatLuongId" value="@item.ChiSoChatLuongId" />
+                                                <input type="hidden" name="tanSuat" value="@Model.SelectedTanSuat" />
+                                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                                    <i class="bi bi-bell me-1"></i>Cảnh báo
+                                                </button>
+                                            </form>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                            <tr data-metric-empty hidden>
+                                <td colspan="8" class="empty-state">Không có dữ liệu trong nhóm này.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <section class="dashboard-grid">
     <div class="dashboard-panel">
@@ -462,6 +590,27 @@ if (chartElement && labels.length) {
                 }
             }
         }
+    });
+}
+
+var metricDetailModal = document.getElementById('dashboardMetricDetailModal');
+if (metricDetailModal) {
+    metricDetailModal.addEventListener('show.bs.modal', function(event) {
+        var trigger = event.relatedTarget;
+        var metric = trigger ? trigger.getAttribute('data-metric') : 'total';
+        var title = trigger ? trigger.getAttribute('data-title') : 'Danh sách chỉ số cần nộp';
+        var visibleCount = 0;
+
+        metricDetailModal.querySelector('[data-metric-title]').textContent = title;
+        metricDetailModal.querySelectorAll('tbody tr[data-metric-groups]').forEach(function(row) {
+            var groups = (row.getAttribute('data-metric-groups') || '').split(' ');
+            var visible = groups.indexOf(metric) >= 0;
+            row.hidden = !visible;
+            if (visible) visibleCount += 1;
+        });
+
+        metricDetailModal.querySelector('[data-metric-count]').textContent = visibleCount + ' dòng';
+        metricDetailModal.querySelector('[data-metric-empty]').hidden = visibleCount !== 0;
     });
 }
 

@@ -1,3 +1,4 @@
+// Mục đích: cung cấp các màn hình quản trị danh mục khoa/phòng và nhập dữ liệu từ Excel.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using HospitalQualityDashboardDemo.Services;
@@ -9,16 +10,19 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
     {
         private readonly DepartmentService _service = new DepartmentService();
 
+        // Hiển thị danh sách và các bộ lọc của danh mục khoa/phòng.
         public ActionResult Index(string search)
         {
             return View(new KhoaPhongIndexViewModel { Search = search, Items = _service.GetAll(search) });
         }
 
+        // Khởi tạo dữ liệu cho màn hình tạo mới danh mục khoa/phòng.
         public ActionResult Create()
         {
             return View("Edit", new KhoaPhongViewModel { Used = true });
         }
 
+        // Kiểm tra dữ liệu gửi lên và tạo mới danh mục khoa/phòng.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(KhoaPhongViewModel model)
@@ -26,11 +30,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return Save(model);
         }
 
+        // Tải dữ liệu hiện tại lên màn hình chỉnh sửa danh mục khoa/phòng.
         public ActionResult Edit(int id)
         {
             return View(_service.Get(id));
         }
 
+        // Kiểm tra và lưu các thay đổi của danh mục khoa/phòng.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(KhoaPhongViewModel model)
@@ -38,6 +44,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return Save(model);
         }
 
+        // Chuyển bản ghi sang trạng thái không còn cho phép chỉnh sửa.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Lock(int id)
@@ -46,6 +53,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Điều phối yêu cầu HTTP và phản hồi cho danh mục khoa/phòng.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Unlock(int id)
@@ -54,6 +62,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của danh mục khoa/phòng.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id)
@@ -70,6 +79,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Đọc, kiểm tra và nhập dữ liệu từ tệp tải lên.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Import(ImportFileViewModel model)
@@ -78,6 +88,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return View("Index", new KhoaPhongIndexViewModel { Items = _service.GetAll(), ImportResult = result });
         }
 
+        // Kiểm tra và cập nhật dữ liệu của danh mục khoa/phòng.
         private ActionResult Save(KhoaPhongViewModel model)
         {
             if (!ModelState.IsValid) return View("Edit", model);

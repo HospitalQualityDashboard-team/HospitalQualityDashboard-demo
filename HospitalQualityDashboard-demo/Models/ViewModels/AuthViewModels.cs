@@ -62,6 +62,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public DateTime? LanDangNhapCuoi { get; set; }
         public ChangePasswordViewModel ChangePassword { get; set; }
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của UserProfileViewModel.
         public UserProfileViewModel()
         {
             ChangePassword = new ChangePasswordViewModel();

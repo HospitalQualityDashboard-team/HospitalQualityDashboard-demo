@@ -1,3 +1,4 @@
+// Mục đích: truy vấn dữ liệu Dashboard, tạo workbook nhiều sheet và ghi lịch sử xuất có kiểm soát quyền.
 using ClosedXML.Excel;
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
@@ -19,6 +20,7 @@ namespace HospitalQualityDashboardDemo.Services
         private const string ReportType = "DashboardChiSoChatLuong";
         private const string HospitalName = "Bệnh viện";
 
+        // Tạo nội dung xuất dữ liệu theo bộ lọc và phạm vi được phép.
         public DashboardExcelExportResultDto BuildDashboardExcel(DashboardExcelExportQueryDto query, ExportUserContextDto userContext)
         {
             if (userContext == null || userContext.TaiKhoanId <= 0)
@@ -26,6 +28,7 @@ namespace HospitalQualityDashboardDemo.Services
                 throw new InvalidOperationException("Không xác định được người xuất báo cáo.");
             }
 
+            // Chuẩn hóa phạm vi trước khi truy vấn để User không thể xuất dữ liệu của khoa/phòng khác.
             var effectiveQuery = NormalizeQuery(query, userContext);
             var details = QueryDetailRows(effectiveQuery);
             var missing = QueryMissingRows(effectiveQuery);
@@ -46,6 +49,7 @@ namespace HospitalQualityDashboardDemo.Services
             };
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho workbook Dashboard và lịch sử xuất.
         private DashboardExcelExportQueryDto NormalizeQuery(DashboardExcelExportQueryDto query, ExportUserContextDto userContext)
         {
             query = query ?? new DashboardExcelExportQueryDto();
@@ -69,8 +73,10 @@ namespace HospitalQualityDashboardDemo.Services
             return normalized;
         }
 
+        // Truy vấn workbook Dashboard và lịch sử xuất theo điều kiện được cung cấp.
         private IList<DashboardExcelDetailRow> QueryDetailRows(DashboardExcelExportQueryDto query)
         {
+            // Ưu tiên mục tiêu đúng năm báo cáo; OUTER APPLY cung cấp mục tiêu gần nhất khi năm đó chưa cấu hình.
             const string sql = @"
 SELECT
     bc.BaoCaoId,
@@ -156,8 +162,10 @@ ORDER BY kp.TenKhoaPhong, ky.TuNgay DESC, cs.MaChiSo";
             return rows;
         }
 
+        // Truy vấn workbook Dashboard và lịch sử xuất theo điều kiện được cung cấp.
         private IList<DashboardMissingIndicatorRow> QueryMissingRows(DashboardExcelExportQueryDto query)
         {
+            // Một chỉ số được xem là thiếu khi có phân công phù hợp tần suất nhưng chưa có báo cáo ở trạng thái đã nộp.
             const string sql = @"
 SELECT
     ky.TenKyBaoCao,
@@ -212,6 +220,7 @@ ORDER BY ky.HanNop, kp.TenKhoaPhong, cs.MaChiSo";
             return rows;
         }
 
+        // Truy vấn workbook Dashboard và lịch sử xuất theo điều kiện được cung cấp.
         private IList<DashboardReviewHistoryRow> QueryReviewHistory(DashboardExcelExportQueryDto query)
         {
             const string sql = @"
@@ -264,6 +273,7 @@ ORDER BY log.ThoiGian DESC";
             return rows;
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
         private SqlParameter[] BuildQueryParameters(DashboardExcelExportQueryDto query)
         {
             return new[]
@@ -286,6 +296,7 @@ ORDER BY log.ThoiGian DESC";
             };
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
         private IList<DashboardDepartmentSummaryRow> BuildDepartmentSummary(
             IList<DashboardExcelDetailRow> details,
             IList<DashboardMissingIndicatorRow> missing)
@@ -317,6 +328,7 @@ ORDER BY log.ThoiGian DESC";
             }).ToList();
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
         private byte[] CreateWorkbook(
             DashboardExcelExportQueryDto query,
             ExportUserContextDto userContext,
@@ -326,6 +338,7 @@ ORDER BY log.ThoiGian DESC";
             IList<DashboardExcelDetailRow> failed,
             IList<DashboardReviewHistoryRow> reviewHistory)
         {
+            // Tách nhóm dữ liệu thành các sheet để hỗ trợ cả tổng quan và đối soát chi tiết.
             using (var workbook = new XLWorkbook())
             {
                 AddSummarySheet(workbook, query, userContext, details, byDepartment, missing, failed);
@@ -347,6 +360,7 @@ ORDER BY log.ThoiGian DESC";
             }
         }
 
+        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
         private void AddSummarySheet(
             XLWorkbook workbook,
             DashboardExcelExportQueryDto query,
@@ -378,6 +392,7 @@ ORDER BY log.ThoiGian DESC";
             });
         }
 
+        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
         private void AddDetailSheet(XLWorkbook workbook, string sheetName, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, IList<DashboardExcelDetailRow> rows)
         {
             var worksheet = workbook.Worksheets.Add(sheetName);
@@ -405,6 +420,7 @@ ORDER BY log.ThoiGian DESC";
             }, ApplyDetailRowStyle);
         }
 
+        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
         private void AddDepartmentSheet(XLWorkbook workbook, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, IList<DashboardDepartmentSummaryRow> rows)
         {
             var worksheet = workbook.Worksheets.Add("TheoKhoaPhong");
@@ -423,6 +439,7 @@ ORDER BY log.ThoiGian DESC";
             });
         }
 
+        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
         private void AddMissingSheet(XLWorkbook workbook, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, IList<DashboardMissingIndicatorRow> rows)
         {
             var worksheet = workbook.Worksheets.Add("ChiSoChuaNhap");
@@ -440,11 +457,13 @@ ORDER BY log.ThoiGian DESC";
             }, ApplyMissingRowStyle);
         }
 
+        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
         private void AddFailedSheet(XLWorkbook workbook, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, IList<DashboardExcelDetailRow> rows)
         {
             AddDetailSheet(workbook, "ChiSoChuaDat", query, userContext, rows);
         }
 
+        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
         private void AddReviewHistorySheet(XLWorkbook workbook, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, IList<DashboardReviewHistoryRow> rows)
         {
             var worksheet = workbook.Worksheets.Add("LichSuDuyet");
@@ -463,6 +482,7 @@ ORDER BY log.ThoiGian DESC";
             });
         }
 
+        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
         private int AddMetadata(IXLWorksheet worksheet, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, string reportTitle)
         {
             worksheet.Cell(1, 1).Value = HospitalName;
@@ -488,6 +508,7 @@ ORDER BY log.ThoiGian DESC";
             return 10;
         }
 
+        // Ghi dữ liệu đã chuẩn hóa vào đầu ra của workbook Dashboard và lịch sử xuất.
         private void WriteTable<T>(IXLWorksheet worksheet, int startRow, IList<T> rows, IList<ExcelColumn<T>> columns, Action<IXLRow, T> rowStyle = null)
         {
             for (var i = 0; i < columns.Count; i++)
@@ -533,6 +554,7 @@ ORDER BY log.ThoiGian DESC";
             worksheet.Columns().AdjustToContents();
         }
 
+        // Kiểm tra và cập nhật dữ liệu của workbook Dashboard và lịch sử xuất.
         private static void SetCellValue(IXLCell cell, object value)
         {
             if (value == null)
@@ -564,11 +586,13 @@ ORDER BY log.ThoiGian DESC";
             cell.Value = Convert.ToString(value, CultureInfo.InvariantCulture);
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của workbook Dashboard và lịch sử xuất.
         private static string FormatExcelDateTime(DateTime? value)
         {
             return value.HasValue ? value.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture) : string.Empty;
         }
 
+        // Lấy thời điểm hiện tại theo múi giờ Việt Nam và có phương án dự phòng.
         private static DateTime GetVietnamLocalNow()
         {
             try
@@ -586,6 +610,7 @@ ORDER BY log.ThoiGian DESC";
             }
         }
 
+        // Áp dụng định dạng hoặc quy tắc trình bày cho workbook Dashboard và lịch sử xuất.
         private static void ApplyDetailRowStyle(IXLRow row, DashboardExcelDetailRow item)
         {
             if (item.DatMucTieu == true)
@@ -606,6 +631,7 @@ ORDER BY log.ThoiGian DESC";
             }
         }
 
+        // Áp dụng định dạng hoặc quy tắc trình bày cho workbook Dashboard và lịch sử xuất.
         private static void ApplyMissingRowStyle(IXLRow row, DashboardMissingIndicatorRow item)
         {
             row.Style.Fill.BackgroundColor = item.TrangThai.Contains("Quá hạn")
@@ -613,8 +639,10 @@ ORDER BY log.ThoiGian DESC";
                 : XLColor.FromHtml("#FFF2CC");
         }
 
+        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý workbook Dashboard và lịch sử xuất.
         private void EnsureExportHistoryTable()
         {
+            // Giữ khả năng tương thích với database cũ chưa chạy script bổ sung lịch sử xuất.
             Execute(@"
 IF OBJECT_ID('dbo.LichSuXuatBaoCao', 'U') IS NULL
 BEGIN
@@ -636,8 +664,10 @@ BEGIN
 END");
         }
 
+        // Ghi lại thông tin phục vụ theo dõi và kiểm toán workbook Dashboard và lịch sử xuất.
         private void LogExportHistory(DashboardExcelExportQueryDto query, ExportUserContextDto userContext, string fileName, int rowCount)
         {
+            // Bộ lọc được lưu dạng JSON để có thể tái dựng chính xác phạm vi của lần xuất.
             Execute(@"
 INSERT INTO dbo.LichSuXuatBaoCao(NguoiDungId, LoaiBaoCao, BoLoc, TenFile, SoDongDuLieu, DiaChiIP, VaiTro, KhoaPhongId, NgayXuat)
 VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @VaiTro, @KhoaPhongId, @NgayXuat)",
@@ -652,6 +682,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
                 Param("@NgayXuat", GetVietnamLocalNow()));
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
         private string BuildFileName(DashboardExcelExportQueryDto query, ExportUserContextDto userContext)
         {
             var scope = query.KhoaPhongId.HasValue
@@ -661,6 +692,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
             return string.Format(CultureInfo.InvariantCulture, "Dashboard_{0}_{1}.xlsx", SanitizeFileToken(scope), period);
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
         private string BuildPeriodToken(DashboardExcelExportQueryDto query)
         {
             if (query.KyBaoCaoId.HasValue)
@@ -681,6 +713,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
             return year.ToString(CultureInfo.InvariantCulture);
         }
 
+        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
         private string BuildFilterDescription(DashboardExcelExportQueryDto query)
         {
             var parts = new List<string>();
@@ -694,18 +727,21 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
             return parts.Count == 0 ? "Tất cả dữ liệu" : string.Join("; ", parts);
         }
 
+        // Truy vấn workbook Dashboard và lịch sử xuất theo điều kiện được cung cấp.
         private string GetDepartmentName(int departmentId)
         {
             var value = Convert.ToString(Scalar("SELECT TenKhoaPhong FROM dbo.KhoaPhong WHERE KhoaPhongId=@Id", Param("@Id", departmentId)));
             return string.IsNullOrWhiteSpace(value) ? "KhoaPhong" + departmentId.ToString(CultureInfo.InvariantCulture) : value;
         }
 
+        // Truy vấn workbook Dashboard và lịch sử xuất theo điều kiện được cung cấp.
         private string GetPeriodName(int periodId)
         {
             var value = Convert.ToString(Scalar("SELECT TenKyBaoCao FROM dbo.KyBaoCao WHERE KyBaoCaoId=@Id", Param("@Id", periodId)));
             return string.IsNullOrWhiteSpace(value) ? "Kỳ báo cáo " + periodId.ToString(CultureInfo.InvariantCulture) : value;
         }
 
+        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho workbook Dashboard và lịch sử xuất.
         private static string SanitizeFileToken(string value)
         {
             value = RemoveDiacritics(string.IsNullOrWhiteSpace(value) ? "BaoCao" : value);
@@ -713,6 +749,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
             return string.IsNullOrWhiteSpace(value) ? "BaoCao" : value;
         }
 
+        // Loại bỏ dấu tiếng Việt để tạo chuỗi an toàn cho tên tệp.
         private static string RemoveDiacritics(string value)
         {
             var normalized = value.Normalize(NormalizationForm.FormD);
@@ -731,6 +768,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
             return builder.ToString().Normalize(NormalizationForm.FormC);
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của workbook Dashboard và lịch sử xuất.
         private static string FormatMucTieu(string op, decimal? value, string description)
         {
             if (!string.IsNullOrWhiteSpace(description)) return description;
@@ -738,18 +776,21 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
             return op.Trim() + " " + value.Value.ToString("0.####", CultureInfo.InvariantCulture);
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của workbook Dashboard và lịch sử xuất.
         private static string FormatDatMucTieu(bool? value)
         {
             if (!value.HasValue) return "Chưa đánh giá";
             return value.Value ? "Đạt" : "Chưa đạt";
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của workbook Dashboard và lịch sử xuất.
         private static string FormatFilterStatus(int status)
         {
             if (status == 0) return "Chưa nhập";
             return FormatTrangThaiBaoCao((TrangThaiBaoCao)status);
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của workbook Dashboard và lịch sử xuất.
         private static string FormatTrangThaiBaoCao(TrangThaiBaoCao status)
         {
             switch (status)
@@ -764,6 +805,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
             }
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của workbook Dashboard và lịch sử xuất.
         private static string FormatTrangThaiDuyet(TrangThaiBaoCao status)
         {
             switch (status)
@@ -775,6 +817,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
             }
         }
 
+        // Định dạng giá trị theo quy ước hiển thị của workbook Dashboard và lịch sử xuất.
         private static string FormatTanSuatBaoCao(TanSuatBaoCao frequency)
         {
             switch (frequency)
@@ -794,6 +837,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
 
         private class ExcelColumn<T>
         {
+            // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của ExcelColumn.
             public ExcelColumn(string header, Func<T, object> value)
             {
                 Header = header;
@@ -806,6 +850,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
 
         private class SummaryMetricRow
         {
+            // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của SummaryMetricRow.
             public SummaryMetricRow(string label, object value)
             {
                 Label = label;

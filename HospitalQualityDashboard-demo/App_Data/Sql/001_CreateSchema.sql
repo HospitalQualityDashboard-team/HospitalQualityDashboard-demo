@@ -200,10 +200,12 @@ CREATE TABLE dbo.ThongBao (
     NoiDung NVARCHAR(MAX) NOT NULL,
     LoaiThongBao TINYINT NOT NULL,
     KyBaoCaoId INT NULL,
+    ChiSoChatLuongId INT NULL,
     BaoCaoId INT NULL,
     NguoiTaoId INT NULL,
     NgayTao DATETIME NOT NULL CONSTRAINT DF_ThongBao_NgayTao DEFAULT (GETDATE()),
     CONSTRAINT FK_ThongBao_KyBaoCao FOREIGN KEY (KyBaoCaoId) REFERENCES dbo.KyBaoCao(KyBaoCaoId),
+    CONSTRAINT FK_ThongBao_ChiSoChatLuong FOREIGN KEY (ChiSoChatLuongId) REFERENCES dbo.ChiSoChatLuong(ChiSoChatLuongId),
     CONSTRAINT FK_ThongBao_BaoCao FOREIGN KEY (BaoCaoId) REFERENCES dbo.BaoCao(BaoCaoId),
     CONSTRAINT FK_ThongBao_NguoiTao FOREIGN KEY (NguoiTaoId) REFERENCES dbo.TaiKhoan(TaiKhoanId),
     CONSTRAINT CK_ThongBao_LoaiThongBao CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6))
@@ -226,11 +228,13 @@ CREATE TABLE dbo.ThongBaoTuDongLog (
     LoaiThongBao TINYINT NOT NULL,
     KyBaoCaoId INT NULL,
     KhoaPhongId INT NULL,
+    ChiSoChatLuongId INT NULL,
     NgayMoc DATE NULL,
     NgayTao DATETIME NOT NULL CONSTRAINT DF_ThongBaoTuDongLog_NgayTao DEFAULT (GETDATE()),
     CONSTRAINT UQ_ThongBaoTuDongLog_DedupKey UNIQUE (DedupKey),
     CONSTRAINT FK_ThongBaoTuDongLog_KyBaoCao FOREIGN KEY (KyBaoCaoId) REFERENCES dbo.KyBaoCao(KyBaoCaoId),
     CONSTRAINT FK_ThongBaoTuDongLog_KhoaPhong FOREIGN KEY (KhoaPhongId) REFERENCES dbo.KhoaPhong(KhoaPhongId),
+    CONSTRAINT FK_ThongBaoTuDongLog_ChiSoChatLuong FOREIGN KEY (ChiSoChatLuongId) REFERENCES dbo.ChiSoChatLuong(ChiSoChatLuongId),
     CONSTRAINT CK_ThongBaoTuDongLog_LoaiThongBao CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6))
 );
 
@@ -293,6 +297,7 @@ CREATE INDEX IX_BaoCao_TrangThai ON dbo.BaoCao(TrangThai);
 CREATE INDEX IX_ThongBao_NgayTao ON dbo.ThongBao(NgayTao DESC);
 CREATE INDEX IX_ThongBao_KyBaoCaoId ON dbo.ThongBao(KyBaoCaoId);
 CREATE INDEX IX_ThongBao_BaoCaoId ON dbo.ThongBao(BaoCaoId);
+CREATE INDEX IX_ThongBaoTuDongLog_IndicatorMarker ON dbo.ThongBaoTuDongLog(KyBaoCaoId, KhoaPhongId, ChiSoChatLuongId, NgayMoc, LoaiThongBao);
 
 CREATE INDEX IX_ThongBaoNguoiNhan_TaiKhoan_DaDoc ON dbo.ThongBaoNguoiNhan(TaiKhoanId, DaDoc);
 

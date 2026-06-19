@@ -16,6 +16,8 @@
     --app-success-soft: #e8f6ef;
     --app-warning: #b7791f;
     --app-warning-soft: #fff5df;
+    --app-urgent: #c55a11;
+    --app-urgent-soft: #fff1e6;
     --app-danger: #c24136;
     --app-danger-soft: #fff0ee;
     --app-shadow: 0 14px 34px rgba(20, 32, 51, .08);
@@ -150,7 +152,22 @@ a:focus {
 .app-sidebar-nav .nav-link {
     position: relative;
     width: 100%;
-    justify-content: flex-start;
+    justify-content: space-between;
+}
+
+.notification-nav-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    color: #fff;
+    background: var(--app-danger);
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 800;
+    line-height: 1;
 }
 
 .app-sidebar-nav .nav-link:hover,
@@ -405,6 +422,26 @@ a:focus {
     box-shadow: var(--app-shadow-soft);
 }
 
+.metric-card-button {
+    width: 100%;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.metric-card-button:hover {
+    transform: translateY(-2px);
+    border-color: rgba(37, 99, 235, .3);
+    box-shadow: var(--app-shadow);
+}
+
+.metric-card-button:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, .25);
+    outline-offset: 3px;
+}
+
 .metric-card-header {
     display: flex;
     align-items: flex-start;
@@ -466,6 +503,38 @@ a:focus {
 .metric-card.is-danger .metric-icon {
     color: var(--app-danger);
     background: var(--app-danger-soft);
+}
+
+.dashboard-metric-modal .modal-dialog {
+    max-width: 1180px;
+}
+
+.dashboard-metric-table-wrap {
+    max-height: min(68vh, 680px);
+}
+
+.dashboard-metric-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--app-surface);
+}
+
+.dashboard-metric-table th,
+.dashboard-metric-table td {
+    vertical-align: middle;
+}
+
+.dashboard-warning-action {
+    min-width: 190px;
+}
+
+.dashboard-warning-action .btn {
+    white-space: nowrap;
+}
+
+.dashboard-feedback {
+    margin-bottom: 18px;
 }
 
 .dashboard-grid {
@@ -663,6 +732,12 @@ a:focus {
     color: var(--app-warning);
     background: var(--app-warning-soft);
     border-color: rgba(183, 121, 31, .16);
+}
+
+.status-urgent {
+    color: var(--app-urgent);
+    background: var(--app-urgent-soft);
+    border-color: rgba(197, 90, 17, .18);
 }
 
 .status-danger,
@@ -991,6 +1066,24 @@ form.row,
 .notification-item.is-unread {
     border-color: rgba(183, 121, 31, .28);
     background: linear-gradient(90deg, #fffaf0 0, #ffffff 44%);
+}
+
+.notification-item.notification-item-due-soon,
+.notification-detail-due-soon {
+    border-left: 4px solid var(--app-warning);
+    background: linear-gradient(90deg, var(--app-warning-soft) 0, var(--app-surface) 44%);
+}
+
+.notification-item.notification-item-due-today,
+.notification-detail-due-today {
+    border-left: 4px solid var(--app-urgent);
+    background: linear-gradient(90deg, var(--app-urgent-soft) 0, var(--app-surface) 44%);
+}
+
+.notification-item.notification-item-overdue,
+.notification-detail-overdue {
+    border-left: 4px solid var(--app-danger);
+    background: linear-gradient(90deg, var(--app-danger-soft) 0, var(--app-surface) 44%);
 }
 
 .notification-title {

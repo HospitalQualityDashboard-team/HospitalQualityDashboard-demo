@@ -1,3 +1,4 @@
+// Mục đích: xuất báo cáo và dashboard Excel, luôn giới hạn dữ liệu theo khoa/phòng đăng nhập.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Services;
 using System.Web.Mvc;
@@ -9,6 +10,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
         private readonly ExportService _service = new ExportService();
         private readonly DashboardExcelExportService _dashboardExcelExport = new DashboardExcelExportService();
 
+        // Điều phối yêu cầu HTTP và phản hồi cho xuất dữ liệu Excel.
         public ActionResult Reports(int? kyBaoCaoId, int? chiSoChatLuongId)
         {
             return File(_service.ExportReports(new ReportExportQueryDto
@@ -21,6 +23,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             }), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "bao-cao.xlsx");
         }
 
+        // Điều phối yêu cầu HTTP và phản hồi cho xuất dữ liệu Excel.
         public ActionResult Dashboard(DashboardExcelExportQueryDto query)
         {
             query = query ?? new DashboardExcelExportQueryDto();

@@ -276,6 +276,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int NewCount => Total - ExistingCount;
         public IList<AssignmentPreviewItem> Items => _items;
 
+        // Bổ sung dữ liệu mới phục vụ dữ liệu nội bộ của PreviewAssignmentResultViewModel.
         public void Add(AssignmentPreviewItem item)
         {
             _items.Add(item);
@@ -350,6 +351,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public IList<ReportingPeriodSchedulePreviewItemViewModel> PreviewItems { get; set; }
         public ReportingPeriodScheduleResultViewModel Result { get; set; }
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của ReportingPeriodScheduleRequestViewModel.
         public ReportingPeriodScheduleRequestViewModel()
         {
             Year = DateTime.Today.Year;
@@ -452,6 +454,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public string NoiDung { get; set; }
         public LoaiThongBao LoaiThongBao { get; set; }
         public int? KyBaoCaoId { get; set; }
+        public int? ChiSoChatLuongId { get; set; }
         public int? BaoCaoId { get; set; }
         public DateTime NgayTao { get; set; }
         public bool DaDoc { get; set; }
@@ -478,6 +481,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
     {
         public bool IsAdmin { get; set; }
         public int TongChiSo { get; set; }
+        public int TongBaoCaoCanNop { get; set; }
         public int BaoCaoDaGui { get; set; }
         public int BaoCaoThieu { get; set; }
         public int BaoCaoQuaHan { get; set; }
@@ -486,6 +490,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int OverdueMissingReportCount { get; set; }
         public IList<MissingReportAlertViewModel> MissingReports { get; set; }
         public IList<DepartmentProgressViewModel> DepartmentProgress { get; set; }
+        public IList<DashboardMetricDetailViewModel> MetricDetails { get; set; }
         public int? SelectedTanSuat { get; set; }
         public IList<SelectListItem> TanSuatOptions { get; set; }
         public int? NamBaoCao { get; set; }
@@ -502,6 +507,25 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public IList<SelectListItem> TrangThaiNhapLieuOptions { get; set; }
         public IList<SelectListItem> TrangThaiDuyetOptions { get; set; }
         public IList<SelectListItem> DatMucTieuOptions { get; set; }
+    }
+
+    public class DashboardMetricDetailViewModel
+    {
+        public int KyBaoCaoId { get; set; }
+        public int KhoaPhongId { get; set; }
+        public int ChiSoChatLuongId { get; set; }
+        public int? BaoCaoId { get; set; }
+        public string TenKyBaoCao { get; set; }
+        public DateTime HanNop { get; set; }
+        public string TenKhoaPhong { get; set; }
+        public string MaChiSo { get; set; }
+        public string TenChiSo { get; set; }
+        public decimal? KetQua { get; set; }
+        public bool? DatMucTieu { get; set; }
+        public TrangThaiBaoCao? TrangThaiBaoCao { get; set; }
+        public bool IsSubmitted { get; set; }
+        public bool IsOverdueMissing { get; set; }
+        public bool HasWarningToday { get; set; }
     }
 
     public class MissingReportAlertViewModel
@@ -672,6 +696,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         // Danh sách lỗi chi tiết theo dòng.
         public IList<string> Errors { get; set; }
 
+        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của ImportResultViewModel.
         public ImportResultViewModel()
         {
             // Khởi tạo sẵn để view/service có thể thêm lỗi trực tiếp.

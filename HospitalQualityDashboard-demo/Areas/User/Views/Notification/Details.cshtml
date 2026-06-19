@@ -6,6 +6,13 @@
     ViewBag.Title = "Chi tiết thông báo";
     var notification = Model.Notification;
     var isOverdueNotification = notification.LoaiThongBao == LoaiThongBao.QuaHan;
+    var detailUrgencyClass = notification.LoaiThongBao == LoaiThongBao.QuaHan
+        ? "notification-detail-overdue"
+        : notification.LoaiThongBao == LoaiThongBao.HanNopHomNay
+            ? "notification-detail-due-today"
+            : notification.LoaiThongBao == LoaiThongBao.NhacHan
+                ? "notification-detail-due-soon"
+                : string.Empty;
 }
 
 <div class="page-header">
@@ -26,7 +33,7 @@
     </div>
 </div>
 
-<div class="card mb-3">
+<div class="card mb-3 notification-detail @detailUrgencyClass">
     <div class="card-body">
         <div class="d-flex justify-content-between gap-3 flex-wrap">
             <div>
