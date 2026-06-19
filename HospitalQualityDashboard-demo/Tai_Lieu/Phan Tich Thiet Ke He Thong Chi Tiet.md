@@ -1,7 +1,7 @@
 # TÀI LIỆU PHÂN TÍCH THIẾT KẾ HỆ THỐNG CHI TIẾT (SYSTEM DESIGN DOCUMENT - SDD)
 ## Dự án: Phần mềm Quản lý Bộ chỉ số Chất lượng Bệnh viện (HospitalQualityDashboard)
 
-Chào bạn, với tư cách là **System Architect & Designer**, tôi xin trình bày tài liệu Phân tích và Thiết kế Hệ thống chi tiết (System Design Document - SDD) cho hệ thống `HospitalQualityDashboard`. Tài liệu này phân tích chi tiết từ kiến trúc, sơ đồ UML lớp, sơ đồ tuần tự, thiết kế cơ sở dữ liệu vật lý đến các thuật toán nghiệp vụ đặc thù đang vận hành trong dự án.
+Tài liệu này mô tả thiết kế hiện tại của `HospitalQualityDashboard`, được đối chiếu lại với code, `.csproj`, cấu hình và schema ngày 19/06/2026. Nội dung bao gồm kiến trúc, sơ đồ lớp/tuần tự, cơ sở dữ liệu vật lý và các thuật toán nghiệp vụ đang vận hành.
 
 ---
 
@@ -25,11 +25,11 @@ flowchart TD
 
     subgraph Business_Layer ["Tầng Nghiệp Vụ (Service Layer)"]
         SvcBase["DbServiceBase (ADO.NET Query, Command, Params Helpers)"]
-        Svc["Services (AuthService, IndicatorServices/ReportingPeriodServices, ReportDashboardServices, NotificationExportServices...)"]
+        Svc["Services (Auth, Indicator, Report/Dashboard, Notification, Export...)"]
     end
 
     subgraph DB_Layer ["Tầng Dữ Liệu (Data Layer)"]
-        DB[(SQL Server LocalDB / MSSQLLocalDB)]
+        DB[(Azure SQL / SQL Server)]
     end
 
     View <-->|HTTP Requests / JSON AJAX| Ctrl
@@ -585,6 +585,7 @@ Các file chính:
 - `Areas/User/Controllers/ExportController.cs`
 - `Models/DTOs/ExportDtos.cs`
 - `App_Data/Sql/003_AddExportHistory.sql`
+- `App_Data/Sql/004_AddIndicatorWarning.sql`
 
 ### 6.2. Workbook xuất ra
 
@@ -616,3 +617,12 @@ Script `003_AddExportHistory.sql` tạo bảng audit:
 | `KhoaPhongId` | Khoa/phòng liên quan, thường có giá trị với User. |
 
 Bảng có index theo `NgayXuat` và theo `(NguoiDungId, NgayXuat)` để hỗ trợ truy vết nhanh.
+
+## 7. Thiết Kế Dashboard, Cảnh Báo Và Bảo Mật Phiên Hiện Tại
+
+- `DashboardService` và `DashboardExcelExportService` dùng cùng khái niệm slot `(KyBaoCaoId, KhoaPhongId, ChiSoChatLuongId)`; trạng thái đã nộp gồm `DaGui`, `QuaHan`, `DaKhoa`, `DaDuyet`.
+- `IndicatorWarningMessageBuilder` tạo nội dung trước hạn, đúng hạn và quá hạn theo ngày lịch Việt Nam. `004_AddIndicatorWarning.sql` liên kết thông báo/log chống trùng với `ChiSoChatLuongId`.
+- `NotificationAutomationService` nhắc ở các mốc 10, 7, 3, 1 và 0 ngày; cảnh báo thủ công được giới hạn một lần mỗi ngày cho cùng slot.
+- `PageController` tái xác thực tài khoản định kỳ trong session, cập nhật lại role/khoa phòng và xóa session nếu tài khoản không còn hợp lệ.
+- `AuthService` khóa tạm sau 5 lần đăng nhập sai; `Web.config` đặt session 30 phút, `HttpOnly`, `SameSite=Lax`, còn Release transform bật `requireSSL`.
+- Import giới hạn file 5 MB, tối đa 10.000 dòng, giới hạn ZIP entry/shared strings và tỷ lệ giải nén để giảm rủi ro file Office độc hại.

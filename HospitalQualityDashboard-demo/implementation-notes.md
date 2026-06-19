@@ -786,3 +786,48 @@ powershell -ExecutionPolicy Bypass -File C:\Users\maiva\.gemini\antigravity\brai
 - `Controllers/ExportController.cs` (Root controller chuyển hướng kèm tham số `tanSuat`)
 - `Areas/Admin/Views/Dashboard/Index.cshtml` (Cập nhật HTML dropdown lọc, bảng hiển thị cột mới, badge màu sắc và modal Excel export)
 
+### 16. Chi tiết bốn thẻ tổng quan Dashboard Admin
+
+- Bốn thẻ Tổng cần nộp, Đã báo cáo, Còn thiếu và Quá hạn mở chung modal `#dashboardMetricDetailModal`.
+- Danh sách dùng cùng định nghĩa slot và bộ lọc tần suất với số tổng hợp trên thẻ.
+- Báo cáo hợp lệ gồm `DaGui`, `QuaHan`, `DaKhoa`, `DaDuyet`; cột đánh giá lấy từ `BaoCaoChiTiet.DatMucTieu` và hiển thị Đạt, Chưa đạt hoặc Chưa đánh giá.
+- Bản nháp vẫn thuộc Còn thiếu. Quá hạn là slot chưa có báo cáo hợp lệ và có hạn nộp trước ngày hiện tại theo múi giờ Việt Nam.
+- Không thay đổi schema database. Structural verification:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\VerifyDashboardMetricDetails.ps1
+```
+
+### 17. Cảnh báo chỉ số chưa nộp trên Dashboard
+
+- Thêm migration `004_AddIndicatorWarning.sql` để liên kết `ThongBao` và `ThongBaoTuDongLog` với `ChiSoChatLuongId`.
+- Nhắc hạn tự động chạy ở các mốc 10, 7, 3, 1 và 0 ngày; Dashboard Admin/User kích hoạt kiểm tra theo giờ Việt Nam mà không chặn trang khi automation lỗi.
+- Modal chi tiết Dashboard Admin có nút gửi cảnh báo riêng cho từng slot chưa nộp và trạng thái `Đã cảnh báo hôm nay`.
+- POST cảnh báo kiểm tra lại phân công, kỳ mở và trạng thái nộp; dedup key giới hạn một lần mỗi ngày.
+- Cảnh báo thủ công luôn kèm mã và tên chỉ số. Số ngày được tính theo ngày lịch Việt Nam: trước hạn hiển thị số ngày còn lại, đúng hạn dùng câu `Hôm nay là hạn nộp`, sau hạn hiển thị số ngày đã quá hạn.
+- Loại thông báo được lưu tại thời điểm gửi để giao diện User giữ màu ổn định: sắp đến hạn màu vàng, hạn nộp hôm nay màu cam và quá hạn màu đỏ.
+- Sidebar User hiển thị badge tổng số thông báo chưa đọc của đúng tài khoản và tự ẩn khi số lượng bằng `0`; số được truy vấn lại trên mỗi request khu vực User.
+- Danh sách thông báo có nút `Đánh dấu đã đọc` trên từng dòng chưa đọc. Form dùng `POST`, anti-forgery token và quay lại đúng trang danh sách sau khi cập nhật.
+- Verification:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\VerifyIndicatorWarningMessages.ps1
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\VerifyIndicatorWarnings.ps1
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\VerifyUnreadNotificationBadge.ps1
+```
+
+## 2026-06-19
+
+### Hợp nhất tài liệu chức năng
+
+- Hợp nhất danh sách chức năng kỹ thuật vào `README.md` và `PROJECT_CONTEXT.md`; loại bỏ bảng tên nhánh cũ không còn phản ánh Git hiện tại.
+- Hợp nhất ma trận chức năng Admin/User, nguyên tắc phân quyền và giới hạn xuất dữ liệu vào `TAI_LIEU_NGHIEP_VU.md`.
+- Xóa hai tài liệu nguồn trùng lặp sau khi cập nhật các tham chiếu liên quan.
+
+### Đồng bộ tài liệu theo hiện trạng code
+
+- Đối chiếu bảy file Markdown còn lại với `.csproj`, `Web.config`, enum, service, controller, bốn migration SQL và 11 script verify.
+- Cập nhật README/AGENTS về cấu trúc controller, migration, script kiểm tra, session, lockout và giới hạn import.
+- Cập nhật `PROJECT_CONTEXT.md`, tài liệu nghiệp vụ và SDD về service mới, trạng thái `DaDuyet`, Dashboard chi tiết, cảnh báo chỉ số và cấu hình bảo mật hiện tại.
+- Giữ nguyên nội dung lịch sử; báo cáo bảo mật được bổ sung bảng trạng thái ngày 19/06/2026 thay vì xóa bằng chứng rà soát ngày 02/06/2026.
+

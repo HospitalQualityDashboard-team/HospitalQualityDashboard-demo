@@ -2,11 +2,27 @@
 
 > Cập nhật tài liệu ngày 17/06/2026: một số phát hiện trong báo cáo này đã được giảm nhẹ bởi các thay đổi sau ngày rà soát ban đầu. Cụ thể, export CSV đã được chuyển sang Excel `.xlsx`, một số thao tác DB nhiều bước đã dùng transaction, `Web.config` đã có `httpOnlyCookies`, `sessionState timeout="30"` và `cookieSameSite="Lax"`, và Dashboard export chi tiết đã có audit `LichSuXuatBaoCao`. Các mục bên dưới vẫn nên được kiểm tra lại trên code hiện tại trước khi đóng hẳn.
 
+> Đối chiếu tĩnh ngày 19/06/2026: giữ nguyên bằng chứng kiểm tra ngày 02/06/2026 bên dưới để phục vụ truy vết. Bảng sau phản ánh trạng thái code hiện tại, không thay thế kiểm thử xâm nhập động.
+
+| Mục | Trạng thái 19/06/2026 | Bằng chứng hiện tại |
+|---:|---|---|
+| 1 | Đã giảm nhẹ | User controller tải báo cáo hiện có từ DB, kiểm tra khoa/phòng và kỳ mở; service kiểm tra lại phân công/kỳ/trạng thái trước khi lưu. |
+| 2 | Còn mở | Import nhân viên vẫn có thể tạo tài khoản với mật khẩu ban đầu bằng mã nhân viên; chưa có cờ bắt đổi mật khẩu. |
+| 3 | Đã giảm nhẹ | `PageController` tái xác thực session tối đa mỗi 5 phút, xóa phiên khi tài khoản không hợp lệ và cập nhật role/khoa phòng từ DB. |
+| 4 | Đã khắc phục theo route hiện tại | Root export cũ đã bị xóa; User area chỉ xuất báo cáo/Dashboard trong phạm vi khoa/phòng. |
+| 5 | Đã giảm nhẹ | `AuthService` đếm lần sai và khóa tạm 15 phút sau 5 lần; chưa có rate limit theo IP/CAPTCHA. |
+| 6 | Giảm nhẹ một phần | Cookie có `HttpOnly`, `SameSite=Lax`, session 30 phút và Release bật `requireSSL`; chưa thấy rotate session ID rõ ràng sau login. |
+| 7 | Đã giảm nhẹ | Dữ liệu CSV còn dùng được trung hòa tiền tố công thức; các luồng export chính trả workbook `.xlsx`. |
+| 8 | Đã giảm nhẹ | Import giới hạn 5 MB, 10.000 dòng, ZIP entry 10 MB, shared strings và tỷ lệ giải nén. |
+| 9 | Đã giảm nhẹ | Các luồng lưu/xóa báo cáo, lưu/xóa/import chỉ số và import danh mục chính dùng transaction; vẫn cần test lỗi giữa chừng. |
+| 10 | Đã khắc phục theo code hiện tại | Các POST Assignment, bao gồm preview/bulk action, đều có anti-forgery. |
+| 11 | Giảm nhẹ một phần | Cấu hình gốc harden cookie/session; Release transform bật HTTPS cookie, nhưng HSTS/custom errors vẫn phụ thuộc môi trường deploy. |
+
 Ngày kiểm tra: 02/06/2026  
 Phạm vi: toàn bộ dự án `HospitalQualityDashboard` trong repository hiện tại.  
 Phương pháp: đọc mã nguồn, rà soát theo bề mặt runtime, đối chiếu controller, service, schema SQL, view Razor, cấu hình web và các luồng import/export. Không triển khai khai thác động vì dự án cần IIS Express/LocalDB và dữ liệu thật để chạy đầy đủ; các kết luận dưới đây được xác thực bằng truy vết tĩnh từ điểm vào đến sink/điểm kiểm soát.
 
-## Tóm tắt
+## Tóm tắt tại thời điểm kiểm tra 02/06/2026
 
 | Mức độ | Số lượng | Nhóm lỗi chính |
 |---|---:|---|

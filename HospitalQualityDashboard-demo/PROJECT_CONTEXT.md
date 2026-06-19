@@ -43,7 +43,10 @@ Connection string chính nằm trong `ConnectionStrings.config`; `Web.config` ch
 HospitalQualityDashboard-demo/                      # Thư mục gốc của project
 ├── App_Data/
 │   └── Sql/
-│       └── 001_CreateSchema.sql          # Script tạo CSDL
+│       ├── 001_CreateSchema.sql                # Schema đầy đủ cho database mới
+│       ├── 002_PerformanceIndexes.sql           # Index hiệu năng idempotent
+│       ├── 003_AddExportHistory.sql             # Audit xuất Dashboard chi tiết
+│       └── 004_AddIndicatorWarning.sql          # Cảnh báo theo chỉ số và dedup
 ├── App_Start/                                # Cấu hình MVC khởi động
 │   ├── BundleConfig.cs                       # Bundle CSS/JS
 │   ├── FilterConfig.cs                       # Global filter
@@ -127,25 +130,11 @@ HospitalQualityDashboard-demo/                      # Thư mục gốc của pro
 │   ├── bootstrap.css                          # Bootstrap 5 (Bundle CSS chính)
 │   ├── bootstrap.min.css                      # Minified (có trong .csproj)
 │   ├── bootstrap.css.map
-│   ├── bootstrap-grid.css / .min.css / .rtl.css / ...  # Bootstrap-grid variants
-│   ├── bootstrap-reboot.css / .min.css / .rtl.css / ...
-│   ├── bootstrap-utilities.css / .min.css / .rtl.css / ...
-│   ├── bootstrap.rtl.css / .min.css / ...
 │   └── Site.css                               # Style tùy biến
 ├── Controllers/                               # Root controllers
 │   ├── AccountController.cs                   # Login/logout, profile (giữ nguyên logic)
-│   ├── AssignmentController.cs                # Redirect → Admin
-│   ├── DashboardController.cs                 # Redirect → Admin / User
-│   ├── DepartmentController.cs                # Redirect → Admin
-│   ├── EmployeeController.cs                  # Redirect → Admin
-│   ├── ExportController.cs                    # Redirect → Admin / User
 │   ├── HomeController.cs                      # Landing page
-│   ├── IndicatorController.cs                 # Redirect → Admin / User
-│   ├── NotificationController.cs              # Redirect → Admin / User
-│   ├── PageController.cs                      # Lớp base: session guard, phân quyền
-│   ├── ReportController.cs                    # Redirect → Admin / User
-│   └── ReportingPeriodController.cs           # Redirect → Admin
-├── Filters/                                   # (Thư mục rỗng, hiện không dùng)
+│   └── PageController.cs                      # Lớp base: session guard, phân quyền
 ├── Models/
 │   ├── DTOs/                                  # Data Transfer Objects
 │   │   ├── AssignmentDtos.cs
@@ -177,10 +166,14 @@ HospitalQualityDashboard-demo/                      # Thư mục gốc của pro
 │   └── *.map                                  # Source maps
 ├── Services/
 │   ├── AuthService.cs                         # Xác thực, đổi mật khẩu, update profile
+│   ├── DashboardExcelExportService.cs         # Xuất Dashboard nhiều sheet và ghi audit
 │   ├── DatabaseConfiguration.cs               # Tên connection string và helper đọc cấu hình DB
 │   ├── DatabaseBootstrapper.cs                # Khởi tạo CSDL tự động
 │   ├── DbServiceBase.cs                       # Base: Query, Scalar, Execute, Param
+│   ├── DropdownCache.cs                       # Cache tùy chọn dropdown trong 5 phút
 │   ├── ExcelImportExportService.cs            # Đọc/ghi Excel
+│   ├── FrequencyHelper.cs                     # Chuẩn hóa tần suất chỉ số/kỳ báo cáo
+│   ├── IndicatorWarningMessageBuilder.cs      # Tạo nội dung cảnh báo theo hạn nộp
 │   ├── IndicatorServices.cs                   # Chỉ số (Service, Assignment, Parser)
 │   ├── ManagementServices.cs                  # Khoa/phòng và nhân viên
 │   ├── NotificationExportServices.cs          # Thông báo + NotificationAutomationService
@@ -189,17 +182,15 @@ HospitalQualityDashboard-demo/                      # Thư mục gốc của pro
 │   ├── ReportingPeriodServices.cs             # Kỳ báo cáo + ReportingPeriodScheduleService
 │   └── SessionUserAccessor.cs                 # Chuẩn hóa session key
 ├── Tai_Lieu/                                  # Tài liệu nghiệp vụ và file nguồn
-│   ├── BACKEND_TASKS.md
-│   ├── danh_sach_chuc_nang_admin_user.md
 │   ├── Danh_sach_nhan_vien_mau_Benh_vien_Ung_Buou.xlsx
 │   ├── DM_KHOA_PHONG.xlsx
 │   ├── Lỗ hổng.md
 │   ├── Phân chia các chỉ số dựa theo đơn vị thu thập và tổng hợp.docx
 │   ├── Phân công chỉ số.xlsx
 │   ├── Phan Tich Thiet Ke He Thong Chi Tiet.md
-│   ├── Quy Định & Hướng Dẫn Dành Cho Dev Team.md
+│   ├── Phieu-Theo-doi-Tien-do-TTTN-Tuan7.docx
+│   ├── Phieu-Theo-doi-Tien-do-TTTN-Tuan8.docx
 │   ├── SRS_HeThongDauThauBenhVien.docx
-│   ├── Yeu Cau Nghiep Vu BA.md
 │   └── Định nghĩa(55 chí số) _55.docx
 ├── Views/                                     # Root views
 │   ├── Account/
@@ -226,21 +217,20 @@ HospitalQualityDashboard-demo/                      # Thư mục gốc của pro
 └── Web.Release.config                         # Transform Release
 ```
 
-> **Ghi chú:** Thư mục `Filters/` hiện đang rỗng (trước đây có `RequireLoginAttribute.cs` nhưng đã xóa). Các file Bootstrap trong `Content/` và `Scripts/` có nhiều file không được BundleConfig tham chiếu trực tiếp (các biến thể grid/reboot/utilities/rtl/esm/bundle), nhưng vẫn tồn tại trong `.csproj` để phục vụ tùy biến giao diện sau này.
+> **Ghi chú:** Thư mục `Filters/` và các root redirect controller cũ đã được xóa. `Content/` giữ CSS Bootstrap chính, bản minified và source map; `Scripts/` vẫn giữ các biến thể bundle/esm/slim và source map có trong project.
 >
-> **Cấp thư mục gốc repo (`D:\Hoc_Tap\Thuc_Tap\HospitalQualityDashboard-demo\`):** chứa `README.md`, `Chức_năng.md`, `HospitalQualityDashboard-demo.slnx`, `.gitignore`, `.claude/worktrees/` (còn tồn đọng), `.superpowers/brainstorm/` (còn tồn đọng), `docs/superpowers/` (còn tồn đọng), `packages/` (NuGet).
+> **Cấp thư mục gốc repo (`D:\Hoc_Tap\Thuc_Tap\HospitalQualityDashboard-demo\`):** chứa `README.md`, `HospitalQualityDashboard-demo.slnx`, `.gitignore`, thư mục local `.worktrees/`, project ASP.NET và `packages/` NuGet.
 
 ## 4. Kiến Trúc Ứng Dụng
 
 ### 4.1. Controller
 
 Các controller kế thừa `PageController` để dùng chung cơ chế session và phân quyền.
-Sau đợt tái cấu trúc tháng 06/2026, các root controller (`Controllers/`) chỉ đóng vai trò chuyển hướng (redirect wrapper) tới Area controller tương ứng. Logic nghiệp vụ và render view được thực hiện trong `Areas/Admin/Controllers/` và `Areas/User/Controllers/`.
+Sau đợt tái cấu trúc tháng 06/2026, các redirect wrapper ở root đã được xóa. Logic nghiệp vụ và render view nằm trong `Areas/Admin/Controllers/` và `Areas/User/Controllers/`; root chỉ giữ đăng nhập/hồ sơ, trang Home và lớp cơ sở phân quyền.
 
 - `AccountController`: đăng nhập Admin/User riêng biệt, đăng xuất, đổi mật khẩu (giữ nguyên root).
 - `HomeController`: trang landing page root, điều hướng người dùng theo trạng thái đăng nhập.
 - `PageController`: lớp cơ sở, cung cấp session guard, `RequireAdmin()`, `EnsureUserDepartment()`.
-- Các root controller khác: tất cả đều là redirect wrapper, chuyển hướng sang Area.
 - `Areas/Admin/Controllers/`: chứa logic quản trị cho khoa/phòng, nhân viên, chỉ số, phân công, kỳ báo cáo, báo cáo, thông báo, xuất dữ liệu và dashboard..
 - `Areas/User/Controllers/`: chứa logic cho User khoa/phòng: dashboard, báo cáo, chỉ số (xem), thông báo, xuất báo cáo.
 
@@ -252,9 +242,13 @@ Các service chứa nghiệp vụ và truy cập database trực tiếp qua ADO.
 |---|---|
 | `DbServiceBase.cs` | Lớp cơ sở: `Query`, `Scalar`, `Execute`, `Param`, helper đọc dữ liệu |
 | `AuthService.cs` | Xác thực tài khoản, đổi mật khẩu, cập nhật lần đăng nhập cuối, update profile |
+| `DashboardExcelExportService.cs` | Xuất Dashboard nhiều sheet, áp dụng phạm vi theo vai trò và ghi `LichSuXuatBaoCao` |
 | `DatabaseConfiguration.cs` | Cấu hình tên connection string dùng chung cho các service |
 | `DatabaseBootstrapper.cs` | Khởi tạo CSDL và chạy script SQL tự động khi enabled |
+| `DropdownCache.cs` | Cache tùy chọn khoa/phòng, chỉ số và kỳ báo cáo trong 5 phút |
 | `ExcelImportExportService.cs` | Đọc Excel, xử lý shared string, inline string, ô trống bị Excel lược bỏ |
+| `FrequencyHelper.cs` | Chuẩn hóa và đối chiếu tần suất giữa chỉ số với kỳ báo cáo |
+| `IndicatorWarningMessageBuilder.cs` | Tạo nội dung cảnh báo trước hạn, đúng hạn và quá hạn theo ngày Việt Nam |
 | `IndicatorServices.cs` | Nghiệp vụ chỉ số: CRUD, import, parser tần suất/khoa phòng, suy luận công thức/đơn vị, phân công (AssignmentService) |
 | `ManagementServices.cs` | Nghiệp vụ khoa/phòng và nhân viên |
 | `NotificationExportServices.cs` | Thông báo thủ công, thông báo tự động (NotificationAutomationService), chống gửi trùng, xuất dữ liệu XLSX |
@@ -363,7 +357,7 @@ Kiểm tra session trên trình duyệt thực hiện qua DevTools:
 
 - Tab `Application` > `Storage` > `Cookies` cho biết cookie `ASP.NET_SessionId`.
 - Cookie chỉ lưu mã session; dữ liệu đăng nhập thực tế nằm phía server trong `Session`.
-- `Web.config` hiện chưa khai báo `sessionState timeout`, nên timeout server-side dùng mặc định ASP.NET khoảng 20 phút không hoạt động.
+- `Web.config` đặt `sessionState timeout="30"`, nên session server-side hết hạn sau 30 phút không hoạt động.
 - Sau logout, `SessionUserAccessor.ClearLoginSession` gọi `Clear()` và `Abandon()`, sau đó truy cập trang protected phải quay lại login.
 
 ### 8.2. Import khoa/phòng và nhân viên
@@ -427,7 +421,7 @@ Admin tạo kỳ báo cáo với loại kỳ, thời gian bắt đầu/kết th�
 
 ### 8.7. Admin theo dõi và xử lý báo cáo
 
-Admin xem danh sách báo cáo toàn viện, lọc theo kỳ, khoa/phòng, chỉ số. Danh sách Admin chỉ gồm các báo cáo `DaGui`, `QuaHan`, `DaKhoa`; báo cáo `Nhap` của User không hiển thị cho Admin.
+Admin xem danh sách báo cáo toàn viện, lọc theo kỳ, khoa/phòng, chỉ số. Luồng danh sách thao tác chính gồm `DaGui`, `QuaHan`, `DaKhoa`; báo cáo `Nhap` của User không hiển thị. Dữ liệu `DaDuyet` cũ vẫn được Dashboard và dịch vụ thông báo xem là đã nộp để không làm sai thống kê.
 
 Admin có thể:
 
@@ -443,16 +437,19 @@ Các route duyệt/trả lại báo cáo không còn thuộc luồng chính và 
 Dashboard hiển thị theo quyền:
 
 - Admin thấy thống kê toàn viện và tiến độ theo từng khoa/phòng.
+- Cụm thẻ tổng quan Admin tính theo slot duy nhất `(KyBaoCaoId, KhoaPhongId, ChiSoChatLuongId)` của kỳ không nháp, phân công/chỉ số đang hoạt động và tần suất phù hợp. Tổng cần nộp luôn bằng đã báo cáo cộng còn thiếu.
+- Admin có thể bấm từng thẻ để mở modal chi tiết: Tổng cần nộp hiển thị mọi slot, Đã báo cáo hiển thị các báo cáo hợp lệ kèm Đạt/Chưa đạt/Chưa đánh giá, Còn thiếu gồm slot chưa nộp và bản nháp, còn Quá hạn là tập con chưa nộp có `HanNop` trước ngày hiện tại.
+- Modal Dashboard Admin có nút cảnh báo cho từng slot chưa nộp. Mỗi slot chỉ gửi tối đa một cảnh báo thủ công trong ngày; thông báo liên kết trực tiếp với chỉ số để User mở đúng dòng cần xử lý.
 - User thấy số chỉ số được phân công, số đã gửi, còn thiếu, quá hạn của khoa/phòng mình.
 - User thấy cảnh báo ngay sau khi đăng nhập nếu có chỉ số chưa báo cáo, gần đến hạn hoặc đã quá hạn chưa nộp. Cảnh báo có danh sách chi tiết và link nhập báo cáo nhanh.
 
 Quy tắc thống kê quan trọng:
 
 ```text
-Đã báo cáo = DaGui + QuaHan + DaKhoa
+Đã báo cáo = DaGui + QuaHan + DaKhoa + DaDuyet
 ```
 
-`QuaHan` trong `BaoCao` nghĩa là đã gửi trễ, không phải slot chưa gửi sau hạn.
+`QuaHan` trong `BaoCao` nghĩa là đã gửi trễ. Thẻ `Quá hạn` trên Dashboard Admin chỉ đếm slot đã qua `HanNop` nhưng chưa có báo cáo hợp lệ, không đếm báo cáo đã gửi trễ.
 
 ### 8.9. Thông báo tự động và chi tiết thông báo
 
@@ -460,6 +457,7 @@ Thông báo nội bộ hiện có 2 nhóm:
 
 - Thông báo thủ công do Admin gửi.
 - Thông báo tự động do `NotificationAutomationService` tạo.
+- Nhắc hạn tự động chạy ở các mốc 10, 7, 3, 1 và 0 ngày trước hạn khi Dashboard được mở; dedup log ngăn tạo thông báo trùng.
 
 Các loại thông báo tự động chính:
 
@@ -468,7 +466,7 @@ Các loại thông báo tự động chính:
 - `QuaHan`: cảnh báo còn chỉ số quá hạn chưa nộp.
 - `TongHopAdmin`: tổng hợp tiến độ hằng ngày cho Admin.
 
-Khi User bấm vào một thông báo có gắn `KyBaoCaoId`, `NotificationController.Details` mở trang chi tiết và truy vấn danh sách chỉ số còn thiếu của khoa/phòng trong kỳ đó. Với thông báo `QuaHan`, danh sách chỉ lấy các chỉ số đã qua hạn nhưng chưa có báo cáo ở trạng thái `DaGui`, `QuaHan` hoặc `DaKhoa`.
+Khi User bấm vào một thông báo có gắn `KyBaoCaoId`, `NotificationController.Details` mở trang chi tiết và truy vấn danh sách chỉ số còn thiếu của khoa/phòng trong kỳ đó. Với thông báo `QuaHan`, danh sách chỉ lấy các chỉ số đã qua hạn nhưng chưa có báo cáo ở trạng thái `DaGui`, `QuaHan`, `DaKhoa` hoặc `DaDuyet`.
 
 Trang chi tiết thông báo hiển thị form POST có anti-forgery để User đánh dấu thông báo là đã đọc; GET chi tiết chỉ đọc dữ liệu.
 
@@ -717,25 +715,22 @@ Lệnh kiểm tra:
 
 ## 17. Ghi Chú Về Dọn Dẹp File Dư Thừa (Ngày 10/06/2026)
 
-Đã lên kế hoạch dọn dẹp và ghi nhận trong tài liệu, tuy nhiên hiện trạng thực tế chưa được dọn triệt để:
+Mục này lưu lịch sử dọn dẹp ngày 10/06/2026. Trạng thái được đối chiếu lại ngày 19/06/2026:
 
 **Các mục đã xóa:**
 - `bin/`, `obj/` — build artifact, có thể rebuild lại.
 - `packages/` NuGet trùng — các bản `.0`, MVC5, Razor3, WebPages3 không được `.csproj` tham chiếu.
 - `HospitalQualityDashboard-demo.csproj.user` — file cấu hình VS cá nhân.
 
-**Các mục còn tồn đọng cần xử lý tiếp:**
+**Các mục local hoặc tài nguyên phụ còn giữ:**
 
 | Mục | Vị trí | Trạng thái |
 |---|---|---|
-| `docs/superpowers/` | Root `docs/` + Project `HospitalQualityDashboard-demo/docs/` | ⚠️ Vẫn còn 4 plans + 2 specs (root), 5 plans + 4 specs + 1 concept (project) |
-| `.claude/worktrees/` | Root `.claude/` | ⚠️ Vẫn còn worktree `agent-a54a28c7483c11085` |
-| `.superpowers/brainstorm/` | Root `.superpowers/` | ⚠️ Vẫn còn brainstorm `codex-20260603153658` |
-| `Content/` CSS variants | Nhiều file không cần thiết (grid, reboot, utilities, rtl, map) | ⚠️ Vẫn còn trong `.csproj` và thư mục |
-| `Scripts/` JS variants | `bootstrap.bundle.*`, `bootstrap.esm.*`, `bootstrap.min.*`, `jquery-*.slim.*`, `*.map` | ⚠️ Vẫn còn (có thể giữ để tùy biến sau) |
-| `Filters/` | Thư mục rỗng | ⚠️ Có thể xóa hoặc dùng lại sau |
+| `.worktrees/` | Root repo | Thư mục local còn tồn tại; không thuộc mã ứng dụng. |
+| `Content/` | CSS Bootstrap chính, minified và source map | Đang được project quản lý. |
+| `Scripts/` | `bootstrap.bundle.*`, `bootstrap.esm.*`, `jquery-*.slim.*`, `*.map` | Đang được project quản lý; có thể rà soát riêng nếu cần giảm dung lượng. |
 
-**Lưu ý:** Nếu muốn dọn triệt để, cần chạy lại cleanup script hoặc xóa thủ công. Các mục trong `Content/` và `Scripts/` dù không dùng đến vẫn có thể giữ lại để phục vụ tùy biến giao diện sau này mà không cần cài đặt lại Bootstrap.
+**Lưu ý:** Không xóa `.worktrees/`, `Content/` hoặc `Scripts/` chỉ dựa trên danh sách này; phải kiểm tra đăng ký Git worktree, `.csproj` và `BundleConfig` trước.
 
 ## 18. Cập Nhật Ngày 13/06/2026 - Cải tiến Tầng CSDL, Xuất Excel & Sửa Lỗi Hồ Sơ
 
@@ -866,9 +861,8 @@ Các file Markdown chính đã được đồng bộ theo hiện trạng code:
 
 - `README.md`: hướng dẫn chạy, vận hành, export, audit và kiểm thử.
 - `AGENTS.md`: hướng dẫn làm việc cho agent/dev trong repo.
-- `Chức_năng.md`: danh sách chức năng và trạng thái script verify.
-- `TAI_LIEU_NGHIEP_VU.md`: cập nhật nghiệp vụ xuất Dashboard chi tiết.
-- `Tai_Lieu/danh_sach_chuc_nang_admin_user.md`: cập nhật phạm vi Admin/User, export và bảng DB liên quan.
+- `PROJECT_CONTEXT.md`: kiến trúc, ánh xạ thành phần kỹ thuật và trạng thái script verify.
+- `TAI_LIEU_NGHIEP_VU.md`: phạm vi Admin/User, ma trận chức năng và nghiệp vụ xuất Dashboard chi tiết.
 - `Tai_Lieu/Phan Tich Thiet Ke He Thong Chi Tiet.md`: bổ sung thiết kế audit export.
 - `Tai_Lieu/Lỗ hổng.md`: ghi chú trạng thái các rủi ro đã giảm nhẹ hoặc cần kiểm tra lại.
 
@@ -888,9 +882,14 @@ Thư mục `tools/` hiện có các script:
 
 - `VerifyDashboardExcelDetailedExport.ps1`
 - `VerifyDashboardExcelUpgrade.ps1`
+- `VerifyDashboardAdminSummary.ps1`
+- `VerifyDashboardMetricDetails.ps1`
 - `VerifyEmployeeOrder.ps1`
+- `VerifyIndicatorWarningMessages.ps1`
+- `VerifyIndicatorWarnings.ps1`
 - `VerifyManagementPaging.ps1`
 - `VerifyReportResultAndExcelTime.ps1`
 - `VerifyReportSubmissionNavigationAndAdminAudit.ps1`
+- `VerifyUnreadNotificationBadge.ps1`
 
 Các script này không thay thế build/Razor compile/checklist thủ công, nhưng giúp kiểm tra nhanh những luồng nghiệp vụ đã từng phát sinh lỗi.

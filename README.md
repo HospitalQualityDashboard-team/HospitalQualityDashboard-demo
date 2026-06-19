@@ -49,6 +49,7 @@ Tài liệu liên quan:
 - Lưu nháp báo cáo.
 - Gửi báo cáo.
 - Xem thông báo, nhắc hạn, quá hạn.
+- Xuất báo cáo và Dashboard chi tiết trong phạm vi khoa/phòng của mình.
 - Cập nhật hồ sơ cá nhân.
 - Đổi mật khẩu.
 
@@ -58,12 +59,13 @@ Tài liệu liên quan:
 HospitalQualityDashboard-demo/
 ├── HospitalQualityDashboard-demo.slnx
 ├── README.md
-├── Chức_năng.md
 └── HospitalQualityDashboard-demo/
     ├── App_Data/
     │   └── Sql/
     │       ├── 001_CreateSchema.sql
-    │       └── 002_PerformanceIndexes.sql
+    │       ├── 002_PerformanceIndexes.sql
+    │       ├── 003_AddExportHistory.sql
+    │       └── 004_AddIndicatorWarning.sql
     ├── App_Start/
     │   ├── BundleConfig.cs
     │   ├── FilterConfig.cs
@@ -97,7 +99,7 @@ HospitalQualityDashboard-demo/
     └── Web.config
 ```
 
-Các controller nghiệp vụ chính nằm trong `Areas/Admin` và `Areas/User`. Các root controller trong `Controllers/` chủ yếu giữ vai trò redirect tương thích hoặc xử lý login/profile.
+Các controller nghiệp vụ chính nằm trong `Areas/Admin` và `Areas/User`. Thư mục root `Controllers/` hiện chỉ còn `AccountController`, `HomeController` và `PageController`; các controller redirect tương thích cũ đã được xóa.
 
 ## 4. Yêu cầu môi trường
 
@@ -466,6 +468,11 @@ Nếu dùng cảnh báo chỉ số trên Dashboard với database cũ, phải ch
 - Không đưa connection string thật vào ảnh chụp màn hình.
 - Sau khi lộ password trong Git history, cần rotate password Azure SQL và rewrite history nếu muốn xóa khỏi lịch sử public/private remote.
 - Phân quyền Admin/User phải kiểm tra ở server-side, không chỉ ẩn nút ở Razor.
+- Session hết hạn sau 30 phút không hoạt động; cookie dùng `HttpOnly` và `SameSite=Lax`, còn Release transform bật `requireSSL`.
+- Session được tái xác thực với database tối đa mỗi 5 phút; tài khoản bị khóa hoặc đổi quyền/khoa phòng sẽ bị cập nhật hoặc thu hồi phiên.
+- Đăng nhập sai 5 lần khóa tạm tài khoản trong 15 phút.
+- Import giới hạn file 5 MB, tối đa 10.000 dòng và kiểm tra tỷ lệ giải nén/nội dung ZIP Office.
+- Mọi POST nghiệp vụ hiện có anti-forgery; dữ liệu xuất CSV được trung hòa tiền tố công thức và các luồng xuất chính dùng `.xlsx`.
 - Khi rewrite Git history, dùng `--force-with-lease`, không dùng `--force` thường.
 
 ## 15. Kiểm tra thủ công sau khi thay đổi code
@@ -503,12 +510,17 @@ Nếu dùng cảnh báo chỉ số trên Dashboard với database cũ, phải ch
 Các script PowerShell trong `HospitalQualityDashboard-demo/tools/` dùng để kiểm tra nhanh các luồng đã từng sửa:
 
 ```text
+VerifyDashboardAdminSummary.ps1
 VerifyDashboardExcelDetailedExport.ps1
 VerifyDashboardExcelUpgrade.ps1
+VerifyDashboardMetricDetails.ps1
 VerifyEmployeeOrder.ps1
+VerifyIndicatorWarningMessages.ps1
+VerifyIndicatorWarnings.ps1
 VerifyManagementPaging.ps1
 VerifyReportResultAndExcelTime.ps1
 VerifyReportSubmissionNavigationAndAdminAudit.ps1
+VerifyUnreadNotificationBadge.ps1
 ```
 
 Các script này cần app local chạy được và có dữ liệu phù hợp; dùng chúng như kiểm tra bổ sung bên cạnh build, Razor compile và checklist thủ công.

@@ -136,6 +136,27 @@ User không có quyền:
 - Khóa hoặc xóa báo cáo.
 - Gửi thông báo cho khoa/phòng khác.
 
+### 5.3. Ma trận chức năng theo vai trò
+
+| Nhóm chức năng | Admin | User khoa/phòng |
+|---|---|---|
+| Dashboard | Toàn viện, có bộ lọc và chi tiết tiến độ | Chỉ dữ liệu khoa/phòng đang đăng nhập |
+| Khoa/phòng, nhân viên và tài khoản | Quản lý và import dữ liệu | Không có quyền quản lý |
+| Danh mục chỉ số và phân công | Quản lý, import và phân công | Chỉ xem chỉ số được phân công |
+| Kỳ báo cáo | Tạo, sửa, mở và quản lý kỳ | Chỉ xem kỳ mở phù hợp với tần suất chỉ số |
+| Nhập, lưu nháp và gửi báo cáo | Theo dõi và quản lý báo cáo toàn viện | Thực hiện cho chỉ số thuộc khoa/phòng mình |
+| Khóa hoặc xóa báo cáo | Có | Không |
+| Thông báo | Gửi thủ công và theo dõi thông báo tự động | Xem và đánh dấu đã đọc thông báo của mình |
+| Xuất dữ liệu | Xuất dữ liệu toàn viện theo bộ lọc | Chỉ xuất báo cáo và Dashboard chi tiết của khoa/phòng mình |
+| Hồ sơ và mật khẩu | Quản lý hồ sơ cá nhân và đổi mật khẩu | Quản lý hồ sơ cá nhân và đổi mật khẩu |
+
+Nguyên tắc phân quyền cốt lõi:
+
+- `LoaiTaiKhoan` xác định người dùng thuộc vai trò Admin hay User.
+- `KhoaPhongId` xác định phạm vi chỉ số, báo cáo, dashboard và dữ liệu xuất của User.
+- User không được xem, sửa hoặc xuất dữ liệu của khoa/phòng khác, kể cả khi tự thay đổi tham số trên URL hoặc request.
+- Controller và service phải kiểm tra quyền ở server; việc ẩn menu trên giao diện chỉ hỗ trợ trải nghiệm người dùng.
+
 ## 6. Danh Mục Nghiệp Vụ
 
 ### 6.1. Khoa/phòng
@@ -420,7 +441,7 @@ Các trạng thái hiện tại:
 
 Lưu ý nghiệp vụ quan trọng:
 
-- Một báo cáo được xem là **đã báo cáo** khi có trạng thái `DaGui`, `QuaHan` hoặc `DaKhoa`.
+- Một báo cáo được xem là **đã báo cáo** trên Dashboard và trong cảnh báo thiếu báo cáo khi có trạng thái `DaGui`, `QuaHan`, `DaKhoa` hoặc `DaDuyet`. `DaDuyet` chỉ còn để tương thích dữ liệu cũ, không phải luồng thao tác chính.
 - `QuaHan` trong bảng `BaoCao` không đại diện cho slot chưa nộp. Nó là báo cáo đã được gửi, nhưng thời điểm gửi trễ hơn `KyBaoCao.HanNop`.
 - Trường hợp kỳ đã qua hạn nhưng khoa/phòng chưa gửi chỉ số nào thì được xem là **quá hạn chưa nộp** ở dashboard/thông báo, nhưng chưa có bản ghi `BaoCao` trạng thái `QuaHan`.
 
@@ -690,9 +711,9 @@ Nếu User đăng nhập nhưng không thấy dữ liệu báo cáo, nguyên nh�
 Trong hệ thống hiện tại cần phân biệt 2 khái niệm:
 
 - **Báo cáo trạng thái `QuaHan`**: đã có bản ghi báo cáo và User đã bấm gửi, nhưng gửi sau `KyBaoCao.HanNop`.
-- **Quá hạn chưa nộp**: kỳ báo cáo đã qua hạn nhưng khoa/phòng vẫn chưa có báo cáo ở trạng thái `DaGui`, `QuaHan` hoặc `DaKhoa` cho chỉ số đó. Đây là dữ liệu dùng để cảnh báo dashboard và thông báo tự động, không phải trạng thái của một bản ghi `BaoCao`.
+- **Quá hạn chưa nộp**: kỳ báo cáo đã qua hạn nhưng khoa/phòng vẫn chưa có báo cáo ở trạng thái `DaGui`, `QuaHan`, `DaKhoa` hoặc `DaDuyet` cho chỉ số đó. Đây là dữ liệu dùng để cảnh báo dashboard và thông báo tự động, không phải trạng thái của một bản ghi `BaoCao`.
 
-Vì vậy, báo cáo được xem là **đã báo cáo** nếu trạng thái là `DaGui`, `QuaHan` hoặc `DaKhoa`. Chỉ số chưa có một trong ba trạng thái này vẫn được tính là còn thiếu.
+Vì vậy, Dashboard/cảnh báo xem báo cáo là **đã báo cáo** nếu trạng thái là `DaGui`, `QuaHan`, `DaKhoa` hoặc `DaDuyet`. Chỉ số chưa có một trong các trạng thái này vẫn được tính là còn thiếu.
 
 ## 20. Tiêu Chí Thành Công
 
@@ -793,11 +814,13 @@ Slot chưa nộp sau hạn vẫn là dữ liệu thiếu báo cáo, không tự 
 Hệ thống đã bổ sung thông báo tự động nội bộ:
 
 - `KyBaoCaoMo`: kỳ báo cáo đã mở.
-- `NhacHan`: nhắc còn 7 ngày, 3 ngày, 1 ngày hoặc đúng ngày hạn.
+- `NhacHan`: nhắc còn 10 ngày, 7 ngày, 3 ngày, 1 ngày hoặc đúng ngày hạn.
 - `QuaHan`: cảnh báo khoa/phòng còn chỉ số quá hạn chưa nộp.
 - `TongHopAdmin`: tổng hợp tiến độ hằng ngày cho Admin.
 
 Thông báo tự động có log chống trùng `ThongBaoTuDongLog`, nên service có thể chạy nhiều lần mà không tạo trùng thông báo.
+
+Admin có thể bấm nút **Cảnh báo** cạnh từng chỉ số chưa nộp trong modal Dashboard. Hệ thống kiểm tra lại trạng thái ở server, gửi tới User đang hoạt động của khoa/phòng và chỉ cho phép một cảnh báo trên cùng kỳ, khoa/phòng, chỉ số trong một ngày. Khi User mở thông báo này, trang chi tiết chỉ hiển thị đúng chỉ số được cảnh báo.
 
 Khi User click vào một thông báo:
 
@@ -1029,7 +1052,7 @@ Khi kiểm thử đăng nhập, người kiểm thử có thể dùng DevTools �
 
 Cookie này chỉ là mã phiên. Các thông tin nghiệp vụ như `TaiKhoanId`, `LoaiTaiKhoan`, `NhanVienId`, `KhoaPhongId` và `TenKhoaPhong` được lưu ở server-side `Session`, không nằm trong `localStorage` hoặc `sessionStorage`.
 
-Hiện `Web.config` chưa cấu hình timeout session riêng, nên ASP.NET dùng timeout mặc định khoảng 20 phút không hoạt động. Sau khi logout, hệ thống gọi `Session.Clear()` và `Session.Abandon()`, vì vậy truy cập lại trang cần đăng nhập phải quay về màn hình login.
+`Web.config` cấu hình timeout session 30 phút, cookie `HttpOnly` và `SameSite=Lax`; transform Release bật `requireSSL=true`. Sau khi logout, hệ thống gọi `Session.Clear()` và `Session.Abandon()`, vì vậy truy cập lại trang cần đăng nhập phải quay về màn hình login.
 
 ## 28. Don Dep File Du Thua (Ngay 10/06/2026)
 
@@ -1106,4 +1129,13 @@ App_Data/Sql/003_AddExportHistory.sql
 ```
 
 Audit này phục vụ truy vết vận hành và hỗ trợ kiểm tra khi có câu hỏi về dữ liệu đã được trích xuất khỏi hệ thống.
+
+## 31. Trạng Thái Nghiệp Vụ Hiện Tại (Ngày 19/06/2026)
+
+- Dashboard Admin tính tiến độ theo slot duy nhất `(kỳ, khoa/phòng, chỉ số)` và cho phép mở chi tiết bốn thẻ tổng quan.
+- Báo cáo hợp lệ cho thống kê/nhắc hạn gồm `DaGui`, `QuaHan`, `DaKhoa` và dữ liệu `DaDuyet` cũ; bản nháp vẫn thuộc nhóm còn thiếu.
+- Admin có thể cảnh báo riêng từng chỉ số chưa nộp, tối đa một lần mỗi ngày cho cùng kỳ, khoa/phòng và chỉ số.
+- Database cũ phải chạy `App_Data/Sql/004_AddIndicatorWarning.sql` để bổ sung liên kết cảnh báo theo chỉ số và index chống gửi trùng.
+- Nhắc hạn tự động chạy ở các mốc 10, 7, 3, 1 và 0 ngày; User có badge thông báo chưa đọc và thao tác đánh dấu đã đọc bằng POST.
+- User chỉ nhập, xem và xuất dữ liệu trong phạm vi `KhoaPhongId` của phiên đăng nhập; controller/service kiểm tra lại quyền ở server.
 
