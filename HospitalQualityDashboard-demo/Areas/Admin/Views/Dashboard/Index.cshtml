@@ -1,4 +1,4 @@
-﻿@* Mục đích: dashboard tổng hợp tiến độ báo cáo và cảnh báo thiếu/quá hạn. *@
+@* Mục đích: dashboard tổng hợp tiến độ báo cáo và cảnh báo thiếu/quá hạn. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.DashboardViewModel
 @using System.Globalization
 @using System.Linq
@@ -17,6 +17,8 @@
     var roleLabel = Model.IsAdmin ? "Admin hệ thống" : "Khoa/phòng";
     var totalMetricLabel = Model.IsAdmin ? "Tổng cần nộp" : "Chỉ số được phân công";
     var urgentCount = Model.OverdueMissingReportCount + Model.DueSoonReportCount;
+
+    var comparison = ViewBag.ComparisonData as HospitalQualityDashboardDemo.Models.ViewModels.DashboardComparisonViewModel;
 }
 
 <section class="dashboard-hero">
@@ -526,6 +528,197 @@
         </div>
     </div>
 </div>
+
+@if (Model.IsAdmin && comparison != null)
+{
+<section class="mt-5">
+    <div class="dashboard-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Báo cáo & So sánh Chỉ số Chất lượng toàn viện</h2>
+                <p>So sánh dữ liệu chỉ số chất lượng giữa các kỳ báo cáo</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                @using (Html.BeginForm("Index", "Dashboard", FormMethod.Get, new { id = "comparisonFilterForm" }))
+                {
+                    @Html.Hidden("tanSuat", Model.SelectedTanSuat)
+                    @Html.DropDownList("kyBaoCaoId", comparison.KyBaoCaoOptions, "Chọn kỳ báo cáo", new { @class = "form-select form-select-sm border rounded-pill px-3", onchange = "this.form.submit();" })
+                }
+                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" id="btnExportComparisonExcel">
+                    <i class="bi bi-file-earmark-excel me-1 text-success"></i> Xuất Excel
+                </button>
+            </div>
+        </div>
+
+        @if (comparison.Indicators.Any())
+        {
+            <!-- KPI Cards -->
+            <div class="metric-grid mb-4">
+                <div class="metric-card is-accent">
+                    <span class="metric-card-header">
+                        <span class="metric-label">Tổng giá trị - @comparison.Summary.CurrentPeriodName</span>
+                    </span>
+                    <strong class="metric-value">@(comparison.Summary.TotalCurrentPeriod?.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN")) ?? "-")</strong>
+                    <span class="metric-caption">Tổng giá trị các chỉ số trong kỳ hiện tại</span>
+                </div>
+                <div class="metric-card @(comparison.Summary.PreviousPeriodName != null && comparison.Summary.IsImproved ? "is-success" : (comparison.Summary.PreviousPeriodName != null ? "is-danger" : "is-info"))">
+                    <span class="metric-card-header">
+                        @if (comparison.Summary.PreviousPeriodName != null)
+                        {
+                            <span class="metric-label">Biến động so với @comparison.Summary.PreviousPeriodName</span>
+                        }
+                        else
+                        {
+                            <span class="metric-label">Biến động (Không có dữ liệu kỳ trước)</span>
+                        }
+                    </span>
+                    <strong class="metric-value">
+                        @if (comparison.Summary.PreviousPeriodName != null && comparison.Summary.Difference.HasValue)
+                        {
+                            <text>@(comparison.Summary.IsImproved ? "+" : "")@comparison.Summary.Difference.Value.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN"))</text>
+                            if (comparison.Summary.DifferencePercentage.HasValue)
+                            {
+                                <span class="ms-2">(@(comparison.Summary.IsImproved ? "+" : "")@comparison.Summary.DifferencePercentage.Value.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN"))%)</span>
+                            }
+                        }
+                        else if (comparison.Summary.PreviousPeriodName == null)
+                        {
+                            <text>Không có dữ liệu</text>
+                        }
+                        else
+                        {
+                            <text>-</text>
+                        }
+                    </strong>
+                    @if (comparison.Summary.PreviousPeriodName != null)
+                    {
+                        <span class="metric-caption">
+                            <i class="bi @(comparison.Summary.IsImproved ? "bi-arrow-up" : "bi-arrow-down")"></i>
+                            @(comparison.Summary.IsImproved ? "Tốt hơn" : "Kém hơn") so với kỳ trước
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="metric-caption">
+                            <i class="bi bi-info-circle"></i>
+                            Không đủ dữ liệu để so sánh
+                        </span>
+                    }
+                </div>
+                <div class="metric-card is-info">
+                    <span class="metric-card-header">
+                        <span class="metric-label">Tình trạng dữ liệu</span>
+                    </span>
+                    <strong class="metric-value">@comparison.Summary.IndicatorsCompleteCount/@comparison.Summary.TotalIndicators</strong>
+                    <span class="metric-caption">Chỉ số đã có đủ dữ liệu</span>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã CS</th>
+                            <th>Tên chỉ số</th>
+                            <th>@(comparison.Summary.PreviousPeriodName ?? "Kỳ trước (Chưa có dữ liệu)")</th>
+                            <th>@comparison.Summary.CurrentPeriodName</th>
+                            <th>Chênh lệch</th>
+                            <th>Tiến độ khoa/phòng</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var indicator in comparison.Indicators)
+                        {
+                            <tr>
+                                <td>@indicator.STT</td>
+                                <td><strong>@indicator.MaChiSo</strong></td>
+                                <td>@indicator.TenChiSo</td>
+                                <td>@(indicator.PreviousPeriodValue?.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN")) ?? "-")</td>
+                                <td>
+                                    @if (indicator.IsPartial)
+                                    {
+                                        <i class="bi bi-exclamation-triangle text-warning me-1" title="Có khoa trễ nộp"></i>
+                                    }
+                                    @(indicator.CurrentPeriodValue?.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN")) ?? "-")
+                                </td>
+                                <td>
+                                    @if (indicator.Difference.HasValue)
+                                    {
+                                        <span class="@(indicator.IsImproved ? "text-success" : "text-danger")">
+                                            @(indicator.IsImproved ? "+" : "")@indicator.Difference.Value.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN"))
+                                        </span>
+                                        if (indicator.IsPartial)
+                                        {
+                                            <span class="ms-1 text-muted small">(Tạm tính)</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (indicator.IsComplete)
+                                    {
+                                        <span class="text-success">@indicator.SubmittedDepartments/@indicator.TotalAssignedDepartments khoa</span>
+                                    }
+                                    else if (indicator.IsPartial)
+                                    {
+                                        <span class="text-warning fw-bold">@indicator.SubmittedDepartments/@indicator.TotalAssignedDepartments khoa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">@indicator.SubmittedDepartments/@indicator.TotalAssignedDepartments khoa</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (indicator.MissingDepartments.Any())
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#missingDeptsModal_@indicator.ChiSoChatLuongId">
+                                            <i class="bi bi-info-circle me-1"></i> Chi tiết trễ
+                                        </button>
+
+                                        <!-- Modal for missing departments -->
+                                        <div class="modal fade" id="missingDeptsModal_@indicator.ChiSoChatLuongId" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Khoa/phòng trễ nộp - @indicator.MaChiSo</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <h6>Danh sách khoa/phòng chưa nộp:</h6>
+                                                        <ul>
+                                                            @foreach (var dept in indicator.MissingDepartments)
+                                                            {
+                                                                <li>@dept</li>
+                                                            }
+                                                        </ul>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">Chưa có dữ liệu so sánh cho kỳ báo cáo đã chọn</div>
+        }
+    </div>
+</section>
+}
 
 @section scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

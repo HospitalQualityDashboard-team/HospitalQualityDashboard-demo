@@ -713,4 +713,51 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         // Nếu có giá trị thì import vào khoa/phòng này.
         public int? KhoaPhongId { get; set; }
     }
+
+    // ViewModels cho tính năng Báo cáo và So sánh Chỉ số Chất lượng
+    public class DashboardComparisonViewModel
+    {
+        public int? SelectedTanSuat { get; set; }
+        public int? SelectedKyBaoCaoId { get; set; }
+        public IList<SelectListItem> TanSuatOptions { get; set; }
+        public IList<SelectListItem> KyBaoCaoOptions { get; set; }
+
+        public DashboardComparisonSummaryViewModel Summary { get; set; }
+        public IList<DashboardComparisonIndicatorViewModel> Indicators { get; set; }
+    }
+
+    public class DashboardComparisonSummaryViewModel
+    {
+        public decimal? TotalCurrentPeriod { get; set; }
+        public decimal? TotalPreviousPeriod { get; set; }
+        public decimal? Difference { get; set; }
+        public decimal? DifferencePercentage { get; set; }
+        public bool IsImproved { get; set; }
+        public int IndicatorsCompleteCount { get; set; }
+        public int TotalIndicators { get; set; }
+        public string CurrentPeriodName { get; set; }
+        public string PreviousPeriodName { get; set; }
+    }
+
+    public class DashboardComparisonIndicatorViewModel
+    {
+        public int STT { get; set; }
+        public int ChiSoChatLuongId { get; set; }
+        public string MaChiSo { get; set; }
+        public string TenChiSo { get; set; }
+        public string DonViTinh { get; set; }
+        public decimal? PreviousPeriodValue { get; set; }
+        public decimal? CurrentPeriodValue { get; set; }
+        public decimal? Difference { get; set; }
+        public bool IsImproved { get; set; }
+
+        // Tiến độ khoa/phòng
+        public int TotalAssignedDepartments { get; set; }
+        public int SubmittedDepartments { get; set; }
+        public bool IsComplete => TotalAssignedDepartments > 0 && SubmittedDepartments == TotalAssignedDepartments;
+        public bool IsPartial => TotalAssignedDepartments > 0 && SubmittedDepartments > 0 && SubmittedDepartments < TotalAssignedDepartments;
+        public bool IsMissing => TotalAssignedDepartments > 0 && SubmittedDepartments == 0;
+
+        public IList<string> MissingDepartments { get; set; }
+    }
 }

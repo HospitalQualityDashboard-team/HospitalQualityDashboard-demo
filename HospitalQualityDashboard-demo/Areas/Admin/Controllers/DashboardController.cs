@@ -1,6 +1,7 @@
 // Mục đích: hiển thị dashboard toàn viện và chuyển bộ lọc tần suất xuống tầng dịch vụ.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
+using HospitalQualityDashboardDemo.Models.ViewModels;
 using HospitalQualityDashboardDemo.Services;
 using System;
 using System.Diagnostics;
@@ -14,12 +15,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         private readonly NotificationAutomationService _automation = new NotificationAutomationService();
 
         // Hiển thị danh sách và các bộ lọc của Dashboard chất lượng.
-        public ActionResult Index(DashboardExcelExportQueryDto query)
+        public ActionResult Index(DashboardExcelExportQueryDto query, int? kyBaoCaoId = null)
         {
             RunNotificationAutomation();
             query = query ?? new DashboardExcelExportQueryDto();
             var model = _service.GetDashboard(true, null, query.TanSuat);
             _service.PrepareExportFilters(model, query, true, null);
+            ViewBag.ComparisonData = _service.GetDashboardComparison(query.TanSuat, kyBaoCaoId);
             return View(model);
         }
 

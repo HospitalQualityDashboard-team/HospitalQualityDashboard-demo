@@ -1198,6 +1198,296 @@ ORDER BY kp.TenKhoaPhong";
             public int BaoCaoQuaHan { get; set; }
         }
 
+        private class PeriodInfo
+        {
+            public int KyBaoCaoId { get; set; }
+            public string TenKyBaoCao { get; set; }
+            public TanSuatBaoCao LoaiKyBaoCao { get; set; }
+            public DateTime TuNgay { get; set; }
+            public DateTime DenNgay { get; set; }
+            public TrangThaiKyBaoCao TrangThai { get; set; }
+        }
+
+        // Lấy dữ liệu so sánh chỉ số chất lượng cho dashboard
+        public DashboardComparisonViewModel GetDashboardComparison(int? tanSuat = null, int? kyBaoCaoId = null)
+        {
+            var model = new DashboardComparisonViewModel
+            {
+                SelectedTanSuat = tanSuat,
+                SelectedKyBaoCaoId = kyBaoCaoId,
+                TanSuatOptions = BuildDashboardFrequencyOptions(tanSuat),
+                Summary = new DashboardComparisonSummaryViewModel(),
+                Indicators = new List<DashboardComparisonIndicatorViewModel>()
+            };
+
+            // Lấy các kỳ báo cáo
+            var allPeriods = Query(@"
+SELECT KyBaoCaoId, TenKyBaoCao, LoaiKyBaoCao, TuNgay, DenNgay, TrangThai
+FROM dbo.KyBaoCao
+WHERE (@TanSuat IS NULL OR LoaiKyBaoCao = @TanSuat)
+ORDER BY TuNgay DESC",
+                r => new PeriodInfo
+                {
+                    KyBaoCaoId = Int(r, "KyBaoCaoId"),
+                    TenKyBaoCao = String(r, "TenKyBaoCao"),
+                    LoaiKyBaoCao = (TanSuatBaoCao)r.GetByte(r.GetOrdinal("LoaiKyBaoCao")),
+                    TuNgay = r.GetDateTime(r.GetOrdinal("TuNgay")),
+                    DenNgay = r.GetDateTime(r.GetOrdinal("DenNgay")),
+                    TrangThai = (TrangThaiKyBaoCao)r.GetByte(r.GetOrdinal("TrangThai"))
+                },
+                Param("@TanSuat", tanSuat));
+
+            model.KyBaoCaoOptions = allPeriods.Select(p => new SelectListItem
+            {
+                Value = p.KyBaoCaoId.ToString(),
+                Text = p.TenKyBaoCao,
+                Selected = p.KyBaoCaoId == kyBaoCaoId
+            }).ToList();
+
+            if (!kyBaoCaoId.HasValue && allPeriods.Any())
+            {
+                kyBaoCaoId = allPeriods.First().KyBaoCaoId;
+                model.SelectedKyBaoCaoId = kyBaoCaoId;
+            }
+
+            if (kyBaoCaoId.HasValue)
+            {
+                var currentPeriod = allPeriods.FirstOrDefault(p => p.KyBaoCaoId == kyBaoCaoId);
+                if (currentPeriod != null)
+                {
+                    // Tìm kỳ trước đó cùng loại tần suất
+                    var previousPeriod = allPeriods
+                        .Where(p => p.LoaiKyBaoCao == currentPeriod.LoaiKyBaoCao && p.TuNgay < currentPeriod.TuNgay)
+                        .OrderByDescending(p => p.TuNgay)
+                        .FirstOrDefault();
+
+                    // Lấy dữ liệu cho các chỉ số
+                    LoadComparisonData(model, currentPeriod, previousPeriod);
+                }
+            }
+
+            return model;
+        }
+
+        private class PeriodIndicatorData
+        {
+            public decimal? Value { get; set; }
+            public int TotalAssigned { get; set; }
+            public int Submitted { get; set; }
+            public IList<string> MissingDeps { get; set; }
+
+            public PeriodIndicatorData()
+            {
+                MissingDeps = new List<string>();
+            }
+        }
+
+        private void LoadComparisonData(DashboardComparisonViewModel model, PeriodInfo currentPeriod, PeriodInfo previousPeriod)
+        {
+            // Lấy tất cả chỉ số chất lượng
+            var indicators = Query(@"
+SELECT cs.ChiSoChatLuongId, cs.MaChiSo, cs.TenChiSo, cs.DonViTinh, cs.SoThuTu
+FROM dbo.ChiSoChatLuong cs
+WHERE cs.DangHoatDong = 1
+ORDER BY cs.SoThuTu, cs.MaChiSo",
+                r => new
+                {
+                    ChiSoChatLuongId = Int(r, "ChiSoChatLuongId"),
+                    MaChiSo = String(r, "MaChiSo"),
+                    TenChiSo = String(r, "TenChiSo"),
+                    DonViTinh = String(r, "DonViTinh"),
+                    SoThuTu = r.IsDBNull(r.GetOrdinal("SoThuTu")) ? 0 : Int(r, "SoThuTu")
+                });
+
+            // Lấy dữ liệu cho kỳ hiện tại
+            var currentPeriodData = GetPeriodIndicatorData(currentPeriod.KyBaoCaoId);
+            // Lấy dữ liệu cho kỳ trước
+            Dictionary<int, PeriodIndicatorData> previousPeriodData;
+            if (previousPeriod != null)
+            {
+                previousPeriodData = GetPeriodIndicatorData(previousPeriod.KyBaoCaoId);
+            }
+            else
+            {
+                previousPeriodData = new Dictionary<int, PeriodIndicatorData>();
+            }
+
+            // Tính tổng và xây dựng danh sách chỉ số
+            decimal? totalCurrent = null;
+            decimal? totalPrevious = null;
+            int completeCount = 0;
+            int stt = 1;
+
+            foreach (var indicator in indicators)
+            {
+                PeriodIndicatorData currentData;
+                if (!currentPeriodData.TryGetValue(indicator.ChiSoChatLuongId, out currentData))
+                {
+                    currentData = new PeriodIndicatorData();
+                }
+
+                PeriodIndicatorData previousData;
+                if (!previousPeriodData.TryGetValue(indicator.ChiSoChatLuongId, out previousData))
+                {
+                    previousData = new PeriodIndicatorData();
+                }
+
+                decimal? difference = null;
+                if (currentData.Value.HasValue && previousData.Value.HasValue)
+                {
+                    difference = currentData.Value.Value - previousData.Value.Value;
+                }
+
+                // Giả sử giá trị tăng là tốt (cần điều chỉnh theo nghiệp vụ nếu có quy tắc đặc biệt)
+                bool isImproved = difference.HasValue && difference.Value >= 0;
+
+                var indicatorVm = new DashboardComparisonIndicatorViewModel
+                {
+                    STT = stt++,
+                    ChiSoChatLuongId = indicator.ChiSoChatLuongId,
+                    MaChiSo = indicator.MaChiSo,
+                    TenChiSo = indicator.TenChiSo,
+                    DonViTinh = indicator.DonViTinh,
+                    PreviousPeriodValue = previousData.Value,
+                    CurrentPeriodValue = currentData.Value,
+                    Difference = difference,
+                    IsImproved = isImproved,
+                    TotalAssignedDepartments = currentData.TotalAssigned,
+                    SubmittedDepartments = currentData.Submitted,
+                    MissingDepartments = currentData.MissingDeps ?? new List<string>()
+                };
+
+                model.Indicators.Add(indicatorVm);
+
+                // Tính tổng
+                if (currentData.Value.HasValue)
+                {
+                    if (!totalCurrent.HasValue) totalCurrent = 0;
+                    totalCurrent += currentData.Value.Value;
+                }
+                if (previousData.Value.HasValue)
+                {
+                    if (!totalPrevious.HasValue) totalPrevious = 0;
+                    totalPrevious += previousData.Value.Value;
+                }
+                if (indicatorVm.IsComplete) completeCount++;
+            }
+
+            // Tính summary
+            decimal? summaryDifference = null;
+            if (totalCurrent.HasValue && totalPrevious.HasValue)
+            {
+                summaryDifference = totalCurrent.Value - totalPrevious.Value;
+            }
+
+            decimal? summaryDifferencePercentage = null;
+            if (totalCurrent.HasValue && totalPrevious.HasValue && totalPrevious.Value != 0)
+            {
+                summaryDifferencePercentage = Math.Round(((totalCurrent.Value - totalPrevious.Value) / totalPrevious.Value) * 100, 2);
+            }
+
+            bool summaryIsImproved = false;
+            if (totalCurrent.HasValue && totalPrevious.HasValue)
+            {
+                summaryIsImproved = totalCurrent >= totalPrevious;
+            }
+
+            model.Summary = new DashboardComparisonSummaryViewModel
+            {
+                CurrentPeriodName = currentPeriod.TenKyBaoCao,
+                PreviousPeriodName = previousPeriod != null ? previousPeriod.TenKyBaoCao : null,
+                TotalCurrentPeriod = totalCurrent,
+                TotalPreviousPeriod = totalPrevious,
+                Difference = summaryDifference,
+                DifferencePercentage = summaryDifferencePercentage,
+                IsImproved = summaryIsImproved,
+                IndicatorsCompleteCount = completeCount,
+                TotalIndicators = indicators.Count
+            };
+        }
+
+        private Dictionary<int, PeriodIndicatorData> GetPeriodIndicatorData(int kyBaoCaoId)
+        {
+            const string sql = @"
+WITH ExpectedSlots AS (
+    SELECT DISTINCT pc.ChiSoChatLuongId, pc.KhoaPhongId, kp.TenKhoaPhong
+    FROM dbo.KyBaoCao ky
+    INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
+    INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
+    INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cs.DangHoatDong = 1
+    INNER JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
+    WHERE ky.KyBaoCaoId = @KyBaoCaoId
+),
+Submitted AS (
+    SELECT bc.ChiSoChatLuongId, bc.KhoaPhongId, ct.KetQua
+    FROM dbo.BaoCao bc
+    LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
+    WHERE bc.KyBaoCaoId = @KyBaoCaoId
+      AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus)
+),
+IndicatorTotals AS (
+    SELECT 
+        es.ChiSoChatLuongId,
+        COUNT(DISTINCT es.KhoaPhongId) AS TotalAssigned,
+        COUNT(DISTINCT s.KhoaPhongId) AS Submitted,
+        AVG(s.KetQua) AS AverageValue
+    FROM ExpectedSlots es
+    LEFT JOIN Submitted s ON s.ChiSoChatLuongId = es.ChiSoChatLuongId AND s.KhoaPhongId = es.KhoaPhongId
+    GROUP BY es.ChiSoChatLuongId
+),
+MissingDepartments AS (
+    SELECT 
+        es.ChiSoChatLuongId,
+        es.TenKhoaPhong
+    FROM ExpectedSlots es
+    LEFT JOIN Submitted s ON s.ChiSoChatLuongId = es.ChiSoChatLuongId AND s.KhoaPhongId = es.KhoaPhongId
+    WHERE s.KhoaPhongId IS NULL
+)
+SELECT 
+    it.ChiSoChatLuongId,
+    it.AverageValue,
+    it.TotalAssigned,
+    it.Submitted,
+    md.TenKhoaPhong
+FROM IndicatorTotals it
+LEFT JOIN MissingDepartments md ON md.ChiSoChatLuongId = it.ChiSoChatLuongId";
+
+            var tempResults = Query(sql, r => new
+            {
+                ChiSoChatLuongId = Int(r, "ChiSoChatLuongId"),
+                Value = NullableDecimal(r, "AverageValue"),
+                TotalAssigned = Int(r, "TotalAssigned"),
+                Submitted = Int(r, "Submitted"),
+                MissingDepartmentName = String(r, "TenKhoaPhong")
+            },
+                Param("@KyBaoCaoId", kyBaoCaoId),
+                Param("@DaGuiStatus", (byte)TrangThaiBaoCao.DaGui),
+                Param("@QuaHanStatus", (byte)TrangThaiBaoCao.QuaHan),
+                Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa),
+                Param("@DaDuyetStatus", (byte)TrangThaiBaoCao.DaDuyet));
+
+            var results = new Dictionary<int, PeriodIndicatorData>();
+            foreach (var item in tempResults)
+            {
+                if (!results.ContainsKey(item.ChiSoChatLuongId))
+                {
+                    results[item.ChiSoChatLuongId] = new PeriodIndicatorData
+                    {
+                        Value = item.Value,
+                        TotalAssigned = item.TotalAssigned,
+                        Submitted = item.Submitted,
+                        MissingDeps = new List<string>()
+                    };
+                }
+                if (!string.IsNullOrWhiteSpace(item.MissingDepartmentName))
+                {
+                    results[item.ChiSoChatLuongId].MissingDeps.Add(item.MissingDepartmentName);
+                }
+            }
+
+            return results;
+        }
+
         #pragma warning disable 0162
         // Truy vấn dữ liệu Dashboard theo điều kiện được cung cấp.
         public DashboardViewModel GetDashboard(bool admin, int? departmentId, int? tanSuatFilter = null)
