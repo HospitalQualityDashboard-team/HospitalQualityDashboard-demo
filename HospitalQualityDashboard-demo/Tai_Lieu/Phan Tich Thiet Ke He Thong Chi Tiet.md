@@ -580,7 +580,7 @@ Chức năng xuất Dashboard chi tiết được triển khai bằng `Dashboard
 
 Các file chính:
 
-- `Services/DashboardExcelExportService.cs`
+- `Services/Dashboards/Export/DashboardExcelExportService*.cs`
 - `Areas/Admin/Controllers/ExportController.cs`
 - `Areas/User/Controllers/ExportController.cs`
 - `Models/DTOs/ExportDtos.cs`

@@ -1,13 +1,14 @@
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'ServiceSourceReader.ps1')
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $migrationPath = Join-Path $root 'App_Data\Sql\004_AddIndicatorWarning.sql'
 $schema = Get-Content -Raw (Join-Path $root 'App_Data\Sql\001_CreateSchema.sql')
 $enums = Get-Content -Raw (Join-Path $root 'Models\Enums\SystemEnums.cs')
 $viewModels = Get-Content -Raw (Join-Path $root 'Models\ViewModels\AppViewModels.cs')
-$notificationService = Get-Content -Raw (Join-Path $root 'Services\NotificationExportServices.cs')
-$messageBuilder = Get-Content -Raw -Encoding UTF8 (Join-Path $root 'Services\IndicatorWarningMessageBuilder.cs')
-$dashboardService = Get-Content -Raw (Join-Path $root 'Services\ReportDashboardServices.cs')
+$notificationService = Get-ServiceSource -Root $root -Patterns 'Services\Notifications\NotificationAutomationService.cs'
+$messageBuilder = Get-ServiceSource -Root $root -Patterns 'Services\Notifications\IndicatorWarningMessageBuilder.cs'
+$dashboardService = Get-ServiceSource -Root $root -Patterns 'Services\Dashboards\DashboardService*.cs'
 $adminController = Get-Content -Raw (Join-Path $root 'Areas\Admin\Controllers\DashboardController.cs')
 $userController = Get-Content -Raw (Join-Path $root 'Areas\User\Controllers\DashboardController.cs')
 $userNotificationController = Get-Content -Raw (Join-Path $root 'Areas\User\Controllers\NotificationController.cs')

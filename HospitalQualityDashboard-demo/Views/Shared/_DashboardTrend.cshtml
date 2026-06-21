@@ -1,0 +1,36 @@
+@model HospitalQualityDashboardDemo.Models.ViewModels.DashboardTrendViewModel
+@using System.Linq
+@using Newtonsoft.Json
+@{
+    var areaName = Model.IsAdmin ? "Admin" : "User";
+    var metrics = Model.Metrics.OrderBy(x => x.TuNgay).ToList();
+    var periodCountOptions = new System.Collections.Generic.List<System.Web.Mvc.SelectListItem>
+    {
+        new System.Web.Mvc.SelectListItem { Value = "3", Text = "3 kỳ", Selected = Model.PeriodCount == 3 },
+        new System.Web.Mvc.SelectListItem { Value = "6", Text = "6 kỳ", Selected = Model.PeriodCount == 6 },
+        new System.Web.Mvc.SelectListItem { Value = "12", Text = "12 kỳ", Selected = Model.PeriodCount == 12 }
+    };
+}
+<section class="dashboard-panel analysis-panel">
+    <div class="panel-header"><div><h2>Xu hướng tiến độ báo cáo</h2><p>Theo dõi tỷ lệ hoàn thành, đúng hạn và các trường hợp cần xử lý qua nhiều kỳ.</p></div></div>
+    <form class="analysis-filter trend-filter" data-dashboard-trend-form data-url="@Url.Action("Trend", "Dashboard", new { area = areaName })">
+        <input type="hidden" name="DashboardTab" value="trend" />
+        <div class="analysis-filter-field"><label for="trend-frequency">Tần suất</label>@Html.DropDownList("TanSuat", Model.TanSuatOptions, new { id = "trend-frequency", @class = "form-select form-select-sm" })</div>
+        <div class="analysis-filter-field"><label for="trend-count">Số kỳ gần nhất</label>@Html.DropDownList("PeriodCount", periodCountOptions, new { id = "trend-count", @class = "form-select form-select-sm" })</div>
+        @if (Model.IsAdmin) { <div class="analysis-filter-field"><label for="trend-department">Khoa/phòng</label>@Html.DropDownList("KhoaPhongId", Model.KhoaPhongOptions, new { id = "trend-department", @class = "form-select form-select-sm" })</div> }
+        <button type="submit" class="btn btn-primary btn-sm analysis-submit"><i class="bi bi-graph-up-arrow me-1"></i>Xem xu hướng</button>
+    </form>
+    @if (metrics.Any())
+    {
+        <div class="dashboard-panel analysis-inner-panel trend-chart-panel"><div class="chart-shell"><canvas class="dashboard-trend-chart" data-metrics='@Html.Raw(JsonConvert.SerializeObject(metrics))' height="120"></canvas></div></div>
+        <div class="table-responsive"><table class="table table-sm align-middle analysis-table"><thead><tr><th>Kỳ báo cáo</th><th>Tổng cần nộp</th><th>Đúng hạn</th><th>Nộp trễ</th><th>Chưa nộp</th><th>Tỷ lệ hoàn thành</th><th>Tỷ lệ đúng hạn</th><th>So với kỳ trước</th></tr></thead><tbody>
+        @for (var index = 0; index < metrics.Count; index++)
+        {
+            var metric = metrics[index];
+            var delta = index == 0 ? (decimal?)null : metric.TyLeHoanThanh - metrics[index - 1].TyLeHoanThanh;
+            <tr><td><strong>@metric.TenKyBaoCao</strong>@if (metric.TrangThaiKy == 2) { <span class="analysis-live-badge">Đang cập nhật</span> }</td><td>@metric.TongCanNop</td><td>@metric.DungHan</td><td>@metric.NopTre</td><td>@(metric.ChuaNop + metric.QuaHanChuaNop)</td><td>@metric.TyLeHoanThanh.ToString("0.##")%</td><td>@metric.TyLeDungHan.ToString("0.##")%</td><td>@(delta.HasValue ? (delta.Value >= 0 ? "+" : "") + delta.Value.ToString("0.##") + "%" : "-")</td></tr>
+        }
+        </tbody></table></div>
+    }
+    else { <div class="empty-state analysis-empty"><i class="bi bi-graph-up"></i><p>Chưa có đủ kỳ báo cáo để hiển thị xu hướng.</p></div> }
+</section>

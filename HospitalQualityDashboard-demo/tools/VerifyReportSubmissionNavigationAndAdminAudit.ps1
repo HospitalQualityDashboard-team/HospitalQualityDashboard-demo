@@ -1,17 +1,17 @@
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'ServiceSourceReader.ps1')
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $userControllerPath = Join-Path $root 'Areas\User\Controllers\ReportController.cs'
 $userEditViewPath = Join-Path $root 'Areas\User\Views\Report\Edit.cshtml'
 $adminReportViewPath = Join-Path $root 'Areas\Admin\Views\Report\Index.cshtml'
 $viewModelPath = Join-Path $root 'Models\ViewModels\AppViewModels.cs'
-$reportServicePath = Join-Path $root 'Services\ReportDashboardServices.cs'
 
 $userController = Get-Content -Raw -Path $userControllerPath
 $userEditView = Get-Content -Raw -Path $userEditViewPath
 $adminReportView = Get-Content -Raw -Path $adminReportViewPath
 $viewModel = Get-Content -Raw -Path $viewModelPath
-$reportService = Get-Content -Raw -Path $reportServicePath
+$reportService = Get-ServiceSource -Root $root -Patterns 'Services\Reports\ReportService.cs'
 
 if ($userEditView -notmatch '"Nhap", new \{ kyBaoCaoId = Model\.KyBaoCaoId \}') {
     throw 'Report edit Back button must return to Nhap for the current KyBaoCaoId.'

@@ -26,7 +26,7 @@ msbuild HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildV
 
 Khi phát triển local, mở `HospitalQualityDashboard-demo.csproj` bằng Visual Studio và chạy bằng IIS Express. Project được cấu hình cho IIS Express với SSL port `44387`.
 
-Các script verify bổ sung nằm trong `tools/` và kiểm tra các luồng như tổng hợp/chi tiết Dashboard, Dashboard Excel, cảnh báo chỉ số, badge thông báo chưa đọc, phân trang quản lý, thứ tự nhân viên, thời gian/kết quả báo cáo và audit điều hướng sau khi gửi báo cáo. Hiện thư mục có 11 script `Verify*.ps1`; chỉ chạy chúng khi app local, database và dữ liệu mẫu đã sẵn sàng.
+Các script verify bổ sung nằm trong `tools/` và kiểm tra các luồng như tổng hợp/chi tiết Dashboard, Dashboard Excel, so sánh nhiều kỳ, cảnh báo chỉ số, badge thông báo chưa đọc, phân trang quản lý, thứ tự nhân viên, thời gian/kết quả báo cáo và audit điều hướng sau khi gửi báo cáo. Hiện thư mục có 12 script `Verify*.ps1`; chỉ chạy chúng khi app local, database và dữ liệu mẫu đã sẵn sàng.
 
 ## Quy ước code và đặt tên
 

@@ -1,6 +1,7 @@
 // Mục đích: cung cấp các endpoint xuất Excel dành cho Admin, bao gồm dữ liệu toàn viện và lịch sử xuất.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Services;
+using System;
 using System.Web.Mvc;
 
 namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
@@ -72,17 +73,24 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         // Điều phối yêu cầu HTTP và phản hồi cho xuất dữ liệu Excel.
         public ActionResult Dashboard(DashboardExcelExportQueryDto query)
         {
-            var result = _dashboardExcelExport.BuildDashboardExcel(query, new ExportUserContextDto
+            try
             {
-                TaiKhoanId = CurrentTaiKhoanId.Value,
-                TenDangNhap = CurrentTenDangNhap,
-                IsAdmin = true,
-                KhoaPhongId = null,
-                TenKhoaPhong = null,
-                DiaChiIP = Request.UserHostAddress
-            });
+                var result = _dashboardExcelExport.BuildDashboardExcel(query, new ExportUserContextDto
+                {
+                    TaiKhoanId = CurrentTaiKhoanId.Value,
+                    TenDangNhap = CurrentTenDangNhap,
+                    IsAdmin = true,
+                    KhoaPhongId = null,
+                    TenKhoaPhong = null,
+                    DiaChiIP = Request.UserHostAddress
+                });
 
-            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
+                return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
+            }
+            catch (InvalidOperationException exception)
+            {
+                return new HttpStatusCodeResult(400, exception.Message);
+            }
         }
     }
 }

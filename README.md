@@ -425,10 +425,12 @@ Các màn hình Admin/User có nút xuất Excel tùy module:
 - Báo cáo.
 - Phân công.
 - Dashboard tiến độ (`DashboardProgress`): xuất bảng tổng hợp theo khoa/phòng, có thể chọn cột và lọc theo tần suất.
-- Dashboard chi tiết (`Dashboard`): xuất workbook nhiều sheet gồm dữ liệu chi tiết, tổng hợp khoa/phòng, chỉ số còn thiếu, báo cáo chưa đạt mục tiêu và lịch sử duyệt/trả lại nếu có dữ liệu.
+- Dashboard chi tiết (`Dashboard`): xuất workbook nhiều sheet gồm dữ liệu chi tiết, tổng hợp khoa/phòng, chỉ số còn thiếu, báo cáo chưa đạt mục tiêu và lịch sử duyệt/trả lại nếu có dữ liệu. Admin/User có thể bật `So sánh nhiều kỳ`, chọn một kỳ chính và tối đa 11 kỳ cũ hơn cùng tần suất; file bổ sung `SoSanhTongQuan` và `SoSanhChiSo`.
 - Các danh sách nghiệp vụ khác nếu controller export hỗ trợ.
 
 Khi export báo cáo, nên dùng filter trước để giảm dung lượng file và thời gian truy vấn.
+
+So sánh nhiều kỳ hỗ trợ tần suất tháng, quý, 6 tháng, 9 tháng và năm. Kỳ liền trước được chọn sẵn; các bộ lọc và phạm vi khoa/phòng được áp dụng giống nhau cho mọi kỳ. Sheet tổng quan tách `Nộp quá hạn` khỏi `Quá hạn chưa nộp`; sheet chi tiết không quy dữ liệu thiếu về `0` mà hiển thị trạng thái chưa nộp/không áp dụng/mới phát sinh/không còn phát sinh.
 
 Mỗi lần xuất Dashboard chi tiết sẽ được ghi vào `LichSuXuatBaoCao` với người xuất, vai trò, bộ lọc, tên file, số dòng dữ liệu, thời gian xuất và địa chỉ IP. Nếu database đã tồn tại từ trước, cần chạy `App_Data/Sql/003_AddExportHistory.sql` hoặc bật bootstrap có kiểm soát để tạo bảng audit này.
 
@@ -491,7 +493,7 @@ Nếu dùng cảnh báo chỉ số trên Dashboard với database cũ, phải ch
 10. Tạo kỳ báo cáo.
 11. Chạy mở kỳ báo cáo thủ công nếu cần.
 12. Xuất Excel một danh sách có filter.
-13. Xuất Dashboard chi tiết và kiểm tra file `.xlsx` có các sheet tổng hợp/chi tiết/còn thiếu.
+13. Xuất Dashboard chi tiết và kiểm tra file `.xlsx` có các sheet tổng hợp/chi tiết/còn thiếu; bật so sánh và kiểm tra thêm `SoSanhTongQuan`, `SoSanhChiSo`.
 14. Nếu có quyền truy cập DB, kiểm tra `LichSuXuatBaoCao` ghi nhận lịch sử xuất.
 
 ### User
@@ -513,6 +515,7 @@ Các script PowerShell trong `HospitalQualityDashboard-demo/tools/` dùng để 
 VerifyDashboardAdminSummary.ps1
 VerifyDashboardExcelDetailedExport.ps1
 VerifyDashboardExcelUpgrade.ps1
+VerifyDashboardPeriodComparison.ps1
 VerifyDashboardMetricDetails.ps1
 VerifyEmployeeOrder.ps1
 VerifyIndicatorWarningMessages.ps1
@@ -600,3 +603,6 @@ chore: ignore local connection strings config
 ```
 
 Không thêm trailer `Co-Authored-By` nếu không muốn GitHub hiển thị thêm contributor.
+## So sánh tiến độ kỳ báo cáo
+
+Dashboard Admin và User có ba tab: Tổng quan, So sánh kỳ báo cáo và Xu hướng. Chức năng phân tích số báo cáo đúng hạn, nộp trễ, chưa nộp và quá hạn chưa nộp giữa tối đa 12 kỳ cùng tần suất; không so sánh giá trị chuyên môn của chỉ số. Admin có thể lọc toàn viện hoặc từng khoa/phòng, còn User luôn bị giới hạn theo khoa/phòng trong session ở phía server.

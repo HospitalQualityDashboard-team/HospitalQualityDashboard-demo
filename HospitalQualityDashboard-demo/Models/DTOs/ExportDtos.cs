@@ -39,6 +39,64 @@ namespace HospitalQualityDashboardDemo.Models.DTOs
         public int? TrangThaiNhapLieu { get; set; }
         public int? TrangThaiDuyet { get; set; }
         public bool? DatMucTieu { get; set; }
+        public int[] ComparisonPeriodIds { get; set; }
+        public string DashboardTab { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TrendPeriodCount { get; set; }
+        public int PeriodCount { get; set; }
+    }
+
+    public class DashboardComparisonPeriodDto
+    {
+        public int KyBaoCaoId { get; set; }
+        public string TenKyBaoCao { get; set; }
+        public int TanSuat { get; set; }
+        public System.DateTime TuNgay { get; set; }
+        public int TrangThai { get; set; }
+    }
+
+    public class DashboardAnalysisQueryDto
+    {
+        public int? TanSuat { get; set; }
+        public int? KyBaoCaoId { get; set; }
+        public int[] ComparisonPeriodIds { get; set; }
+        public int? KhoaPhongId { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+    }
+
+    public class DashboardTrendQueryDto
+    {
+        public int? TanSuat { get; set; }
+        public int? KhoaPhongId { get; set; }
+        public int PeriodCount { get; set; }
+    }
+
+    public class DashboardIndicatorPeriodValueDto
+    {
+        public int KyBaoCaoId { get; set; }
+        public int KhoaPhongId { get; set; }
+        public int ChiSoChatLuongId { get; set; }
+        public string TenKhoaPhong { get; set; }
+        public string MaChiSo { get; set; }
+        public string TenChiSo { get; set; }
+        public string DonViTinh { get; set; }
+        public decimal? KetQua { get; set; }
+        public bool IsExpected { get; set; }
+        public bool IsSubmitted { get; set; }
+        public bool? DatMucTieu { get; set; }
+        public System.DateTime? NgayGui { get; set; }
+        public System.DateTime HanNop { get; set; }
+        public string ProgressStatus { get; set; }
+    }
+
+    public class DashboardIndicatorComparisonDto
+    {
+        public decimal? ChenhLech { get; set; }
+        public string TrangThaiKyChinh { get; set; }
+        public string TrangThaiKySoSanh { get; set; }
+        public string XuHuong { get; set; }
     }
 
     public class ExportUserContextDto

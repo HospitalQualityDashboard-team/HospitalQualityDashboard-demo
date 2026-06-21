@@ -1,7 +1,8 @@
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'ServiceSourceReader.ps1')
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
-$service = Get-Content -Raw -Encoding UTF8 (Join-Path $root 'Services\NotificationExportServices.cs')
+$service = Get-ServiceSource -Root $root -Patterns 'Services\Notifications\NotificationService.cs'
 $userBase = Get-Content -Raw -Encoding UTF8 (Join-Path $root 'Areas\User\Controllers\UserBaseController.cs')
 $controller = Get-Content -Raw -Encoding UTF8 (Join-Path $root 'Areas\User\Controllers\NotificationController.cs')
 $layout = Get-Content -Raw -Encoding UTF8 (Join-Path $root 'Views\Shared\_Layout.cshtml')

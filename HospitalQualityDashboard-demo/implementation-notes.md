@@ -816,6 +816,18 @@ powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\V
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\VerifyUnreadNotificationBadge.ps1
 ```
 
+### 18. So sánh nhiều kỳ khi xuất Dashboard Excel
+
+- Modal xuất Dashboard của Admin/User cho phép chọn một kỳ chính và tối đa 11 kỳ cũ hơn cùng tần suất; hỗ trợ tháng, quý, 6 tháng, 9 tháng và năm.
+- `DashboardComparisonBuilder` xác thực danh sách kỳ ở server, loại ID trùng và xác định chênh lệch/trạng thái biến động chỉ số mà không biến dữ liệu thiếu thành `0`.
+- Workbook bổ sung `SoSanhTongQuan` và `SoSanhChiSo`; các sheet cũ tiếp tục phản ánh kỳ chính. Tổng quan tách báo cáo nộp quá hạn dựa trên `NgayGui/HanNop` khỏi slot quá hạn chưa nộp.
+- Query so sánh dùng cùng bộ lọc và khóa `KhoaPhongId` theo vai trò. Audit lưu `ComparisonPeriodIds` trong JSON bộ lọc và tổng số dòng của mọi kỳ được xử lý; không thay đổi schema database.
+- Verification:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\VerifyDashboardPeriodComparison.ps1
+```
+
 ## 2026-06-19
 
 ### Hợp nhất tài liệu chức năng
