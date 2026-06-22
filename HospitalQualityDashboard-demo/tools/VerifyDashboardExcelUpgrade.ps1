@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'ServiceSourceReader.ps1')
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 
@@ -9,7 +10,7 @@ $paths = @{
     UserExportController = Join-Path $root 'Areas\User\Controllers\ExportController.cs'
     AdminDashboardView = Join-Path $root 'Areas\Admin\Views\Dashboard\Index.cshtml'
     UserDashboardView = Join-Path $root 'Areas\User\Views\Dashboard\Index.cshtml'
-    ExportService = Join-Path $root 'Services\DashboardExcelExportService.cs'
+    ExportService = Join-Path $root 'Services\Dashboards\Export'
     SqlScript = Join-Path $root 'App_Data\Sql\003_AddExportHistory.sql'
     PackagesConfig = Join-Path $root 'packages.config'
     Csproj = Join-Path $root 'HospitalQualityDashboard-demo.csproj'
@@ -21,10 +22,12 @@ foreach ($entry in $paths.GetEnumerator()) {
     }
 }
 
+$dashboardExportSource = Get-ServiceSource -Root $root -Patterns 'Services\Dashboards\Export\DashboardExcelExportService*.cs'
+
 $checks = @(
     @{ Path = $paths.ExportDtos; Tokens = @('DashboardExcelExportQueryDto', 'ExportUserContextDto', 'TrangThaiNhapLieu', 'TrangThaiDuyet', 'DatMucTieu') },
     @{ Path = $paths.ViewModels; Tokens = @('DashboardExcelDetailRow', 'DashboardDepartmentSummaryRow', 'DashboardMissingIndicatorRow', 'DashboardReviewHistoryRow', 'ExportHistoryViewModel') },
-    @{ Path = $paths.ExportService; Tokens = @('class DashboardExcelExportService', 'BuildDashboardExcel', 'TongQuan', 'ChiTietChiSo', 'TheoKhoaPhong', 'ChiSoChuaNhap', 'ChiSoChuaDat', 'LichSuDuyet', 'LichSuXuatBaoCao', 'ClosedXML.Excel') },
+    @{ Path = $paths.ExportService; Source = $dashboardExportSource; Tokens = @('class DashboardExcelExportService', 'BuildDashboardExcel', 'TongQuan', 'ChiTietChiSo', 'TheoKhoaPhong', 'ChiSoChuaNhap', 'ChiSoChuaDat', 'LichSuDuyet', 'LichSuXuatBaoCao', 'ClosedXML.Excel') },
     @{ Path = $paths.AdminExportController; Tokens = @('Dashboard(DashboardExcelExportQueryDto query)', 'BuildDashboardExcel', 'ExportUserContextDto') },
     @{ Path = $paths.UserExportController; Tokens = @('Dashboard(DashboardExcelExportQueryDto query)', 'CurrentKhoaPhongId', 'BuildDashboardExcel') },
     @{ Path = $paths.AdminDashboardView; Tokens = @('NamBaoCao', 'KyBaoCaoId', 'KhoaPhongId', 'LinhVuc', 'TrangThaiNhapLieu', 'TrangThaiDuyet', 'DatMucTieu', 'Dashboard", "Export"') },
@@ -35,7 +38,7 @@ $checks = @(
 )
 
 foreach ($check in $checks) {
-    $text = Get-Content -Raw -Path $check.Path
+    $text = if ($check.ContainsKey('Source')) { $check.Source } else { Get-Content -Raw -Path $check.Path }
     foreach ($token in $check.Tokens) {
         if ($text -notmatch [regex]::Escape($token)) {
             throw "Missing token '$token' in $($check.Path)"

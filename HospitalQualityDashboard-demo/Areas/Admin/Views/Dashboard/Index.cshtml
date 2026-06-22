@@ -17,6 +17,8 @@
     var roleLabel = Model.IsAdmin ? "Admin hệ thống" : "Khoa/phòng";
     var totalMetricLabel = Model.IsAdmin ? "Tổng cần nộp" : "Chỉ số được phân công";
     var urgentCount = Model.OverdueMissingReportCount + Model.DueSoonReportCount;
+    var activeTab = string.IsNullOrWhiteSpace(Model.ActiveTab) ? "comparison" : Model.ActiveTab;
+    ViewBag.Title = activeTab == "comparison" ? "So sánh kỳ báo cáo" : activeTab == "trend" ? "Xu hướng" : "Tổng quan";
 }
 
 <section class="dashboard-hero">
@@ -155,6 +157,12 @@
     </button>
 </section>
 
+<nav class="dashboard-analysis-tabs" aria-label="Phân tích Dashboard">
+    <a class="dashboard-analysis-tab @(activeTab == "overview" ? "is-active" : null)" href="@Url.Action("Index", "Dashboard", new { area = "Admin", DashboardTab = "overview", TanSuat = Model.SelectedTanSuat })">Tổng quan</a>
+    <a class="dashboard-analysis-tab @(activeTab == "comparison" ? "is-active" : null)" href="@Url.Action("Index", "Dashboard", new { area = "Admin", DashboardTab = "comparison", TanSuat = Model.SelectedTanSuat })">So sánh kỳ báo cáo</a>
+    <a class="dashboard-analysis-tab @(activeTab == "trend" ? "is-active" : null)" href="@Url.Action("Index", "Dashboard", new { area = "Admin", DashboardTab = "trend", TanSuat = Model.SelectedTanSuat })">Xu hướng</a>
+</nav>
+
 <div class="modal fade dashboard-metric-modal" id="dashboardMetricDetailModal" tabindex="-1" aria-labelledby="dashboardMetricDetailTitle" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -273,6 +281,7 @@
     </div>
 </div>
 
+<div class="dashboard-tab-pane @(activeTab == "overview" ? "is-active" : null)" data-dashboard-pane="overview" @(activeTab == "overview" ? null : "hidden")>
 <section class="dashboard-grid">
     <div class="dashboard-panel">
         <div class="panel-header">
@@ -362,9 +371,16 @@
         }
     </div>
 </section>
+</div>
+<div class="dashboard-tab-pane @(activeTab == "comparison" ? "is-active" : null)" data-dashboard-pane="comparison" data-dashboard-url="@Url.Action("Comparison", "Dashboard", new { area = "Admin" })" @(activeTab == "comparison" ? null : "hidden")>
+    @if (Model.Comparison != null) { @Html.Partial("~/Views/Shared/_DashboardComparison.cshtml", Model.Comparison) }
+</div>
+<div class="dashboard-tab-pane @(activeTab == "trend" ? "is-active" : null)" data-dashboard-pane="trend" data-dashboard-url="@Url.Action("Trend", "Dashboard", new { area = "Admin" })" @(activeTab == "trend" ? null : "hidden")>
+    @if (Model.Trend != null) { @Html.Partial("~/Views/Shared/_DashboardTrend.cshtml", Model.Trend) }
+</div>
 
 <div class="modal fade" id="dashboardExportModal" tabindex="-1" aria-labelledby="dashboardExportModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow rounded-3">
             @using (Html.BeginForm("Dashboard", "Export", new { area = "Admin" }, FormMethod.Get, new { id = "dashboardExportForm" }))
             {
@@ -404,6 +420,18 @@
                         <div class="col-md-6">
                             <label class="form-label" for="DatMucTieu">Đạt/chưa đạt mục tiêu</label>
                             @Html.DropDownList("DatMucTieu", Model.DatMucTieuOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                    </div>
+                    <div class="border rounded-3 p-3 mt-3 mb-3 bg-light">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enable-dashboard-comparison" />
+                            <label class="form-check-label fw-semibold" for="enable-dashboard-comparison">So sánh nhiều kỳ</label>
+                        </div>
+                        <div id="dashboard-comparison-panel" class="mt-3" hidden>
+                            <label class="form-label" for="dashboard-comparison-periods">Các kỳ dùng để so sánh</label>
+                            <select class="form-select form-select-sm" id="dashboard-comparison-periods" name="ComparisonPeriodIds" multiple size="5" disabled></select>
+                            <div class="form-text">Chỉ hiển thị kỳ cũ hơn, cùng tần suất. Có thể chọn tối đa 11 kỳ so sánh.</div>
+                            <div class="text-danger small mt-1" id="dashboard-comparison-message"></div>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -530,10 +558,121 @@
 @section scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+function initializeDashboardAnalysis() {
+    var tabs = document.querySelectorAll('[data-dashboard-tab]');
+    var panes = document.querySelectorAll('[data-dashboard-pane]');
+    var charts = [];
+
+    function renderCharts(container) {
+        var comparison = container.querySelector('.comparison-progress-chart');
+        if (comparison && !comparison.dataset.rendered) {
+            var metrics = JSON.parse(comparison.dataset.metrics || '[]');
+            charts.push(new Chart(comparison, { type: 'bar', data: { labels: metrics.map(function(x){ return x.TenKyBaoCao; }), datasets: [
+                { label: 'Đúng hạn', data: metrics.map(function(x){ return x.DungHan; }), backgroundColor: '#22a06b' },
+                { label: 'Nộp trễ', data: metrics.map(function(x){ return x.NopTre; }), backgroundColor: '#e5484d' },
+                { label: 'Chưa nộp', data: metrics.map(function(x){ return x.ChuaNop; }), backgroundColor: '#f0a202' },
+                { label: 'Quá hạn chưa nộp', data: metrics.map(function(x){ return x.QuaHanChuaNop; }), backgroundColor: '#9f1239' }
+            ]}, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }, plugins: { legend: { position: 'bottom' } } } }));
+            comparison.dataset.rendered = 'true';
+        }
+        var trend = container.querySelector('.dashboard-trend-chart');
+        if (trend && !trend.dataset.rendered) {
+            var trendMetrics = JSON.parse(trend.dataset.metrics || '[]');
+            charts.push(new Chart(trend, { type: 'line', data: { labels: trendMetrics.map(function(x){ return x.TenKyBaoCao; }), datasets: [
+                { label: 'Tỷ lệ hoàn thành', data: trendMetrics.map(function(x){ return x.TyLeHoanThanh; }), borderColor: '#146c78', tension: .28 },
+                { label: 'Tỷ lệ đúng hạn', data: trendMetrics.map(function(x){ return x.TyLeDungHan; }), borderColor: '#2563eb', tension: .28 },
+                { label: 'Nộp trễ', data: trendMetrics.map(function(x){ return x.NopTre; }), borderColor: '#e5484d', tension: .28, yAxisID: 'count' },
+                { label: 'Quá hạn chưa nộp', data: trendMetrics.map(function(x){ return x.QuaHanChuaNop; }), borderColor: '#f0a202', tension: .28, yAxisID: 'count' }
+            ]}, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '%' } }, count: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false } } }, plugins: { legend: { position: 'bottom' } } } }));
+            trend.dataset.rendered = 'true';
+        }
+    }
+
+    function bindPane(pane) {
+        var forms = pane.querySelectorAll('[data-dashboard-analysis-form], [data-dashboard-trend-form]');
+        forms.forEach(function(form) {
+            form.addEventListener('submit', function(event) { event.preventDefault(); loadPane(pane, new URLSearchParams(new FormData(form)).toString()); });
+        });
+        pane.querySelectorAll('[data-analysis-page]').forEach(function(button) {
+            button.addEventListener('click', function() { var form = pane.querySelector('[data-dashboard-analysis-form]'); form.querySelector('[name=Page]').value = button.dataset.analysisPage; form.dispatchEvent(new Event('submit')); });
+        });
+        var picker = pane.querySelector('[data-period-picker]');
+        if (picker) {
+            var checkboxes = Array.from(picker.querySelectorAll('input[type=checkbox]'));
+            picker.querySelectorAll('[data-period-preset]').forEach(function(button) { button.addEventListener('click', function(){ var limit = Number(button.dataset.periodPreset); checkboxes.filter(function(x){ return !x.closest('[hidden]'); }).forEach(function(x, i){ x.checked = i < limit; }); picker.querySelector('[data-period-summary]').textContent = checkboxes.filter(function(x){ return x.checked; }).length + ' kỳ đã chọn'; }); });
+            checkboxes.forEach(function(box){ box.addEventListener('change', function(){ var selected = checkboxes.filter(function(x){ return x.checked; }); if (selected.length > 11) box.checked = false; picker.querySelector('[data-period-summary]').textContent = checkboxes.filter(function(x){ return x.checked; }).length + ' kỳ đã chọn'; }); });
+        }
+        renderCharts(pane);
+    }
+
+    function loadPane(pane, query) {
+        pane.innerHTML = '<div class="analysis-loading"><span class="spinner-border spinner-border-sm"></span> Đang tải dữ liệu...</div>';
+        fetch(pane.dataset.dashboardUrl + (query ? '?' + query : ''), { credentials: 'same-origin' }).then(function(response){ if (!response.ok) throw new Error(response.statusText); return response.text(); }).then(function(html){ pane.innerHTML = html; bindPane(pane); }).catch(function(){ pane.innerHTML = '<div class="alert alert-danger">Không thể tải dữ liệu. <button type="button" class="btn btn-sm btn-outline-danger" data-analysis-retry>Thử lại</button></div>'; pane.querySelector('[data-analysis-retry]').addEventListener('click', function(){ loadPane(pane, query); }); });
+    }
+
+    panes.forEach(function(pane) { if (!pane.hidden) bindPane(pane); });
+    tabs.forEach(function(tab){ tab.addEventListener('click', function(){ var name = tab.dataset.dashboardTab; tabs.forEach(function(x){ x.classList.toggle('is-active', x === tab); }); panes.forEach(function(pane){ var active = pane.dataset.dashboardPane === name; pane.hidden = !active; pane.classList.toggle('is-active', active); if (active && name !== 'overview' && !pane.dataset.loaded) { pane.dataset.loaded = 'true'; loadPane(pane, window.location.search.replace(/^\?/, '')); } }); history.replaceState(null, '', '#'+name); }); });
+    var requested = window.location.hash.replace('#', ''); var initial = document.querySelector('[data-dashboard-tab="'+requested+'"]'); if (initial) initial.click();
+}
+
+function initializeDashboardComparison() {
+    var periods = window.dashboardComparisonPeriods || [];
+    var primarySelect = document.getElementById('KyBaoCaoId');
+    var toggle = document.getElementById('enable-dashboard-comparison');
+    var panel = document.getElementById('dashboard-comparison-panel');
+    var comparisonSelect = document.getElementById('dashboard-comparison-periods');
+    var message = document.getElementById('dashboard-comparison-message');
+    if (!primarySelect || !toggle || !panel || !comparisonSelect) return;
+
+    function refreshPeriods() {
+        var primary = periods.find(function(period) {
+            return String(period.id) === primarySelect.value;
+        });
+        var eligible = primary
+            ? periods.filter(function(period) {
+                return period.frequency === primary.frequency && period.start < primary.start;
+            })
+            : [];
+
+        comparisonSelect.innerHTML = '';
+        eligible.forEach(function(period, index) {
+            comparisonSelect.add(new Option(period.name, period.id, index === 0, index === 0));
+        });
+
+        toggle.disabled = !primary || eligible.length === 0;
+        if (toggle.disabled) toggle.checked = false;
+        panel.hidden = !toggle.checked;
+        comparisonSelect.disabled = !toggle.checked;
+        message.textContent = primary && eligible.length === 0
+            ? 'Không có kỳ cũ hơn cùng tần suất để so sánh.'
+            : '';
+    }
+
+    toggle.addEventListener('change', function() {
+        panel.hidden = !toggle.checked;
+        comparisonSelect.disabled = !toggle.checked;
+        if (toggle.checked && comparisonSelect.options.length > 0 && comparisonSelect.selectedOptions.length === 0) {
+            comparisonSelect.options[0].selected = true;
+        }
+    });
+    comparisonSelect.addEventListener('change', function() {
+        var selected = Array.from(comparisonSelect.selectedOptions);
+        if (selected.length > 11) selected[selected.length - 1].selected = false;
+    });
+    primarySelect.addEventListener('change', refreshPeriods);
+    refreshPeriods();
+}
+
 var labels = [@Html.Raw(string.Join(",", progressItems.Select(x => "\"" + HttpUtility.JavaScriptStringEncode(x.TenKhoaPhong) + "\"")))];
 var values = [@string.Join(",", progressItems.Select(x => x.DaGui))];
 var totals = [@string.Join(",", progressItems.Select(x => x.Tong))];
 var chartElement = document.getElementById('progressChart');
+window.dashboardComparisonPeriods = [
+@foreach (var period in Model.ComparisonPeriods ?? new System.Collections.Generic.List<HospitalQualityDashboardDemo.Models.DTOs.DashboardComparisonPeriodDto>())
+{
+    <text>{ id: @period.KyBaoCaoId, name: "@Html.Raw(HttpUtility.JavaScriptStringEncode(period.TenKyBaoCao))", frequency: @period.TanSuat, start: "@period.TuNgay.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" },</text>
+}
+];
 
 if (chartElement && labels.length) {
     new Chart(chartElement, {
@@ -615,6 +754,8 @@ if (metricDetailModal) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    initializeDashboardAnalysis();
+    initializeDashboardComparison();
     var dbExportColumnCheckboxes = document.querySelectorAll('.dashboard-export-column');
     var dbExportSubmitBtn = document.getElementById('dashboard-export-submit');
 

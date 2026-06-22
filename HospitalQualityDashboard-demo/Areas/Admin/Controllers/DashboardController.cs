@@ -11,6 +11,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
     public class DashboardController : AdminBaseController
     {
         private readonly DashboardService _service = new DashboardService();
+        private readonly DashboardProgressComparisonService _comparisonService = new DashboardProgressComparisonService();
         private readonly NotificationAutomationService _automation = new NotificationAutomationService();
 
         // Hiển thị danh sách và các bộ lọc của Dashboard chất lượng.
@@ -20,7 +21,55 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             query = query ?? new DashboardExcelExportQueryDto();
             var model = _service.GetDashboard(true, null, query.TanSuat);
             _service.PrepareExportFilters(model, query, true, null);
+            model.ActiveTab = NormalizeDashboardTab(query.DashboardTab);
+            if (model.ActiveTab == "comparison")
+            {
+                model.Comparison = _comparisonService.GetComparison(new DashboardAnalysisQueryDto
+                {
+                    TanSuat = query.TanSuat,
+                    KyBaoCaoId = query.KyBaoCaoId,
+                    ComparisonPeriodIds = query.ComparisonPeriodIds,
+                    KhoaPhongId = query.KhoaPhongId,
+                    Page = query.Page,
+                    PageSize = query.PageSize
+                }, true, null);
+            }
+            else if (model.ActiveTab == "trend")
+            {
+                model.Trend = _comparisonService.GetTrend(new DashboardTrendQueryDto
+                {
+                    TanSuat = query.TanSuat,
+                    KhoaPhongId = query.KhoaPhongId,
+                    PeriodCount = query.PeriodCount
+                }, true, null);
+            }
             return View(model);
+        }
+
+        private static string NormalizeDashboardTab(string value)
+        {
+            return value == "overview" || value == "trend" ? value : "comparison";
+        }
+
+        [HttpGet]
+        public ActionResult Comparison(DashboardAnalysisQueryDto query)
+        {
+            try
+            {
+                var model = _comparisonService.GetComparison(query, true, null);
+                return PartialView("~/Views/Shared/_DashboardComparison.cshtml", model);
+            }
+            catch (InvalidOperationException exception)
+            {
+                return new HttpStatusCodeResult(400, exception.Message);
+            }
+        }
+
+        [HttpGet]
+        public ActionResult Trend(DashboardTrendQueryDto query)
+        {
+            var model = _comparisonService.GetTrend(query, true, null);
+            return PartialView("~/Views/Shared/_DashboardTrend.cshtml", model);
         }
 
         [HttpPost]

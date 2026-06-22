@@ -10,6 +10,8 @@
 # Build outputs
 [Bb]in/
 [Oo]bj/
+[Bb]in_*/
+[Oo]bj_*/
 [Bb]in_unit/
 [Oo]bj_unit/
 [Dd]ebug/

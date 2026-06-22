@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $enumPath = Join-Path $root 'Models\Enums\SystemEnums.cs'
-$builderPath = Join-Path $root 'Services\IndicatorWarningMessageBuilder.cs'
+$builderPath = Join-Path $root 'Services\Notifications\IndicatorWarningMessageBuilder.cs'
 
 if (-not (Test-Path $builderPath)) {
     throw 'IndicatorWarningMessageBuilder.cs is missing.'

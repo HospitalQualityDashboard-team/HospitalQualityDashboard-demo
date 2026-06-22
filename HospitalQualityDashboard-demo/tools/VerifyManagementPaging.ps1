@@ -1,13 +1,12 @@
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'ServiceSourceReader.ps1')
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $viewModelPath = Join-Path $root 'Models\ViewModels\AppViewModels.cs'
 $periodControllerPath = Join-Path $root 'Areas\Admin\Controllers\ReportingPeriodController.cs'
-$periodServicePath = Join-Path $root 'Services\ReportingPeriodServices.cs'
 $periodViewPath = Join-Path $root 'Areas\Admin\Views\ReportingPeriod\Index.cshtml'
 $adminIndicatorControllerPath = Join-Path $root 'Areas\Admin\Controllers\IndicatorController.cs'
 $userIndicatorControllerPath = Join-Path $root 'Areas\User\Controllers\IndicatorController.cs'
-$indicatorServicePath = Join-Path $root 'Services\IndicatorServices.cs'
 $indicatorViewPath = Join-Path $root 'Areas\Admin\Views\Indicator\Index.cshtml'
 $adminNotificationControllerPath = Join-Path $root 'Areas\Admin\Controllers\NotificationController.cs'
 $userNotificationControllerPath = Join-Path $root 'Areas\User\Controllers\NotificationController.cs'
@@ -16,11 +15,11 @@ $userNotificationViewPath = Join-Path $root 'Areas\User\Views\Notification\Index
 
 $viewModel = Get-Content -Raw -Path $viewModelPath
 $periodController = Get-Content -Raw -Path $periodControllerPath
-$periodService = Get-Content -Raw -Path $periodServicePath
+$periodService = Get-ServiceSource -Root $root -Patterns 'Services\ReportingPeriods\ReportingPeriodService.cs'
 $periodView = Get-Content -Raw -Path $periodViewPath
 $adminIndicatorController = Get-Content -Raw -Path $adminIndicatorControllerPath
 $userIndicatorController = Get-Content -Raw -Path $userIndicatorControllerPath
-$indicatorService = Get-Content -Raw -Path $indicatorServicePath
+$indicatorService = Get-ServiceSource -Root $root -Patterns 'Services\Indicators\IndicatorService*.cs'
 $indicatorView = Get-Content -Raw -Path $indicatorViewPath
 $adminNotificationController = Get-Content -Raw -Path $adminNotificationControllerPath
 $userNotificationController = Get-Content -Raw -Path $userNotificationControllerPath

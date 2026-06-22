@@ -1,12 +1,11 @@
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'ServiceSourceReader.ps1')
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
-$exportService = Join-Path $root 'Services\NotificationExportServices.cs'
-$excelService = Join-Path $root 'Services\ExcelImportExportService.cs'
 $dashboardView = Join-Path $root 'Areas\Admin\Views\Dashboard\Index.cshtml'
 
-$exportText = Get-Content -Raw -Path $exportService
-$excelText = Get-Content -Raw -Path $excelService
+$exportText = Get-ServiceSource -Root $root -Patterns 'Services\Exports\ExportService.cs'
+$excelText = Get-ServiceSource -Root $root -Patterns @('Services\Excel\ExcelImportExportService*.cs', 'Services\Excel\ExcelWorksheetExport.cs')
 $viewText = Get-Content -Raw -Path $dashboardView
 
 $requiredExportTokens = @(

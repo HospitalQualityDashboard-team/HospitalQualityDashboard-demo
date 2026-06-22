@@ -165,22 +165,21 @@ HospitalQualityDashboard-demo/                      # Thư mục gốc của pro
 │   ├── bootstrap.esm.js / .min.js
 │   └── *.map                                  # Source maps
 ├── Services/
-│   ├── AuthService.cs                         # Xác thực, đổi mật khẩu, update profile
-│   ├── DashboardExcelExportService.cs         # Xuất Dashboard nhiều sheet và ghi audit
-│   ├── DatabaseConfiguration.cs               # Tên connection string và helper đọc cấu hình DB
-│   ├── DatabaseBootstrapper.cs                # Khởi tạo CSDL tự động
-│   ├── DbServiceBase.cs                       # Base: Query, Scalar, Execute, Param
-│   ├── DropdownCache.cs                       # Cache tùy chọn dropdown trong 5 phút
-│   ├── ExcelImportExportService.cs            # Đọc/ghi Excel
-│   ├── FrequencyHelper.cs                     # Chuẩn hóa tần suất chỉ số/kỳ báo cáo
-│   ├── IndicatorWarningMessageBuilder.cs      # Tạo nội dung cảnh báo theo hạn nộp
-│   ├── IndicatorServices.cs                   # Chỉ số (Service, Assignment, Parser)
-│   ├── ManagementServices.cs                  # Khoa/phòng và nhân viên
-│   ├── NotificationExportServices.cs          # Thông báo + NotificationAutomationService
-│   ├── PasswordHasher.cs                      # PBKDF2 hash/verify
-│   ├── ReportDashboardServices.cs             # Báo cáo, Dashboard, IndicatorCalculation
-│   ├── ReportingPeriodServices.cs             # Kỳ báo cáo + ReportingPeriodScheduleService
-│   └── SessionUserAccessor.cs                 # Chuẩn hóa session key
+│   ├── Authentication/                        # Xác thực, mật khẩu và session
+│   ├── Common/                                # Helper dùng chung
+│   ├── Dashboards/                            # Dashboard, so sánh kỳ và Excel export
+│   │   └── Export/
+│   ├── Departments/                           # Quản lý khoa/phòng
+│   ├── Employees/                             # Quản lý nhân viên
+│   ├── Excel/                                 # Đọc/ghi CSV, XLSX và DOCX
+│   ├── Exports/                               # Điều phối các luồng export
+│   ├── Indicators/                            # Chỉ số, import và phân công
+│   ├── Infrastructure/
+│   │   ├── Caching/                           # Cache dropdown
+│   │   └── Database/                          # Cấu hình, bootstrap và DbServiceBase
+│   ├── Notifications/                         # Thông báo, automation và cảnh báo chỉ số
+│   ├── ReportingPeriods/                      # Kỳ báo cáo và sinh lịch
+│   └── Reports/                               # Báo cáo và tính toán chỉ số
 ├── Tai_Lieu/                                  # Tài liệu nghiệp vụ và file nguồn
 │   ├── Danh_sach_nhan_vien_mau_Benh_vien_Ung_Buou.xlsx
 │   ├── DM_KHOA_PHONG.xlsx
@@ -682,13 +681,13 @@ Nhờ vậy, nếu Admin thay đổi phân công sau khi tạo kỳ, danh sách 
 ### 16.7. File kỹ thuật chính
 
 - `Models/ViewModels/AppViewModels.cs`: chứa ViewModel tạo lịch và preview.
-- `Services/ReportingPeriodServices.cs`: chứa `ReportingPeriodScheduleService`, logic sinh kỳ, chống trùng, bỏ qua kỳ cũ và tự mở kỳ.
+- `Services/ReportingPeriods/ReportingPeriodScheduleService.cs`: logic sinh kỳ, chống trùng, bỏ qua kỳ cũ và tự mở kỳ.
 - `Areas/Admin/Controllers/ReportingPeriodController.cs`: thêm action `GenerateSchedule`, `PreviewSchedule`, `CreateSchedule`.
 - `Areas/Admin/Views/ReportingPeriod/GenerateSchedule.cshtml`: màn hình Admin chọn năm, loại kỳ và xem preview.
 - `Areas/Admin/Views/ReportingPeriod/Index.cshtml`: thêm nút **Tạo lịch tự động**.
 - `Areas/Admin/Controllers/ReportingPeriodController.cs` và `Areas/Admin/Controllers/NotificationController.cs`: có endpoint POST có anti-forgery để Admin mở kỳ đến hạn hoặc chạy automation thủ công; các trang GET chính giữ nguyên read-only.
 - `Global.asax.cs`: gọi tự mở kỳ khi ứng dụng khởi động.
-- `Services/ReportDashboardServices.cs`: xác định báo cáo trễ theo ngày hạn nộp, phù hợp quy ước hạn cuối 23:59.
+- `Services/Reports/ReportService.cs`: xác định báo cáo trễ theo ngày hạn nộp, phù hợp quy ước hạn cuối 23:59.
 - Kiểm tra chức năng tạo lịch tự động bằng build Razor view và checklist thủ công.
 
 ### 16.8. Kiểm thử cần giữ
@@ -747,9 +746,9 @@ Mục này lưu lịch sử dọn dẹp ngày 10/06/2026. Trạng thái được
 - **Mục tiêu**: Đảm bảo tính toàn vẹn dữ liệu (Atomicity), rollback toàn bộ nếu có bất cứ lỗi nào xảy ra trong quá trình cập nhật hoặc import dữ liệu nhiều bảng.
 - **Cơ sở hạ tầng**: Bổ sung helper `ExecuteInTransaction` trong [DbServiceBase.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Services/DbServiceBase.cs) cùng các overload nhận `SqlConnection` và `SqlTransaction` để tái sử dụng.
 - **Nghiệp vụ áp dụng**:
-  - **Báo cáo**: Lưu nháp (`SaveDraft`) và Xóa (`Delete`) trong [ReportDashboardServices.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Services/ReportDashboardServices.cs).
-  - **Chỉ số**: Thêm/Sửa (`Save`), Xóa (`Delete`) và `Import` chỉ số trong [IndicatorServices.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Services/IndicatorServices.cs).
-  - **Danh mục**: `Import` khoa phòng và `Import` nhân viên (bao gồm tạo tài khoản) trong [ManagementServices.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Services/ManagementServices.cs).
+  - **Báo cáo**: Lưu nháp (`SaveDraft`) và Xóa (`Delete`) trong `Services/Reports/ReportService.cs`.
+  - **Chỉ số**: Thêm/Sửa (`Save`), Xóa (`Delete`) và `Import` trong các partial tại `Services/Indicators/IndicatorService*.cs`.
+  - **Danh mục**: `Import` khoa/phòng trong `Services/Departments/DepartmentService.cs` và nhân viên trong `Services/Employees/EmployeeService.cs`.
 
 ### 18.3. Thay thế CSV bằng Excel (.xlsx) & Thêm xuất Excel Dashboard
 - **Chuyển đổi định dạng**: Thay đổi tất cả tính năng xuất dữ liệu (Khoa phòng, Nhân viên, Chỉ số, Báo cáo) từ định dạng CSV sang định dạng Excel thực tế (.xlsx) qua hàm `CreateXlsx` tự viết (sẵn có trong hệ thống), đổi MIME type thành `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`. Việc này giải quyết triệt để lỗi hiển thị font tiếng Việt có dấu.
@@ -759,7 +758,7 @@ Mục này lưu lịch sử dọn dẹp ngày 10/06/2026. Trạng thái được
   - Hiển thị modal `#dashboardExportModal` cho phép Admin chọn các cột: *Khoa / Phòng, Số báo cáo đã gửi, Tổng số chỉ số cần nộp, Tỷ lệ hoàn tất (%)*.
   - Xuất động dữ liệu tiến độ theo các cột được chọn thành file `tien-do-khoa-phong.xlsx`.
 - **Tập tin chính**:
-  - [NotificationExportServices.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Services/NotificationExportServices.cs): Cập nhật `ExportService` và bổ sung `ExportDashboardProgress`.
+  - `Services/Exports/ExportService.cs`: Cập nhật `ExportService` và bổ sung `ExportDashboardProgress`.
   - [ExportController.cs (Admin)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Controllers/ExportController.cs), [ExportController.cs (User)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/User/Controllers/ExportController.cs), [ExportController.cs (Root)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Controllers/ExportController.cs): Thay đổi MIME type, phần mở rộng `.xlsx` và thêm các action xử lý xuất Excel Dashboard.
   - [Index.cshtml (Admin Dashboard)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Views/Dashboard/Index.cshtml): Bổ sung nút bấm và modal chọn cột.
 
@@ -799,8 +798,8 @@ Mục này lưu lịch sử dọn dẹp ngày 10/06/2026. Trạng thái được
 
 ### 19.4. Tập tin chính đã chỉnh sửa
 - [AppViewModels.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Models/ViewModels/AppViewModels.cs): Mở rộng `DepartmentProgressViewModel` và `DashboardViewModel`.
-- [ReportDashboardServices.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Services/ReportDashboardServices.cs): Nâng cấp `GetDashboard` và thêm helper `CalculateXepLoai`.
-- [NotificationExportServices.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Services/NotificationExportServices.cs): Cập nhật `ExportDashboardProgress` và các cột cấu hình `DashboardProgressExportColumns`.
+- `Services/Dashboards/DashboardService*.cs`: Nâng cấp `GetDashboard` và thêm helper `CalculateXepLoai`.
+- `Services/Exports/ExportService.cs`: Cập nhật `ExportDashboardProgress` và các cột cấu hình `DashboardProgressExportColumns`.
 - [DashboardController.cs (Admin)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Controllers/DashboardController.cs): Tiếp nhận tham số lọc `tanSuat`.
 - [ExportController.cs (Admin)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Controllers/ExportController.cs) & [ExportController.cs (Root)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Controllers/ExportController.cs): Tiếp nhận và truyền tham số `tanSuat`.
 - [Index.cshtml (Admin Dashboard)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Views/Dashboard/Index.cshtml): Thêm form lọc, hiển thị badge xếp loại và cập nhật cấu hình modal xuất Excel.
@@ -882,6 +881,7 @@ Thư mục `tools/` hiện có các script:
 
 - `VerifyDashboardExcelDetailedExport.ps1`
 - `VerifyDashboardExcelUpgrade.ps1`
+- `VerifyDashboardPeriodComparison.ps1`
 - `VerifyDashboardAdminSummary.ps1`
 - `VerifyDashboardMetricDetails.ps1`
 - `VerifyEmployeeOrder.ps1`

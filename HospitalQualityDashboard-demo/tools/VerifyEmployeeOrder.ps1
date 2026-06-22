@@ -16,7 +16,7 @@ function Assert-Contains {
     }
 }
 
-$servicePath = Join-Path $ProjectRoot "Services\ManagementServices.cs"
+    $servicePath = Join-Path $ProjectRoot "Services\Employees\EmployeeService.cs"
 $viewPath = Join-Path $ProjectRoot "Areas\Admin\Views\Employee\Index.cshtml"
 
 $service = Get-Content -Raw $servicePath

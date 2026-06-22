@@ -1,15 +1,13 @@
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'ServiceSourceReader.ps1')
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
-$reportServicePath = Join-Path $root 'Services\ReportDashboardServices.cs'
-$dashboardExportPath = Join-Path $root 'Services\DashboardExcelExportService.cs'
-$notificationExportPath = Join-Path $root 'Services\NotificationExportServices.cs'
 $adminReportIndexPath = Join-Path $root 'Areas\Admin\Views\Report\Index.cshtml'
 $userReportIndexPath = Join-Path $root 'Areas\User\Views\Report\Index.cshtml'
 
-$reportService = Get-Content -Raw -Path $reportServicePath
-$dashboardExport = Get-Content -Raw -Path $dashboardExportPath
-$notificationExport = Get-Content -Raw -Path $notificationExportPath
+$reportService = Get-ServiceSource -Root $root -Patterns @('Services\Reports\IndicatorCalculationService.cs', 'Services\Reports\ReportService.cs')
+$dashboardExport = Get-ServiceSource -Root $root -Patterns 'Services\Dashboards\Export\DashboardExcelExportService*.cs'
+$notificationExport = Get-ServiceSource -Root $root -Patterns @('Services\Notifications\Notification*.cs', 'Services\Exports\ExportService.cs')
 $adminReportIndex = Get-Content -Raw -Path $adminReportIndexPath
 $userReportIndex = Get-Content -Raw -Path $userReportIndexPath
 

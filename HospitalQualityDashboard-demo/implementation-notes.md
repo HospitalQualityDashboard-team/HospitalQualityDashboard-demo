@@ -816,6 +816,18 @@ powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\V
 powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\VerifyUnreadNotificationBadge.ps1
 ```
 
+### 18. So sánh nhiều kỳ khi xuất Dashboard Excel
+
+- Modal xuất Dashboard của Admin/User cho phép chọn một kỳ chính và tối đa 11 kỳ cũ hơn cùng tần suất; hỗ trợ tháng, quý, 6 tháng, 9 tháng và năm.
+- `DashboardComparisonBuilder` xác thực danh sách kỳ ở server, loại ID trùng và xác định chênh lệch/trạng thái biến động chỉ số mà không biến dữ liệu thiếu thành `0`.
+- Workbook bổ sung `SoSanhTongQuan` và `SoSanhChiSo`; các sheet cũ tiếp tục phản ánh kỳ chính. Tổng quan tách báo cáo nộp quá hạn dựa trên `NgayGui/HanNop` khỏi slot quá hạn chưa nộp.
+- Query so sánh dùng cùng bộ lọc và khóa `KhoaPhongId` theo vai trò. Audit lưu `ComparisonPeriodIds` trong JSON bộ lọc và tổng số dòng của mọi kỳ được xử lý; không thay đổi schema database.
+- Verification:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\VerifyDashboardPeriodComparison.ps1
+```
+
 ## 2026-06-19
 
 ### Hợp nhất tài liệu chức năng
@@ -830,4 +842,14 @@ powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\V
 - Cập nhật README/AGENTS về cấu trúc controller, migration, script kiểm tra, session, lockout và giới hạn import.
 - Cập nhật `PROJECT_CONTEXT.md`, tài liệu nghiệp vụ và SDD về service mới, trạng thái `DaDuyet`, Dashboard chi tiết, cảnh báo chỉ số và cấu hình bảo mật hiện tại.
 - Giữ nguyên nội dung lịch sử; báo cáo bảo mật được bổ sung bảng trạng thái ngày 19/06/2026 thay vì xóa bằng chứng rà soát ngày 02/06/2026.
+
+## 2026-06-22
+
+### Bổ sung tài liệu cấu trúc dự án
+
+- Tạo `PROJECT_STRUCTURE.md` bằng tiếng Việt có dấu tại thư mục gốc repository.
+- Mô tả kiến trúc ASP.NET MVC, chức năng từng folder và từng file code tự viết trong Controller, Model, DTO, ViewModel, Service, Razor View, JavaScript, CSS, SQL và PowerShell.
+- Giải thích trách nhiệm riêng của các file partial service, luồng nghiệp vụ xuyên module và bảng hướng dẫn tìm nơi cần sửa theo chức năng.
+- Gom Bootstrap, jQuery, Modernizr, file minified và source map thành nhóm thư viện bên thứ ba thay vì phân tích như code nghiệp vụ.
+- Thêm liên kết từ `README.md` và Solution Explorer để thành viên mới truy cập tài liệu trực tiếp.
 

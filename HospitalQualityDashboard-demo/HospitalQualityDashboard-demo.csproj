@@ -192,22 +192,52 @@
     <Compile Include="Models\ViewModels\AppViewModels.cs" />
     <Compile Include="Models\ViewModels\AuthViewModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\AuthService.cs" />
-    <Compile Include="Services\DashboardExcelExportService.cs" />
-    <Compile Include="Services\DatabaseConfiguration.cs" />
-    <Compile Include="Services\DatabaseBootstrapper.cs" />
-    <Compile Include="Services\DbServiceBase.cs" />
-    <Compile Include="Services\DropdownCache.cs" />
-    <Compile Include="Services\ExcelImportExportService.cs" />
-    <Compile Include="Services\FrequencyHelper.cs" />
-    <Compile Include="Services\IndicatorWarningMessageBuilder.cs" />
-    <Compile Include="Services\IndicatorServices.cs" />
-    <Compile Include="Services\ReportingPeriodServices.cs" />
-    <Compile Include="Services\ManagementServices.cs" />
-    <Compile Include="Services\NotificationExportServices.cs" />
-    <Compile Include="Services\PasswordHasher.cs" />
-    <Compile Include="Services\ReportDashboardServices.cs" />
-    <Compile Include="Services\SessionUserAccessor.cs" />
+    <Compile Include="Services\Authentication\AuthService.cs" />
+    <Compile Include="Services\Authentication\PasswordHasher.cs" />
+    <Compile Include="Services\Authentication\SessionUserAccessor.cs" />
+    <Compile Include="Services\Common\FrequencyHelper.cs" />
+    <Compile Include="Services\Dashboards\DashboardComparisonBuilder.cs" />
+    <Compile Include="Services\Dashboards\DashboardProgressComparisonBuilder.cs" />
+    <Compile Include="Services\Dashboards\DashboardProgressComparisonService.cs" />
+    <Compile Include="Services\Dashboards\DashboardService.cs" />
+    <Compile Include="Services\Dashboards\DashboardService.Details.cs" />
+    <Compile Include="Services\Dashboards\DashboardService.Filters.cs" />
+    <Compile Include="Services\Dashboards\DashboardService.MissingReports.cs" />
+    <Compile Include="Services\Dashboards\DashboardService.Summary.cs" />
+    <Compile Include="Services\Dashboards\Export\DashboardExcelExportService.cs" />
+    <Compile Include="Services\Dashboards\Export\DashboardExcelExportService.Comparison.cs" />
+    <Compile Include="Services\Dashboards\Export\DashboardExcelExportService.History.cs" />
+    <Compile Include="Services\Dashboards\Export\DashboardExcelExportService.Queries.cs" />
+    <Compile Include="Services\Dashboards\Export\DashboardExcelExportService.Workbook.cs" />
+    <Compile Include="Services\Departments\DepartmentService.cs" />
+    <Compile Include="Services\Employees\EmployeeService.cs" />
+    <Compile Include="Services\Excel\ExcelImportExportService.cs" />
+    <Compile Include="Services\Excel\ExcelImportExportService.OpenXml.cs" />
+    <Compile Include="Services\Excel\ExcelImportExportService.Readers.cs" />
+    <Compile Include="Services\Excel\ExcelWorksheetExport.cs" />
+    <Compile Include="Services\Exports\ExportService.cs" />
+    <Compile Include="Services\Indicators\AssignmentService.cs" />
+    <Compile Include="Services\Indicators\AssignmentService.Commands.cs" />
+    <Compile Include="Services\Indicators\AssignmentService.Groups.cs" />
+    <Compile Include="Services\Indicators\AssignmentService.Queries.cs" />
+    <Compile Include="Services\Indicators\IndicatorService.cs" />
+    <Compile Include="Services\Indicators\IndicatorService.Departments.cs" />
+    <Compile Include="Services\Indicators\IndicatorService.Formula.cs" />
+    <Compile Include="Services\Indicators\IndicatorService.Frequencies.cs" />
+    <Compile Include="Services\Indicators\IndicatorService.Import.cs" />
+    <Compile Include="Services\Indicators\IndicatorService.Parsing.cs" />
+    <Compile Include="Services\Indicators\IndicatorService.Persistence.cs" />
+    <Compile Include="Services\Infrastructure\Caching\DropdownCache.cs" />
+    <Compile Include="Services\Infrastructure\Database\DatabaseBootstrapper.cs" />
+    <Compile Include="Services\Infrastructure\Database\DatabaseConfiguration.cs" />
+    <Compile Include="Services\Infrastructure\Database\DbServiceBase.cs" />
+    <Compile Include="Services\Notifications\IndicatorWarningMessageBuilder.cs" />
+    <Compile Include="Services\Notifications\NotificationAutomationService.cs" />
+    <Compile Include="Services\Notifications\NotificationService.cs" />
+    <Compile Include="Services\ReportingPeriods\ReportingPeriodScheduleService.cs" />
+    <Compile Include="Services\ReportingPeriods\ReportingPeriodService.cs" />
+    <Compile Include="Services\Reports\IndicatorCalculationService.cs" />
+    <Compile Include="Services\Reports\ReportService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />
@@ -227,6 +257,7 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\dashboard-analysis.js" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -284,21 +315,43 @@
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Shared\_DashboardComparison.cshtml" />
+    <Content Include="Views\Shared\_DashboardTrend.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Account\AdminLogin.cshtml" />
     <Content Include="Views\Account\Profile.cshtml" />
     <Content Include="Views\Account\UserLogin.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="tools\GetServicePublicApi.ps1" />
+    <Content Include="tools\ServiceSourceReader.ps1" />
+    <Content Include="tools\VerifyDashboardAdminSummary.ps1" />
     <Content Include="tools\VerifyEmployeeOrder.ps1" />
     <Content Include="tools\VerifyReportResultAndExcelTime.ps1" />
     <Content Include="tools\VerifyDashboardExcelDetailedExport.ps1" />
     <Content Include="tools\VerifyDashboardExcelUpgrade.ps1" />
+    <Content Include="tools\VerifyDashboardPeriodComparison.ps1" />
     <Content Include="tools\VerifyDashboardMetricDetails.ps1" />
     <Content Include="tools\VerifyIndicatorWarningMessages.ps1" />
     <Content Include="tools\VerifyIndicatorWarnings.ps1" />
+    <Content Include="tools\VerifyManagementPaging.ps1" />
+    <Content Include="tools\VerifyReportSubmissionNavigationAndAdminAudit.ps1" />
     <Content Include="tools\VerifyUnreadNotificationBadge.ps1" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="AGENTS.md" />
+    <None Include="PROJECT_CONTEXT.md" />
+    <None Include="TAI_LIEU_NGHIEP_VU.md" />
+    <None Include="Tai_Lieu\**\*" />
+    <None Include="..\README.md">
+      <Link>Solution Documentation\README.md</Link>
+    </None>
+    <None Include="..\PROJECT_STRUCTURE.md">
+      <Link>Solution Documentation\PROJECT_STRUCTURE.md</Link>
+    </None>
+    <None Include="..\design-qa.md">
+      <Link>Solution Documentation\design-qa.md</Link>
+    </None>
+  </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.min.css.map" />
     <Content Include="Content\bootstrap.css.map" />

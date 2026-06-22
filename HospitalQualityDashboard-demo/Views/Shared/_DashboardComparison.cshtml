@@ -1,0 +1,156 @@
+@model HospitalQualityDashboardDemo.Models.ViewModels.ProgressComparisonViewModel
+@using System.Linq
+@using Newtonsoft.Json
+@{
+    var areaName = Model.IsAdmin ? "Admin" : "User";
+    var selectedIds = Model.ComparisonPeriodIds ?? new int[0];
+    var primaryPeriod = Model.AvailablePeriods.FirstOrDefault(x => x.KyBaoCaoId == Model.KyBaoCaoId);
+    Func<string, string> statusText = code => code == "OnTime" ? "Đúng hạn"
+        : code == "Late" ? "Nộp trễ"
+        : code == "Missing" ? "Chưa nộp"
+        : code == "OverdueMissing" ? "Quá hạn chưa nộp"
+        : "Không áp dụng";
+    Func<string, string> statusClass = code => code == "OnTime" ? "is-on-time"
+        : code == "Late" ? "is-late"
+        : code == "OverdueMissing" ? "is-overdue"
+        : "is-missing";
+    Func<string, string> changeText = code => code == "Better" ? "Tốt hơn"
+        : code == "Worse" ? "Xấu hơn"
+        : code == "Unchanged" ? "Không đổi"
+        : "Chưa đủ dữ liệu";
+}
+
+<section class="dashboard-panel analysis-panel">
+    <div class="panel-header">
+        <div>
+            <h2>So sánh tiến độ kỳ báo cáo</h2>
+            <p>Đối chiếu tình trạng nộp đúng hạn, nộp trễ và chưa nộp giữa các kỳ cùng tần suất.</p>
+        </div>
+    </div>
+
+    <form class="analysis-filter" data-dashboard-analysis-form data-url="@Url.Action("Comparison", "Dashboard", new { area = areaName })">
+        <input type="hidden" name="DashboardTab" value="comparison" />
+        <div class="analysis-filter-field">
+            <label for="comparison-frequency">Tần suất</label>
+            @Html.DropDownList("TanSuat", Model.TanSuatOptions, new { id = "comparison-frequency", @class = "form-select form-select-sm" })
+        </div>
+        <div class="analysis-filter-field">
+            <label for="comparison-primary">Kỳ chính</label>
+            @Html.DropDownList("KyBaoCaoId", Model.KyBaoCaoOptions, new { id = "comparison-primary", @class = "form-select form-select-sm" })
+        </div>
+        <div class="analysis-filter-field analysis-period-picker">
+            <label>Các kỳ trước</label>
+            <details class="period-picker" data-period-picker>
+                <summary><span data-period-summary>@selectedIds.Length kỳ đã chọn</span></summary>
+                <div class="period-picker-menu">
+                    <div class="period-picker-actions">
+                        <button type="button" class="btn btn-sm btn-light" data-period-preset="1">Kỳ liền trước</button>
+                        <button type="button" class="btn btn-sm btn-light" data-period-preset="6">6 kỳ</button>
+                        <button type="button" class="btn btn-sm btn-light" data-period-preset="11">Tất cả</button>
+                    </div>
+                    @foreach (var period in Model.AvailablePeriods.Where(x => x.TanSuat == Model.TanSuat && primaryPeriod != null && x.TuNgay < primaryPeriod.TuNgay).OrderByDescending(x => x.TuNgay))
+                    {
+                        <label class="period-picker-option" data-frequency="@period.TanSuat" data-start="@period.TuNgay.ToString("yyyy-MM-dd")">
+                            <input type="checkbox" name="ComparisonPeriodIds" value="@period.KyBaoCaoId" @(selectedIds.Contains(period.KyBaoCaoId) ? "checked" : null) />
+                            <span>@period.TenKyBaoCao</span>
+                        </label>
+                    }
+                </div>
+            </details>
+        </div>
+        @if (Model.IsAdmin)
+        {
+            <div class="analysis-filter-field">
+                <label for="comparison-department">Khoa/phòng</label>
+                @Html.DropDownList("KhoaPhongId", Model.KhoaPhongOptions, new { id = "comparison-department", @class = "form-select form-select-sm" })
+            </div>
+        }
+        <input type="hidden" name="Page" value="1" />
+        <input type="hidden" name="PageSize" value="20" />
+        <button type="submit" class="btn btn-primary btn-sm analysis-submit"><i class="bi bi-bar-chart-line me-1"></i>Xem so sánh</button>
+        <a class="btn btn-outline-success btn-sm analysis-export" href="@Url.Action("Dashboard", "Export", new { area = areaName, TanSuat = Model.TanSuat, KyBaoCaoId = Model.KyBaoCaoId, KhoaPhongId = Model.KhoaPhongId, ComparisonPeriodIds = Model.ComparisonPeriodIds })">
+            <i class="bi bi-file-earmark-excel me-1"></i>Xuất Excel
+        </a>
+    </form>
+
+    @if (Model.Metrics.Any())
+    {
+        <div class="analysis-period-chips" data-selected-period-chips>
+            @foreach (var metric in Model.Metrics)
+            {
+                <span class="analysis-chip">@metric.TenKyBaoCao</span>
+            }
+        </div>
+
+        <div class="comparison-kpi-grid">
+            @foreach (var metric in Model.Metrics)
+            {
+                <article class="comparison-period-card">
+                    <div class="comparison-period-title">
+                        <strong>@metric.TenKyBaoCao</strong>
+                        @if (metric.TrangThaiKy == 2) { <span class="analysis-live-badge">Đang cập nhật</span> }
+                    </div>
+                    <div class="comparison-period-metrics">
+                        <span><b>@metric.TongCanNop</b>Tổng cần nộp</span>
+                        <span class="text-success"><b>@metric.DungHan</b>Đúng hạn</span>
+                        <span class="text-danger"><b>@metric.NopTre</b>Nộp trễ</span>
+                        <span class="text-warning"><b>@(metric.ChuaNop + metric.QuaHanChuaNop)</b>Chưa nộp</span>
+                    </div>
+                    <div class="comparison-rate"><span>Hoàn thành</span><strong>@metric.TyLeHoanThanh.ToString("0.##")%</strong></div>
+                </article>
+            }
+        </div>
+
+        <div class="analysis-chart-summary-grid">
+            <div class="dashboard-panel analysis-inner-panel">
+                <div class="panel-header"><div><h3>Trạng thái nộp báo cáo theo kỳ</h3><p>Số lượng báo cáo trong từng trạng thái.</p></div></div>
+                <div class="chart-shell"><canvas class="comparison-progress-chart" data-metrics='@Html.Raw(JsonConvert.SerializeObject(Model.Metrics))' height="120"></canvas></div>
+            </div>
+            <div class="dashboard-panel analysis-inner-panel">
+                <div class="panel-header"><div><h3>Tóm tắt so sánh</h3><p>Đánh giá kỳ chính với các kỳ đã chọn.</p></div></div>
+                <div class="comparison-summary-grid">
+                    <span class="is-better"><b>@Model.BetterCount</b>Tốt hơn</span>
+                    <span class="is-worse"><b>@Model.WorseCount</b>Xấu hơn</span>
+                    <span class="is-unchanged"><b>@Model.UnchangedCount</b>Không đổi</span>
+                    <span class="is-insufficient"><b>@Model.InsufficientCount</b>Chưa đủ dữ liệu</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-table-section">
+            <div class="panel-header"><div><h3>Chi tiết tiến độ theo chỉ số</h3><p>Ưu tiên các chỉ số có trạng thái xấu hơn kỳ trước.</p></div><span class="text-muted small">@Model.TotalRows chỉ số</span></div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle analysis-table">
+                    <thead><tr><th>Khoa/phòng</th><th>Chỉ số</th>@foreach (var metric in Model.Metrics) { <th>@metric.TenKyBaoCao</th> }<th>Đánh giá</th></tr></thead>
+                    <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td>@row.TenKhoaPhong</td>
+                            <td><strong>@row.MaChiSo</strong><span>@row.TenChiSo</span></td>
+                            @foreach (var period in row.Periods)
+                            {
+                                <td><span class="status-pill @statusClass(period.StatusCode)">@statusText(period.StatusCode)</span>@if (period.NgayGui.HasValue) { <small>@period.NgayGui.Value.ToString("dd/MM/yyyy HH:mm")</small> }</td>
+                            }
+                            <td><span class="change-pill change-@row.OverallChangeCode.ToLowerInvariant()">@changeText(row.OverallChangeCode)</span></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            @if (Model.TotalPages > 1)
+            {
+                <nav class="analysis-pagination" aria-label="Phân trang so sánh">
+                    @for (var page = 1; page <= Model.TotalPages; page++)
+                    {
+                        <button type="button" class="btn btn-sm @(page == Model.CurrentPage ? "btn-primary" : "btn-light")" data-analysis-page="@page">@page</button>
+                    }
+                </nav>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state analysis-empty"><i class="bi bi-calendar2-range"></i><p>Không có kỳ báo cáo phù hợp để so sánh.</p></div>
+    }
+</section>

@@ -1,8 +1,9 @@
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'ServiceSourceReader.ps1')
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $viewModel = Get-Content -Raw (Join-Path $root 'Models\ViewModels\AppViewModels.cs')
-$service = Get-Content -Raw (Join-Path $root 'Services\ReportDashboardServices.cs')
+$service = Get-ServiceSource -Root $root -Patterns 'Services\Dashboards\DashboardService*.cs'
 $view = Get-Content -Raw (Join-Path $root 'Areas\Admin\Views\Dashboard\Index.cshtml')
 $css = Get-Content -Raw (Join-Path $root 'Content\Site.css')
 

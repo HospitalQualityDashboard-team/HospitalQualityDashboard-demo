@@ -1,4 +1,5 @@
 // Mục đích: gom view model cho màn hình nghiệp vụ và dữ liệu truyền sang Razor view.
+using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using System;
 using System.Collections.Generic;
@@ -507,6 +508,10 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public IList<SelectListItem> TrangThaiNhapLieuOptions { get; set; }
         public IList<SelectListItem> TrangThaiDuyetOptions { get; set; }
         public IList<SelectListItem> DatMucTieuOptions { get; set; }
+        public IList<DashboardComparisonPeriodDto> ComparisonPeriods { get; set; }
+        public string ActiveTab { get; set; }
+        public ProgressComparisonViewModel Comparison { get; set; }
+        public DashboardTrendViewModel Trend { get; set; }
     }
 
     public class DashboardMetricDetailViewModel
@@ -624,6 +629,8 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public string TrangThaiDuyet { get; set; }
         public string NguoiNhap { get; set; }
         public DateTime? NgayNhap { get; set; }
+        public DateTime? NgayGui { get; set; }
+        public DateTime HanNop { get; set; }
         public string NguoiDuyet { get; set; }
         public DateTime? NgayDuyet { get; set; }
         public string GhiChu { get; set; }
@@ -645,13 +652,85 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
     public class DashboardMissingIndicatorRow
     {
         public int STT { get; set; }
+        public int KyBaoCaoId { get; set; }
+        public int KhoaPhongId { get; set; }
+        public int ChiSoChatLuongId { get; set; }
         public string TenKyBaoCao { get; set; }
         public DateTime HanNop { get; set; }
         public string MaChiSo { get; set; }
         public string TenChiSo { get; set; }
         public string TenKhoaPhong { get; set; }
         public string LinhVuc { get; set; }
+        public string DonViTinh { get; set; }
         public string TrangThai { get; set; }
+    }
+
+    public class ProgressPeriodMetricViewModel
+    {
+        public int KyBaoCaoId { get; set; }
+        public string TenKyBaoCao { get; set; }
+        public DateTime TuNgay { get; set; }
+        public int TrangThaiKy { get; set; }
+        public int TongCanNop { get; set; }
+        public int DungHan { get; set; }
+        public int NopTre { get; set; }
+        public int ChuaNop { get; set; }
+        public int QuaHanChuaNop { get; set; }
+        public decimal TyLeHoanThanh { get; set; }
+        public decimal TyLeDungHan { get; set; }
+    }
+
+    public class ProgressPeriodStatusViewModel
+    {
+        public int KyBaoCaoId { get; set; }
+        public string TenKyBaoCao { get; set; }
+        public string StatusCode { get; set; }
+        public DateTime? NgayGui { get; set; }
+        public string ChangeCode { get; set; }
+    }
+
+    public class ProgressComparisonRowViewModel
+    {
+        public int KhoaPhongId { get; set; }
+        public int ChiSoChatLuongId { get; set; }
+        public string TenKhoaPhong { get; set; }
+        public string MaChiSo { get; set; }
+        public string TenChiSo { get; set; }
+        public string OverallChangeCode { get; set; }
+        public IList<ProgressPeriodStatusViewModel> Periods { get; set; }
+    }
+
+    public class ProgressComparisonViewModel
+    {
+        public bool IsAdmin { get; set; }
+        public int? TanSuat { get; set; }
+        public int? KyBaoCaoId { get; set; }
+        public int? KhoaPhongId { get; set; }
+        public int[] ComparisonPeriodIds { get; set; }
+        public IList<SelectListItem> TanSuatOptions { get; set; }
+        public IList<SelectListItem> KyBaoCaoOptions { get; set; }
+        public IList<SelectListItem> KhoaPhongOptions { get; set; }
+        public IList<DashboardComparisonPeriodDto> AvailablePeriods { get; set; }
+        public IList<ProgressPeriodMetricViewModel> Metrics { get; set; }
+        public IList<ProgressComparisonRowViewModel> Rows { get; set; }
+        public int BetterCount { get; set; }
+        public int WorseCount { get; set; }
+        public int UnchangedCount { get; set; }
+        public int InsufficientCount { get; set; }
+        public int CurrentPage { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalRows { get; set; }
+    }
+
+    public class DashboardTrendViewModel
+    {
+        public bool IsAdmin { get; set; }
+        public int? TanSuat { get; set; }
+        public int? KhoaPhongId { get; set; }
+        public int PeriodCount { get; set; }
+        public IList<SelectListItem> TanSuatOptions { get; set; }
+        public IList<SelectListItem> KhoaPhongOptions { get; set; }
+        public IList<ProgressPeriodMetricViewModel> Metrics { get; set; }
     }
 
     public class DashboardReviewHistoryRow

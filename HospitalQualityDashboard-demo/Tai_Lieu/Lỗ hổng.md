@@ -38,7 +38,7 @@ CWE liên quan: CWE-639, CWE-862, CWE-915
 Vị trí:
 
 - `Controllers/ReportController.cs:90-100`
-- `Services/ReportDashboardServices.cs:128-168`
+- `Services/Reports/ReportService.cs` (`ReportService.SaveDraft`)
 - `Views/Report/Edit.cshtml:122-126`
 - `App_Data/Sql/001_CreateSchema.sql:130`
 
@@ -58,9 +58,9 @@ Trong `ReportService.SaveDraft`, nếu `BaoCaoId > 0`, service chỉ kiểm tra 
 SELECT COUNT(*) FROM dbo.BaoCao WHERE BaoCaoId=@Id AND TrangThai=@Nhap
 ```
 
-tại `Services/ReportDashboardServices.cs:156`. Điều kiện này không kiểm tra `BaoCaoId` có thuộc `KhoaPhongId` của user hiện tại hay không. Sau đó chi tiết báo cáo được cập nhật theo `BaoCaoId` tại `Services/ReportDashboardServices.cs:167`.
+tại `Services/Reports/ReportService.cs` trong `ReportService.SaveDraft`. Điều kiện này không kiểm tra `BaoCaoId` có thuộc `KhoaPhongId` của user hiện tại hay không. Sau đó chi tiết báo cáo được cập nhật theo `BaoCaoId` trong cùng phương thức.
 
-Nếu tạo báo cáo mới, service tin `KyBaoCaoId`, `ChiSoChatLuongId` và `PhanCongChiSoId` từ model. Khi `PhanCongChiSoId > 0`, service dùng trực tiếp giá trị đó để insert `BaoCao` tại `Services/ReportDashboardServices.cs:145-151`. Schema chỉ có foreign key riêng lẻ cho `PhanCongChiSoId`; không có ràng buộc composite bảo đảm `PhanCongChiSoId` khớp với cùng `KhoaPhongId` và `ChiSoChatLuongId`.
+Nếu tạo báo cáo mới, service tin `KyBaoCaoId`, `ChiSoChatLuongId` và `PhanCongChiSoId` từ model. Khi `PhanCongChiSoId > 0`, service dùng trực tiếp giá trị đó để insert `BaoCao` trong `ReportService.SaveDraft`. Schema chỉ có foreign key riêng lẻ cho `PhanCongChiSoId`; không có ràng buộc composite bảo đảm `PhanCongChiSoId` khớp với cùng `KhoaPhongId` và `ChiSoChatLuongId`.
 
 ### Luồng khai thác
 
@@ -89,7 +89,7 @@ Loại: weak default credential
 CWE liên quan: CWE-521, CWE-798 theo nghĩa mật khẩu mặc định/dự đoán được  
 Vị trí:
 
-- `Services/ManagementServices.cs:339-349`
+- `Services/Employees/EmployeeService.cs` (`EmployeeService.Import`)
 - `App_Data/Sql/001_CreateSchema.sql:31-43`
 - `Controllers/AccountController.cs:61-82`
 
@@ -102,7 +102,7 @@ Param("@TenDangNhap", model.MaNhanVien),
 Param("@MatKhauHash", PasswordHasher.Hash(model.MaNhanVien))
 ```
 
-tại `Services/ManagementServices.cs:347-348`. Tài khoản được bật ngay (`DangHoatDong = 1`) tại `Services/ManagementServices.cs:345-346`.
+trong `EmployeeService.Import`. Tài khoản được bật ngay (`DangHoatDong = 1`) trong cùng phương thức.
 
 Schema `TaiKhoan` tại `App_Data/Sql/001_CreateSchema.sql:31-43` không có cột đánh dấu phải đổi mật khẩu lần đầu. Luồng đăng nhập trong `AccountController.cs:61-82` chỉ xác thực rồi set session, không bắt đổi mật khẩu đối với tài khoản mới import.
 
@@ -172,7 +172,7 @@ Vị trí:
 
 - `Controllers/EmployeeController.cs:12-15`
 - `Controllers/ExportController.cs:17-19`
-- `Services/NotificationExportServices.cs:375-386`
+- `Services/Exports/ExportService.cs` (`ExportService.ExportEmployees`)
 
 ### Bằng chứng
 
@@ -185,7 +185,7 @@ public ActionResult Employees(int? khoaPhongId)
 }
 ```
 
-tại `Controllers/ExportController.cs:17-19` không gọi `RequireAdmin()`. Service có giới hạn user thường về `CurrentKhoaPhongId`, nhưng vẫn xuất `MaNhanVien`, `HoTen`, `KhoaPhong`, `Email`, `SoDienThoai` tại `Services/NotificationExportServices.cs:375-386`.
+tại `Controllers/ExportController.cs:17-19` không gọi `RequireAdmin()`. Service có giới hạn user thường về `CurrentKhoaPhongId`, nhưng vẫn xuất `MaNhanVien`, `HoTen`, `KhoaPhong`, `Email`, `SoDienThoai` trong `ExportService.ExportEmployees`.
 
 ### Luồng khai thác
 
@@ -266,14 +266,14 @@ Loại: CSV/Excel formula injection
 CWE liên quan: CWE-1236  
 Vị trí:
 
-- `Services/ExcelImportExportService.cs:54-62`
-- `Services/ExcelImportExportService.cs:457-460`
-- `Services/NotificationExportServices.cs:364-404`
+- `Services/Excel/ExcelImportExportService.cs` (`CreateCsv`)
+- `Services/Excel/ExcelImportExportService.Readers.cs` (`Escape`)
+- `Services/Exports/ExportService.cs` (các phương thức export CSV)
 - `Controllers/ExportController.cs:14-49`
 
 ### Bằng chứng
 
-`CreateCsv` ghi từng giá trị qua `Escape` tại `Services/ExcelImportExportService.cs:54-62`. Hàm `Escape` tại `Services/ExcelImportExportService.cs:457-460` chỉ bọc giá trị bằng dấu nháy kép và escape dấu nháy kép:
+`CreateCsv` ghi từng giá trị qua `Escape` trong các partial của `ExcelImportExportService`. Hàm `Escape` nằm tại `Services/Excel/ExcelImportExportService.Readers.cs`.
 
 ```csharp
 return "\"" + value.Replace("\"", "\"\"") + "\"";
@@ -304,10 +304,9 @@ Loại: resource exhaustion / parser DoS
 CWE liên quan: CWE-400, CWE-409  
 Vị trí:
 
-- `Services/ExcelImportExportService.cs:17-35`
-- `Services/ExcelImportExportService.cs:142-166`
-- `Services/ExcelImportExportService.cs:205-234`
-- `Services/ExcelImportExportService.cs:391-392`
+- `Services/Excel/ExcelImportExportService.cs` (public API import)
+- `Services/Excel/ExcelImportExportService.Readers.cs` (CSV/XLSX/DOCX reader)
+- `Services/Excel/ExcelImportExportService.OpenXml.cs` (ZIP/XML writer và validation)
 - `Web.config:19`
 
 ### Bằng chứng
@@ -339,14 +338,14 @@ Loại: mất toàn vẹn dữ liệu khi lỗi giữa chừng
 CWE liên quan: CWE-667 theo nghĩa thiếu kiểm soát nhất quán giao dịch  
 Vị trí:
 
-- `Services/ReportDashboardServices.cs:246-250`
-- `Services/IndicatorServices.cs:139-149` (IndicatorService.Save)
-- `Services/IndicatorServices.cs:392-395` (IndicatorService xử lý tần suất)
-- `Services/DbServiceBase.cs:62-69`
+- `Services/Reports/ReportService.cs` (`ReportService.Delete`)
+- `Services/Indicators/IndicatorService.cs` (`IndicatorService.Save`)
+- `Services/Indicators/IndicatorService.Frequencies.cs` (lưu tần suất)
+- `Services/Infrastructure/Database/DbServiceBase.cs` (`Execute`)
 
 ### Bằng chứng
 
-`ReportService.Delete` xóa `BaoCaoChiTiet`, sau đó xóa `BaoCao` bằng hai lệnh riêng tại `Services/ReportDashboardServices.cs:246-250`. `DbServiceBase.Execute` mở connection và thực thi từng lệnh riêng tại `Services/DbServiceBase.cs:62-69`; không có transaction bao quanh.
+`ReportService.Delete` xóa `BaoCaoChiTiet`, sau đó xóa `BaoCao` bằng hai lệnh riêng. `DbServiceBase.Execute` mở connection và thực thi từng lệnh riêng; không có transaction bao quanh.
 
 Tương tự, `IndicatorService.Delete` và cập nhật tần suất chỉ số có nhiều bước xóa/insert riêng. Nếu một bước sau lỗi, các bước trước đã commit.
 
