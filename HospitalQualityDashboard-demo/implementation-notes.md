@@ -843,3 +843,13 @@ powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\V
 - Cập nhật `PROJECT_CONTEXT.md`, tài liệu nghiệp vụ và SDD về service mới, trạng thái `DaDuyet`, Dashboard chi tiết, cảnh báo chỉ số và cấu hình bảo mật hiện tại.
 - Giữ nguyên nội dung lịch sử; báo cáo bảo mật được bổ sung bảng trạng thái ngày 19/06/2026 thay vì xóa bằng chứng rà soát ngày 02/06/2026.
 
+## 2026-06-22
+
+### Bổ sung tài liệu cấu trúc dự án
+
+- Tạo `PROJECT_STRUCTURE.md` bằng tiếng Việt có dấu tại thư mục gốc repository.
+- Mô tả kiến trúc ASP.NET MVC, chức năng từng folder và từng file code tự viết trong Controller, Model, DTO, ViewModel, Service, Razor View, JavaScript, CSS, SQL và PowerShell.
+- Giải thích trách nhiệm riêng của các file partial service, luồng nghiệp vụ xuyên module và bảng hướng dẫn tìm nơi cần sửa theo chức năng.
+- Gom Bootstrap, jQuery, Modernizr, file minified và source map thành nhóm thư viện bên thứ ba thay vì phân tích như code nghiệp vụ.
+- Thêm liên kết từ `README.md` và Solution Explorer để thành viên mới truy cập tài liệu trực tiếp.
+

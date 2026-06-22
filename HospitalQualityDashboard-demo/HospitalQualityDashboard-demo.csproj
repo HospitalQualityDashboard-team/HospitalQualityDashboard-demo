@@ -345,6 +345,9 @@
     <None Include="..\README.md">
       <Link>Solution Documentation\README.md</Link>
     </None>
+    <None Include="..\PROJECT_STRUCTURE.md">
+      <Link>Solution Documentation\PROJECT_STRUCTURE.md</Link>
+    </None>
     <None Include="..\design-qa.md">
       <Link>Solution Documentation\design-qa.md</Link>
     </None>

@@ -4,6 +4,7 @@ HospitalQualityDashboard-demo là hệ thống quản lý bộ chỉ số chất
 
 Tài liệu liên quan:
 
+- [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md): giải thích chi tiết chức năng của từng folder, từng file code tự viết và quan hệ giữa các module.
 - `HospitalQualityDashboard-demo/PROJECT_CONTEXT.md`: bối cảnh kỹ thuật và nghiệp vụ.
 - `HospitalQualityDashboard-demo/TAI_LIEU_NGHIEP_VU.md`: mô tả nghiệp vụ tổng hợp.
 - `HospitalQualityDashboard-demo/implementation-notes.md`: nhật ký thay đổi kỹ thuật.
