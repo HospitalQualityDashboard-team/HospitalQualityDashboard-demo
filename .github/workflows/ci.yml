@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-verify:
+    name: Build and verify
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        run: >
+          nuget restore
+          HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj
+          -PackagesDirectory packages
+          -NonInteractive
+
+      - name: Prepare CI configuration
+        shell: pwsh
+        run: |
+          Copy-Item `
+            "HospitalQualityDashboard-demo\ConnectionStrings.example.config" `
+            "HospitalQualityDashboard-demo\ConnectionStrings.config"
+
+      - name: Build project
+        run: >
+          msbuild
+          HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj
+          /m
+          /p:Configuration=Release
+          /verbosity:minimal
+
+      - name: Compile Razor views
+        run: >
+          msbuild
+          HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj
+          /m
+          /p:Configuration=Release
+          /p:MvcBuildViews=true
+          /verbosity:minimal
+
+      - name: Run verification scripts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $scripts = Get-ChildItem `
+            "HospitalQualityDashboard-demo\tools" `
+            -Filter "Verify*.ps1" |
+            Sort-Object Name
+
+          if ($scripts.Count -eq 0) {
+            throw "No verification scripts were found."
+          }
+
+          foreach ($script in $scripts) {
+            Write-Host "Running $($script.Name)"
+            & $script.FullName
+          }
+
+          Write-Host "All verification scripts passed."
