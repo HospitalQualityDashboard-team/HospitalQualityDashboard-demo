@@ -1,4 +1,4 @@
-﻿@* Mục đích: danh sách báo cáo, bộ lọc và thao tác duyệt/xuất dữ liệu. *@
+@* Mục đích: danh sách báo cáo, bộ lọc và thao tác duyệt/xuất dữ liệu. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.ReportListViewModel
 @using System.Linq
 @{
@@ -253,7 +253,7 @@
                                     using (Html.BeginForm("Delete", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
                                     {
                                         @Html.AntiForgeryToken()
-                                        <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xóa báo cáo này?')">Xóa</button>
+                                        <button class="btn btn-sm btn-outline-secondary" type="submit" onclick="return confirm('Bạn có chắc chắn muốn ẩn báo cáo này không?')">Ẩn</button>
                                     }
                                 }
                             </td>

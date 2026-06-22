@@ -115,6 +115,7 @@ namespace HospitalQualityDashboardDemo.Services
 
                 RunOptionalScript(connection, scriptDirectory, "002_PerformanceIndexes.sql");
                 RunOptionalScript(connection, scriptDirectory, "004_AddIndicatorWarning.sql");
+                RunOptionalScript(connection, scriptDirectory, "005_AddIsHiddenToBaoCao.sql");
             }
         }
 

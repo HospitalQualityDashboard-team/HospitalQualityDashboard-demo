@@ -218,6 +218,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
         public int ChiSoChatLuongId { get; set; }
         public int? PhanCongChiSoId { get; set; }
         public TrangThaiBaoCao TrangThai { get; set; }
+        public bool IsHidden { get; set; }
         public int NguoiTaoId { get; set; }
         public int? NguoiGuiId { get; set; }
         public DateTime? NgayGui { get; set; }
@@ -225,11 +226,11 @@ namespace HospitalQualityDashboardDemo.Models.Entities
         public DateTime? NgayCapNhat { get; set; }
 
 
-
         // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của BaoCao.
         public BaoCao()
         {
             TrangThai = TrangThaiBaoCao.Nhap;
+            IsHidden = false;
             NgayTao = DateTime.UtcNow;
         }
     }

@@ -252,7 +252,8 @@ WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
   AND (@ChiSoChatLuongId IS NULL OR bc.ChiSoChatLuongId = @ChiSoChatLuongId)
   AND (@IsAdmin = 1 OR ky.TrangThai <> @DraftPeriodStatus)
   AND ((@IsAdmin = 1 AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus))
-       OR (@IsAdmin = 0 AND bc.KhoaPhongId = @CurrentKhoaPhongId))";
+       OR (@IsAdmin = 0 AND bc.KhoaPhongId = @CurrentKhoaPhongId))
+  AND bc.IsHidden = 0";
 
             var parameters = BuildReportListParameters(dto);
             totalItems = Convert.ToInt32(Scalar(countSql, parameters));
@@ -275,6 +276,7 @@ WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
   AND (@IsAdmin = 1 OR ky.TrangThai <> @DraftPeriodStatus)
   AND ((@IsAdmin = 1 AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus))
        OR (@IsAdmin = 0 AND bc.KhoaPhongId = @CurrentKhoaPhongId))
+  AND bc.IsHidden = 0
 ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -336,6 +338,7 @@ WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
   AND (@IsAdmin = 1 OR ky.TrangThai <> @DraftPeriodStatus)
   AND ((@IsAdmin = 1 AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus))
        OR (@IsAdmin = 0 AND bc.KhoaPhongId = @CurrentKhoaPhongId))
+  AND bc.IsHidden = 0
 ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
             return Query(sql, MapReport,
                 Param("@KyBaoCaoId", periodId),
@@ -553,6 +556,28 @@ WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
                 Param("@DaGui", (byte)TrangThaiBaoCao.DaGui),
                 Param("@QuaHan", (byte)TrangThaiBaoCao.QuaHan),
                 Param("@Now", GetVietnamLocalNow()));
+        }
+
+        // Ẩn bản ghi (soft delete) thay vì xóa hoàn toàn.
+        public void Hide(int id, int userId)
+        {
+            var beforeSnapshot = GetReportDetailSnapshot(id);
+            ExecuteInTransaction((conn, trans) =>
+            {
+                Execute(conn, trans, "UPDATE dbo.BaoCao SET IsHidden = 1, NgayCapNhat = @Now WHERE BaoCaoId=@Id", 
+                    Param("@Id", id), 
+                    Param("@Now", GetVietnamLocalNow()));
+
+                LogSystemAction(
+                    conn,
+                    trans,
+                    userId,
+                    "BaoCao",
+                    "AnBaoCao",
+                    "BaoCao",
+                    id,
+                    "Ẩn báo cáo. Dữ liệu trước khi ẩn: " + beforeSnapshot);
+            });
         }
 
         // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của quy trình báo cáo.

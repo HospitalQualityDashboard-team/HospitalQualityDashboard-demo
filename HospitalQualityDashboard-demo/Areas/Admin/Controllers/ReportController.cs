@@ -86,12 +86,12 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của báo cáo định kỳ.
+        // Ẩn bản ghi (soft delete) thay vì xóa hoàn toàn.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id)
         {
-            _service.Delete(id, CurrentTaiKhoanId.Value);
+            _service.Hide(id, CurrentTaiKhoanId.Value);
             return RedirectToAction("Index");
         }
 
