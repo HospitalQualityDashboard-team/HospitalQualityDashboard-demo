@@ -86,16 +86,16 @@
                             <td>@item.TenChiSo</td>
                             <td>@item.TanSuatBaoCaoText</td>
                             <td>@item.LoaiCongThuc</td>
-                            <td><span class="status-pill @(item.DangHoatDong ? "status-active" : "status-muted")">@(item.DangHoatDong ? "Hoạt động" : "Đã khóa")</span></td>
+                            <td><span class="status-pill @(item.DangHoatDong ? "status-active" : "status-muted")">@(item.DangHoatDong ? "Đang triển khai" : "Ngừng triển khai")</span></td>
                             <td class="text-end table-actions">
                                 @Html.ActionLink("Chi tiết", "Details", new { id = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-outline-secondary" })
                                 @if (isAdmin)
                                 {
                                     @Html.ActionLink("Sửa", "Edit", new { id = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-outline-primary" })
-                                    using (Html.BeginForm(item.DangHoatDong ? "Lock" : "Unlock", "Indicator", new { id = item.ChiSoChatLuongId }, FormMethod.Post, new { @class = "d-inline" }))
+                                    using (Html.BeginForm(item.DangHoatDong ? "StopDeployment" : "Deploy", "Indicator", new { id = item.ChiSoChatLuongId }, FormMethod.Post, new { @class = "d-inline" }))
                                     {
                                         @Html.AntiForgeryToken()
-                                        <button class="btn btn-sm btn-outline-warning" type="submit">@(item.DangHoatDong ? "Khóa" : "Mở khóa")</button>
+                                        <button class="btn btn-sm btn-outline-warning" type="submit" onclick="return confirm('@(item.DangHoatDong ? "Chỉ số vẫn phải nộp cho các kỳ đã bắt đầu và sẽ ngừng từ kỳ kế tiếp." : "Chỉ số sẽ được triển khai ngay cho các kỳ đang mở phù hợp tần suất.")')">@(item.DangHoatDong ? "Ngừng triển khai" : "Triển khai")</button>
                                     }
                                     using (Html.BeginForm("Delete", "Indicator", new { id = item.ChiSoChatLuongId }, FormMethod.Post, new { @class = "d-inline" }))
                                     {

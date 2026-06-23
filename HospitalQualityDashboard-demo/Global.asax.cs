@@ -15,6 +15,7 @@ namespace HospitalQualityDashboardDemo
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
             DatabaseBootstrapper.BootstrapIfExplicitlyEnabled();
+            DatabaseBootstrapper.EnsureIndicatorDeploymentLifecycle();
         }
     }
 }

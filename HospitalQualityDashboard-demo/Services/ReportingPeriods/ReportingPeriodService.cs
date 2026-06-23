@@ -82,7 +82,9 @@ SELECT COUNT(DISTINCT ky.KyBaoCaoId)
 FROM dbo.KyBaoCao ky
 INNER JOIN dbo.PhanCongChiSo pc ON pc.KhoaPhongId=@KhoaPhongId AND pc.DangHoatDong=1
 INNER JOIN dbo.ChiSoTanSuatBaoCao cst ON cst.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cst.TanSuatBaoCao = ky.LoaiKyBaoCao
-WHERE ky.KyBaoCaoId=@KyBaoCaoId AND ky.TrangThai=@Mo",
+WHERE ky.KyBaoCaoId=@KyBaoCaoId
+  AND ky.TrangThai=@Mo
+  AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1",
                 Param("@KyBaoCaoId", periodId),
                 Param("@KhoaPhongId", departmentId),
                 Param("@Mo", (byte)TrangThaiKyBaoCao.Mo)));

@@ -35,7 +35,7 @@ SELECT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.HanNop, cs.ChiSoChatLuongId, pc.PhanCon
        cs.MaChiSo, cs.TenChiSo, DATEDIFF(day, @Today, ky.HanNop) AS DaysUntilDue
 FROM dbo.KyBaoCao ky
 INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
-INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cs.DangHoatDong = 1
+INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
 INNER JOIN dbo.ChiSoTanSuatBaoCao cst ON cst.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cst.TanSuatBaoCao = ky.LoaiKyBaoCao
 LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
     AND bc.KhoaPhongId = pc.KhoaPhongId
@@ -46,6 +46,7 @@ WHERE ky.TrangThai = @Mo
   AND (@KyBaoCaoId IS NULL OR ky.KyBaoCaoId = @KyBaoCaoId)
   AND (@ChiSoChatLuongId IS NULL OR cs.ChiSoChatLuongId = @ChiSoChatLuongId)
   AND (@OverdueOnly = 0 OR DATEDIFF(day, @Today, ky.HanNop) < 0)
+  AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
   AND bc.BaoCaoId IS NULL
 ORDER BY ky.HanNop, cs.MaChiSo";
 

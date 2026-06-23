@@ -64,12 +64,13 @@ WITH ExpectedSlots AS
     SELECT DISTINCT ky.KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, ky.HanNop
     FROM dbo.KyBaoCao ky
     INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
-    INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cs.DangHoatDong = 1
+    INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
     INNER JOIN dbo.ChiSoTanSuatBaoCao ts
         ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId
        AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
     WHERE ky.TrangThai <> @DraftPeriodStatus
       AND (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
+      AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 ),
 CompletedSlots AS
 (
@@ -166,7 +167,11 @@ WITH AssignmentFrequency AS
 (
     SELECT pc.KhoaPhongId, pc.ChiSoChatLuongId, cst.TanSuatBaoCao
     FROM dbo.PhanCongChiSo pc
-    LEFT JOIN dbo.ChiSoTanSuatBaoCao cst ON cst.ChiSoChatLuongId = pc.ChiSoChatLuongId
+    INNER JOIN dbo.ChiSoTanSuatBaoCao cst ON cst.ChiSoChatLuongId = pc.ChiSoChatLuongId
+    INNER JOIN dbo.KyBaoCao ky
+        ON ky.LoaiKyBaoCao = cst.TanSuatBaoCao
+       AND ky.TrangThai <> @DraftPeriodStatus
+       AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
     WHERE pc.DangHoatDong = 1
 ),
 ReportByIndicator AS
@@ -209,7 +214,8 @@ ORDER BY kp.TenKhoaPhong";
                 DaGuiNam = Int(r, "DaGuiNam")
             },
                 Param("@KhoaPhongId", departmentId),
-                Param("@TanSuat", tanSuatFilter));
+                Param("@TanSuat", tanSuatFilter),
+                Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap));
 
             foreach (var progress in progressItems)
             {

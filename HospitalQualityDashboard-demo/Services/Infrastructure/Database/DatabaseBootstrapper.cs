@@ -44,6 +44,26 @@ namespace HospitalQualityDashboardDemo.Services
         }
 
         // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của khởi tạo cấu trúc cơ sở dữ liệu hay không.
+        public static void EnsureIndicatorDeploymentLifecycle()
+        {
+            if (!IsBootstrapEnabled())
+            {
+                return;
+            }
+
+            var scriptDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "Sql");
+            if (string.IsNullOrWhiteSpace(scriptDirectory) || !Directory.Exists(scriptDirectory))
+            {
+                throw new InvalidOperationException("SQL script directory was not found: ~/App_Data/Sql.");
+            }
+
+            using (var connection = new SqlConnection(DatabaseConfiguration.GetConnectionString()))
+            {
+                connection.Open();
+                RunOptionalScript(connection, scriptDirectory, "005_AddIndicatorDeploymentHistory.sql");
+            }
+        }
+
         private static bool IsBootstrapEnabled()
         {
             var enabled = string.Equals(
@@ -115,6 +135,7 @@ namespace HospitalQualityDashboardDemo.Services
 
                 RunOptionalScript(connection, scriptDirectory, "002_PerformanceIndexes.sql");
                 RunOptionalScript(connection, scriptDirectory, "004_AddIndicatorWarning.sql");
+                RunOptionalScript(connection, scriptDirectory, "005_AddIndicatorDeploymentHistory.sql");
             }
         }
 

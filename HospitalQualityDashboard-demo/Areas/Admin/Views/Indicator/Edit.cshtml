@@ -145,13 +145,7 @@
                     </div>
                 </div>
 
-                <!-- Trạng thái -->
-                <div class="form-check mb-4 p-3 bg-light rounded-3 d-inline-flex align-items-center gap-2">
-                    @Html.CheckBoxFor(m => m.DangHoatDong, new { @class = "form-check-input cursor-pointer ms-2 mt-0" })
-                    <label class="form-check-label fw-semibold text-dark cursor-pointer user-select-none" for="DangHoatDong">
-                        Đang hoạt động (Kích hoạt chỉ số này ngay sau khi lưu)
-                    </label>
-                </div>
+                <input type="hidden" id="DangHoatDong" name="DangHoatDong" value="@(Model.DangHoatDong ? "true" : "false")" />
 
                 <!-- Nút Hành Động -->
                 <div class="mobile-stack-actions justify-content-end border-top pt-4">
