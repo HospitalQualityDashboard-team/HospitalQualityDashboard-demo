@@ -242,7 +242,8 @@
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
-    <Content Include="ConnectionStrings.example.config" />
+    <Content Include="Content\images\logo-ungbuou.png" />
+    <Content Include="Content\Site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="implementation-notes.md" />
@@ -250,7 +251,6 @@
     <Content Include="App_Data\Sql\002_PerformanceIndexes.sql" />
     <Content Include="App_Data\Sql\003_AddExportHistory.sql" />
     <Content Include="App_Data\Sql\004_AddIndicatorWarning.sql" />
-    <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -258,6 +258,7 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\dashboard-analysis.js" />
+    <Content Include="ConnectionStrings.config" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />

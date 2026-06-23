@@ -88,7 +88,8 @@
                 <article class="comparison-period-card">
                     <div class="comparison-period-title">
                         <strong>@metric.TenKyBaoCao</strong>
-                        @if (metric.TrangThaiKy == 2) { <span class="analysis-live-badge">Đang cập nhật</span> }
+                        @if (metric.TrangThaiKy == 2)
+                        {<span class="analysis-live-badge">Đang cập nhật</span>}
                     </div>
                     <div class="comparison-period-metrics">
                         <span><b>@metric.TongCanNop</b>Tổng cần nộp</span>
@@ -118,39 +119,84 @@
         </div>
 
         <div class="analysis-table-section">
-            <div class="panel-header"><div><h3>Chi tiết tiến độ theo chỉ số</h3><p>Ưu tiên các chỉ số có trạng thái xấu hơn kỳ trước.</p></div><span class="text-muted small">@Model.TotalRows chỉ số</span></div>
-            <div class="table-responsive">
-                <table class="table table-sm align-middle analysis-table">
-                    <thead><tr><th>Khoa/phòng</th><th>Chỉ số</th>@foreach (var metric in Model.Metrics) { <th>@metric.TenKyBaoCao</th> }<th>Đánh giá</th></tr></thead>
-                    <tbody>
-                    @foreach (var row in Model.Rows)
-                    {
-                        <tr>
-                            <td>@row.TenKhoaPhong</td>
-                            <td><strong>@row.MaChiSo</strong><span>@row.TenChiSo</span></td>
-                            @foreach (var period in row.Periods)
+            <div class="analysis-table-card">
+                <div class="panel-header">
+                    <div>
+                        <h3>Chi tiết tiến độ theo chỉ số</h3>
+                        <p>Ưu tiên các chỉ số có trạng thái xấu hơn kỳ trước.</p>
+                    </div>
+                    <span class="status-pill status-muted">@Model.TotalRows chỉ số</span>
+                </div>
+
+                <div class="table-responsive analysis-table-wrap">
+                    <table class="table table-sm align-middle analysis-table">
+                        <thead>
+                            <tr>
+                                <th>Khoa/phòng</th>
+                                <th>Chỉ số</th>
+                                @foreach (var metric in Model.Metrics)
+                                {
+                                    <th>@metric.TenKyBaoCao</th>
+                                }
+                                <th>Đánh giá</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model.Rows)
                             {
-                                <td><span class="status-pill @statusClass(period.StatusCode)">@statusText(period.StatusCode)</span>@if (period.NgayGui.HasValue) { <small>@period.NgayGui.Value.ToString("dd/MM/yyyy HH:mm")</small> }</td>
+                                <tr>
+                                    <td class="department-cell">@row.TenKhoaPhong</td>
+                                    <td class="indicator-cell">
+                                        <strong>@row.MaChiSo</strong>
+                                        <span>@row.TenChiSo</span>
+                                    </td>
+
+                                    @foreach (var period in row.Periods)
+                                    {
+                                        <td class="period-cell">
+                                            <span class="status-pill @statusClass(period.StatusCode)">
+                                                @statusText(period.StatusCode)
+                                            </span>
+
+                                            @if (period.NgayGui.HasValue)
+                                            {
+                                                <small>@period.NgayGui.Value.ToString("dd/MM/yyyy HH:mm")</small>
+                                            }
+                                        </td>
+                                    }
+
+                                <td class="text-nowrap">
+                                    <span class="change-pill change-@row.OverallChangeCode.ToLowerInvariant()">
+                                        @changeText(row.OverallChangeCode)
+                                    </span>
+                                </td>
+                                </tr>
                             }
-                            <td><span class="change-pill change-@row.OverallChangeCode.ToLowerInvariant()">@changeText(row.OverallChangeCode)</span></td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model.TotalPages > 1)
+                {
+                    <nav class="analysis-pagination" aria-label="Phân trang so sánh">
+                        @for (var page = 1; page <= Model.TotalPages; page++)
+                        {
+                            <button type="button"
+                                    class="btn btn-sm @(page == Model.CurrentPage ? "btn-primary" : "btn-light")"
+                                    data-analysis-page="@page">
+                                @page
+                            </button>
+                        }
+                    </nav>
+                }
             </div>
-            @if (Model.TotalPages > 1)
-            {
-                <nav class="analysis-pagination" aria-label="Phân trang so sánh">
-                    @for (var page = 1; page <= Model.TotalPages; page++)
-                    {
-                        <button type="button" class="btn btn-sm @(page == Model.CurrentPage ? "btn-primary" : "btn-light")" data-analysis-page="@page">@page</button>
-                    }
-                </nav>
-            }
         </div>
     }
     else
     {
-        <div class="empty-state analysis-empty"><i class="bi bi-calendar2-range"></i><p>Không có kỳ báo cáo phù hợp để so sánh.</p></div>
+        <div class="empty-state analysis-empty">
+            <i class="bi bi-calendar2-range"></i>
+            <p>Không có kỳ báo cáo phù hợp để so sánh.</p>
+        </div>
     }
 </section>

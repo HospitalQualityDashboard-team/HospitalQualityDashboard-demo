@@ -21,22 +21,801 @@
     ViewBag.Title = activeTab == "comparison" ? "So sánh kỳ báo cáo" : activeTab == "trend" ? "Xu hướng" : "Tổng quan";
 }
 
-<section class="dashboard-hero">
+
+<style>
+    /* Dashboard polish - giữ nguyên logic, chỉ làm đẹp giao diện */
+    .dashboard-hero {
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px;
+        align-items: end;
+        margin-bottom: 18px;
+        padding: 26px;
+        border: 1px solid rgba(20, 108, 120, .14);
+        border-radius: 26px;
+        background: radial-gradient(circle at 8% 10%, rgba(20, 108, 120, .12), transparent 34%), radial-gradient(circle at 92% 12%, rgba(37, 99, 235, .10), transparent 32%), linear-gradient(135deg, rgba(255,255,255,.98), rgba(232,247,251,.92));
+        box-shadow: 0 22px 52px rgba(20, 32, 51, .10);
+    }
+
+        .dashboard-hero::after {
+            content: "";
+            position: absolute;
+            right: -56px;
+            bottom: -76px;
+            width: 220px;
+            height: 220px;
+            border-radius: 999px;
+            background: rgba(20, 108, 120, .08);
+            pointer-events: none;
+        }
+
+    .dashboard-titlebar {
+        position: relative;
+        z-index: 1;
+    }
+
+    .dashboard-role {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 0 12px;
+        color: #0f5661;
+        background: #e5f4f5;
+        border: 1px solid rgba(20,108,120,.16);
+        border-radius: 999px;
+        font-size: .78rem;
+        font-weight: 850;
+    }
+
+    .dashboard-hero h1 {
+        margin: 10px 0 8px;
+        color: #10223a;
+        font-size: clamp(1.65rem, 2.2vw, 2.35rem);
+        font-weight: 950;
+        letter-spacing: -.035em;
+        line-height: 1.08;
+    }
+
+    .dashboard-hero p {
+        max-width: 760px;
+        margin: 0;
+        color: #5d6b7e;
+        font-size: .94rem;
+    }
+
+    .dashboard-summary-strip {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(112px, 1fr));
+        gap: 10px;
+        min-width: 380px;
+    }
+
+    .dashboard-summary-item {
+        padding: 14px 16px;
+        background: rgba(255,255,255,.82);
+        border: 1px solid rgba(216,226,234,.92);
+        border-radius: 18px;
+        box-shadow: 0 10px 28px rgba(20,32,51,.06);
+    }
+
+        .dashboard-summary-item span {
+            display: block;
+            color: #637083;
+            font-size: .72rem;
+            font-weight: 850;
+            text-transform: uppercase;
+            letter-spacing: .02em;
+        }
+
+        .dashboard-summary-item strong {
+            display: block;
+            margin-top: 7px;
+            color: #10223a;
+            font-size: 1.35rem;
+            font-weight: 950;
+            line-height: 1;
+        }
+
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin: 18px 0;
+    }
+
+    .metric-card {
+        position: relative;
+        overflow: hidden;
+        min-height: 154px;
+        width: 100%;
+        padding: 22px;
+        border: 0;
+        border-radius: 24px;
+        color: #fff;
+        text-align: left;
+        box-shadow: 0 18px 38px rgba(20,32,51,.16);
+        transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+
+        .metric-card:hover,
+        .metric-card:focus {
+            transform: translateY(-4px);
+            box-shadow: 0 24px 50px rgba(20,32,51,.20);
+            filter: saturate(1.06);
+        }
+
+        .metric-card::before {
+            content: "";
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            right: -44px;
+            top: -48px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.14);
+        }
+
+        .metric-card::after {
+            content: "";
+            position: absolute;
+            width: 82px;
+            height: 82px;
+            right: 22px;
+            bottom: -24px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.12);
+        }
+
+        .metric-card.is-accent {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .metric-card.is-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .metric-card.is-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .metric-card.is-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+    .metric-card-header {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .metric-label {
+        display: block;
+        color: rgba(255,255,255,.92);
+        font-size: .78rem;
+        font-weight: 900;
+        letter-spacing: .025em;
+        text-transform: uppercase;
+    }
+
+    .metric-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 44px;
+        width: 44px;
+        height: 44px;
+        color: rgba(255,255,255,.94) !important;
+        background: rgba(255,255,255,.18) !important;
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 16px;
+        font-size: .88rem;
+        font-weight: 950;
+        backdrop-filter: blur(8px);
+    }
+
+    .metric-value {
+        position: relative;
+        z-index: 1;
+        display: block;
+        margin: 14px 0 0;
+        color: #fff;
+        font-size: clamp(2.1rem, 3vw, 3.1rem);
+        font-weight: 950;
+        letter-spacing: -.04em;
+        line-height: 1;
+    }
+
+    .metric-caption {
+        position: relative;
+        z-index: 1;
+        display: block;
+        margin-top: 10px;
+        max-width: 230px;
+        color: rgba(255,255,255,.88) !important;
+        font-size: .82rem;
+        line-height: 1.35;
+    }
+
+    .dashboard-analysis-tabs {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0 14px;
+        padding: 8px;
+        overflow-x: auto;
+        background: rgba(255,255,255,.78);
+        border: 1px solid rgba(216,226,234,.92);
+        border-radius: 999px;
+        box-shadow: 0 12px 30px rgba(20,32,51,.06);
+    }
+
+    .dashboard-analysis-tab {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 18px;
+        color: #526174;
+        border-radius: 999px;
+        font-size: .88rem;
+        font-weight: 850;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+        .dashboard-analysis-tab:hover,
+        .dashboard-analysis-tab.is-active {
+            color: #fff;
+            background: #146c78;
+            text-decoration: none;
+        }
+
+    .dashboard-panel,
+    .analysis-panel,
+    .data-panel {
+        border-radius: 24px !important;
+        border: 1px solid rgba(216,226,234,.92) !important;
+        box-shadow: 0 16px 38px rgba(20,32,51,.08) !important;
+    }
+
+    .panel-header h2 {
+        color: #10223a;
+        font-weight: 950;
+        letter-spacing: -.02em;
+    }
+
+    .progress-row {
+        border-radius: 16px;
+        padding: 14px;
+        border: 1px solid transparent;
+    }
+
+        .progress-row:hover {
+            background: #f7fbfd;
+            border-color: #d8e2ea;
+        }
+
+    .progress-track {
+        height: 11px;
+        background: #e8eef4;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #146c78, #2563eb);
+    }
+
+    .dashboard-metric-modal .modal-content,
+    #dashboardExportModal .modal-content {
+        border: 0;
+        border-radius: 24px;
+        box-shadow: 0 26px 72px rgba(20,32,51,.22);
+    }
+
+    @@media (max-width: 1200px) {
+        .metric-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .dashboard-hero {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-summary-strip {
+            min-width: 0;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .metric-grid,
+        .dashboard-summary-strip {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-hero,
+        .metric-card {
+            border-radius: 20px;
+        }
+    }
+
+    .dashboard-summary-strip .summary-success {
+        background: linear-gradient(135deg, #10b981, #059669) !important;
+        border-color: #10b981 !important;
+    }
+
+    .dashboard-summary-strip .summary-danger {
+        background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+        border-color: #ef4444 !important;
+    }
+
+    .dashboard-summary-strip .summary-info {
+        background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+        border-color: #3b82f6 !important;
+    }
+
+        .dashboard-summary-strip .summary-success span,
+        .dashboard-summary-strip .summary-success strong,
+        .dashboard-summary-strip .summary-danger span,
+        .dashboard-summary-strip .summary-danger strong,
+        .dashboard-summary-strip .summary-info span,
+        .dashboard-summary-strip .summary-info strong {
+            color: #fff !important;
+        }
+
+    .analysis-panel {
+        padding: 24px !important;
+        border-radius: 26px !important;
+        background: rgba(255, 255, 255, .96) !important;
+    }
+
+        .analysis-panel > .panel-header {
+            margin-bottom: 18px;
+        }
+
+            .analysis-panel > .panel-header h3 {
+                color: #10223a;
+                font-size: 1.25rem;
+                font-weight: 950;
+            }
+
+            .analysis-panel > .panel-header p {
+                color: #64748b;
+                font-size: .9rem;
+            }
+
+    .analysis-filter {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(220px, 1fr)) auto auto;
+        gap: 14px;
+        align-items: end;
+        padding: 18px;
+        margin-bottom: 18px;
+        background: linear-gradient(135deg, #f8fbff, #eef7fb);
+        border: 1px solid #d8e2ea;
+        border-radius: 20px;
+    }
+
+    .analysis-filter-field label {
+        display: block;
+        margin-bottom: 6px;
+        color: #526174;
+        font-size: .76rem;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .analysis-filter .form-control,
+    .analysis-filter .form-select,
+    .analysis-filter select {
+        min-height: 42px;
+        border-radius: 13px !important;
+        border-color: #cbd6e2 !important;
+        font-weight: 700;
+    }
+
+    .analysis-submit,
+    .analysis-export {
+        min-height: 42px;
+        padding: 0 18px !important;
+        border-radius: 13px !important;
+        font-weight: 900 !important;
+    }
+
+    .comparison-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin: 18px 0;
+    }
+
+    .comparison-period-card {
+        padding: 18px !important;
+        border-radius: 20px !important;
+        background: linear-gradient(135deg, #ffffff, #f4fbff) !important;
+        border: 1px solid #d8e2ea !important;
+        box-shadow: 0 12px 30px rgba(20,32,51,.07) !important;
+    }
+
+    .comparison-period-title strong {
+        color: #10223a;
+        font-size: 1rem;
+        font-weight: 950;
+    }
+
+    .comparison-period-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+        .comparison-period-metrics span {
+            padding: 10px;
+            border-radius: 14px;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: .75rem;
+            font-weight: 800;
+        }
+
+        .comparison-period-metrics b {
+            display: block;
+            margin-top: 4px;
+            color: #10223a;
+            font-size: 1.15rem;
+        }
+
+    .comparison-rate {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+        .comparison-rate strong {
+            color: #146c78;
+            font-size: 1.1rem;
+            font-weight: 950;
+        }
+
+    @@media (max-width: 992px) {
+        .analysis-filter,
+        .comparison-kpi-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .analysis-submit,
+        .analysis-export {
+            width: 100%;
+        }
+    }
+
+    .analysis-chart-summary-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(280px, .55fr);
+        gap: 18px;
+        margin-top: 18px;
+    }
+
+    .analysis-inner-panel {
+        padding: 24px !important;
+        border-radius: 26px !important;
+        background: #fff !important;
+        border: 1px solid #d8e2ea !important;
+        box-shadow: 0 16px 38px rgba(20,32,51,.08) !important;
+    }
+
+        .analysis-inner-panel h3 {
+            margin-bottom: 4px;
+            color: #10223a;
+            font-size: 1.25rem;
+            font-weight: 950;
+        }
+
+        .analysis-inner-panel p {
+            color: #64748b;
+            font-size: .86rem;
+        }
+
+        .analysis-inner-panel .chart-shell {
+            min-height: 330px;
+            padding: 12px 8px 0;
+        }
+
+    .comparison-summary-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+        .comparison-summary-grid span {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            min-height: 54px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #526174;
+            font-size: .85rem;
+            font-weight: 850;
+        }
+
+        .comparison-summary-grid b {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 38px;
+            height: 34px;
+            padding: 0 10px;
+            border-radius: 999px;
+            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 950;
+        }
+
+        .comparison-summary-grid .is-better b {
+            background: #10b981;
+        }
+
+        .comparison-summary-grid .is-worse b {
+            background: #ef4444;
+        }
+
+        .comparison-summary-grid .is-unchanged b {
+            background: #64748b;
+        }
+
+        .comparison-summary-grid .is-insufficient b {
+            background: #f59e0b;
+        }
+
+        .comparison-summary-grid .is-better {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+        }
+
+        .comparison-summary-grid .is-worse {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .comparison-summary-grid .is-unchanged {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .comparison-summary-grid .is-insufficient {
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+
+    @@media (max-width: 992px) {
+        .analysis-chart-summary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    /* ===== Detail Table ===== */
+
+    .analysis-table-section {
+        margin-top: 22px;
+    }
+
+    .analysis-table-card {
+        padding: 22px;
+        background: #fff;
+        border: 1px solid #d8e2ea;
+        border-radius: 24px;
+        box-shadow: 0 16px 38px rgba(20,32,51,.08);
+    }
+
+        .analysis-table-card h3 {
+            color: #10223a;
+            font-size: 1.25rem;
+            font-weight: 950;
+            margin-bottom: 4px;
+        }
+
+        .analysis-table-card p {
+            color: #64748b;
+            font-size: .85rem;
+            margin-bottom: 18px;
+        }
+
+    .analysis-table {
+        overflow: hidden;
+        border-radius: 18px;
+        border: 1px solid #d8e2ea;
+    }
+
+        .analysis-table table {
+            margin-bottom: 0;
+        }
+
+        .analysis-table thead th {
+            background: #f8fbff !important;
+            color: #10223a !important;
+            font-size: .75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            border-bottom: 2px solid #d8e2ea !important;
+        }
+
+        .analysis-table tbody tr {
+            transition: all .18s ease;
+        }
+
+            .analysis-table tbody tr:hover {
+                background: #f7fbfd;
+            }
+
+        .analysis-table tbody td {
+            vertical-align: middle;
+            padding: 14px 12px;
+        }
+
+        .analysis-table tbody tr:nth-child(even) {
+            background: #fafcff;
+        }
+
+    .analysis-table-section {
+        margin-top: 22px;
+    }
+
+    .analysis-table-card {
+        padding: 22px;
+        background: #fff;
+        border: 1px solid #d8e2ea;
+        border-radius: 24px;
+        box-shadow: 0 16px 38px rgba(20,32,51,.08);
+    }
+
+        .analysis-table-card .panel-header {
+            margin-bottom: 18px;
+        }
+
+        .analysis-table-card h3 {
+            color: #10223a;
+            font-size: 1.25rem;
+            font-weight: 950;
+            margin: 0 0 4px;
+        }
+
+        .analysis-table-card p {
+            color: #64748b;
+            font-size: .85rem;
+            margin: 0;
+        }
+
+    .analysis-table-wrap {
+        border: 1px solid #d8e2ea;
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .analysis-table {
+        margin-bottom: 0;
+    }
+
+        .analysis-table thead th {
+            background: #f8fbff !important;
+            color: #10223a !important;
+            font-size: .74rem;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            border-bottom: 2px solid #d8e2ea !important;
+            padding: 14px 12px;
+            white-space: nowrap;
+        }
+
+        .analysis-table tbody td {
+            vertical-align: middle;
+            padding: 14px 12px;
+            border-color: #e2e8f0 !important;
+        }
+
+        .analysis-table tbody tr:nth-child(even) {
+            background: #fbfdff;
+        }
+
+        .analysis-table tbody tr:hover {
+            background: #f1f9fb;
+        }
+
+    .department-cell {
+        color: #10223a;
+        font-weight: 850;
+        min-width: 150px;
+    }
+
+    .indicator-cell {
+        min-width: 280px;
+    }
+
+        .indicator-cell strong {
+            display: inline-flex;
+            margin-right: 6px;
+            color: #0f5661;
+            font-weight: 950;
+        }
+
+        .indicator-cell span {
+            color: #334155;
+            line-height: 1.35;
+        }
+
+    .period-cell {
+        min-width: 150px;
+    }
+
+        .period-cell small {
+            display: block;
+            margin-top: 6px;
+            color: #64748b;
+            font-size: .74rem;
+        }
+
+    .analysis-table .status-pill,
+    .analysis-table .change-pill {
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: .74rem;
+        font-weight: 900;
+    }
+
+    .change-better {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .change-worse {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .change-unchanged {
+        background: #e2e8f0;
+        color: #334155;
+    }
+
+    .change-insufficient {
+        background: #fef3c7;
+        color: #92400e;
+    }
+</style>
+
+
+<section class="dashboard-hero hospital-hero">
     <div class="dashboard-titlebar">
         <span class="dashboard-role">@roleLabel</span>
         <h1>Trung tâm điều hành chất lượng</h1>
         <p>Theo dõi tiến độ nộp báo cáo, nhận diện chỉ số còn thiếu và kiểm soát rủi ro quá hạn theo khoa/phòng.</p>
     </div>
     <div class="dashboard-summary-strip" aria-label="Tóm tắt tiến độ">
-        <div class="dashboard-summary-item">
+        <div class="dashboard-summary-item summary-success">
             <span>Tỷ lệ hoàn tất</span>
             <strong>@completionRateText%</strong>
         </div>
-        <div class="dashboard-summary-item">
+
+        <div class="dashboard-summary-item summary-danger">
             <span>Cần xử lý</span>
             <strong>@urgentCount</strong>
         </div>
-        <div class="dashboard-summary-item">
+
+        <div class="dashboard-summary-item summary-info">
             <span>Khoa/phòng</span>
             <strong>@progressItems.Count</strong>
         </div>
@@ -89,31 +868,31 @@
                             </tr>
                         </thead>
                         <tbody>
-                        @foreach (var item in missingReports)
-                        {
-                            <tr>
-                                <td>@item.TenKyBaoCao</td>
-                                <td>@item.HanNop.ToString("dd/MM/yyyy") 23:59</td>
-                                <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
-                                <td>
-                                    @if (item.IsOverdue)
-                                    {
-                                        <span class="status-pill status-danger">Quá hạn @Math.Abs(item.DaysUntilDue) ngày</span>
-                                    }
-                                    else if (item.IsDueSoon)
-                                    {
-                                        <span class="status-pill status-warning">Còn @item.DaysUntilDue ngày</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="status-pill status-muted">Chưa gửi</span>
-                                    }
-                                </td>
-                                <td class="text-end">
-                                    @Html.ActionLink("Nhập báo cáo", "Edit", "Report", new { kyBaoCaoId = item.KyBaoCaoId, chiSoChatLuongId = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-primary" })
-                                </td>
-                            </tr>
-                        }
+                            @foreach (var item in missingReports)
+                            {
+                                <tr>
+                                    <td>@item.TenKyBaoCao</td>
+                                    <td>@item.HanNop.ToString("dd/MM/yyyy") 23:59</td>
+                                    <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
+                                    <td>
+                                        @if (item.IsOverdue)
+                                        {
+                                            <span class="status-pill status-danger">Quá hạn @Math.Abs(item.DaysUntilDue) ngày</span>
+                                        }
+                                        else if (item.IsDueSoon)
+                                        {
+                                            <span class="status-pill status-warning">Còn @item.DaysUntilDue ngày</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-pill status-muted">Chưa gửi</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        @Html.ActionLink("Nhập báo cáo", "Edit", "Report", new { kyBaoCaoId = item.KyBaoCaoId, chiSoChatLuongId = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-primary" })
+                                    </td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -131,6 +910,7 @@
         <strong class="metric-value">@Model.TongBaoCaoCanNop</strong>
         <span class="metric-caption">Tổng số báo cáo cần nộp theo kỳ và khoa/phòng.</span>
     </button>
+
     <button type="button" class="metric-card metric-card-button is-success" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="submitted" data-title="Danh sách báo cáo đã nộp">
         <span class="metric-card-header">
             <span class="metric-label">Đã báo cáo</span>
@@ -139,6 +919,7 @@
         <strong class="metric-value">@Model.BaoCaoDaGui</strong>
         <span class="metric-caption">@completionRateText% hồ sơ báo cáo đã hoàn tất.</span>
     </button>
+
     <button type="button" class="metric-card metric-card-button is-warning" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="missing" data-title="Danh sách chỉ số còn thiếu báo cáo">
         <span class="metric-card-header">
             <span class="metric-label">Còn thiếu</span>
@@ -147,6 +928,7 @@
         <strong class="metric-value">@Model.BaoCaoThieu</strong>
         <span class="metric-caption">Chỉ số chưa có báo cáo hợp lệ.</span>
     </button>
+
     <button type="button" class="metric-card metric-card-button is-danger" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="overdue" data-title="Danh sách chỉ số quá hạn chưa nộp">
         <span class="metric-card-header">
             <span class="metric-label">Quá hạn</span>
@@ -192,81 +974,81 @@
                             </tr>
                         </thead>
                         <tbody>
-                        @foreach (var item in metricDetails)
-                        {
-                            var groups = item.IsSubmitted
-                                ? "total submitted"
-                                : item.IsOverdueMissing ? "total missing overdue" : "total missing";
-                            <tr data-metric-groups="@groups">
-                                <td>@item.TenKyBaoCao</td>
-                                <td class="text-nowrap">@item.HanNop.ToString("dd/MM/yyyy")</td>
-                                <td>@item.TenKhoaPhong</td>
-                                <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
-                                <td>
-                                    @if (item.IsSubmitted)
-                                    {
-                                        <span class="status-pill status-success">Đã nộp</span>
-                                    }
-                                    else if (item.IsOverdueMissing)
-                                    {
-                                        <span class="status-pill status-danger">Quá hạn</span>
-                                    }
-                                    else if (item.TrangThaiBaoCao == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap)
-                                    {
-                                        <span class="status-pill status-warning">Chưa nộp (đã lưu nháp)</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="status-pill status-muted">Chưa nộp</span>
-                                    }
-                                </td>
-                                <td class="numeric-value text-end">
-                                    @(item.IsSubmitted && item.KetQua.HasValue ? item.KetQua.Value.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN")) : "-")
-                                </td>
-                                <td>
-                                    @if (!item.IsSubmitted)
-                                    {
-                                        <span class="text-muted">-</span>
-                                    }
-                                    else if (item.DatMucTieu == true)
-                                    {
-                                        <span class="status-pill status-success">Đạt</span>
-                                    }
-                                    else if (item.DatMucTieu == false)
-                                    {
-                                        <span class="status-pill status-danger">Chưa đạt</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="status-pill status-muted">Chưa đánh giá</span>
-                                    }
-                                </td>
-                                <td class="text-end dashboard-warning-action">
-                                    @if (!item.IsSubmitted)
-                                    {
-                                        if (item.HasWarningToday)
+                            @foreach (var item in metricDetails)
+                            {
+                                var groups = item.IsSubmitted
+                                    ? "total submitted"
+                                    : item.IsOverdueMissing ? "total missing overdue" : "total missing";
+                                <tr data-metric-groups="@groups">
+                                    <td>@item.TenKyBaoCao</td>
+                                    <td class="text-nowrap">@item.HanNop.ToString("dd/MM/yyyy")</td>
+                                    <td>@item.TenKhoaPhong</td>
+                                    <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
+                                    <td>
+                                        @if (item.IsSubmitted)
                                         {
-                                            <button type="button" class="btn btn-sm btn-outline-secondary" disabled>
-                                                <i class="bi bi-bell-fill me-1"></i>Đã cảnh báo hôm nay
-                                            </button>
+                                            <span class="status-pill status-success">Đã nộp</span>
+                                        }
+                                        else if (item.IsOverdueMissing)
+                                        {
+                                            <span class="status-pill status-danger">Quá hạn</span>
+                                        }
+                                        else if (item.TrangThaiBaoCao == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap)
+                                        {
+                                            <span class="status-pill status-warning">Chưa nộp (đã lưu nháp)</span>
                                         }
                                         else
                                         {
-                                            <form method="post" action="@Url.Action("WarnIndicator", "Dashboard")" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="kyBaoCaoId" value="@item.KyBaoCaoId" />
-                                                <input type="hidden" name="khoaPhongId" value="@item.KhoaPhongId" />
-                                                <input type="hidden" name="chiSoChatLuongId" value="@item.ChiSoChatLuongId" />
-                                                <input type="hidden" name="tanSuat" value="@Model.SelectedTanSuat" />
-                                                <button type="submit" class="btn btn-sm btn-outline-warning">
-                                                    <i class="bi bi-bell me-1"></i>Cảnh báo
-                                                </button>
-                                            </form>
+                                            <span class="status-pill status-muted">Chưa nộp</span>
                                         }
-                                    }
-                                </td>
-                            </tr>
-                        }
+                                    </td>
+                                    <td class="numeric-value text-end">
+                                        @(item.IsSubmitted && item.KetQua.HasValue ? item.KetQua.Value.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN")) : "-")
+                                    </td>
+                                    <td>
+                                        @if (!item.IsSubmitted)
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                        else if (item.DatMucTieu == true)
+                                        {
+                                            <span class="status-pill status-success">Đạt</span>
+                                        }
+                                        else if (item.DatMucTieu == false)
+                                        {
+                                            <span class="status-pill status-danger">Chưa đạt</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-pill status-muted">Chưa đánh giá</span>
+                                        }
+                                    </td>
+                                    <td class="text-end dashboard-warning-action">
+                                        @if (!item.IsSubmitted)
+                                        {
+                                            if (item.HasWarningToday)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" disabled>
+                                                    <i class="bi bi-bell-fill me-1"></i>Đã cảnh báo hôm nay
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <form method="post" action="@Url.Action("WarnIndicator", "Dashboard")" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="kyBaoCaoId" value="@item.KyBaoCaoId" />
+                                                    <input type="hidden" name="khoaPhongId" value="@item.KhoaPhongId" />
+                                                    <input type="hidden" name="chiSoChatLuongId" value="@item.ChiSoChatLuongId" />
+                                                    <input type="hidden" name="tanSuat" value="@Model.SelectedTanSuat" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-warning">
+                                                        <i class="bi bi-bell me-1"></i>Cảnh báo
+                                                    </button>
+                                                </form>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                            }
                             <tr data-metric-empty hidden>
                                 <td colspan="8" class="empty-state">Không có dữ liệu trong nhóm này.</td>
                             </tr>
@@ -282,102 +1064,146 @@
 </div>
 
 <div class="dashboard-tab-pane @(activeTab == "overview" ? "is-active" : null)" data-dashboard-pane="overview" @(activeTab == "overview" ? null : "hidden")>
-<section class="dashboard-grid">
-    <div class="dashboard-panel">
-        <div class="panel-header">
-            <div>
-                <h2>Tiến độ báo cáo theo khoa/phòng</h2>
-                <p>So sánh số báo cáo đã gửi với tổng chỉ số cần nộp.</p>
+    <section class="dashboard-grid">
+        <div class="dashboard-panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Tiến độ báo cáo theo khoa/phòng</h2>
+                    <p>So sánh số báo cáo đã gửi với tổng chỉ số cần nộp.</p>
+                </div>
+                <div class="panel-toolbar">
+                    <span class="status-pill status-success">@Model.BaoCaoDaGui đã gửi</span>
+                    <span class="status-pill status-muted">@Model.BaoCaoThieu còn thiếu</span>
+                </div>
             </div>
-            <div class="panel-toolbar">
-                <span class="status-pill status-success">@Model.BaoCaoDaGui đã gửi</span>
-                <span class="status-pill status-muted">@Model.BaoCaoThieu còn thiếu</span>
-            </div>
+            @if (progressItems.Any())
+            {
+                <div class="chart-shell">
+                    <canvas id="progressChart" height="108"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">Chưa có dữ liệu tiến độ để hiển thị.</div>
+            }
         </div>
-        @if (progressItems.Any())
-        {
-            <div class="chart-shell">
-                <canvas id="progressChart" height="108"></canvas>
-            </div>
-        }
-        else
-        {
-            <div class="empty-state">Chưa có dữ liệu tiến độ để hiển thị.</div>
-        }
-    </div>
 
-    <div class="dashboard-panel">
-        <div class="panel-header d-flex justify-content-between align-items-center">
-            <div>
-                <h2>Bảng tiến độ</h2>
-                <p>Tỷ lệ hoàn tất của từng khoa/phòng.</p>
+        <div class="dashboard-panel">
+            <div class="panel-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>Bảng tiến độ</h2>
+                    <p>Tỷ lệ hoàn tất của từng khoa/phòng.</p>
+                </div>
+                <div class="mobile-stack-actions align-items-center dashboard-panel-actions">
+                    @using (Html.BeginForm("Index", "Dashboard", FormMethod.Get, new { id = "dashboardFilterForm", @class = "d-flex align-items-center gap-2" }))
+                    {
+                        @Html.DropDownList("tanSuat", Model.TanSuatOptions, new { @class = "form-select form-select-sm border rounded-pill px-3", onchange = "this.form.submit();" })
+                    }
+                    @if (progressItems.Any())
+                    {
+                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#dashboardExportModal">
+                            <i class="bi bi-file-earmark-excel me-1 text-success"></i> Xuất Excel
+                        </button>
+                    }
+                </div>
             </div>
-            <div class="mobile-stack-actions align-items-center dashboard-panel-actions">
-                @using (Html.BeginForm("Index", "Dashboard", FormMethod.Get, new { id = "dashboardFilterForm", @class = "d-flex align-items-center gap-2" }))
-                {
-                    @Html.DropDownList("tanSuat", Model.TanSuatOptions, new { @class = "form-select form-select-sm border rounded-pill px-3", onchange = "this.form.submit();" })
-                }
-                @if (progressItems.Any())
-                {
-                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#dashboardExportModal">
-                        <i class="bi bi-file-earmark-excel me-1 text-success"></i> Xuất Excel
-                    </button>
-                }
-            </div>
-        </div>
-        @if (progressItems.Any())
-        {
-            <div class="progress-list">
-                @foreach (var item in progressItems)
-                {
-                    var percent = item.Tong > 0 ? (int)Math.Round((decimal)item.DaGui * 100 / item.Tong) : 0;
-                    <div class="progress-row d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <div class="progress-name d-flex align-items-center justify-content-between">
-                                <span class="fw-bold">@item.TenKhoaPhong</span>
-                                @{
-                                    var badgeClass = "bg-secondary";
-                                    if (item.Tong > 0)
-                                    {
-                                        var rate = (decimal)item.DaGui * 100 / item.Tong;
-                                        if (rate >= 90) { badgeClass = "bg-success"; }
-                                        else if (rate >= 70) { badgeClass = "bg-info text-dark"; }
-                                        else if (rate >= 50) { badgeClass = "bg-warning text-dark"; }
-                                        else { badgeClass = "bg-danger"; }
+            @if (progressItems.Any())
+            {
+                <div class="progress-list">
+                    @foreach (var item in progressItems)
+                    {
+                        var percent = item.Tong > 0 ? (int)Math.Round((decimal)item.DaGui * 100 / item.Tong) : 0;
+                        <div class="progress-row d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <div class="progress-name d-flex align-items-center justify-content-between">
+                                    <span class="fw-bold">@item.TenKhoaPhong</span>
+                                    @{
+                                        var badgeClass = "bg-secondary";
+                                        if (item.Tong > 0)
+                                        {
+                                            var rate = (decimal)item.DaGui * 100 / item.Tong;
+                                            if (rate >= 90) { badgeClass = "bg-success"; }
+                                            else if (rate >= 70) { badgeClass = "bg-info text-dark"; }
+                                            else if (rate >= 50) { badgeClass = "bg-warning text-dark"; }
+                                            else { badgeClass = "bg-danger"; }
+                                        }
                                     }
-                                }
-                                <span class="badge @badgeClass ms-2 px-2 py-1 small rounded-pill">@item.XepLoai</span>
+                                    <span class="badge @badgeClass ms-2 px-2 py-1 small rounded-pill">@item.XepLoai</span>
+                                </div>
+                                <div class="progress-meta text-muted small mt-1">
+                                    <span>Đã gửi: <strong>@item.DaGui</strong>/@item.Tong</span> |
+                                    <span>Nháp: <strong class="text-secondary">@item.LuuNhap</strong></span> |
+                                    <span>Thiếu: <strong class="text-danger">@item.ConThieu</strong></span>
+                                    @if (item.TongThang > 0)
+                                    {<span> | Tháng: @item.TiendoHangThang (<span class="small font-monospace">@item.XepLoaiThang</span>)</span>}
+                                    @if (item.TongQuy > 0)
+                                    {<span> | Quý: @item.TiendoHangQuy (<span class="small font-monospace">@item.XepLoaiQuy</span>)</span>}
+                                    @if (item.TongNam > 0)
+                                    {<span> | Năm: @item.TiendoHangNam (<span class="small font-monospace">@item.XepLoaiNam</span>)</span>}
+                                </div>
+                                <div class="progress-track mt-2" aria-label="@item.TenKhoaPhong đạt @percent%">
+                                    <div class="progress-fill" style="width: @(percent)%"></div>
+                                </div>
                             </div>
-                            <div class="progress-meta text-muted small mt-1">
-                                <span>Đã gửi: <strong>@item.DaGui</strong>/@item.Tong</span> | 
-                                <span>Nháp: <strong class="text-secondary">@item.LuuNhap</strong></span> | 
-                                <span>Thiếu: <strong class="text-danger">@item.ConThieu</strong></span>
-                                @if (item.TongThang > 0) { <span> | Tháng: @item.TiendoHangThang (<span class="small font-monospace">@item.XepLoaiThang</span>)</span> }
-                                @if (item.TongQuy > 0) { <span> | Quý: @item.TiendoHangQuy (<span class="small font-monospace">@item.XepLoaiQuy</span>)</span> }
-                                @if (item.TongNam > 0) { <span> | Năm: @item.TiendoHangNam (<span class="small font-monospace">@item.XepLoaiNam</span>)</span> }
-                            </div>
-                            <div class="progress-track mt-2" aria-label="@item.TenKhoaPhong đạt @percent%">
-                                <div class="progress-fill" style="width: @(percent)%"></div>
-                            </div>
+                            <div class="progress-number ms-3 fw-bold">@percent%</div>
                         </div>
-                        <div class="progress-number ms-3 fw-bold">@percent%</div>
-                    </div>
-                }
-            </div>
-        }
-        else
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">Chưa có khoa/phòng trong phạm vi theo dõi.</div>
+            }
+        </div>
+    </section>
+</div>
+@if (activeTab == "comparison")
+{
+    <div class="dashboard-tab-pane is-active"
+         data-dashboard-pane="comparison"
+         data-dashboard-url="@Url.Action("Comparison", "Dashboard", new { area = "Admin" })">
+        @if (Model.Comparison != null)
         {
-            <div class="empty-state">Chưa có khoa/phòng trong phạm vi theo dõi.</div>
+            @Html.Partial("~/Views/Shared/_DashboardComparison.cshtml", Model.Comparison)
         }
     </div>
-</section>
-</div>
-<div class="dashboard-tab-pane @(activeTab == "comparison" ? "is-active" : null)" data-dashboard-pane="comparison" data-dashboard-url="@Url.Action("Comparison", "Dashboard", new { area = "Admin" })" @(activeTab == "comparison" ? null : "hidden")>
-    @if (Model.Comparison != null) { @Html.Partial("~/Views/Shared/_DashboardComparison.cshtml", Model.Comparison) }
-</div>
-<div class="dashboard-tab-pane @(activeTab == "trend" ? "is-active" : null)" data-dashboard-pane="trend" data-dashboard-url="@Url.Action("Trend", "Dashboard", new { area = "Admin" })" @(activeTab == "trend" ? null : "hidden")>
-    @if (Model.Trend != null) { @Html.Partial("~/Views/Shared/_DashboardTrend.cshtml", Model.Trend) }
-</div>
+}
+else
+{
+    <div class="dashboard-tab-pane"
+         data-dashboard-pane="comparison"
+         data-dashboard-url="@Url.Action("Comparison", "Dashboard", new { area = "Admin" })"
+         hidden>
+        @if (Model.Comparison != null)
+        {
+            @Html.Partial("~/Views/Shared/_DashboardComparison.cshtml", Model.Comparison)
+        }
+    </div>
+}
+
+@if (activeTab == "trend")
+{
+    <div class="dashboard-tab-pane is-active"
+         data-dashboard-pane="trend"
+         data-dashboard-url="@Url.Action("Trend", "Dashboard", new { area = "Admin" })">
+        @if (Model.Trend != null)
+        {
+            @Html.Partial("~/Views/Shared/_DashboardTrend.cshtml", Model.Trend)
+        }
+    </div>
+}
+else
+{
+    <div class="dashboard-tab-pane"
+         data-dashboard-pane="trend"
+         data-dashboard-url="@Url.Action("Trend", "Dashboard", new { area = "Admin" })"
+         hidden>
+        @if (Model.Trend != null)
+        {
+            @Html.Partial("~/Views/Shared/_DashboardTrend.cshtml", Model.Trend)
+        }
+    </div>
+}
 
 <div class="modal fade" id="dashboardExportModal" tabindex="-1" aria-labelledby="dashboardExportModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -503,7 +1329,7 @@
                                 <label class="form-check-label" for="db_export_TyLeDatMucTieuNam">Tỷ lệ đạt mục tiêu năm (%)</label>
                             </div>
                         </div>
-                        
+
                         <div class="col-6 border-top pt-2">
                             <div class="form-check py-1">
                                 <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="TiendoThang" id="db_export_TiendoThang" />
@@ -556,8 +1382,8 @@
 </div>
 
 @section scripts {
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
 function initializeDashboardAnalysis() {
     var tabs = document.querySelectorAll('[data-dashboard-tab]');
     var panes = document.querySelectorAll('[data-dashboard-pane]');
@@ -787,5 +1613,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
     updateDashboardExportSubmit();
 });
-</script>
+    </script>
 }
