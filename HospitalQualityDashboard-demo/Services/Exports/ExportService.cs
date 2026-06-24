@@ -129,54 +129,59 @@ namespace HospitalQualityDashboardDemo.Services
         // Truy vấn xuất dữ liệu quản trị theo điều kiện được cung cấp.
         private IList<DepartmentProgressViewModel> QueryDepartmentProgress(int? tanSuatFilter = null)
         {
-            string query;
-            List<SqlParameter> sqlParams = new List<SqlParameter>();
-            
-            if (tanSuatFilter.HasValue)
-            {
-                query = @"
-SELECT 
+            const string query = @"
+WITH ExpectedSlots AS
+(
+    SELECT DISTINCT ky.KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, ky.LoaiKyBaoCao
+    FROM dbo.KyBaoCao ky
+    INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
+    INNER JOIN dbo.ChiSoTanSuatBaoCao ts
+        ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId
+       AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
+    WHERE ky.TrangThai <> @DraftPeriodStatus
+      AND (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
+      AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
+),
+ReportByIndicator AS
+(
+    SELECT bc.KhoaPhongId, bc.ChiSoChatLuongId,
+           MAX(CASE WHEN bc.TrangThai IN (@DaGui, @QuaHan, @DaKhoa) THEN 1 ELSE 0 END) AS HasSubmitted,
+           MAX(CASE WHEN bc.TrangThai = @Nhap THEN 1 ELSE 0 END) AS HasDraft
+    FROM dbo.BaoCao bc
+    GROUP BY bc.KhoaPhongId, bc.ChiSoChatLuongId
+),
+TargetYearReports AS
+(
+    SELECT bc.KhoaPhongId,
+           SUM(CASE WHEN ct.DatMucTieu = 1 THEN 1 ELSE 0 END) AS SoBaoCaoDatMucTieuNam,
+           SUM(CASE WHEN ct.DatMucTieu IS NOT NULL THEN 1 ELSE 0 END) AS SoBaoCaoDanhGiaMucTieuNam
+    FROM dbo.BaoCao bc
+    INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId
+    INNER JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
+    WHERE YEAR(ky.TuNgay) = YEAR(GETDATE())
+      AND bc.TrangThai IN (@DaGui, @QuaHan, @DaKhoa)
+      AND (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
+    GROUP BY bc.KhoaPhongId
+)
+SELECT
     kp.TenKhoaPhong,
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = @TanSuat) AS Tong,
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = @TanSuat AND bc.TrangThai IN (2,3,4)) AS DaGui,
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = @TanSuat AND bc.TrangThai = 1) AS LuuNhap,
-    (SELECT COUNT(*) FROM dbo.BaoCao bc INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId INNER JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId WHERE bc.KhoaPhongId = kp.KhoaPhongId AND ky.LoaiKyBaoCao = @TanSuat AND YEAR(ky.TuNgay) = YEAR(GETDATE()) AND bc.TrangThai IN (2,3,4) AND ct.DatMucTieu = 1) AS SoBaoCaoDatMucTieuNam,
-    (SELECT COUNT(*) FROM dbo.BaoCao bc INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId INNER JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId WHERE bc.KhoaPhongId = kp.KhoaPhongId AND ky.LoaiKyBaoCao = @TanSuat AND YEAR(ky.TuNgay) = YEAR(GETDATE()) AND bc.TrangThai IN (2,3,4) AND ct.DatMucTieu IS NOT NULL) AS SoBaoCaoDanhGiaMucTieuNam,
-    
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 3) AS TongThang,
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 3 AND bc.TrangThai IN (2,3,4)) AS DaGuiThang,
-
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 4) AS TongQuy,
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 4 AND bc.TrangThai IN (2,3,4)) AS DaGuiQuy,
-
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 6) AS TongNam,
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 6 AND bc.TrangThai IN (2,3,4)) AS DaGuiNam
+    COUNT(DISTINCT es.ChiSoChatLuongId) AS Tong,
+    COUNT(DISTINCT CASE WHEN rb.HasSubmitted = 1 THEN es.ChiSoChatLuongId END) AS DaGui,
+    COUNT(DISTINCT CASE WHEN rb.HasDraft = 1 THEN es.ChiSoChatLuongId END) AS LuuNhap,
+    ISNULL(MAX(ty.SoBaoCaoDatMucTieuNam), 0) AS SoBaoCaoDatMucTieuNam,
+    ISNULL(MAX(ty.SoBaoCaoDanhGiaMucTieuNam), 0) AS SoBaoCaoDanhGiaMucTieuNam,
+    COUNT(DISTINCT CASE WHEN es.LoaiKyBaoCao = 3 THEN es.ChiSoChatLuongId END) AS TongThang,
+    COUNT(DISTINCT CASE WHEN es.LoaiKyBaoCao = 3 AND rb.HasSubmitted = 1 THEN es.ChiSoChatLuongId END) AS DaGuiThang,
+    COUNT(DISTINCT CASE WHEN es.LoaiKyBaoCao = 4 THEN es.ChiSoChatLuongId END) AS TongQuy,
+    COUNT(DISTINCT CASE WHEN es.LoaiKyBaoCao = 4 AND rb.HasSubmitted = 1 THEN es.ChiSoChatLuongId END) AS DaGuiQuy,
+    COUNT(DISTINCT CASE WHEN es.LoaiKyBaoCao = 6 THEN es.ChiSoChatLuongId END) AS TongNam,
+    COUNT(DISTINCT CASE WHEN es.LoaiKyBaoCao = 6 AND rb.HasSubmitted = 1 THEN es.ChiSoChatLuongId END) AS DaGuiNam
 FROM dbo.KhoaPhong kp
+LEFT JOIN ExpectedSlots es ON es.KhoaPhongId = kp.KhoaPhongId
+LEFT JOIN ReportByIndicator rb ON rb.KhoaPhongId = es.KhoaPhongId AND rb.ChiSoChatLuongId = es.ChiSoChatLuongId
+LEFT JOIN TargetYearReports ty ON ty.KhoaPhongId = kp.KhoaPhongId
+GROUP BY kp.TenKhoaPhong
 ORDER BY kp.TenKhoaPhong";
-                sqlParams.Add(Param("@TanSuat", tanSuatFilter.Value));
-            }
-            else
-            {
-                query = @"
-SELECT 
-    kp.TenKhoaPhong,
-    (SELECT COUNT(*) FROM dbo.PhanCongChiSo pc WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1) AS Tong,
-    (SELECT COUNT(*) FROM dbo.PhanCongChiSo pc JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND bc.TrangThai IN (2,3,4)) AS DaGui,
-    (SELECT COUNT(*) FROM dbo.PhanCongChiSo pc JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND bc.TrangThai = 1) AS LuuNhap,
-    (SELECT COUNT(*) FROM dbo.BaoCao bc INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId INNER JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId WHERE bc.KhoaPhongId = kp.KhoaPhongId AND YEAR(ky.TuNgay) = YEAR(GETDATE()) AND bc.TrangThai IN (2,3,4) AND ct.DatMucTieu = 1) AS SoBaoCaoDatMucTieuNam,
-    (SELECT COUNT(*) FROM dbo.BaoCao bc INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId INNER JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId WHERE bc.KhoaPhongId = kp.KhoaPhongId AND YEAR(ky.TuNgay) = YEAR(GETDATE()) AND bc.TrangThai IN (2,3,4) AND ct.DatMucTieu IS NOT NULL) AS SoBaoCaoDanhGiaMucTieuNam,
-    
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 3) AS TongThang,
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 3 AND bc.TrangThai IN (2,3,4)) AS DaGuiThang,
-
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 4) AS TongQuy,
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 4 AND bc.TrangThai IN (2,3,4)) AS DaGuiQuy,
-
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 6) AS TongNam,
-    (SELECT COUNT(DISTINCT pc.ChiSoChatLuongId) FROM dbo.PhanCongChiSo pc JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId JOIN dbo.BaoCao bc ON bc.ChiSoChatLuongId = pc.ChiSoChatLuongId AND bc.KhoaPhongId = kp.KhoaPhongId WHERE pc.KhoaPhongId = kp.KhoaPhongId AND pc.DangHoatDong = 1 AND ts.TanSuatBaoCao = 6 AND bc.TrangThai IN (2,3,4)) AS DaGuiNam
-FROM dbo.KhoaPhong kp
-ORDER BY kp.TenKhoaPhong";
-            }
 
             var list = Query(query, r => new DepartmentProgressViewModel
             {
@@ -195,7 +200,13 @@ ORDER BY kp.TenKhoaPhong";
                 
                 TongNam = Int(r, "TongNam"),
                 DaGuiNam = Int(r, "DaGuiNam")
-            }, sqlParams.ToArray());
+            },
+                Param("@TanSuat", tanSuatFilter),
+                Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap),
+                Param("@Nhap", (byte)TrangThaiBaoCao.Nhap),
+                Param("@DaGui", (byte)TrangThaiBaoCao.DaGui),
+                Param("@QuaHan", (byte)TrangThaiBaoCao.QuaHan),
+                Param("@DaKhoa", (byte)TrangThaiBaoCao.DaKhoa));
 
             foreach (var progress in list)
             {

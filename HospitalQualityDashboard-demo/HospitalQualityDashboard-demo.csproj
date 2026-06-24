@@ -221,6 +221,7 @@
     <Compile Include="Services\Indicators\AssignmentService.Groups.cs" />
     <Compile Include="Services\Indicators\AssignmentService.Queries.cs" />
     <Compile Include="Services\Indicators\IndicatorService.cs" />
+    <Compile Include="Services\Indicators\IndicatorService.Deployment.cs" />
     <Compile Include="Services\Indicators\IndicatorService.Departments.cs" />
     <Compile Include="Services\Indicators\IndicatorService.Formula.cs" />
     <Compile Include="Services\Indicators\IndicatorService.Frequencies.cs" />
@@ -250,6 +251,7 @@
     <Content Include="App_Data\Sql\002_PerformanceIndexes.sql" />
     <Content Include="App_Data\Sql\003_AddExportHistory.sql" />
     <Content Include="App_Data\Sql\004_AddIndicatorWarning.sql" />
+    <Content Include="App_Data\Sql\005_AddIndicatorDeploymentHistory.sql" />
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
@@ -335,6 +337,7 @@
     <Content Include="tools\VerifyIndicatorWarnings.ps1" />
     <Content Include="tools\VerifyManagementPaging.ps1" />
     <Content Include="tools\VerifyReportSubmissionNavigationAndAdminAudit.ps1" />
+    <Content Include="tools\VerifyIndicatorDeploymentLifecycle.ps1" />
     <Content Include="tools\VerifyUnreadNotificationBadge.ps1" />
   </ItemGroup>
   <ItemGroup>

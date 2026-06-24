@@ -26,12 +26,12 @@ WITH ExpectedSlots AS
     INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
     INNER JOIN dbo.ChiSoChatLuong cs
         ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
-       AND cs.DangHoatDong = 1
     INNER JOIN dbo.ChiSoTanSuatBaoCao ts
         ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId
        AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
     WHERE ky.TrangThai <> @DraftPeriodStatus
       AND (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
+      AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 )
 SELECT es.KyBaoCaoId, es.KhoaPhongId, es.ChiSoChatLuongId,
        es.TenKyBaoCao, es.HanNop, es.TenKhoaPhong,

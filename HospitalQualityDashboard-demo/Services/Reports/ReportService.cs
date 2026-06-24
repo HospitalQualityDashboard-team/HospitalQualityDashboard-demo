@@ -154,6 +154,7 @@ LEFT JOIN dbo.TaiKhoan nguoiGui ON nguoiGui.TaiKhoanId = bc.NguoiGuiId
 LEFT JOIN dbo.NhanVien nvNguoiGui ON nvNguoiGui.NhanVienId = nguoiGui.NhanVienId
 WHERE pc.DangHoatDong = 1 AND pc.KhoaPhongId = @KhoaPhongId
 AND ky.TrangThai = @Mo
+AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 ORDER BY cs.MaChiSo";
             return Query(sql, MapReport,
                 Param("@KyBaoCaoId", periodId),

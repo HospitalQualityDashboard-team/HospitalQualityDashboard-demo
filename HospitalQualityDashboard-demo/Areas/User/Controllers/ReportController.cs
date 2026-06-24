@@ -191,9 +191,8 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
                 .Where(p => p.TrangThai == TrangThaiKyBaoCao.Mo)
                 .ToList();
 
-            var userFreqs = _periods.GetFrequenciesForDepartment(CurrentKhoaPhongId.Value);
             return activePeriods
-                .Where(p => userFreqs.Contains(p.LoaiKyBaoCao))
+                .Where(p => _periods.IsOpenForDepartment(p.KyBaoCaoId, CurrentKhoaPhongId.Value))
                 .ToList();
         }
 

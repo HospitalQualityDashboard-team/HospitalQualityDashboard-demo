@@ -62,21 +62,21 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return Save(model);
         }
 
-        // Chuyển bản ghi sang trạng thái không còn cho phép chỉnh sửa.
+        // Ngừng triển khai chỉ số từ các kỳ sau, vẫn giữ nghĩa vụ cho kỳ hiện tại nếu kỳ đang mở.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Lock(int id)
+        public ActionResult StopDeployment(int id)
         {
-            _service.SetActive(id, false);
+            _service.StopDeployment(id, CurrentTaiKhoanId.Value);
             return RedirectToAction("Index");
         }
 
-        // Điều phối yêu cầu HTTP và phản hồi cho chỉ số chất lượng.
+        // Triển khai lại chỉ số ngay cho các kỳ đang mở phù hợp tần suất.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Unlock(int id)
+        public ActionResult Deploy(int id)
         {
-            _service.SetActive(id, true);
+            _service.Deploy(id, CurrentTaiKhoanId.Value);
             return RedirectToAction("Index");
         }
 
