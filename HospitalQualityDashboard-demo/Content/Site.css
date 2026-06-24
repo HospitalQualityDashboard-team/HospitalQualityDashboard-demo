@@ -1029,23 +1029,26 @@ form.row,
     border-radius: 8px;
 }
 
+    /* Làm bảng rộng rãi và hiện đại */
     .table thead th {
-        color: #344054;
-        background: var(--app-surface-soft);
-        border-bottom: 1px solid var(--app-border);
-        font-size: .8rem;
-        font-weight: 850;
+        background-color: #f8fafc !important; /* Xám xanh nhạt */
+        color: #64748b !important;
+        font-size: 0.75rem !important;
+        font-weight: 800 !important;
         text-transform: uppercase;
+        padding: 16px 12px !important;
     }
 
-    .table tbody tr:hover {
-        background: #eff7f8;
+    .table tbody tr {
+        transition: background-color 0.2s;
     }
 
-    .table td,
-    .table th {
-        vertical-align: middle;
-        padding: .72rem .85rem;
+        .table tbody tr:hover {
+            background-color: #f1f5f9 !important; /* Hiệu ứng hover rõ nét */
+        }
+
+    .table td {
+        padding: 20px 12px !important; /* Tăng padding để bảng thoáng */
     }
 
 .notification-list {
@@ -3003,4 +3006,171 @@ footer {
     .indicator-form-actions .btn {
         width: 100%;
     }
+}
+/* Style cho các ô thống kê */
+.summary-card {
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s;
+}
+
+/* Màu cho ô "Tổng chỉ số" */
+.summary-info {
+    background-color: #eff6ff !important;
+    border-color: #bfdbfe !important;
+}
+
+    .summary-info span, .summary-info strong {
+        color: #1e40af !important;
+    }
+
+/* Màu cho ô "Đã phân công" */
+.summary-success {
+    background-color: #f0fdf4 !important;
+    border-color: #bbf7d0 !important;
+}
+
+    .summary-success span, .summary-success strong {
+        color: #166534 !important;
+    }
+
+/* Màu cho ô "Chưa phân công" */
+.summary-danger {
+    background-color: #fef2f2 !important;
+    border-color: #fecaca !important;
+}
+
+    .summary-danger span, .summary-danger strong {
+        color: #991b1b !important;
+    }
+
+/* Màu cho ô "Tạm dừng" */
+.summary-warning {
+    background-color: #fffbeb !important;
+    border-color: #fde68a !important;
+}
+
+    .summary-warning span, .summary-warning strong {
+        color: #92400e !important;
+    }
+/* Làm nổi bật vùng chứa nội dung chính */
+.assignment-page {
+    background-color: #f8fafc;
+    padding: 24px;
+    border-radius: 16px;
+}
+
+/* Nâng cấp các Card thống kê */
+.metric-card-new {
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: transform 0.2s;
+}
+
+/* Định dạng cho vùng Nhập dữ liệu mới để nó tách biệt hẳn */
+#createAssignmentForm {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 15px;
+}
+
+/* Làm bảng dữ liệu rõ ràng hơn */
+.assignment-table {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+    .assignment-table thead th {
+        background-color: #f1f5f9 !important; /* Màu nền xám xanh nhạt cho header */
+        color: #475569 !important;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+    }
+/* Tăng khoảng cách và tạo vẻ "card" cho nhóm nút */
+.header-action-card {
+    display: flex;
+    gap: 16px; /* Khoảng cách giữa các nút */
+    padding: 10px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.btn-action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 110px; /* Độ rộng cố định để các card đều nhau */
+    padding: 10px 8px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #475569;
+    font-weight: 700;
+    font-size: 0.75rem; /* Font nhỏ gọn */
+    transition: all 0.2s ease;
+}
+
+    .btn-action-card:hover {
+        background-color: #f8fafc;
+        border-color: #e2e8f0;
+        color: #0b3d91;
+    }
+
+    .btn-action-card i {
+        font-size: 1.4rem;
+        margin-bottom: 4px;
+    }
+
+/* Cải tiến bảng */
+.data-table thead th {
+    background: #f8fafc;
+    color: #64748b;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
+.status-pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.status-open {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.status-locked {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.status-draft {
+    background: #e2e8f0;
+    color: #475569;
+}
+.status-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+/* Trạng thái MỞ */
+.status-open {
+    background-color: #dcfce7;
+    color: #166534;
+}
+/* Trạng thái NHÁP */
+.status-draft {
+    background-color: #f1f5f9;
+    color: #475569;
 }

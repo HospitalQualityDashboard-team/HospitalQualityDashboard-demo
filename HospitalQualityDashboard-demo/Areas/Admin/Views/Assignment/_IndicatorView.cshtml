@@ -5,50 +5,42 @@
     @if (Model.IndicatorGroups == null || Model.IndicatorGroups.Count == 0)
     {
         <div class="col-12 text-center py-5 text-muted">
-            <i class="bi bi-clipboard-data fs-2 d-block mb-2"></i>
-            Không tìm thấy chỉ số nào phù hợp.
+            <i class="bi bi-clipboard-data fs-2 d-block mb-2"></i> Không tìm thấy chỉ số nào phù hợp.
         </div>
     }
     else
     {
         foreach (var group in Model.IndicatorGroups)
         {
-            var cardBorderClass = group.ChuaPhanCong ? "border-danger border-2 shadow-sm" : "border-light-subtle shadow-sm";
-            var headerBgClass = group.ChuaPhanCong ? "bg-danger-subtle text-danger-emphasis" : "bg-light";
-            
             <div class="col-12">
-                <div class="card @cardBorderClass rounded-3 overflow-hidden">
-                    <div class="card-header @headerBgClass border-0 d-flex justify-content-between align-items-center py-3 px-4 cursor-pointer" 
+                <div class="card border-0 rounded-4 overflow-hidden shadow-sm">
+                    <div class="card-header bg-white border-bottom py-3 px-4 d-flex flex-column justify-content-center cursor-pointer"
                          data-bs-toggle="collapse" data-bs-target="#ind-collapse-@group.ChiSoChatLuongId" aria-expanded="true">
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                <span class="badge bg-secondary font-monospace">@group.MaChiSo</span>
-                                <h5 class="mb-0 fw-bold text-dark d-inline">@group.TenChiSo</h5>
-                                @if (group.ChuaPhanCong)
-                                {
-                                    <span class="badge bg-danger px-2 py-1 rounded-pill small ms-2"><i class="bi bi-exclamation-triangle-fill me-1"></i>Chưa phân công</span>
-                                }
+
+                        <div class="d-flex justify-content-between align-items-center w-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge bg-dark rounded-pill px-3 py-2" style="font-size: 0.85rem;">@group.MaChiSo</span>
+                                <h5 class="mb-0 fw-bold text-dark" style="font-size: 1.1rem;">@group.TenChiSo</h5>
                             </div>
-                            <div class="text-muted small">
-                                <span class="me-3"><strong>Tần suất:</strong> @group.TanSuatBaoCaoText</span>
-                                <span><strong>Công thức:</strong> @group.LoaiCongThucText</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge bg-light text-dark border rounded-pill px-3 py-2 fw-semibold">@group.SoKhoaPhong khoa/phòng</span>
+                                <i class="bi bi-chevron-down text-muted transition-transform"></i>
                             </div>
                         </div>
-                        <div class="d-flex align-items-center gap-3">
-                            @if (!group.ChuaPhanCong)
-                            {
-                                <span class="badge bg-primary-subtle text-primary px-2 py-1 rounded-pill small">@group.SoKhoaPhong khoa/phòng</span>
-                            }
-                            <i class="bi bi-chevron-down text-muted transition-transform"></i>
+
+                        <div class="d-flex align-items-center gap-4 mt-3 text-muted" style="font-size: 0.85rem;">
+                            <span><i class="bi bi-clock me-1"></i> Tần suất: <strong>@group.TanSuatBaoCaoText</strong></span>
+                            <span><i class="bi bi-calculator me-1"></i> Công thức: <strong>@group.LoaiCongThucText</strong></span>
                         </div>
                     </div>
+
                     <div class="collapse show" id="ind-collapse-@group.ChiSoChatLuongId">
-                        <div class="card-body p-0">
+                        <div class="card-body p-0 bg-white">
                             @if (group.ChuaPhanCong)
                             {
-                                <div class="p-4 text-center bg-white">
+                                <div class="p-4 text-center">
                                     <p class="text-danger mb-3 fw-medium">Chỉ số này chưa được giao cho bất kỳ khoa/phòng nào báo cáo.</p>
-                                    <button class="btn btn-danger btn-sm rounded-pill px-4 assign-now-btn" data-id="@group.ChiSoChatLuongId">
+                                    <button class="btn btn-outline-danger rounded-pill px-4 assign-now-btn" data-id="@group.ChiSoChatLuongId">
                                         <i class="bi bi-plus-circle me-1"></i> Giao việc ngay
                                     </button>
                                 </div>
@@ -56,62 +48,65 @@
                             else
                             {
                                 <div class="table-responsive">
-                                    <table class="table table-hover align-middle mb-0 assignment-table">
-                                        <thead class="table-light">
+                                    <table class="table table-borderless align-middle mb-0">
+                                        <thead class="border-bottom" style="font-size: 0.75rem; color: #64748b;">
                                             <tr>
                                                 <th class="ps-4" style="width: 40px;"></th>
-                                                <th>Khoa/phòng phụ trách</th>
-                                                <th>Ngày phân công</th>
-                                                <th class="text-center">Trạng thái</th>
-                                                <th class="pe-4 text-end">Thao tác</th>
+                                                <th class="text-uppercase py-3">Khoa/phòng phụ trách</th>
+                                                <th class="text-uppercase py-3">Ngày phân công</th>
+                                                <th class="text-uppercase py-3 text-center">Trạng thái</th>
+                                                <th class="text-uppercase py-3 pe-4 text-end">Thao tác</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                        @foreach (var item in group.Items)
-                                        {
-                                            <tr class="assignment-row" data-id="@item.PhanCongChiSoId">
-                                                <td class="ps-4">
-                                                    <input class="form-check-input cursor-pointer bulk-checkbox" type="checkbox" value="@item.PhanCongChiSoId" />
-                                                </td>
-                                                <td class="fw-semibold text-dark">@item.TenKhoaPhong</td>
-                                                <td class="text-muted small">@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
-                                                <td class="text-center">
-                                                    @if (item.DangHoatDong)
-                                                    {
-                                                        <span class="badge bg-success-subtle text-success px-2 py-1 rounded-pill small">Hoạt động</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge bg-warning-subtle text-warning px-2 py-1 rounded-pill small">Tạm dừng</span>
-                                                    }
-                                                </td>
-                                                <td class="pe-4 text-end">
-                                                    <div class="d-flex gap-2 justify-content-end assignment-row-actions">
+                                            @foreach (var item in group.Items)
+                                            {
+                                                <tr class="assignment-row border-bottom" data-id="@item.PhanCongChiSoId">
+                                                    <td class="ps-4">
+                                                        <input class="form-check-input cursor-pointer bulk-checkbox" type="checkbox" value="@item.PhanCongChiSoId" />
+                                                    </td>
+                                                    <td class="fw-bold text-dark">
+                                                        <span class="d-inline-block rounded-circle bg-primary me-2" style="width: 8px; height: 8px;"></span>
+                                                        @item.TenKhoaPhong
+                                                    </td>
+                                                    <td class="text-muted small fw-medium">@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
+                                                    <td class="text-center">
                                                         @if (item.DangHoatDong)
                                                         {
-                                                            using (Html.BeginForm("Deactivate", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
-                                                            {
-                                                                @Html.AntiForgeryToken()
-                                                                <button class="btn btn-sm btn-outline-warning rounded-pill px-3" type="submit">Tạm dừng</button>
-                                                            }
+                                                            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold"><i class="bi bi-circle-fill" style="font-size: 6px; vertical-align: middle; margin-right: 4px;"></i> Hoạt động</span>
                                                         }
                                                         else
                                                         {
-                                                            using (Html.BeginForm("Activate", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
+                                                            <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill fw-bold">Tạm dừng</span>
+                                                        }
+                                                    </td>
+                                                    <td class="pe-4 text-end">
+                                                        <div class="d-flex gap-2 justify-content-end">
+                                                            @if (item.DangHoatDong)
+                                                            {
+                                                                using (Html.BeginForm("Deactivate", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
+                                                                {
+                                                                    @Html.AntiForgeryToken()
+                                                                    <button class="btn btn-sm text-primary fw-bold" style="background-color: #eef2ff;" type="submit">Tạm dừng</button>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                using (Html.BeginForm("Activate", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
+                                                                {
+                                                                    @Html.AntiForgeryToken()
+                                                                    <button class="btn btn-sm text-success fw-bold" style="background-color: #ecfdf5;" type="submit">Kích hoạt</button>
+                                                                }
+                                                            }
+                                                            @using (Html.BeginForm("Delete", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
                                                             {
                                                                 @Html.AntiForgeryToken()
-                                                                <button class="btn btn-sm btn-outline-success rounded-pill px-3" type="submit">Kích hoạt</button>
+                                                                <button class="btn btn-sm text-danger fw-bold" style="background-color: #fef2f2;" type="submit" onclick="return confirm('Xóa phân công này?')">Xóa</button>
                                                             }
-                                                        }
-                                                        @using (Html.BeginForm("Delete", "Assignment", new { id = item.PhanCongChiSoId, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, search = Model.Search, page = Model.CurrentPage }, FormMethod.Post, new System.Collections.Generic.Dictionary<string, object> { { "class", "d-inline" } }))
-                                                        {
-                                                            @Html.AntiForgeryToken()
-                                                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" type="submit" onclick="return confirm('Bạn có chắc chắn muốn xóa phân công này không?')">Xóa</button>
-                                                        }
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        }
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
                                         </tbody>
                                     </table>
                                 </div>
