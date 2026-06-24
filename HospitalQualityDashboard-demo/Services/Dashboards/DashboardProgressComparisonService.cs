@@ -146,14 +146,15 @@ INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
     AND (pc.TuNgay IS NULL OR pc.TuNgay <= ky.DenNgay)
     AND (pc.DenNgay IS NULL OR pc.DenNgay >= ky.TuNgay)
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
-INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cs.DangHoatDong = 1
+INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
 INNER JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId
     AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
 LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
     AND bc.KhoaPhongId = pc.KhoaPhongId
     AND bc.ChiSoChatLuongId = pc.ChiSoChatLuongId
 WHERE ky.KyBaoCaoId IN (" + inClause + @")
-  AND (@KhoaPhongId IS NULL OR pc.KhoaPhongId = @KhoaPhongId)";
+  AND (@KhoaPhongId IS NULL OR pc.KhoaPhongId = @KhoaPhongId)
+  AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1";
 
             return Query(sql, reader => new ProgressSlot
             {

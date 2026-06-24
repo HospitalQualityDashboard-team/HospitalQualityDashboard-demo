@@ -128,7 +128,7 @@ SELECT
 FROM dbo.KyBaoCao ky
 INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
-INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cs.DangHoatDong = 1
+INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
 INNER JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
 LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
     AND bc.KhoaPhongId = pc.KhoaPhongId
@@ -144,6 +144,7 @@ WHERE ky.TrangThai <> @DraftPeriodStatus
   AND (@TrangThaiNhapLieu IS NULL OR @TrangThaiNhapLieu = 0)
   AND @TrangThaiDuyet IS NULL
   AND @DatMucTieu IS NULL
+  AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 ORDER BY ky.HanNop, kp.TenKhoaPhong, cs.MaChiSo";
 
             var rows = Query(sql, reader =>

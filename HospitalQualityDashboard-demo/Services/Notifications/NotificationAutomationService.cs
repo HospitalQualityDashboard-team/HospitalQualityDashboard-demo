@@ -33,7 +33,8 @@ FROM dbo.KyBaoCao ky
 INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
 INNER JOIN dbo.ChiSoTanSuatBaoCao cst ON cst.ChiSoChatLuongId = pc.ChiSoChatLuongId AND cst.TanSuatBaoCao = ky.LoaiKyBaoCao
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
-WHERE ky.TrangThai = @Mo";
+WHERE ky.TrangThai = @Mo
+  AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1";
 
             var rows = Query(sql, MapAutomationRow, Param("@Mo", (byte)TrangThaiKyBaoCao.Mo));
             foreach (var row in rows)
@@ -64,6 +65,7 @@ LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
     AND bc.TrangThai IN (@DaGui, @QuaHan, @DaKhoa, @DaDuyet)
 WHERE ky.TrangThai = @Mo
   AND DATEDIFF(day, CAST(@Now AS date), ky.HanNop) = @DaysBeforeDue
+  AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 GROUP BY ky.KyBaoCaoId, ky.TenKyBaoCao, ky.HanNop, kp.KhoaPhongId, kp.TenKhoaPhong
 HAVING COUNT(pc.PhanCongChiSoId) - COUNT(bc.BaoCaoId) > 0";
 
@@ -109,7 +111,6 @@ INNER JOIN dbo.PhanCongChiSo pc
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
 INNER JOIN dbo.ChiSoChatLuong cs
     ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
-   AND cs.DangHoatDong = 1
 INNER JOIN dbo.ChiSoTanSuatBaoCao cst
     ON cst.ChiSoChatLuongId = cs.ChiSoChatLuongId
    AND cst.TanSuatBaoCao = ky.LoaiKyBaoCao
@@ -118,7 +119,8 @@ LEFT JOIN dbo.BaoCao bc
    AND bc.KhoaPhongId = pc.KhoaPhongId
    AND bc.ChiSoChatLuongId = pc.ChiSoChatLuongId
 WHERE ky.KyBaoCaoId = @KyBaoCaoId
-  AND ky.TrangThai = @Mo";
+  AND ky.TrangThai = @Mo
+  AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1";
 
             var row = QuerySingle(sql, reader => new IndicatorWarningRow
             {
@@ -199,6 +201,7 @@ LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
     AND bc.TrangThai IN (@DaGui, @QuaHan, @DaKhoa, @DaDuyet)
 WHERE ky.TrangThai = @Mo
   AND CAST(@Now AS date) > ky.HanNop
+  AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 GROUP BY ky.KyBaoCaoId, ky.TenKyBaoCao, ky.HanNop, kp.KhoaPhongId, kp.TenKhoaPhong
 HAVING COUNT(pc.PhanCongChiSoId) - COUNT(bc.BaoCaoId) > 0";
 
@@ -235,7 +238,9 @@ SELECT
         AND bc.KhoaPhongId = pc.KhoaPhongId
         AND bc.ChiSoChatLuongId = pc.ChiSoChatLuongId
         AND bc.TrangThai IN (2,3,4,5)
-     WHERE ky.TrangThai = 2 AND bc.BaoCaoId IS NULL) AS MissingCount",
+     WHERE ky.TrangThai = 2
+       AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
+       AND bc.BaoCaoId IS NULL) AS MissingCount",
                 r => new AdminSummary
                 {
                     SubmittedCount = Int(r, "SubmittedCount"),

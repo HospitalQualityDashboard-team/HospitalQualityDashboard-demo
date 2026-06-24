@@ -272,6 +272,7 @@ WHERE ChiSoChatLuongId=@ChiSoChatLuongId", parameters);
 
             SaveTarget(connection, transaction, model);
             SaveFrequencies(connection, transaction, model.ChiSoChatLuongId, model.TanSuatBaoCaos);
+            ReconcileDeploymentHistory(connection, transaction, model.ChiSoChatLuongId, model.TanSuatBaoCaos, model.DangHoatDong);
         }
 
         // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.

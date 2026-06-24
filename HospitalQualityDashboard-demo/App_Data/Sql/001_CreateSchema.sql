@@ -124,6 +124,23 @@ CREATE TABLE dbo.ChiSoTanSuatBaoCao (
     CONSTRAINT CK_ChiSoTanSuatBaoCao_TanSuat CHECK (TanSuatBaoCao IN (1, 2, 3, 4, 5, 6, 7, 8, 9))
 );
 
+CREATE TABLE dbo.LichSuTrienKhaiChiSo (
+    LichSuTrienKhaiChiSoId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_LichSuTrienKhaiChiSo PRIMARY KEY,
+    ChiSoChatLuongId INT NOT NULL,
+    TanSuatBaoCao TINYINT NOT NULL,
+    TuNgayApDung DATE NOT NULL,
+    DenNgayApDung DATE NULL,
+    NguoiTaoId INT NULL,
+    NgayTao DATETIME NOT NULL CONSTRAINT DF_LichSuTrienKhaiChiSo_NgayTao DEFAULT (GETDATE()),
+    NguoiKetThucId INT NULL,
+    NgayKetThuc DATETIME NULL,
+    CONSTRAINT FK_LichSuTrienKhaiChiSo_ChiSo FOREIGN KEY (ChiSoChatLuongId) REFERENCES dbo.ChiSoChatLuong(ChiSoChatLuongId),
+    CONSTRAINT FK_LichSuTrienKhaiChiSo_NguoiTao FOREIGN KEY (NguoiTaoId) REFERENCES dbo.TaiKhoan(TaiKhoanId),
+    CONSTRAINT FK_LichSuTrienKhaiChiSo_NguoiKetThuc FOREIGN KEY (NguoiKetThucId) REFERENCES dbo.TaiKhoan(TaiKhoanId),
+    CONSTRAINT CK_LichSuTrienKhaiChiSo_TanSuat CHECK (TanSuatBaoCao IN (1, 2, 3, 4, 5, 6, 7, 8, 9)),
+    CONSTRAINT CK_LichSuTrienKhaiChiSo_DateRange CHECK (DenNgayApDung IS NULL OR TuNgayApDung <= DenNgayApDung)
+);
+
 CREATE TABLE dbo.PhanCongChiSo (
     PhanCongChiSoId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_PhanCongChiSo PRIMARY KEY,
     ChiSoChatLuongId INT NOT NULL,
@@ -280,6 +297,8 @@ CREATE INDEX IX_ChiSoChatLuong_KhoaPhongThuThap ON dbo.ChiSoChatLuong(KhoaPhongT
 CREATE INDEX IX_ChiSoChatLuong_KhoaPhongTongHop ON dbo.ChiSoChatLuong(KhoaPhongTongHopId);
 
 CREATE INDEX IX_ChiSoTanSuatBaoCao_TanSuat_ChiSo ON dbo.ChiSoTanSuatBaoCao(TanSuatBaoCao, ChiSoChatLuongId);
+CREATE UNIQUE INDEX IX_LichSuTrienKhaiChiSo_Open ON dbo.LichSuTrienKhaiChiSo(ChiSoChatLuongId, TanSuatBaoCao) WHERE DenNgayApDung IS NULL;
+CREATE INDEX IX_LichSuTrienKhaiChiSo_PeriodLookup ON dbo.LichSuTrienKhaiChiSo(ChiSoChatLuongId, TanSuatBaoCao, TuNgayApDung, DenNgayApDung);
 
 CREATE INDEX IX_PhanCongChiSo_KhoaPhong_Active ON dbo.PhanCongChiSo(KhoaPhongId, DangHoatDong, ChiSoChatLuongId);
 CREATE INDEX IX_PhanCongChiSo_ChiSoChatLuongId ON dbo.PhanCongChiSo(ChiSoChatLuongId);
@@ -305,4 +324,32 @@ CREATE INDEX IX_ThongBaoTuDongLog_Ky_Khoa ON dbo.ThongBaoTuDongLog(KyBaoCaoId, K
 CREATE INDEX IX_LichSuImport_NguoiImportId ON dbo.LichSuImport(NguoiImportId);
 CREATE INDEX IX_NhatKyHeThong_TaiKhoan_ThoiGian ON dbo.NhatKyHeThong(TaiKhoanId, ThoiGian DESC);
 CREATE INDEX IX_NhatKyHeThong_DoiTuong ON dbo.NhatKyHeThong(DoiTuong, DoiTuongId);
+GO
+
+CREATE FUNCTION dbo.fn_ChiSoDuocTrienKhaiTrongKy
+(
+    @ChiSoChatLuongId INT,
+    @TanSuatBaoCao TINYINT,
+    @TuNgayKy DATE,
+    @DenNgayKy DATE
+)
+RETURNS BIT
+AS
+BEGIN
+    DECLARE @Result BIT = 0;
+
+    IF EXISTS (
+        SELECT 1
+        FROM dbo.LichSuTrienKhaiChiSo ls
+        WHERE ls.ChiSoChatLuongId = @ChiSoChatLuongId
+          AND ls.TanSuatBaoCao = @TanSuatBaoCao
+          AND ls.TuNgayApDung <= @DenNgayKy
+          AND (ls.DenNgayApDung IS NULL OR ls.DenNgayApDung >= @TuNgayKy)
+    )
+    BEGIN
+        SET @Result = 1;
+    END
+
+    RETURN @Result;
+END
 GO
