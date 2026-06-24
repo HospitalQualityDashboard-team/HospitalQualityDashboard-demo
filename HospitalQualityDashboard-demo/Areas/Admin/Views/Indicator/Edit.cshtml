@@ -169,6 +169,10 @@
                     <label class="form-check-label" for="DangHoatDong">Đang hoạt động</label>
                 </div>
             </div>
+            <input type="hidden"
+                   id="DangHoatDongHidden"
+                   name="DangHoatDong"
+                   value="@(Model.DangHoatDong ? "true" : "false")" />
 
             <div class="form-actions indicator-form-actions mt-4">
                 <button class="btn btn-primary px-4" type="submit">
