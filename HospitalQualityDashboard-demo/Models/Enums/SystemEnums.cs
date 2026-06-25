@@ -40,7 +40,7 @@ namespace HospitalQualityDashboardDemo.Models.Enums
     public enum TrangThaiBaoCao : byte
     {
         Nhap = 1,
-        DaGui = 2,
+        DaGui = 2, // Đã gửi chờ duyệt (giữ giá trị cũ để tương thích database)
         QuaHan = 3,
         DaKhoa = 4,
         DaDuyet = 5,

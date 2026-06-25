@@ -1,4 +1,4 @@
-﻿@* Mục đích: form nhập và cập nhật số liệu báo cáo theo chỉ số. *@
+@* Mục đích: form nhập và cập nhật số liệu báo cáo theo chỉ số. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.ReportEntryViewModel
 @{
     ViewBag.Title = "Nhập báo cáo";
@@ -6,7 +6,8 @@
     bool isAdmin = ViewBag.IsAdmin == true;
     bool isEditable = !isAdmin &&
                       (Model.BaoCaoId == 0 ||
-                       Model.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap);
+                       Model.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap ||
+                       Model.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai);
 
     bool isDirect = Model.LoaiCongThuc == HospitalQualityDashboardDemo.Models.Enums.LoaiCongThuc.SoLuong ||
                     Model.LoaiCongThuc == HospitalQualityDashboardDemo.Models.Enums.LoaiCongThuc.GiaTriTrucTiep ||
@@ -86,7 +87,7 @@
                                 <span class="badge bg-secondary fs-6">Nháp</span>
                                 break;
                             case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui:
-                                <span class="badge bg-primary fs-6">Đã gửi</span>
+                                <span class="badge bg-info text-dark fs-6">Đã gửi chờ duyệt</span>
                                 break;
                             case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan:
                                 <span class="badge bg-danger fs-6">Quá hạn</span>
@@ -94,11 +95,24 @@
                             case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaKhoa:
                                 <span class="badge bg-dark fs-6">Đã khóa</span>
                                 break;
+                            case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaDuyet:
+                                <span class="badge bg-success fs-6">Đã duyệt</span>
+                                break;
+                            case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai:
+                                <span class="badge bg-warning text-dark fs-6">Trả lại</span>
+                                break;
                             default:
                                 <span class="badge bg-light text-dark fs-6">@Model.TrangThai</span>
                                 break;
                         }
                     </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.YKienPhanHoi))
+                    {
+                        <div class="mt-3">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Ý kiến phản hồi</small>
+                            <div class="alert alert-warning p-2 mt-1 small">@Model.YKienPhanHoi</div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -173,6 +187,40 @@
                                 }
                             </div>
                         }
+                    }
+
+                    @if (isAdmin && Model.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui)
+                    {
+                        <div class="border-top pt-3 mt-3">
+                            <h6 class="fw-semibold text-secondary mb-3">Thao tác quản lý</h6>
+                            
+                            <div class="mb-3">
+                                @using (Html.BeginForm("Approve", "Report", new { id = Model.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-success px-4 py-2 shadow-sm rounded-3" type="submit">
+                                        <i class="bi bi-check-circle me-2"></i> Duyệt báo cáo
+                                    </button>
+                                }
+                            </div>
+
+                            @using (Html.BeginForm("Reject", "Report", new { id = Model.BaoCaoId }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <div class="mb-2">
+                                    <label class="form-label fw-semibold text-secondary" for="YKienPhanHoi">Ý kiến phản hồi (bắt buộc khi trả lại)</label>
+                                    <textarea class="form-control" id="YKienPhanHoi" name="YKienPhanHoi" rows="3" required></textarea>
+                                </div>
+                                <button class="btn btn-warning px-4 py-2 shadow-sm rounded-3 text-dark" type="submit">
+                                    <i class="bi bi-arrow-return-left me-2"></i> Trả lại báo cáo
+                                </button>
+                            }
+
+                            @if (TempData["ErrorMessage"] != null)
+                            {
+                                <div class="alert alert-danger mt-3">@TempData["ErrorMessage"]</div>
+                            }
+                        </div>
                     }
 
                     @if (isEditable && Model.BaoCaoId > 0)
