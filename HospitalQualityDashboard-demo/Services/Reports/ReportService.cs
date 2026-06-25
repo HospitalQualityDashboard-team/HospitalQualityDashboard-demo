@@ -122,6 +122,7 @@ WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
   AND (@ChiSoChatLuongId IS NULL OR bc.ChiSoChatLuongId = @ChiSoChatLuongId)
   AND (@IsAdmin = 1 OR ky.TrangThai <> @DraftPeriodStatus)
   AND ((@IsAdmin = 1 AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus, @TraLaiStatus))
+       OR (@IsAdmin = 0 AND bc.KhoaPhongId = @CurrentKhoaPhongId))
 ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
             return Query(sql, MapReport,
                 Param("@KyBaoCaoId", periodId),
@@ -132,7 +133,9 @@ ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
                 Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap),
                 Param("@DaGuiStatus", (byte)TrangThaiBaoCao.DaGui),
                 Param("@QuaHanStatus", (byte)TrangThaiBaoCao.QuaHan),
-                Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa));
+                Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa),
+                Param("@DaDuyetStatus", (byte)TrangThaiBaoCao.DaDuyet),
+                Param("@TraLaiStatus", (byte)TrangThaiBaoCao.TraLai));
         }
 
         // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.

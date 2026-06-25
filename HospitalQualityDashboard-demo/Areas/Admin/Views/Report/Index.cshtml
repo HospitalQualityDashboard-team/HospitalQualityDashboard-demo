@@ -256,11 +256,7 @@
                                             @Html.AntiForgeryToken()
                                             <button class="btn btn-sm btn-outline-success" type="submit">Duyệt</button>
                                         }
-                                        using (Html.BeginForm("Reject", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            <button class="btn btn-sm btn-outline-warning" type="submit" onclick="return prompt('Nhập lý do trả lại:') !== null">Trả lại</button>
-                                        }
+                                        <button class="btn btn-sm btn-outline-warning" type="button" onclick="openRejectModal(@item.BaoCaoId)">Trả lại</button>
                                     }
                                     if (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui ||
                                         item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan ||
@@ -294,4 +290,44 @@
             </div>
         }
     </section>
+
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Trả lại báo cáo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                @using (Html.BeginForm("Reject", "Report", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="modal-body">
+                        <input type="hidden" id="RejectBaoCaoId" name="id" />
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold text-secondary" for="RejectYKienPhanHoi">Lý do trả lại (bắt buộc)</label>
+                            <textarea class="form-control" id="RejectYKienPhanHoi" name="yKienPhanHoi" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-warning text-dark">Trả lại</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </section>
+
+<script>
+    function openRejectModal(id) {
+        var idInput = document.getElementById('RejectBaoCaoId');
+        var reasonInput = document.getElementById('RejectYKienPhanHoi');
+        if (idInput) idInput.value = id;
+        if (reasonInput) reasonInput.value = '';
+        var el = document.getElementById('rejectModal');
+        if (!el) return;
+        var modal = bootstrap.Modal.getOrCreateInstance(el);
+        modal.show();
+        if (reasonInput) reasonInput.focus();
+    }
+</script>
