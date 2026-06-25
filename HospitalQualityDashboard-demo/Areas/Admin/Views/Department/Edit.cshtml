@@ -4,16 +4,87 @@
     ViewBag.Title = Model.KhoaPhongId == 0 ? "Thêm khoa/phòng" : "Sửa khoa/phòng";
 }
 
-<h2>@ViewBag.Title</h2>
-@using (Html.BeginForm())
-{
-    @Html.AntiForgeryToken()
-    @Html.HiddenFor(m => m.KhoaPhongId)
-    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-    <div class="mb-3">@Html.LabelFor(m => m.IdKhoaPhongNguon, new { @class = "form-label" }) @Html.TextBoxFor(m => m.IdKhoaPhongNguon, new { @class = "form-control" })</div>
-    <div class="mb-3">@Html.LabelFor(m => m.TenKhoaPhong, new { @class = "form-label" }) @Html.TextBoxFor(m => m.TenKhoaPhong, new { @class = "form-control" })</div>
-    <div class="mb-3">@Html.LabelFor(m => m.GhiChu, new { @class = "form-label" }) @Html.TextAreaFor(m => m.GhiChu, new { @class = "form-control", rows = 3 })</div>
-    <div class="form-check mb-3">@Html.CheckBoxFor(m => m.Used, new { @class = "form-check-input" }) @Html.LabelFor(m => m.Used, "Đang sử dụng", new { @class = "form-check-label" })</div>
-    <button class="btn btn-primary" type="submit">Lưu</button>
-    @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn btn-outline-secondary" })
-}
+<div class="form-page department-form-page hospital-blue-form">
+    <div class="page-header form-page-header department-page-hero">
+        <div>
+            <span class="status-pill status-open">Admin</span>
+            <h1>@ViewBag.Title</h1>
+            <p>Quản lý thông tin khoa/phòng dùng trong phân công chỉ số và báo cáo chất lượng.</p>
+        </div>
+
+        <div class="page-actions">
+            @Html.ActionLink("← Quay lại danh sách", "Index", null, new { @class = "btn btn-outline-primary" })
+        </div>
+    </div>
+
+    <div class="data-panel department-form-card">
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.KhoaPhongId)
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+            <div class="department-form-heading">
+                <div class="department-form-icon">UB</div>
+                <div>
+                    <h2>Thông tin khoa/phòng</h2>
+                    <p>Nhập mã nguồn, tên khoa/phòng và trạng thái sử dụng.</p>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    @Html.LabelFor(m => m.IdKhoaPhongNguon, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.IdKhoaPhongNguon, new
+                    {
+                        @class = "form-control department-input",
+                        placeholder = "Ví dụ: 1001"
+                    })
+                    @Html.ValidationMessageFor(m => m.IdKhoaPhongNguon, "", new { @class = "text-danger small" })
+                </div>
+
+                <div class="col-md-6">
+                    @Html.LabelFor(m => m.TenKhoaPhong, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.TenKhoaPhong, new
+                    {
+                        @class = "form-control department-input",
+                        placeholder = "Ví dụ: Khoa Dược"
+                    })
+                    @Html.ValidationMessageFor(m => m.TenKhoaPhong, "", new { @class = "text-danger small" })
+                </div>
+
+                <div class="col-12">
+                    @Html.LabelFor(m => m.GhiChu, new { @class = "form-label" })
+                    @Html.TextAreaFor(m => m.GhiChu, new
+                    {
+                        @class = "form-control department-input",
+                        rows = 4,
+                        placeholder = "Ghi chú thêm nếu có..."
+                    })
+                    @Html.ValidationMessageFor(m => m.GhiChu, "", new { @class = "text-danger small" })
+                </div>
+
+                <div class="col-12">
+                    <div class="department-status-box">
+                        <div class="department-status-copy">
+                            <strong>Trạng thái sử dụng</strong>
+                            <span>Khoa/phòng đang sử dụng sẽ xuất hiện trong dropdown, phân công và báo cáo.</span>
+                        </div>
+
+                        <div class="form-check form-switch department-switch">
+                            @Html.CheckBoxFor(m => m.Used, new { @class = "form-check-input", role = "switch" })
+                            @Html.LabelFor(m => m.Used, "Đang sử dụng", new { @class = "form-check-label" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions department-form-actions mt-4">
+                <button class="btn btn-primary px-4" type="submit">
+                    Lưu khoa/phòng
+                </button>
+                @Html.ActionLink("Hủy", "Index", null, new { @class = "btn btn-outline-secondary px-4" })
+            </div>
+        }
+    </div>
+</div>

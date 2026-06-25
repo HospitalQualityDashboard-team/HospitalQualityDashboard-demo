@@ -1,40 +1,197 @@
-﻿@* Mục đích: form thêm mới hoặc cập nhật thông tin nhân viên. *@
-@model HospitalQualityDashboardDemo.Models.ViewModels.NhanVienViewModel
+﻿@model HospitalQualityDashboardDemo.Models.ViewModels.NhanVienViewModel
+
 @{
-    @* Đổi tiêu đề theo trạng thái thêm mới hay sửa. *@
     ViewBag.Title = Model.NhanVienId == 0 ? "Thêm nhân viên" : "Sửa nhân viên";
 }
-<h2>@ViewBag.Title</h2>
-@using (Html.BeginForm())
-{
-    @* Form này dùng chung cho cả thêm mới và sửa nhân viên. *@
-    @Html.AntiForgeryToken()
 
-    @* Hidden id giúp controller biết đây là thêm mới hay cập nhật. *@
-    @Html.HiddenFor(m => m.NhanVienId)
+<div class="form-page employee-form-page">
 
-    @* Hiển thị lỗi validate nếu người dùng nhập thiếu/sai dữ liệu. *@
-    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-    <div class="row">
-        @* Thông tin định danh bắt buộc của nhân viên. *@
-        <div class="col-md-4 mb-3">@Html.LabelFor(m => m.MaNhanVien, new { @class = "form-label" }) @Html.TextBoxFor(m => m.MaNhanVien, new { @class = "form-control" })</div>
-        <div class="col-md-8 mb-3">@Html.LabelFor(m => m.HoTen, new { @class = "form-label" }) @Html.TextBoxFor(m => m.HoTen, new { @class = "form-control" })</div>
-    </div>
-    <div class="row">
-        @* Thông tin phòng ban và chức danh. *@
-        <div class="col-md-4 mb-3">@Html.LabelFor(m => m.KhoaPhongId, "Khoa/phòng", new { @class = "form-label" }) @Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "-- Chọn --", new { @class = "form-select" })</div>
-        <div class="col-md-4 mb-3">@Html.LabelFor(m => m.ChucVu, new { @class = "form-label" }) @Html.TextBoxFor(m => m.ChucVu, new { @class = "form-control" })</div>
-        <div class="col-md-4 mb-3">@Html.LabelFor(m => m.GioiTinh, new { @class = "form-label" }) @Html.TextBoxFor(m => m.GioiTinh, new { @class = "form-control" })</div>
-    </div>
-    <div class="row">
-        @* Thông tin liên hệ của nhân viên. *@
-        <div class="col-md-6 mb-3">@Html.LabelFor(m => m.Email, new { @class = "form-label" }) @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })</div>
-        <div class="col-md-6 mb-3">@Html.LabelFor(m => m.SoDienThoai, new { @class = "form-label" }) @Html.TextBoxFor(m => m.SoDienThoai, new { @class = "form-control" })</div>
-    </div>
-    @* Trạng thái hoạt động của nhân viên. *@
-    <div class="form-check mb-3">@Html.CheckBoxFor(m => m.DangHoatDong, new { @class = "form-check-input" }) @Html.LabelFor(m => m.DangHoatDong, "Đang hoạt động", new { @class = "form-check-label" })</div>
+    <div class="page-header form-page-header">
+        <div>
+            <span class="status-pill status-open">Admin</span>
+            <h1>@ViewBag.Title</h1>
+            <p>Quản lý thông tin nhân viên, khoa/phòng và trạng thái hoạt động.</p>
+        </div>
 
-    @* Lưu form hoặc quay lại danh sách. *@
-    <button class="btn btn-primary" type="submit">Lưu</button>
-    @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn btn-outline-secondary" })
-}
+        <div class="page-actions">
+            @Html.ActionLink(
+                "Quay lại danh sách",
+                "Index",
+                null,
+                new { @class = "btn btn-outline-secondary" })
+        </div>
+    </div>
+
+    <div class="data-panel employee-form-card">
+
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.NhanVienId)
+
+            @Html.ValidationSummary(
+                true,
+                "",
+                new { @class = "alert alert-danger" })
+
+            <div class="panel-header">
+                <div>
+                    <h2>Thông tin nhân viên</h2>
+                    <p>Cập nhật hồ sơ và thông tin liên hệ của nhân viên.</p>
+                </div>
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    @Html.LabelFor(
+                        m => m.MaNhanVien,
+                        new { @class = "form-label fw-semibold" })
+
+                    @Html.TextBoxFor(
+                        m => m.MaNhanVien,
+                        new
+                        {
+                            @class = "form-control",
+                            placeholder = "Ví dụ: NV001"
+                        })
+                </div>
+
+                <div class="col-md-8">
+                    @Html.LabelFor(
+                        m => m.HoTen,
+                        new { @class = "form-label fw-semibold" })
+
+                    @Html.TextBoxFor(
+                        m => m.HoTen,
+                        new
+                        {
+                            @class = "form-control",
+                            placeholder = "Nguyễn Văn A"
+                        })
+                </div>
+
+                <div class="col-md-4">
+                    @Html.Label(
+                        "KhoaPhongId",
+                        "Khoa/phòng",
+                        new { @class = "form-label fw-semibold" })
+
+                    @Html.DropDownListFor(
+                        m => m.KhoaPhongId,
+                        Model.KhoaPhongOptions,
+                        "-- Chọn khoa/phòng --",
+                        new { @class = "form-select" })
+                </div>
+
+                <div class="col-md-4">
+                    @Html.LabelFor(
+                        m => m.ChucVu,
+                        new { @class = "form-label fw-semibold" })
+
+                    @Html.TextBoxFor(
+                        m => m.ChucVu,
+                        new
+                        {
+                            @class = "form-control",
+                            placeholder = "Bác sĩ"
+                        })
+                </div>
+
+                <div class="col-md-4">
+                    @Html.LabelFor(
+                        m => m.GioiTinh,
+                        new { @class = "form-label fw-semibold" })
+
+                    @Html.TextBoxFor(
+                        m => m.GioiTinh,
+                        new
+                        {
+                            @class = "form-control",
+                            placeholder = "Nam / Nữ"
+                        })
+                </div>
+
+                <div class="col-md-6">
+                    @Html.LabelFor(
+                        m => m.Email,
+                        new { @class = "form-label fw-semibold" })
+
+                    @Html.TextBoxFor(
+                        m => m.Email,
+                        new
+                        {
+                            @class = "form-control",
+                            placeholder = "email@hospital.vn"
+                        })
+                </div>
+
+                <div class="col-md-6">
+                    @Html.LabelFor(
+                        m => m.SoDienThoai,
+                        new { @class = "form-label fw-semibold" })
+
+                    @Html.TextBoxFor(
+                        m => m.SoDienThoai,
+                        new
+                        {
+                            @class = "form-control",
+                            placeholder = "09xxxxxxxx"
+                        })
+                </div>
+
+                <div class="col-12">
+
+                    <div class="employee-status-box">
+
+                        <div>
+                            <strong>Trạng thái nhân viên</strong>
+                            <span>
+                                Nhân viên đang hoạt động sẽ xuất hiện trong
+                                danh sách phân công và báo cáo.
+                            </span>
+                        </div>
+
+                        <div class="form-check form-switch">
+                            @Html.CheckBoxFor(
+                                m => m.DangHoatDong,
+                                new
+                                {
+                                    @class = "form-check-input",
+                                    role = "switch"
+                                })
+
+                            @Html.LabelFor(
+                                m => m.DangHoatDong,
+                                "Đang hoạt động",
+                                new { @class = "form-check-label" })
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="form-actions mt-4">
+
+                <button type="submit"
+                        class="btn btn-primary px-4">
+                    Lưu nhân viên
+                </button>
+
+                @Html.ActionLink(
+                    "Hủy",
+                    "Index",
+                    null,
+                    new
+                    {
+                        @class = "btn btn-outline-secondary px-4"
+                    })
+
+            </div>
+        }
+
+    </div>
+
+</div>

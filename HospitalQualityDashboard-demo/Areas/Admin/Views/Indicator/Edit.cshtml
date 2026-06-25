@@ -5,159 +5,185 @@
     ViewBag.Title = Model.ChiSoChatLuongId == 0 ? "Thêm chỉ số" : "Sửa chỉ số";
 }
 
-<div class="app-responsive-page form-page indicator-edit-page">
-    <!-- Breadcrumb or Back Button -->
-    <div class="mb-3">
-        <a href="@Url.Action("Index")" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-            <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
-        </a>
+<div class="form-page indicator-form-page hospital-blue-form">
+    <div class="page-header form-page-header indicator-page-hero">
+        <div>
+            <span class="status-pill status-open">Admin</span>
+            <h1>@ViewBag.Title</h1>
+            <p>Quản lý chỉ số chất lượng, tần suất báo cáo, công thức tính và mục tiêu đánh giá.</p>
+        </div>
+
+        <div class="page-actions">
+            <a href="@Url.Action("Index")" class="btn btn-outline-primary">
+                ← Quay lại danh sách
+            </a>
+        </div>
     </div>
 
-    <!-- Main Card -->
-    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-        <div class="card-header bg-light border-0 py-3 px-4 d-flex justify-content-between align-items-center form-page-header">
-            <h4 class="mb-0 fw-bold text-primary">
-                <i class="bi bi-clipboard-plus-fill me-2"></i> @ViewBag.Title
-            </h4>
-            <span class="text-muted small"><span class="text-danger">*</span> Các trường bắt buộc</span>
-        </div>
-        <div class="card-body p-4">
-            <!-- Global error display (Server-side validation) -->
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="alert alert-danger border-0 shadow-sm rounded-3 p-3 mb-4 d-flex align-items-start gap-2">
-                    <i class="bi bi-exclamation-triangle-fill fs-5 mt-0.5 text-danger"></i>
-                    <div>
-                        <h6 class="fw-bold mb-1 text-danger-emphasis">Thông tin nhập liệu không hợp lệ:</h6>
-                        @Html.ValidationSummary(false, "", new { @class = "mb-0 ps-3 small text-danger" })
+    <div class="data-panel indicator-form-card">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+            </div>
+        }
+
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.ChiSoChatLuongId)
+
+            <div class="indicator-form-heading">
+                <div class="indicator-form-icon">CS</div>
+                <div>
+                    <h2>Thông tin chỉ số chất lượng</h2>
+                    <p>Cấu hình dữ liệu nghiệp vụ dùng cho phân công và nhập báo cáo.</p>
+                </div>
+            </div>
+
+            <div class="indicator-section">
+                <h3>1. Thông tin cơ bản</h3>
+
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label" for="MaChiSo">Mã chỉ số <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.MaChiSo, new { @class = "form-control indicator-input", placeholder = "Ví dụ: CS001" })
+                        @Html.ValidationMessageFor(m => m.MaChiSo, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label" for="SoThuTu">Số thứ tự</label>
+                        @Html.TextBoxFor(m => m.SoThuTu, new { @class = "form-control indicator-input", type = "number", placeholder = "1" })
+                        @Html.ValidationMessageFor(m => m.SoThuTu, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="col-md-7">
+                        <label class="form-label" for="TenChiSo">Tên chỉ số <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.TenChiSo, new { @class = "form-control indicator-input", placeholder = "Tên đầy đủ của chỉ số chất lượng..." })
+                        @Html.ValidationMessageFor(m => m.TenChiSo, "", new { @class = "text-danger small" })
                     </div>
                 </div>
-            }
+            </div>
 
-            @using (Html.BeginForm())
-            {
-                @Html.AntiForgeryToken()
-                @Html.HiddenFor(m => m.ChiSoChatLuongId)
+            <div class="indicator-section">
+                <h3>2. Cấu hình báo cáo</h3>
 
-                <!-- Phần 1: Thông tin cơ bản -->
-                <div class="mb-4">
-                    <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3"><i class="bi bi-info-circle me-1"></i> 1. Thông tin cơ bản</h6>
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold" for="MaChiSo">Mã chỉ số <span class="text-danger">*</span></label>
-                            @Html.TextBoxFor(m => m.MaChiSo, new { @class = "form-control rounded-2 border shadow-none", placeholder = "Ví dụ: CS001" })
-                            @Html.ValidationMessageFor(m => m.MaChiSo, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label text-muted" for="SoThuTu">Số thứ tự <span class="fw-normal small">(Không bắt buộc)</span></label>
-                            @Html.TextBoxFor(m => m.SoThuTu, new { @class = "form-control rounded-2 border shadow-none", type = "number", placeholder = "Ví dụ: 1" })
-                            @Html.ValidationMessageFor(m => m.SoThuTu, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
-                        <div class="col-md-7">
-                            <label class="form-label fw-semibold" for="TenChiSo">Tên chỉ số <span class="text-danger">*</span></label>
-                            @Html.TextBoxFor(m => m.TenChiSo, new { @class = "form-control rounded-2 border shadow-none", placeholder = "Tên đầy đủ của chỉ số chất lượng..." })
-                            @Html.ValidationMessageFor(m => m.TenChiSo, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="SelectedTanSuatBaoCaoValues">Tần suất báo cáo <span class="text-danger">*</span></label>
+                        <span class="form-text d-block mb-1">Giữ Ctrl để chọn nhiều tần suất</span>
+                        @Html.ListBoxFor(m => m.SelectedTanSuatBaoCaoValues, Model.TanSuatBaoCaoOptions, new { @class = "form-select indicator-input", size = 6 })
+                        @Html.ValidationMessageFor(m => m.SelectedTanSuatBaoCaoValues, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="LoaiCongThuc">Loại công thức <span class="text-danger">*</span></label>
+                        <span class="form-text d-block mb-1">Quyết định cách tính kết quả</span>
+                        @Html.DropDownListFor(m => m.LoaiCongThuc, new SelectList(Enum.GetValues(typeof(LoaiCongThuc)), Model.LoaiCongThuc), new { @class = "form-select indicator-input" })
+                        @Html.ValidationMessageFor(m => m.LoaiCongThuc, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="DonViTinh">Đơn vị tính</label>
+                        <span class="form-text d-block mb-1">Ví dụ: %, lượt, ngày, điểm...</span>
+                        @Html.TextBoxFor(m => m.DonViTinh, new { @class = "form-control indicator-input", placeholder = "Ví dụ: %" })
+                        @Html.ValidationMessageFor(m => m.DonViTinh, "", new { @class = "text-danger small" })
                     </div>
                 </div>
+            </div>
 
-                <!-- Phần 2: Cấu hình chỉ số -->
-                <div class="mb-4">
-                    <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3"><i class="bi bi-gear-fill me-1"></i> 2. Cấu hình báo cáo</h6>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="SelectedTanSuatBaoCaoValues">Tần suất báo cáo <span class="text-danger">*</span></label>
-                            <span class="d-block text-muted small mb-1">(Giữ Ctrl để chọn nhiều tần suất)</span>
-                            @Html.ListBoxFor(m => m.SelectedTanSuatBaoCaoValues, Model.TanSuatBaoCaoOptions, new { @class = "form-select rounded-2 border shadow-none", size = 6 })
-                            @Html.ValidationMessageFor(m => m.SelectedTanSuatBaoCaoValues, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="LoaiCongThuc">Loại công thức <span class="text-danger">*</span></label>
-                            <span class="d-block text-muted small mb-1">(Quyết định cách tính toán kết quả)</span>
-                            @Html.DropDownListFor(m => m.LoaiCongThuc, new SelectList(Enum.GetValues(typeof(LoaiCongThuc)), Model.LoaiCongThuc), new { @class = "form-select rounded-2 border shadow-none" })
-                            @Html.ValidationMessageFor(m => m.LoaiCongThuc, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-muted" for="DonViTinh">Đơn vị tính <span class="fw-normal small">(Không bắt buộc)</span></label>
-                            <span class="d-block text-muted small mb-1">(Ví dụ: %, lượt, ngày, điểm...)</span>
-                            @Html.TextBoxFor(m => m.DonViTinh, new { @class = "form-control rounded-2 border shadow-none", placeholder = "Ví dụ: %" })
-                            @Html.ValidationMessageFor(m => m.DonViTinh, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
+            <div class="indicator-section">
+                <h3>3. Định nghĩa và phương pháp tính</h3>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="DinhNghia">Định nghĩa</label>
+                        @Html.TextAreaFor(m => m.DinhNghia, new { @class = "form-control indicator-input", rows = 2, placeholder = "Mô tả ý nghĩa của chỉ số..." })
+                        @Html.ValidationMessageFor(m => m.DinhNghia, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="PhuongPhapTinh">Phương pháp tính</label>
+                        @Html.TextAreaFor(m => m.PhuongPhapTinh, new { @class = "form-control indicator-input", rows = 2, placeholder = "Cách tính hoặc công thức áp dụng..." })
+                        @Html.ValidationMessageFor(m => m.PhuongPhapTinh, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="TuSoMoTa">Tử số</label>
+                        @Html.TextAreaFor(m => m.TuSoMoTa, new { @class = "form-control indicator-input", rows = 2, placeholder = "Mô tả cách lấy tử số..." })
+                        @Html.ValidationMessageFor(m => m.TuSoMoTa, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="MauSoMoTa">Mẫu số</label>
+                        @Html.TextAreaFor(m => m.MauSoMoTa, new { @class = "form-control indicator-input", rows = 2, placeholder = "Mô tả cách lấy mẫu số..." })
+                        @Html.ValidationMessageFor(m => m.MauSoMoTa, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="NguonSoLieu">Nguồn số liệu</label>
+                        @Html.TextAreaFor(m => m.NguonSoLieu, new { @class = "form-control indicator-input", rows = 2, placeholder = "HIS, bệnh án, phiếu khảo sát..." })
+                        @Html.ValidationMessageFor(m => m.NguonSoLieu, "", new { @class = "text-danger small" })
                     </div>
                 </div>
+            </div>
 
-                <!-- Phần 3: Định nghĩa và Phương pháp -->
-                <div class="mb-4">
-                    <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3"><i class="bi bi-file-text me-1"></i> 3. Mô tả định nghĩa & Phương pháp tính</h6>
-                    <div class="mb-3">
-                        <label class="form-label text-muted" for="DinhNghia">Định nghĩa <span class="fw-normal small">(Không bắt buộc)</span></label>
-                        @Html.TextAreaFor(m => m.DinhNghia, new { @class = "form-control rounded-2 border shadow-none", rows = 2, placeholder = "Mô tả chi tiết khái niệm, ý nghĩa của chỉ số..." })
-                        @Html.ValidationMessageFor(m => m.DinhNghia, "", new { @class = "text-danger small d-block mt-1" })
+            <div class="indicator-section">
+                <h3>4. Giá trị mục tiêu</h3>
+
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label" for="NamMucTieu">Năm</label>
+                        @Html.TextBoxFor(m => m.NamMucTieu, new { @class = "form-control indicator-input", type = "number", placeholder = DateTime.Now.Year.ToString() })
+                        @Html.ValidationMessageFor(m => m.NamMucTieu, "", new { @class = "text-danger small" })
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label text-muted" for="PhuongPhapTinh">Phương pháp tính <span class="fw-normal small">(Không bắt buộc)</span></label>
-                        @Html.TextAreaFor(m => m.PhuongPhapTinh, new { @class = "form-control rounded-2 border shadow-none", rows = 2, placeholder = "Cách thức, công thức toán học áp dụng để tính chỉ số..." })
-                        @Html.ValidationMessageFor(m => m.PhuongPhapTinh, "", new { @class = "text-danger small d-block mt-1" })
+
+                    <div class="col-md-2">
+                        <label class="form-label" for="ToanTuSoSanh">So sánh</label>
+                        @Html.TextBoxFor(m => m.ToanTuSoSanh, new { @class = "form-control indicator-input", placeholder = ">=" })
+                        @Html.ValidationMessageFor(m => m.ToanTuSoSanh, "", new { @class = "text-danger small" })
                     </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label text-muted" for="TuSoMoTa">Tử số (Mô tả cách lấy số liệu) <span class="fw-normal small">(Không bắt buộc)</span></label>
-                            @Html.TextAreaFor(m => m.TuSoMoTa, new { @class = "form-control rounded-2 border shadow-none", rows = 2, placeholder = "Ví dụ: Số người bệnh nội trú bị loét ép..." })
-                            @Html.ValidationMessageFor(m => m.TuSoMoTa, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-muted" for="MauSoMoTa">Mẫu số (Mô tả cách lấy số liệu) <span class="fw-normal small">(Không bắt buộc)</span></label>
-                            @Html.TextAreaFor(m => m.MauSoMoTa, new { @class = "form-control rounded-2 border shadow-none", rows = 2, placeholder = "Ví dụ: Tổng số ngày điều trị nội trú của toàn bệnh viện..." })
-                            @Html.ValidationMessageFor(m => m.MauSoMoTa, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label" for="GiaTriMucTieu">Giá trị</label>
+                        @Html.TextBoxFor(m => m.GiaTriMucTieu, new { @class = "form-control indicator-input", placeholder = "95.00" })
+                        @Html.ValidationMessageFor(m => m.GiaTriMucTieu, "", new { @class = "text-danger small" })
                     </div>
-                    <div class="mt-3">
-                        <label class="form-label text-muted" for="NguonSoLieu">Nguồn số liệu <span class="fw-normal small">(Không bắt buộc)</span></label>
-                        @Html.TextAreaFor(m => m.NguonSoLieu, new { @class = "form-control rounded-2 border shadow-none", rows = 2, placeholder = "Số liệu được lấy từ phần mềm HIS, sổ bệnh án, phiếu khảo sát..." })
-                        @Html.ValidationMessageFor(m => m.NguonSoLieu, "", new { @class = "text-danger small d-block mt-1" })
+
+                    <div class="col-md-5">
+                        <label class="form-label" for="MoTaMucTieu">Mô tả mục tiêu</label>
+                        @Html.TextBoxFor(m => m.MoTaMucTieu, new { @class = "form-control indicator-input", placeholder = "Đạt tỷ lệ trên 95%..." })
+                        @Html.ValidationMessageFor(m => m.MoTaMucTieu, "", new { @class = "text-danger small" })
                     </div>
                 </div>
+            </div>
 
-                <!-- Phần 4: Chỉ tiêu chất lượng -->
-                <div class="mb-4">
-                    <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3"><i class="bi bi-graph-up-arrow me-1"></i> 4. Giá trị mục tiêu</h6>
-                    <div class="row g-3">
-                        <div class="col-md-2">
-                            <label class="form-label text-muted" for="NamMucTieu">Năm mục tiêu <span class="fw-normal small">(Không bắt buộc)</span></label>
-                            @Html.TextBoxFor(m => m.NamMucTieu, new { @class = "form-control rounded-2 border shadow-none", type = "number", placeholder = DateTime.Now.Year.ToString() })
-                            @Html.ValidationMessageFor(m => m.NamMucTieu, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label text-muted" for="ToanTuSoSanh">Phép so sánh <span class="fw-normal small">(Không bắt buộc)</span></label>
-                            @Html.TextBoxFor(m => m.ToanTuSoSanh, new { @class = "form-control rounded-2 border shadow-none", placeholder = ">=" })
-                            @Html.ValidationMessageFor(m => m.ToanTuSoSanh, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label text-muted" for="GiaTriMucTieu">Giá trị mục tiêu <span class="fw-normal small">(Không bắt buộc)</span></label>
-                            @Html.TextBoxFor(m => m.GiaTriMucTieu, new { @class = "form-control rounded-2 border shadow-none", placeholder = "Ví dụ: 95.00" })
-                            @Html.ValidationMessageFor(m => m.GiaTriMucTieu, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label text-muted" for="MoTaMucTieu">Mô tả mục tiêu <span class="fw-normal small">(Không bắt buộc)</span></label>
-                            @Html.TextBoxFor(m => m.MoTaMucTieu, new { @class = "form-control rounded-2 border shadow-none", placeholder = "Ví dụ: Đạt tỷ lệ trên 95% theo kế hoạch..." })
-                            @Html.ValidationMessageFor(m => m.MoTaMucTieu, "", new { @class = "text-danger small d-block mt-1" })
-                        </div>
-                    </div>
+            <div class="indicator-status-box">
+                <div>
+                    <strong>Trạng thái chỉ số</strong>
+                    <span>Chỉ số đang hoạt động sẽ được phân công và báo cáo.</span>
                 </div>
 
-                <input type="hidden" id="DangHoatDong" name="DangHoatDong" value="@(Model.DangHoatDong ? "true" : "false")" />
-
-                <!-- Nút Hành Động -->
-                <div class="mobile-stack-actions justify-content-end border-top pt-4">
-                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary rounded-pill px-4">
-                        <i class="bi bi-x-circle me-1"></i> Hủy bỏ
-                    </a>
-                    <button class="btn btn-primary rounded-pill px-5 shadow" type="submit">
-                        <i class="bi bi-check-circle me-1"></i> Lưu chỉ số
-                    </button>
+                <div class="form-check form-switch indicator-switch">
+                    @Html.CheckBoxFor(m => m.DangHoatDong, new { @class = "form-check-input", role = "switch" })
+                    <label class="form-check-label" for="DangHoatDong">Đang hoạt động</label>
                 </div>
-            }
-        </div>
+            </div>
+            <input type="hidden"
+                   id="DangHoatDongHidden"
+                   name="DangHoatDong"
+                   value="@(Model.DangHoatDong ? "true" : "false")" />
+
+            <div class="form-actions indicator-form-actions mt-4">
+                <button class="btn btn-primary px-4" type="submit">
+                    Lưu chỉ số
+                </button>
+
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary px-4">
+                    Hủy
+                </a>
+            </div>
+        }
     </div>
 </div>
 
