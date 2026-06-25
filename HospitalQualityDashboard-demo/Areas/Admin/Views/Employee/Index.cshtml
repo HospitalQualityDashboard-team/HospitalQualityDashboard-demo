@@ -157,8 +157,11 @@
                         </tr>
                     </thead>
                     <tbody class="border-top-0">
-                        @{ int stt = ((Model.Page < 1 ? 1 : Model.Page) - 1) * Model.PageSize + 1; } 
-                        
+                        @{
+                            // Tính toán số thứ tự bắt đầu cho trang hiện tại
+                            int stt = ((Model.Page < 1 ? 1 : Model.Page) - 1) * Model.PageSize + 1;
+                        }
+
                         @foreach (var item in items)
                         {
                             var avatarColors = new[] { "bg-primary-subtle text-primary", "bg-success-subtle text-success", "bg-danger-subtle text-danger", "bg-warning-subtle text-warning" };
