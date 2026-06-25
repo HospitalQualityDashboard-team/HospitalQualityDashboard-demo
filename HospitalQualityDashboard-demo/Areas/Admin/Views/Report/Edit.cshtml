@@ -235,3 +235,17 @@
         </div>
     </div>
 </div>
+
+@if (Request.QueryString["showReject"] == "1")
+{
+    <script>
+        (function () {
+            window.setTimeout(function () {
+                var el = document.getElementById('YKienPhanHoi');
+                if (!el) return;
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.focus();
+            }, 0);
+        })();
+    </script>
+}
