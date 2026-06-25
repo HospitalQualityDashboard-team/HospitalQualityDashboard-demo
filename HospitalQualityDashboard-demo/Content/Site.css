@@ -3174,3 +3174,51 @@ footer {
     background-color: #f1f5f9;
     color: #475569;
 }
+.btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #fff;
+    font-weight: 600;
+    color: #475569;
+}
+
+    .btn-export:hover {
+        background-color: #f8fafc;
+        border-color: #94a3b8;
+    }
+
+/* Làm nổi bật thông báo chưa đọc */
+.notification-item.is-unread {
+    background-color: #f0f7ff; /* Xanh cực nhạt */
+    border-left: 4px solid #0b3d91; /* Viền xanh đậm bên trái để nhận diện */
+}
+
+.notification-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    transition: background 0.2s;
+}
+
+    .notification-item:hover {
+        background-color: #f8fafc;
+    }
+
+.notification-title {
+    font-weight: 700;
+    color: #1e293b;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.notification-meta {
+    margin-top: 8px;
+    display: flex;
+    gap: 10px;
+}

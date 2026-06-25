@@ -33,50 +33,59 @@
         <div class="alert alert-success">@TempData["Message"]</div>
     }
 
-    <section class="data-panel">
-        <div class="panel-header">
-            <div>
-                <h2>Hộp thư thông báo</h2>
-                <p>@unreadCount thông báo chưa đọc trong danh sách hiện tại.</p>
-            </div>
-            <span class="status-pill status-muted">@notifications.Count dòng</span>
+<section class="data-panel">
+    <div class="panel-header">
+        <div>
+            <h2>Hộp thư thông báo</h2>
+            <p>@unreadCount thông báo chưa đọc trong danh sách hiện tại.</p>
         </div>
+        <span class="status-pill status-muted">@notifications.Count dòng</span>
+    </div>
 
-        @if (notifications.Any())
-        {
-            <div class="notification-list">
-                @foreach (var item in notifications)
-                {
-                    var detailUrl = Url.Action("Details", new { id = item.ThongBaoId });
-                    <article class="notification-item @(item.DaDoc ? "" : "is-unread")">
-                        <div>
+    @if (notifications.Any())
+    {
+        <div class="notification-list border rounded-3 overflow-hidden shadow-sm">
+            @foreach (var item in notifications)
+            {
+                <article class="notification-item @(item.DaDoc ? "" : "is-unread")">
+                    <div class="d-flex align-items-start gap-3 w-100">
+                        <div class="mt-1">
+                            <i class="bi @(item.DaDoc ? "bi-envelope-open" : "bi-envelope-fill text-primary") fs-4"></i>
+                        </div>
+
+                        <div class="flex-grow-1">
                             @Html.ActionLink(item.TieuDe, "Details", new { id = item.ThongBaoId }, new { @class = "notification-title" })
-                            <a href="@detailUrl" class="notification-body notification-body-link">@item.NoiDung</a>
+                            <a href="@Url.Action("Details", new { id = item.ThongBaoId })" class="text-decoration-none text-secondary">@item.NoiDung</a>
+
                             <div class="notification-meta">
-                                <span class="status-pill status-muted">@item.LoaiThongBao</span>
-                                <span class="status-pill @(item.DaDoc ? "status-read" : "status-unread")">@(item.DaDoc ? "Đã đọc" : "Chưa đọc")</span>
-                                <span class="status-pill status-muted">@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
+                                <span class="badge bg-light text-dark border">@item.LoaiThongBao</span>
+                                <span class="badge @(item.DaDoc ? "bg-secondary" : "bg-primary") rounded-pill">
+                                    @(item.DaDoc ? "Đã đọc" : "Chưa đọc")
+                                </span>
+                                <span class="text-muted small"><i class="bi bi-calendar-event me-1"></i>@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
                             </div>
                         </div>
-                        <div class="text-end table-actions">
-                            @Html.ActionLink("Xem chi tiết", "Details", new { id = item.ThongBaoId }, new { @class = "btn btn-sm btn-outline-primary" })
-                        </div>
-                    </article>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="empty-state">Chưa có thông báo trong phạm vi hiện tại.</div>
-        }
+                    </div>
 
-        @if (Model.TotalPages > 1)
-        {
-            <div class="management-toolbar mt-3 d-flex justify-content-center align-items-center gap-3">
-                @Html.ActionLink("Trước", "Index", new { page = Model.Page - 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page <= 1 ? "disabled" : "") })
-                <span class="status-pill status-muted">Trang @Model.Page / @Model.TotalPages</span>
-                @Html.ActionLink("Sau", "Index", new { page = Model.Page + 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page >= Model.TotalPages ? "disabled" : "") })
-            </div>
-        }
-    </section>
+                    <div class="ms-4">
+                        @Html.ActionLink("Xem", "Details", new { id = item.ThongBaoId }, new { @class = "btn btn-sm btn-outline-primary rounded-pill px-3" })
+                    </div>
+                </article>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">Chưa có thông báo trong phạm vi hiện tại.</div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="management-toolbar mt-3 d-flex justify-content-center align-items-center gap-3">
+            @Html.ActionLink("Trước", "Index", new { page = Model.Page - 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page <= 1 ? "disabled" : "") })
+            <span class="status-pill status-muted">Trang @Model.Page / @Model.TotalPages</span>
+            @Html.ActionLink("Sau", "Index", new { page = Model.Page + 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page >= Model.TotalPages ? "disabled" : "") })
+        </div>
+    }
+</section>
 </section>
