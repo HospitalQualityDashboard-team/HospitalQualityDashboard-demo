@@ -1,4 +1,4 @@
-// Mục đích: cho Admin tra cứu, khóa hoặc xóa báo cáo; quy trình duyệt cũ không còn được sử dụng.
+// Mục đích: cho Admin tra cứu, duyệt, trả lại hoặc khóa báo cáo.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -61,20 +61,27 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return View(model);
         }
 
-        // Xử lý trạng thái phản hồi quản trị của báo cáo định kỳ.
+        // Duyệt báo cáo.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Approve(int id)
         {
-            return new HttpStatusCodeResult(410, "Quy trình duyệt báo cáo hiện không được sử dụng.");
+            _service.Approve(id, CurrentTaiKhoanId.Value);
+            return RedirectToAction("Index");
         }
 
-        // Xử lý trạng thái phản hồi quản trị của báo cáo định kỳ.
+        // Trả lại báo cáo với nhận xét.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Reject(int id, string yKienPhanHoi)
         {
-            return new HttpStatusCodeResult(410, "Quy trình duyệt báo cáo hiện không được sử dụng.");
+            if (string.IsNullOrWhiteSpace(yKienPhanHoi))
+            {
+                TempData["ErrorMessage"] = "Vui lòng nhập lý do trả lại!";
+                return RedirectToAction("Edit", new { id });
+            }
+            _service.Reject(id, CurrentTaiKhoanId.Value, yKienPhanHoi);
+            return RedirectToAction("Index");
         }
 
         // Chuyển bản ghi sang trạng thái không còn cho phép chỉnh sửa.
@@ -83,15 +90,6 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         public ActionResult Lock(int id)
         {
             _service.Lock(id);
-            return RedirectToAction("Index");
-        }
-
-        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của báo cáo định kỳ.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id)
-        {
-            _service.Delete(id, CurrentTaiKhoanId.Value);
             return RedirectToAction("Index");
         }
 
