@@ -157,13 +157,16 @@
                         </tr>
                     </thead>
                     <tbody class="border-top-0">
-                        @{ int stt = ((Model.Page < 1 ? 1 : Model.Page) - 1) * Model.PageSize + 1; } @foreach (var item in items)
+                        @{ int stt = ((Model.Page < 1 ? 1 : Model.Page) - 1) * Model.PageSize + 1; } 
+                        
+                        @foreach (var item in items)
                         {
                             var avatarColors = new[] { "bg-primary-subtle text-primary", "bg-success-subtle text-success", "bg-danger-subtle text-danger", "bg-warning-subtle text-warning" };
                             var colorClass = avatarColors[item.NhanVienId % 4];
 
                             <tr>
-                                <td class="ps-4 py-3 text-muted">@(stt++)</td>
+                                <td class="ps-4 py-3 text-muted">@stt</td>
+
                                 <td class="py-3">
                                     <span class="text-dark-blue fw-bold">@item.MaNhanVien</span>
                                 </td>
@@ -183,7 +186,30 @@
                                     </span>
                                 </td>
                                 <td class="text-end pe-4 py-3">
-                                    @* ... (Các nút thao tác giữ nguyên) ... *@
+                                    <div class="d-flex justify-content-end gap-2 align-items-center">
+                                        @* Nút Sửa *@
+                                        <a href="@Url.Action("Edit", new { id = item.NhanVienId })" class="btn btn-sm btn-outline-primary rounded-3 fw-semibold px-3">
+                                            Sửa
+                                        </a>
+
+                                        @* Nút Khóa/Mở khóa *@
+                                        @using (Html.BeginForm(item.DangHoatDong ? "Lock" : "Unlock", "Employee", new { id = item.NhanVienId }, FormMethod.Post, new { @class = "m-0 p-0" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-outline-warning rounded-3 fw-semibold px-3" type="submit">
+                                                @(item.DangHoatDong ? "Khóa" : "Mở khóa")
+                                            </button>
+                                        }
+
+                                        @* Nút Xóa *@
+                                        @using (Html.BeginForm("Delete", "Employee", new { id = item.NhanVienId }, FormMethod.Post, new { @class = "m-0 p-0" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-outline-danger rounded-3 fw-semibold px-3" type="submit" onclick="return confirm('Xóa nhân viên này?')">
+                                                Xóa
+                                            </button>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
