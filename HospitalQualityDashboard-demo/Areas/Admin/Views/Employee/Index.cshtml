@@ -159,6 +159,7 @@
                     <tbody class="border-top-0">
                         @{
                             // Tính toán số thứ tự bắt đầu cho trang hiện tại
+                            // Công thức: (Số trang - 1) * Số dòng mỗi trang + 1
                             int stt = ((Model.Page < 1 ? 1 : Model.Page) - 1) * Model.PageSize + 1;
                         }
 
@@ -168,7 +169,8 @@
                             var colorClass = avatarColors[item.NhanVienId % 4];
 
                             <tr>
-                                <td class="ps-4 py-3 text-muted">@stt</td>
+                                @* Hiển thị số thứ tự và tăng giá trị sau mỗi dòng *@
+                                <td class="ps-4 py-3 text-muted">@(stt++)</td>
 
                                 <td class="py-3">
                                     <span class="text-dark-blue fw-bold">@item.MaNhanVien</span>
