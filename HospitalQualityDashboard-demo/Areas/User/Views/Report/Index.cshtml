@@ -1,4 +1,4 @@
-﻿@* Mục đích: danh sách báo cáo, bộ lọc và thao tác duyệt/xuất dữ liệu. *@
+@* Mục đích: danh sách báo cáo, bộ lọc và thao tác duyệt/xuất dữ liệu. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.ReportListViewModel
 @using System.Linq
 @{
@@ -8,8 +8,9 @@
     var submittedCount = reports.Count(x =>
         x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui ||
         x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan ||
-        x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaKhoa);
-    var draftCount = reports.Count(x => x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap);
+        x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaKhoa ||
+        x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaDuyet);
+    var draftCount = reports.Count(x => x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai);
 }
 
 @helper FrequencyText(HospitalQualityDashboardDemo.Models.Enums.TanSuatBaoCao frequency)
@@ -209,13 +210,19 @@
                                         <span class="status-pill status-muted">Nháp</span>
                                         break;
                                     case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui:
-                                        <span class="status-pill status-success">Đã gửi</span>
+                                        <span class="status-pill status-info">Đã gửi chờ duyệt</span>
                                         break;
                                     case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan:
                                         <span class="status-pill status-danger">Quá hạn</span>
                                         break;
                                     case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaKhoa:
                                         <span class="status-pill status-muted">Đã khóa</span>
+                                        break;
+                                    case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaDuyet:
+                                        <span class="status-pill status-success">Đã duyệt</span>
+                                        break;
+                                    case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai:
+                                        <span class="status-pill status-warning">Trả lại</span>
                                         break;
                                     default:
                                         <span class="status-pill status-muted">@item.TrangThai</span>
@@ -224,32 +231,15 @@
                             </td>
                             <td class="text-end table-actions">
                                 @{
-                                    var detailLabel = Model.IsAdmin ? "Xem" : (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap ? "Sửa" : "Xem");
+                                    var detailLabel = Model.IsAdmin ? "Xem" : (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai ? "Sửa" : "Xem");
                                 }
                                 @Html.ActionLink(detailLabel, "Edit", new { id = item.BaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
-                                @if (!Model.IsAdmin && item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap)
+                                @if (!Model.IsAdmin && (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai))
                                 {
                                     using (Html.BeginForm("Submit", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
                                     {
                                         @Html.AntiForgeryToken()
                                         <button class="btn btn-sm btn-outline-success" type="submit">Gửi</button>
-                                    }
-                                }
-                                @if (Model.IsAdmin)
-                                {
-                                    if (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui ||
-                                        item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan)
-                                    {
-                                        using (Html.BeginForm("Lock", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            <button class="btn btn-sm btn-outline-warning" type="submit">Khóa</button>
-                                        }
-                                    }
-                                    using (Html.BeginForm("Delete", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
-                                    {
-                                        @Html.AntiForgeryToken()
-                                        <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xóa báo cáo này?')">Xóa</button>
                                     }
                                 }
                             </td>

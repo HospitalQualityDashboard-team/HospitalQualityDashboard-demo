@@ -1,4 +1,4 @@
-﻿@* Mục đích: form nhập và cập nhật số liệu báo cáo theo chỉ số. *@
+@* Mục đích: form nhập và cập nhật số liệu báo cáo theo chỉ số. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.ReportEntryViewModel
 @{
     ViewBag.Title = "Nhập báo cáo";
@@ -6,7 +6,8 @@
     bool isAdmin = ViewBag.IsAdmin == true;
     bool isEditable = !isAdmin &&
                       (Model.BaoCaoId == 0 ||
-                       Model.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap);
+                       Model.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap ||
+                       Model.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai);
 
     bool isDirect = Model.LoaiCongThuc == HospitalQualityDashboardDemo.Models.Enums.LoaiCongThuc.SoLuong ||
                     Model.LoaiCongThuc == HospitalQualityDashboardDemo.Models.Enums.LoaiCongThuc.GiaTriTrucTiep ||
@@ -94,7 +95,7 @@
                                 <span class="badge bg-secondary fs-6">Nháp</span>
                                 break;
                             case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui:
-                                <span class="badge bg-primary fs-6">Đã gửi</span>
+                                <span class="badge bg-info text-dark fs-6">Đã gửi chờ duyệt</span>
                                 break;
                             case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan:
                                 <span class="badge bg-danger fs-6">Quá hạn</span>
@@ -102,11 +103,24 @@
                             case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaKhoa:
                                 <span class="badge bg-dark fs-6">Đã khóa</span>
                                 break;
+                            case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaDuyet:
+                                <span class="badge bg-success fs-6">Đã duyệt</span>
+                                break;
+                            case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai:
+                                <span class="badge bg-warning text-dark fs-6">Trả lại</span>
+                                break;
                             default:
                                 <span class="badge bg-light text-dark fs-6">@Model.TrangThai</span>
                                 break;
                         }
                     </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.YKienPhanHoi))
+                    {
+                        <div class="mt-3">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Ý kiến phản hồi</small>
+                            <div class="alert alert-warning p-2 mt-1 small">@Model.YKienPhanHoi</div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>

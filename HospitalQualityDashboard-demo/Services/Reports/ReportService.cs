@@ -36,7 +36,7 @@ WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
   AND (@KhoaPhongId IS NULL OR bc.KhoaPhongId = @KhoaPhongId)
   AND (@ChiSoChatLuongId IS NULL OR bc.ChiSoChatLuongId = @ChiSoChatLuongId)
   AND (@IsAdmin = 1 OR ky.TrangThai <> @DraftPeriodStatus)
-  AND ((@IsAdmin = 1 AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus))
+  AND ((@IsAdmin = 1 AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus, @TraLaiStatus))
        OR (@IsAdmin = 0 AND bc.KhoaPhongId = @CurrentKhoaPhongId))";
 
             var parameters = BuildReportListParameters(dto);
@@ -58,7 +58,7 @@ WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
   AND (@KhoaPhongId IS NULL OR bc.KhoaPhongId = @KhoaPhongId)
   AND (@ChiSoChatLuongId IS NULL OR bc.ChiSoChatLuongId = @ChiSoChatLuongId)
   AND (@IsAdmin = 1 OR ky.TrangThai <> @DraftPeriodStatus)
-  AND ((@IsAdmin = 1 AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus))
+  AND ((@IsAdmin = 1 AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus, @TraLaiStatus))
        OR (@IsAdmin = 0 AND bc.KhoaPhongId = @CurrentKhoaPhongId))
 ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
@@ -83,7 +83,9 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
                 Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap),
                 Param("@DaGuiStatus", (byte)TrangThaiBaoCao.DaGui),
                 Param("@QuaHanStatus", (byte)TrangThaiBaoCao.QuaHan),
-                Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa)
+                Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa),
+                Param("@DaDuyetStatus", (byte)TrangThaiBaoCao.DaDuyet),
+                Param("@TraLaiStatus", (byte)TrangThaiBaoCao.TraLai)
             };
         }
 
@@ -119,7 +121,7 @@ WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
   AND (@KhoaPhongId IS NULL OR bc.KhoaPhongId = @KhoaPhongId)
   AND (@ChiSoChatLuongId IS NULL OR bc.ChiSoChatLuongId = @ChiSoChatLuongId)
   AND (@IsAdmin = 1 OR ky.TrangThai <> @DraftPeriodStatus)
-  AND ((@IsAdmin = 1 AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus))
+  AND ((@IsAdmin = 1 AND bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus, @TraLaiStatus))
        OR (@IsAdmin = 0 AND bc.KhoaPhongId = @CurrentKhoaPhongId))
 ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
             return Query(sql, MapReport,
@@ -131,7 +133,9 @@ ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
                 Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap),
                 Param("@DaGuiStatus", (byte)TrangThaiBaoCao.DaGui),
                 Param("@QuaHanStatus", (byte)TrangThaiBaoCao.QuaHan),
-                Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa));
+                Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa),
+                Param("@DaDuyetStatus", (byte)TrangThaiBaoCao.DaDuyet),
+                Param("@TraLaiStatus", (byte)TrangThaiBaoCao.TraLai));
         }
 
         // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
@@ -215,9 +219,9 @@ WHERE bc.BaoCaoId=@Id";
                     throw new InvalidOperationException("Không tìm thấy báo cáo cần sửa.");
                 }
 
-                if (existingReport.TrangThai != TrangThaiBaoCao.Nhap)
+                if (existingReport.TrangThai != TrangThaiBaoCao.Nhap && existingReport.TrangThai != TrangThaiBaoCao.TraLai)
                 {
-                    throw new InvalidOperationException("Chỉ được sửa báo cáo ở trạng thái Nháp.");
+                    throw new InvalidOperationException("Chỉ được sửa báo cáo ở trạng thái Nháp hoặc Trả lại.");
                 }
 
                 model.KyBaoCaoId = existingReport.KyBaoCaoId;
@@ -256,9 +260,10 @@ OUTPUT INSERTED.BaoCaoId VALUES(@KyBaoCaoId, @KhoaPhongId, @ChiSoChatLuongId, @P
                 }
                 else
                 {
-                    Execute(conn, trans, "UPDATE dbo.BaoCao SET NgayCapNhat=@Now WHERE BaoCaoId=@Id AND TrangThai=@Nhap",
+                    Execute(conn, trans, "UPDATE dbo.BaoCao SET NgayCapNhat=@Now WHERE BaoCaoId=@Id AND TrangThai IN (@Nhap, @TraLai)",
                         Param("@Id", model.BaoCaoId),
                         Param("@Nhap", (byte)TrangThaiBaoCao.Nhap),
+                        Param("@TraLai", (byte)TrangThaiBaoCao.TraLai),
                         Param("@Now", now));
                 }
 
@@ -310,12 +315,13 @@ SET TrangThai=CASE WHEN CAST(@Now AS date) > ky.HanNop THEN @QuaHan ELSE @DaGui 
     NgayCapNhat=@Now
 FROM dbo.BaoCao bc
 INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId
-WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
+WHERE bc.BaoCaoId=@Id AND bc.TrangThai IN (@Nhap, @TraLai)",
                 Param("@DaGui", (byte)TrangThaiBaoCao.DaGui),
                 Param("@QuaHan", (byte)TrangThaiBaoCao.QuaHan),
                 Param("@NguoiGuiId", userId),
                 Param("@Id", id),
                 Param("@Nhap", (byte)TrangThaiBaoCao.Nhap),
+                Param("@TraLai", (byte)TrangThaiBaoCao.TraLai),
                 Param("@Now", now));
 
             if (affectedRows > 0)
@@ -333,33 +339,65 @@ WHERE bc.BaoCaoId=@Id AND bc.TrangThai=@Nhap",
         // Chuyển bản ghi sang trạng thái không còn cho phép chỉnh sửa.
         public void Lock(int id)
         {
-            Execute("UPDATE dbo.BaoCao SET TrangThai=@TrangThai, NgayCapNhat=@Now WHERE BaoCaoId=@Id AND TrangThai IN (@DaGui, @QuaHan)",
+            Execute("UPDATE dbo.BaoCao SET TrangThai=@TrangThai, NgayCapNhat=@Now WHERE BaoCaoId=@Id AND TrangThai IN (@DaGui, @QuaHan, @DaDuyet)",
                 Param("@TrangThai", (byte)TrangThaiBaoCao.DaKhoa),
                 Param("@Id", id),
                 Param("@DaGui", (byte)TrangThaiBaoCao.DaGui),
                 Param("@QuaHan", (byte)TrangThaiBaoCao.QuaHan),
+                Param("@DaDuyet", (byte)TrangThaiBaoCao.DaDuyet),
                 Param("@Now", GetVietnamLocalNow()));
         }
 
-        // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của quy trình báo cáo.
-        public void Delete(int id, int userId)
+        // Duyệt báo cáo.
+        public void Approve(int id, int userId)
         {
-            var beforeSnapshot = GetReportDetailSnapshot(id);
-            ExecuteInTransaction((conn, trans) =>
-            {
-                Execute(conn, trans, "DELETE FROM dbo.BaoCaoChiTiet WHERE BaoCaoId=@Id", Param("@Id", id));
-                Execute(conn, trans, "DELETE FROM dbo.BaoCao WHERE BaoCaoId=@Id", Param("@Id", id));
+            var now = GetVietnamLocalNow();
+            var affectedRows = Execute(@"UPDATE dbo.BaoCao
+SET TrangThai=@DaDuyet,
+    NgayCapNhat=@Now
+WHERE BaoCaoId=@Id AND TrangThai=@DaGui",
+                Param("@DaDuyet", (byte)TrangThaiBaoCao.DaDuyet),
+                Param("@Id", id),
+                Param("@DaGui", (byte)TrangThaiBaoCao.DaGui),
+                Param("@Now", now));
 
+            if (affectedRows > 0)
+            {
                 LogSystemAction(
-                    conn,
-                    trans,
                     userId,
                     "BaoCao",
-                    "XoaBaoCao",
+                    "DuyetBaoCao",
                     "BaoCao",
                     id,
-                    "Xóa báo cáo. Dữ liệu trước khi xóa: " + beforeSnapshot);
-            });
+                    "Duyệt báo cáo.");
+            }
+        }
+
+        // Trả lại báo cáo với nhận xét.
+        public void Reject(int id, int userId, string yKienPhanHoi)
+        {
+            var now = GetVietnamLocalNow();
+            var affectedRows = Execute(@"UPDATE dbo.BaoCao
+SET TrangThai=@TraLai,
+    YKienPhanHoi=@YKienPhanHoi,
+    NgayCapNhat=@Now
+WHERE BaoCaoId=@Id AND TrangThai=@DaGui",
+                Param("@TraLai", (byte)TrangThaiBaoCao.TraLai),
+                Param("@YKienPhanHoi", yKienPhanHoi),
+                Param("@Id", id),
+                Param("@DaGui", (byte)TrangThaiBaoCao.DaGui),
+                Param("@Now", now));
+
+            if (affectedRows > 0)
+            {
+                LogSystemAction(
+                    userId,
+                    "BaoCao",
+                    "TraLaiBaoCao",
+                    "BaoCao",
+                    id,
+                    "Trả lại báo cáo. Nhận xét: " + yKienPhanHoi);
+            }
         }
 
         // Chuyển dữ liệu nguồn sang cấu trúc dùng cho quy trình báo cáo.
