@@ -243,7 +243,7 @@
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
-    <Content Include="ConnectionStrings.example.config" />
+    <Content Include="Content\images\logo-ungbuou.png" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="implementation-notes.md" />
@@ -260,6 +260,9 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\dashboard-analysis.js" />
+    <Content Include="Areas\Admin\Views\Dashboard\Index.cshtml" />
+    <Content Include="ConnectionStrings.example.config" />
+    <Content Include="ConnectionStrings.config" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -284,7 +287,6 @@
     <Content Include="Areas\Admin\Views\Assignment\_DepartmentView.cshtml" />
     <Content Include="Areas\Admin\Views\Assignment\_IndicatorView.cshtml" />
     <Content Include="Areas\Admin\Views\Assignment\_TableView.cshtml" />
-    <Content Include="Areas\Admin\Views\Dashboard\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Department\Edit.cshtml" />
     <Content Include="Areas\Admin\Views\Department\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Employee\CreateAccount.cshtml" />
