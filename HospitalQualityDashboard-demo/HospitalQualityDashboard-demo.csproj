@@ -244,6 +244,7 @@
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\images\logo-ungbuou.png" />
+    <Content Include="Content\Site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="implementation-notes.md" />
@@ -252,7 +253,6 @@
     <Content Include="App_Data\Sql\003_AddExportHistory.sql" />
     <Content Include="App_Data\Sql\004_AddIndicatorWarning.sql" />
     <Content Include="App_Data\Sql\005_AddIndicatorDeploymentHistory.sql" />
-    <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -262,7 +262,10 @@
     <Content Include="Scripts\dashboard-analysis.js" />
     <Content Include="Areas\Admin\Views\Dashboard\Index.cshtml" />
     <Content Include="ConnectionStrings.example.config" />
+    <Content Include="HospitalQualityDashboard-demo-develop %281%29.zip" />
     <Content Include="ConnectionStrings.config" />
+    <Content Include="Content\bootstrap.css.map" />
+    <Content Include="Content\bootstrap.min.css.map" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -316,16 +319,6 @@
     <Content Include="Areas\User\Views\Report\Index.cshtml" />
     <Content Include="Areas\User\Views\Report\Nhap.cshtml" />
     <Content Include="Areas\User\Views\Shared\_UserLayout.cshtml" />
-    <Content Include="Views\Web.config" />
-    <Content Include="Views\_ViewStart.cshtml" />
-    <Content Include="Views\Shared\Error.cshtml" />
-    <Content Include="Views\Shared\_DashboardComparison.cshtml" />
-    <Content Include="Views\Shared\_DashboardTrend.cshtml" />
-    <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Account\AdminLogin.cshtml" />
-    <Content Include="Views\Account\Profile.cshtml" />
-    <Content Include="Views\Account\UserLogin.cshtml" />
-    <Content Include="Views\Home\Index.cshtml" />
     <Content Include="tools\GetServicePublicApi.ps1" />
     <Content Include="tools\ServiceSourceReader.ps1" />
     <Content Include="tools\VerifyDashboardAdminSummary.ps1" />
@@ -341,6 +334,16 @@
     <Content Include="tools\VerifyReportSubmissionNavigationAndAdminAudit.ps1" />
     <Content Include="tools\VerifyIndicatorDeploymentLifecycle.ps1" />
     <Content Include="tools\VerifyUnreadNotificationBadge.ps1" />
+    <Content Include="Views\Account\AdminLogin.cshtml" />
+    <Content Include="Views\Account\Profile.cshtml" />
+    <Content Include="Views\Account\UserLogin.cshtml" />
+    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Shared\_DashboardComparison.cshtml" />
+    <Content Include="Views\Shared\_DashboardTrend.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Web.config" />
+    <Content Include="Views\_ViewStart.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AGENTS.md" />
@@ -358,8 +361,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\bootstrap.min.css.map" />
-    <Content Include="Content\bootstrap.css.map" />
     <None Include="packages.config" />
     <Content Include="Scripts\bootstrap.min.js.map" />
     <Content Include="Scripts\bootstrap.js.map" />
