@@ -170,23 +170,26 @@
     }
 
     @* 3. Bộ lọc và Thông tin hiển thị *@
-    <div class="d-flex justify-content-between align-items-center mt-5 mb-3">
-        <div class="d-flex gap-2">
-            @using (Html.BeginForm("Index", "Indicator", FormMethod.Get, new { @class = "d-flex gap-2" }))
-            {
-                <div class="input-group" style="width: 320px;">
-                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                    <input type="text" name="Search" class="form-control border-start-0 ps-0" placeholder="Tìm kiếm theo tên hoặc mã chỉ số..." />
-                </div>
-                <button type="submit" class="btn btn-outline-secondary bg-white text-success fw-bold d-flex align-items-center gap-2 px-3">
-                    <i class="bi bi-filter"></i> Bộ lọc
-                </button>
-            }
-        </div>
-        <div class="text-muted small">
-            Đang hiển thị: <strong class="text-dark">@items.Count / @Model.TotalItems</strong> chỉ số
-        </div>
+<div class="d-flex justify-content-between align-items-center mt-5 mb-3">
+    <div class="d-flex gap-2">
+        @using (Html.BeginForm("Index", "Indicator", FormMethod.Get, new { @class = "d-flex gap-2" }))
+        {
+            <div class="input-group" style="width: 320px;">
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                <input type="text" name="Search" class="form-control border-start-0 ps-0" placeholder="Tìm kiếm theo tên hoặc mã chỉ số..." />
+            </div>
+            <button type="submit" class="btn btn-outline-secondary bg-white text-success fw-bold d-flex align-items-center gap-2 px-3">
+                <i class="bi bi-filter"></i> Bộ lọc
+            </button>
+        }
     </div>
+    <div class="text-muted small">
+        Đang hiển thị: <strong class="text-dark">@items.Count / @Model.TotalItems</strong> chỉ số
+    </div>
+    <div class="text-muted small">
+        Trang @Model.Page / @Model.TotalPages
+    </div>
+</div>
 
     @* 4. Bảng Dữ Liệu *@
     <div class="bg-white rounded-3 shadow-sm border border-light-subtle overflow-hidden">
