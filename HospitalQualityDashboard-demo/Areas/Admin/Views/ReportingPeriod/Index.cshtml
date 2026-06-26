@@ -81,43 +81,43 @@
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach (var item in periods)
-                    {
-                        var percent = item.TongBaoCao > 0 ? (int)System.Math.Round((decimal)item.DaGui * 100 / item.TongBaoCao) : 0;
-                        <tr>
-                            <td><strong>@item.TenKyBaoCao</strong></td>
-                            <td>@item.TuNgay.ToString("dd/MM/yyyy")</td>
-                            <td>@item.DenNgay.ToString("dd/MM/yyyy")</td>
-                            <td>@item.HanNop.ToString("dd/MM/yyyy") 23:59</td>
-                            <td><span class="status-pill @StatusClass(item.TrangThai)">@FormatPeriodStatus(item.TrangThai)</span></td>
-                            <td>
-                                <div class="period-progress mb-0">
-                                    <div class="progress-track">
-                                        <div class="progress-fill" style="width: @(percent)%"></div>
+                        @foreach (var item in periods)
+                        {
+                            var percent = item.TongBaoCao > 0 ? (int)System.Math.Round((decimal)item.DaGui * 100 / item.TongBaoCao) : 0;
+                            <tr>
+                                <td><strong>@item.TenKyBaoCao</strong></td>
+                                <td>@item.TuNgay.ToString("dd/MM/yyyy")</td>
+                                <td>@item.DenNgay.ToString("dd/MM/yyyy")</td>
+                                <td>@item.HanNop.ToString("dd/MM/yyyy") 23:59</td>
+                                <td><span class="status-pill @StatusClass(item.TrangThai)">@FormatPeriodStatus(item.TrangThai)</span></td>
+                                <td>
+                                    <div class="period-progress mb-0">
+                                        <div class="progress-track">
+                                            <div class="progress-fill" style="width: @(percent)%"></div>
+                                        </div>
+                                        <span>@item.DaGui/@item.TongBaoCao</span>
                                     </div>
-                                    <span>@item.DaGui/@item.TongBaoCao</span>
-                                </div>
-                            </td>
-                            <td class="text-end table-actions">
-                                @Html.ActionLink("Sửa", "Edit", new { id = item.KyBaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
-                                @using (Html.BeginForm("Open", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    <button class="btn btn-sm btn-outline-success" type="submit">Mở</button>
-                                }
-                                @using (Html.BeginForm("Lock", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    <button class="btn btn-sm btn-outline-warning" type="submit">Khóa</button>
-                                }
-                                @using (Html.BeginForm("Delete", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xóa kỳ báo cáo này?')">Xóa</button>
-                                }
-                            </td>
-                        </tr>
-                    }
+                                </td>
+                                <td class="text-end table-actions">
+                                    @Html.ActionLink("Sửa", "Edit", new { id = item.KyBaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
+                                    @using (Html.BeginForm("Open", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-success" type="submit">Mở</button>
+                                    }
+                                    @using (Html.BeginForm("Lock", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-warning" type="submit">Khóa</button>
+                                    }
+                                    @using (Html.BeginForm("Delete", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xóa kỳ báo cáo này?')">Xóa</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>

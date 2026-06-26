@@ -7,114 +7,190 @@
 }
 
 <section class="management-page">
-    <div class="page-header">
+    <!-- Header -->
+    <div class="page-header department-hero d-flex justify-content-between align-items-center">
         <div>
-            <span class="dashboard-role">Danh mục tổ chức</span>
-            <h1>Khoa/phòng</h1>
+            <span class="dashboard-role badge bg-info text-white rounded-pill px-3 py-1 mb-2">Danh mục tổ chức</span>
+            <h1 class="mt-2">Khoa/phòng</h1>
             <p>Quản lý danh mục khoa, phòng và trạng thái sử dụng trong hệ thống báo cáo chất lượng.</p>
         </div>
-        <div class="management-toolbar">
-            @Html.ActionLink("Thêm khoa/phòng", "Create", null, new { @class = "btn btn-primary" })
-            @Html.ActionLink("Xuất Excel", "Departments", "Export", null, new { @class = "btn btn-outline-secondary" })
+        <div class="management-toolbar d-flex gap-2">
+            <a href="@Url.Action("Create")" class="btn btn-primary d-flex align-items-center gap-2">
+                <i class="bi bi-plus-lg"></i> Thêm khoa/phòng
+            </a>
+            <a href="@Url.Action("Departments", "Export")" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-excel"></i> Xuất Excel
+            </a>
         </div>
     </div>
 
-    <section class="filter-panel">
-        @using (Html.BeginForm("Index", "Department", FormMethod.Get, new { @class = "filter-form management-filter-form" }))
-        {
-            <div class="filter-field">
-                <label for="Search">Tìm kiếm</label>
-                @Html.TextBoxFor(m => m.Search, new { @class = "form-control", placeholder = "Tìm tên hoặc mã khoa/phòng" })
-            </div>
-            <div class="filter-actions">
-                <button class="btn btn-outline-primary" type="submit">Lọc</button>
-            </div>
-        }
-    </section>
-
-    <section class="import-panel">
-        <div>
-            <h2 class="import-panel-title">Import danh mục khoa/phòng</h2>
-            <div class="import-panel-note">Nhận dữ liệu từ file danh mục chuẩn để cập nhật nhanh nhiều khoa/phòng.</div>
+    <!-- Hàng chứa Tìm kiếm & Import (Chia 2 cột) -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <section class="filter-panel department-search-card h-100 mb-0 d-flex flex-column">
+                <label for="Search" class="fw-bold text-uppercase mb-2 text-muted" style="font-size: 0.75rem;">Tìm kiếm</label>
+                @using (Html.BeginForm("Index", "Department", FormMethod.Get, new { @class = "mt-auto" }))
+                {
+                    <div class="d-flex gap-2">
+                        @Html.TextBoxFor(m => m.Search, new { @class = "form-control", placeholder = "Tìm tên hoặc mã khoa/phòng..." })
+                        <button class="btn btn-outline-primary d-inline-flex align-items-center gap-2 px-4" type="submit">
+                            <i class="bi bi-search"></i> Lọc
+                        </button>
+                    </div>
+                }
+            </section>
         </div>
-        @using (Html.BeginForm("Import", "Department", FormMethod.Post, new { enctype = "multipart/form-data" }))
-        {
-            @Html.AntiForgeryToken()
-            <div class="input-group">
-                <input type="file" name="File" class="form-control" />
-                <button class="btn btn-outline-primary" type="submit">Import</button>
-            </div>
-        }
-    </section>
 
+        <div class="col-lg-6">
+            <section class="import-panel department-import-card h-100 mb-0 d-flex flex-column">
+                <div class="mb-2">
+                    <h2 class="import-panel-title fw-bold text-uppercase mb-1 text-muted" style="font-size: 0.75rem;">Import danh mục khoa/phòng</h2>
+                    <div class="import-panel-note text-muted" style="font-size: 0.85rem;">Nhận dữ liệu từ file danh mục chuẩn để cập nhật nhanh nhiều khoa/phòng.</div>
+                </div>
+                @using (Html.BeginForm("Import", "Department", FormMethod.Post, new { enctype = "multipart/form-data", @class = "mt-auto" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="d-flex gap-2">
+                        <input type="file" name="File" class="form-control" />
+                        <button class="btn btn-primary d-inline-flex align-items-center gap-2 px-4" type="submit">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+
+    <!-- Thông báo lỗi/thành công -->
     @if (Model.ImportResult != null)
     {
-        <div class="alert alert-info">Thành công: @Model.ImportResult.SoDongThanhCong, lỗi: @Model.ImportResult.SoDongLoi</div>
+        <div class="alert alert-info rounded-3">Thành công: @Model.ImportResult.SoDongThanhCong, lỗi: @Model.ImportResult.SoDongLoi</div>
         foreach (var error in Model.ImportResult.Errors)
         {
-            <div class="text-danger">@error</div>
+            <div class="text-danger small mb-1">@error</div>
         }
     }
 
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger">@TempData["Error"]</div>
+        <div class="alert alert-danger rounded-3">@TempData["Error"]</div>
     }
 
-    <section class="data-panel">
-        <div class="panel-header">
+    <!-- Bảng Dữ Liệu -->
+    <section class="data-panel bg-white p-4 rounded-4 shadow-sm border border-light">
+        <div class="panel-header d-flex justify-content-between align-items-start mb-4">
             <div>
-                <h2>Danh sách khoa/phòng</h2>
-                <p>@items.Count khoa/phòng trong bộ lọc hiện tại.</p>
+                <h2 class="h5 fw-bold text-uppercase mb-1">Danh sách khoa/phòng</h2>
+                <p class="text-muted small mb-0">@items.Count khoa/phòng trong bộ lọc hiện tại.</p>
             </div>
-            <span class="status-pill status-muted">@items.Count dòng</span>
+            <span class="status-pill status-muted d-inline-flex align-items-center gap-1 bg-light text-dark px-3 py-1 rounded-pill border">
+                <i class="bi bi-people"></i> @items.Count dòng
+            </span>
         </div>
 
         @if (items.Any())
         {
             <div class="table-responsive">
-                <table class="table table-sm align-middle data-table">
-                    <thead>
+                <table class="table table-hover align-middle data-table border-0">
+                    <thead class="text-muted small" style="background-color: #f1f7ff;">
                         <tr>
-                            <th>STT</th>
-                            <th>Mã khoa/phòng</th>
-                            <th>Tên khoa/phòng</th>
-                            <th>Trạng thái</th>
-                            <th></th>
+                            <th class="ps-3 border-0 rounded-start">STT</th>
+                            <th class="border-0">MÃ KHOA/PHÒNG</th>
+                            <th class="border-0">TÊN KHOA/PHÒNG</th>
+                            <th class="border-0">TRẠNG THÁI</th>
+                            <th class="text-end pe-3 border-0 rounded-end">THAO TÁC</th>
                         </tr>
                     </thead>
                     <tbody>
-                    @{ var stt = 1; }
-                    @foreach (var item in items)
-                    {
-                        <tr>
-                            <td>@stt</td>
-                            <td>@item.IdKhoaPhongNguon</td>
-                            <td><strong>@item.TenKhoaPhong</strong></td>
-                            <td><span class="status-pill @(item.Used ? "status-active" : "status-muted")">@(item.Used ? "Đang dùng" : "Đã khóa")</span></td>
-                            <td class="text-end table-actions">
-                                @Html.ActionLink("Sửa", "Edit", new { id = item.KhoaPhongId }, new { @class = "btn btn-sm btn-outline-primary" })
-                                @using (Html.BeginForm(item.Used ? "Lock" : "Unlock", "Department", new { id = item.KhoaPhongId }, FormMethod.Post, new { @class = "d-inline" }))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    <button class="btn btn-sm btn-outline-warning" type="submit">@(item.Used ? "Khóa" : "Mở khóa")</button>
-                                }
-                                @using (Html.BeginForm("Delete", "Department", new { id = item.KhoaPhongId }, FormMethod.Post, new { @class = "d-inline" }))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Xóa khoa/phòng này?')">Xóa</button>
-                                }
-                            </td>
-                        @{ stt++; }
-                    </tr>
-                    }
+                        @{ var stt = 1; }
+                        @foreach (var item in items)
+                        {
+                            <tr>
+                                <td class="ps-3 text-muted">@stt</td>
+                                <td class="text-muted">@item.IdKhoaPhongNguon</td>
+                                <td>
+                                    <!-- Giao diện icon cạnh tên khoa phòng -->
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info rounded-circle" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-heptagon"></i>
+                                        </div>
+                                        <strong class="text-dark">@item.TenKhoaPhong</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (item.Used)
+                                    {
+                                        <span class="status-pill status-active d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill text-success bg-success bg-opacity-10 border border-success border-opacity-25 small fw-bold">
+                                            <i class="bi bi-check-circle-fill"></i> Đang dùng
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill status-muted d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill text-secondary bg-light border small fw-bold">
+                                            <i class="bi bi-lock-fill"></i> Đã khóa
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end table-actions pe-3">
+                                    <a href="@Url.Action("Edit", new { id = item.KhoaPhongId })" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 rounded-3">
+                                        <i class="bi bi-pencil"></i> Sửa
+                                    </a>
+
+                                    @using (Html.BeginForm(item.Used ? "Lock" : "Unlock", "Department", new { id = item.KhoaPhongId }, FormMethod.Post, new { @class = "d-inline" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1 rounded-3" type="submit">
+                                            <i class="bi bi-lock"></i> @(item.Used ? "Khóa" : "Mở khóa")
+                                        </button>
+                                    }
+
+                                    @using (Html.BeginForm("Delete", "Department", new { id = item.KhoaPhongId }, FormMethod.Post, new { @class = "d-inline" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 rounded-3" type="submit" onclick="return confirm('Xóa khoa/phòng này?')">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                            stt++;
+                        }
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Phân trang mô phỏng giống ảnh -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="d-flex gap-2 align-items-center text-muted small">
+                    <span>Hiển thị</span>
+                    <select class="form-select form-select-sm" style="width: 70px;">
+                        <option>10</option>
+                        <option>20</option>
+                        <option>50</option>
+                    </select>
+                    <span>dòng/trang</span>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item disabled"><a class="page-link border-0 text-muted" href="#">&laquo;</a></li>
+                        <li class="page-item disabled"><a class="page-link border-0 text-muted" href="#">&lsaquo;</a></li>
+                        <li class="page-item active"><a class="page-link bg-primary border-primary rounded-circle" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link border-0 text-dark" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link border-0 text-dark" href="#">3</a></li>
+                        <li class="page-item"><a class="page-link border-0 text-dark" href="#">4</a></li>
+                        <li class="page-item"><a class="page-link border-0 text-dark" href="#">5</a></li>
+                        <li class="page-item disabled"><a class="page-link border-0 text-muted" href="#">...</a></li>
+                        <li class="page-item"><a class="page-link border-0 text-dark" href="#">&rsaquo;</a></li>
+                    </ul>
+                </nav>
             </div>
         }
         else
         {
-            <div class="empty-state">Chưa có khoa/phòng phù hợp với bộ lọc hiện tại.</div>
+            <div class="empty-state p-5 text-center bg-light rounded-4 border-dashed text-muted">
+                <i class="bi bi-inbox fs-1 mb-3 d-block opacity-50"></i>
+                Chưa có khoa/phòng phù hợp với bộ lọc hiện tại.
+            </div>
         }
     </section>
 </section>

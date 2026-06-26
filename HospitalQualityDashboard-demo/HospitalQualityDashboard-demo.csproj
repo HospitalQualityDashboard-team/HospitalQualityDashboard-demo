@@ -45,6 +45,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -147,11 +150,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform">
-      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="App_Start\BundleConfig.cs" />
+    <Compile Include="App_Start\FilterConfig.cs" />
+    <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminBaseController.cs" />
     <Compile Include="Areas\Admin\Controllers\AssignmentController.cs" />
@@ -170,9 +171,6 @@
     <Compile Include="Areas\User\Controllers\ReportController.cs" />
     <Compile Include="Areas\User\Controllers\UserBaseController.cs" />
     <Compile Include="Areas\User\UserAreaRegistration.cs" />
-    <Compile Include="App_Start\BundleConfig.cs" />
-    <Compile Include="App_Start\FilterConfig.cs" />
-    <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\PageController.cs" />
@@ -241,9 +239,10 @@
     <Compile Include="Services\Reports\ReportService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\bootstrap.css" />
-    <Content Include="Content\bootstrap.min.css" />
-    <Content Include="Content\images\logo-ungbuou.png" />
+    <Content Include="content\bootstrap.css" />
+    <Content Include="content\bootstrap.min.css" />
+    <Content Include="content\images\logo-ungbuou.png" />
+    <Content Include="content\Site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="implementation-notes.md" />
@@ -252,41 +251,22 @@
     <Content Include="App_Data\Sql\003_AddExportHistory.sql" />
     <Content Include="App_Data\Sql\004_AddIndicatorWarning.sql" />
     <Content Include="App_Data\Sql\005_AddIndicatorDeploymentHistory.sql" />
-    <Content Include="Content\Site.css" />
-    <Content Include="Scripts\bootstrap.bundle.js" />
-    <Content Include="Scripts\bootstrap.bundle.min.js" />
-    <Content Include="Scripts\bootstrap.esm.js" />
-    <Content Include="Scripts\bootstrap.esm.min.js" />
-    <Content Include="Scripts\bootstrap.js" />
-    <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include="Scripts\dashboard-analysis.js" />
-    <Content Include="Areas\Admin\Views\Dashboard\Index.cshtml" />
     <Content Include="ConnectionStrings.example.config" />
     <Content Include="ConnectionStrings.config" />
-    <None Include="Scripts\jquery-3.7.0.intellisense.js" />
-    <Content Include="Scripts\jquery-3.7.0.js" />
-    <Content Include="Scripts\jquery-3.7.0.min.js" />
-    <Content Include="Scripts\jquery-3.7.0.slim.js" />
-    <Content Include="Scripts\jquery-3.7.0.slim.min.js" />
-    <None Include="Scripts\jquery.validate-vsdoc.js" />
-    <Content Include="Scripts\jquery.validate.js" />
-    <Content Include="Scripts\jquery.validate.min.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="Scripts\modernizr-2.8.3.js" />
-    <Content Include="Web.config" />
-    <Content Include="Web.Debug.config">
-      <DependentUpon>Web.config</DependentUpon>
-    </Content>
-    <Content Include="Web.Release.config">
-      <DependentUpon>Web.config</DependentUpon>
-    </Content>
-    <Content Include="Areas\Admin\Views\Web.config" />
-    <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
+    <Content Include="content\bootstrap.css.map" />
+    <Content Include="content\bootstrap.min.css.map" />
+    <Content Include="scripts\bootstrap.bundle.js" />
+    <Content Include="scripts\bootstrap.bundle.min.js" />
+    <Content Include="scripts\bootstrap.esm.js" />
+    <Content Include="scripts\bootstrap.esm.min.js" />
+    <Content Include="scripts\bootstrap.js" />
+    <Content Include="scripts\bootstrap.min.js" />
+    <Content Include="scripts\dashboard-analysis.js" />
     <Content Include="Areas\Admin\Views\Assignment\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Assignment\_DepartmentView.cshtml" />
     <Content Include="Areas\Admin\Views\Assignment\_IndicatorView.cshtml" />
     <Content Include="Areas\Admin\Views\Assignment\_TableView.cshtml" />
+    <Content Include="Areas\Admin\Views\Dashboard\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Department\Edit.cshtml" />
     <Content Include="Areas\Admin\Views\Department\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Employee\CreateAccount.cshtml" />
@@ -298,15 +278,15 @@
     <Content Include="Areas\Admin\Views\Notification\Create.cshtml" />
     <Content Include="Areas\Admin\Views\Notification\Details.cshtml" />
     <Content Include="Areas\Admin\Views\Notification\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\Report\Edit.cshtml" />
-    <Content Include="Areas\Admin\Views\Report\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\Report\Nhap.cshtml" />
     <Content Include="Areas\Admin\Views\ReportingPeriod\Edit.cshtml" />
     <Content Include="Areas\Admin\Views\ReportingPeriod\GenerateSchedule.cshtml" />
     <Content Include="Areas\Admin\Views\ReportingPeriod\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Report\Edit.cshtml" />
+    <Content Include="Areas\Admin\Views\Report\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Report\Nhap.cshtml" />
     <Content Include="Areas\Admin\Views\Shared\_AdminLayout.cshtml" />
-    <Content Include="Areas\User\Views\Web.config" />
-    <Content Include="Areas\User\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Admin\Views\Web.config" />
+    <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
     <Content Include="Areas\User\Views\Dashboard\Index.cshtml" />
     <Content Include="Areas\User\Views\Indicator\Details.cshtml" />
     <Content Include="Areas\User\Views\Indicator\Index.cshtml" />
@@ -316,16 +296,26 @@
     <Content Include="Areas\User\Views\Report\Index.cshtml" />
     <Content Include="Areas\User\Views\Report\Nhap.cshtml" />
     <Content Include="Areas\User\Views\Shared\_UserLayout.cshtml" />
-    <Content Include="Views\Web.config" />
-    <Content Include="Views\_ViewStart.cshtml" />
-    <Content Include="Views\Shared\Error.cshtml" />
-    <Content Include="Views\Shared\_DashboardComparison.cshtml" />
-    <Content Include="Views\Shared\_DashboardTrend.cshtml" />
-    <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Account\AdminLogin.cshtml" />
-    <Content Include="Views\Account\Profile.cshtml" />
-    <Content Include="Views\Account\UserLogin.cshtml" />
-    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Areas\User\Views\Web.config" />
+    <Content Include="Areas\User\Views\_ViewStart.cshtml" />
+    <None Include="scripts\jquery-3.7.0.intellisense.js" />
+    <Content Include="scripts\jquery-3.7.0.js" />
+    <Content Include="scripts\jquery-3.7.0.min.js" />
+    <Content Include="scripts\jquery-3.7.0.slim.js" />
+    <Content Include="scripts\jquery-3.7.0.slim.min.js" />
+    <None Include="scripts\jquery.validate-vsdoc.js" />
+    <Content Include="scripts\jquery.validate.js" />
+    <Content Include="scripts\jquery.validate.min.js" />
+    <Content Include="scripts\jquery.validate.unobtrusive.js" />
+    <Content Include="scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="scripts\modernizr-2.8.3.js" />
+    <Content Include="Web.config" />
+    <Content Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
     <Content Include="tools\GetServicePublicApi.ps1" />
     <Content Include="tools\ServiceSourceReader.ps1" />
     <Content Include="tools\VerifyDashboardAdminSummary.ps1" />
@@ -341,10 +331,28 @@
     <Content Include="tools\VerifyReportSubmissionNavigationAndAdminAudit.ps1" />
     <Content Include="tools\VerifyIndicatorDeploymentLifecycle.ps1" />
     <Content Include="tools\VerifyUnreadNotificationBadge.ps1" />
+    <Content Include="views\Account\AdminLogin.cshtml" />
+    <Content Include="views\Account\Profile.cshtml" />
+    <Content Include="views\Account\UserLogin.cshtml" />
+    <Content Include="views\Home\Index.cshtml" />
+    <Content Include="views\Shared\Error.cshtml" />
+    <Content Include="views\Shared\_DashboardComparison.cshtml" />
+    <Content Include="views\Shared\_DashboardTrend.cshtml" />
+    <Content Include="views\Shared\_Layout.cshtml" />
+    <Content Include="views\Web.config" />
+    <Content Include="views\_ViewStart.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AGENTS.md" />
     <None Include="PROJECT_CONTEXT.md" />
+    <Content Include="scripts\bootstrap.bundle.js.map" />
+    <Content Include="scripts\bootstrap.bundle.min.js.map" />
+    <Content Include="scripts\bootstrap.esm.js.map" />
+    <Content Include="scripts\bootstrap.esm.min.js.map" />
+    <Content Include="scripts\bootstrap.js.map" />
+    <Content Include="scripts\bootstrap.min.js.map" />
+    <Content Include="scripts\jquery-3.7.0.min.map" />
+    <Content Include="scripts\jquery-3.7.0.slim.min.map" />
     <None Include="TAI_LIEU_NGHIEP_VU.md" />
     <None Include="Tai_Lieu\**\*" />
     <None Include="..\README.md">
@@ -358,17 +366,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\bootstrap.min.css.map" />
-    <Content Include="Content\bootstrap.css.map" />
     <None Include="packages.config" />
-    <Content Include="Scripts\bootstrap.min.js.map" />
-    <Content Include="Scripts\bootstrap.js.map" />
-    <Content Include="Scripts\bootstrap.esm.min.js.map" />
-    <Content Include="Scripts\bootstrap.esm.js.map" />
-    <Content Include="Scripts\bootstrap.bundle.min.js.map" />
-    <Content Include="Scripts\bootstrap.bundle.js.map" />
-    <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
-    <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
