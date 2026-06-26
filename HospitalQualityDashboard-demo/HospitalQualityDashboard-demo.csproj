@@ -239,10 +239,10 @@
     <Compile Include="Services\Reports\ReportService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="content\bootstrap.css" />
-    <Content Include="content\bootstrap.min.css" />
-    <Content Include="content\images\logo-ungbuou.png" />
-    <Content Include="content\Site.css" />
+    <Content Include="Content\bootstrap.css" />
+    <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\images\logo-ungbuou.png" />
+    <Content Include="Content\Site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="implementation-notes.md" />
@@ -253,8 +253,6 @@
     <Content Include="App_Data\Sql\005_AddIndicatorDeploymentHistory.sql" />
     <Content Include="ConnectionStrings.example.config" />
     <Content Include="ConnectionStrings.config" />
-    <Content Include="content\bootstrap.css.map" />
-    <Content Include="content\bootstrap.min.css.map" />
     <Content Include="scripts\bootstrap.bundle.js" />
     <Content Include="scripts\bootstrap.bundle.min.js" />
     <Content Include="scripts\bootstrap.esm.js" />
@@ -267,14 +265,9 @@
     <Content Include="Areas\Admin\Views\Assignment\_IndicatorView.cshtml" />
     <Content Include="Areas\Admin\Views\Assignment\_TableView.cshtml" />
     <Content Include="Areas\Admin\Views\Dashboard\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\Department\Edit.cshtml" />
-    <Content Include="Areas\Admin\Views\Department\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Employee\CreateAccount.cshtml" />
     <Content Include="Areas\Admin\Views\Employee\Edit.cshtml" />
     <Content Include="Areas\Admin\Views\Employee\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\Indicator\Details.cshtml" />
-    <Content Include="Areas\Admin\Views\Indicator\Edit.cshtml" />
-    <Content Include="Areas\Admin\Views\Indicator\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Notification\Create.cshtml" />
     <Content Include="Areas\Admin\Views\Notification\Details.cshtml" />
     <Content Include="Areas\Admin\Views\Notification\Index.cshtml" />
@@ -298,6 +291,13 @@
     <Content Include="Areas\User\Views\Shared\_UserLayout.cshtml" />
     <Content Include="Areas\User\Views\Web.config" />
     <Content Include="Areas\User\Views\_ViewStart.cshtml" />
+    <Content Include="Content\bootstrap.css.map" />
+    <Content Include="Content\bootstrap.min.css.map" />
+    <Content Include="Areas\Admin\Views\Department\Edit.cshtml" />
+    <Content Include="Areas\Admin\Views\Department\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\indicator\Details.cshtml" />
+    <Content Include="Areas\Admin\Views\indicator\Edit.cshtml" />
+    <Content Include="Areas\Admin\Views\indicator\Index.cshtml" />
     <None Include="scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="scripts\jquery-3.7.0.js" />
     <Content Include="scripts\jquery-3.7.0.min.js" />
@@ -331,16 +331,16 @@
     <Content Include="tools\VerifyReportSubmissionNavigationAndAdminAudit.ps1" />
     <Content Include="tools\VerifyIndicatorDeploymentLifecycle.ps1" />
     <Content Include="tools\VerifyUnreadNotificationBadge.ps1" />
-    <Content Include="views\Account\AdminLogin.cshtml" />
-    <Content Include="views\Account\Profile.cshtml" />
-    <Content Include="views\Account\UserLogin.cshtml" />
-    <Content Include="views\Home\Index.cshtml" />
-    <Content Include="views\Shared\Error.cshtml" />
-    <Content Include="views\Shared\_DashboardComparison.cshtml" />
-    <Content Include="views\Shared\_DashboardTrend.cshtml" />
-    <Content Include="views\Shared\_Layout.cshtml" />
-    <Content Include="views\Web.config" />
-    <Content Include="views\_ViewStart.cshtml" />
+    <Content Include="Views\Account\AdminLogin.cshtml" />
+    <Content Include="Views\Account\Profile.cshtml" />
+    <Content Include="Views\Account\UserLogin.cshtml" />
+    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Shared\_DashboardComparison.cshtml" />
+    <Content Include="Views\Shared\_DashboardTrend.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Web.config" />
+    <Content Include="Views\_ViewStart.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AGENTS.md" />
