@@ -1,34 +1,302 @@
-﻿@* Mục đích: màn hình đăng nhập riêng cho tài khoản Admin. *@
+﻿@* Mục đích: màn hình đăng nhập riêng cho tài khoản Admin - Glassmorphism style. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.LoginViewModel
-
 @{
     ViewBag.Title = "Đăng nhập Admin";
+    Layout = null;
 }
 
-<main class="app-responsive-page auth-page" style="max-width: 480px;">
-    <h2 class="mb-2">Đăng nhập Admin</h2>
-    <p class="text-muted mb-4">Màn hình dành riêng cho tài khoản quản trị hệ thống.</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Bảng điều khiển chất lượng bệnh viện</title>
+    @Styles.Render("~/bundles/css")
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
 
-    @using (Html.BeginForm("AdminLogin", "Account", FormMethod.Post))
-    {
-        @Html.AntiForgeryToken()
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
 
-        <div class="mb-3">
-            @Html.LabelFor(m => m.TenDangNhap, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.TenDangNhap, new { @class = "form-control", autocomplete = "username" })
-            @Html.ValidationMessageFor(m => m.TenDangNhap, "", new { @class = "text-danger" })
+        .glass-login-wrapper {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #0f172a;
+        }
+
+        .glass-login-bg {
+            position: absolute;
+            inset: 0;
+            background: url('@Url.Content("~/Content/images/bg-ungbuu.png")') center center / cover no-repeat;
+            filter: brightness(0.45);
+            transform: scale(1);
+            z-index: 0;
+        }
+
+        .glass-login-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 30%, rgba(20, 108, 120, 0.25) 0%, transparent 70%);
+            z-index: 1;
+        }
+
+        .glass-login-card {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 420px;
+            padding: 44px 38px 38px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 28px;
+            box-shadow: 0 32px 72px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+            margin: 24px;
+        }
+
+        .glass-login-card h2 {
+            margin: 0 0 4px;
+            color: #ffffff;
+            font-size: 1.65rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+        }
+
+        .glass-login-card .glass-sub {
+            margin: 0 0 28px;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 0.88rem;
+        }
+
+        .glass-login-card .form-label {
+            display: block;
+            margin-bottom: 5px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .glass-login-card .form-control {
+            width: 100%;
+            min-height: 48px;
+            padding: 0 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+
+            .glass-login-card .form-control:focus {
+                background: rgba(255, 255, 255, 0.14);
+                border-color: rgba(59, 130, 246, 0.7);
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            }
+
+            .glass-login-card .form-control::placeholder {
+                color: rgba(255, 255, 255, 0.35);
+            }
+
+        .glass-login-card .form-control.is-invalid,
+        .glass-login-card .input-validation-error {
+            border-color: rgba(239, 68, 68, 0.6);
+        }
+
+        .glass-login-card .field-validation-error {
+            display: block;
+            margin-top: 4px;
+            color: #fca5a5;
+            font-size: 0.78rem;
+        }
+
+        .glass-login-card .validation-summary-errors {
+            padding: 10px 14px;
+            margin-bottom: 18px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 12px;
+            color: #fca5a5;
+            font-size: 0.84rem;
+        }
+
+            .glass-login-card .validation-summary-errors ul {
+                margin: 0;
+                padding-left: 18px;
+            }
+
+        .glass-login-card .form-group {
+            margin-bottom: 18px;
+        }
+
+        .glass-login-card .btn-glass-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 50px;
+            padding: 0 24px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border: 0;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 0.92rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+        }
+
+            .glass-login-card .btn-glass-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 28px rgba(37, 99, 235, 0.35);
+            }
+
+            .glass-login-card .btn-glass-primary:active {
+                transform: translateY(0);
+            }
+
+        .glass-login-card .btn-glass-dark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 50px;
+            padding: 0 24px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 0;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 0.92rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+        }
+
+            .glass-login-card .btn-glass-dark:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 28px rgba(15, 23, 42, 0.4);
+            }
+
+            .glass-login-card .btn-glass-dark:active {
+                transform: translateY(0);
+            }
+
+        .glass-login-card .glass-footer {
+            margin-top: 22px;
+            text-align: center;
+        }
+
+            .glass-login-card .glass-footer a {
+                color: rgba(147, 197, 253, 0.9);
+                font-size: 0.88rem;
+                font-weight: 600;
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+
+                .glass-login-card .glass-footer a:hover {
+                    color: #93c5fd;
+                    text-decoration: underline;
+                }
+
+        .glass-login-card .glass-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+            .glass-login-card .glass-brand img {
+                width: 44px;
+                height: 44px;
+                border-radius: 12px;
+            }
+
+            .glass-login-card .glass-brand div {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .glass-login-card .glass-brand strong {
+                color: #fff;
+                font-size: 1rem;
+                font-weight: 850;
+            }
+
+            .glass-login-card .glass-brand span {
+                color: rgba(255, 255, 255, 0.55);
+                font-size: 0.75rem;
+            }
+
+        @@media (max-width: 480px) {
+            .glass-login-card {
+                padding: 32px 24px 28px;
+                margin: 16px;
+                border-radius: 22px;
+            }
+
+            .glass-login-card h2 {
+                font-size: 1.35rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-login-wrapper">
+        <div class="glass-login-bg"></div>
+        <div class="glass-login-overlay"></div>
+
+        <div class="glass-login-card">
+            <div class="glass-brand">
+                <img src="@Url.Content("~/Content/images/logo-ungbuou.png")" alt="BV Ung Bướu" />
+                <div>
+                    <strong>BV Ung Bướu</strong>
+                    <span>Quality Dashboard</span>
+                </div>
+            </div>
+
+            <h2>Đăng nhập Admin</h2>
+            <p class="glass-sub">Màn hình dành riêng cho tài khoản quản trị hệ thống.</p>
+
+            @using (Html.BeginForm("AdminLogin", "Account", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "text-danger validation-summary-errors" })
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.TenDangNhap, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.TenDangNhap, new { @class = "form-control", placeholder = "Nhập tên đăng nhập", autocomplete = "username" })
+                    @Html.ValidationMessageFor(m => m.TenDangNhap, "", new { @class = "text-danger field-validation-error" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.MatKhau, new { @class = "form-label" })
+                    @Html.PasswordFor(m => m.MatKhau, new { @class = "form-control", placeholder = "Nhập mật khẩu", autocomplete = "current-password" })
+                    @Html.ValidationMessageFor(m => m.MatKhau, "", new { @class = "text-danger field-validation-error" })
+                </div>
+
+                <button type="submit" class="btn-glass-dark">ĐĂNG NHẬP ADMIN</button>
+            }
+
+            <div class="glass-footer">
+                @Html.ActionLink("Đăng nhập User", "UserLogin", "Account")
+            </div>
         </div>
-
-        <div class="mb-3">
-            @Html.LabelFor(m => m.MatKhau, new { @class = "form-label" })
-            @Html.PasswordFor(m => m.MatKhau, new { @class = "form-control", autocomplete = "current-password" })
-            @Html.ValidationMessageFor(m => m.MatKhau, "", new { @class = "text-danger" })
-        </div>
-
-        <button type="submit" class="btn btn-dark w-100">Đăng nhập Admin</button>
-        <div class="mt-3 text-center">
-            @Html.ActionLink("Đăng nhập User", "UserLogin", "Account")
-        </div>
-    }
-</main>
+    </div>
+</body>
+</html>
