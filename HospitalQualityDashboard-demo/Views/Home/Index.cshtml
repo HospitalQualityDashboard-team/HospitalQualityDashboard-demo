@@ -1,19 +1,239 @@
-﻿@* Mục đích: trang đầu vào điều hướng người dùng theo trạng thái đăng nhập. *@
+﻿@* Mục đích: trang đầu vào điều hướng người dùng theo trạng thái đăng nhập - Glassmorphism style. *@
 @{
     ViewBag.Title = "Trang chủ";
+    Layout = null;
 }
 
-<main class="py-4">
-    <h1>Bảng điều khiển chất lượng bệnh viện</h1>
-    <p class="lead">Hệ thống quản lý chỉ số chất lượng, phân công khoa/phòng và báo cáo định kỳ.</p>
-    @if (Session["TaiKhoanId"] == null)
-    {
-        @Html.ActionLink("Đăng nhập User", "UserLogin", "Account", null, new { @class = "btn btn-primary" })
-        @Html.ActionLink("Đăng nhập Admin", "AdminLogin", "Account", null, new { @class = "btn btn-outline-dark ms-2" })
-    }
-    else
-    {
-        var area = Convert.ToString(Session["LoaiTaiKhoan"]) == "Admin" ? "Admin" : "User";
-        @Html.ActionLink("Vào tổng quan", "Index", "Dashboard", new { area }, new { @class = "btn btn-primary" })
-    }
-</main>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Bảng điều khiển chất lượng bệnh viện</title>
+    @Styles.Render("~/bundles/css")
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .glass-home-wrapper {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #0f172a;
+        }
+
+        .glass-home-bg {
+            position: absolute;
+            inset: 0;
+            background: url('@Url.Content("~/Content/images/bg-ungbuu.png")') center center / cover no-repeat;
+            filter: brightness(0.45);
+            transform: scale(1);
+            z-index: 0;
+        }
+
+        .glass-home-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 30%, rgba(20, 108, 120, 0.25) 0%, transparent 70%);
+            z-index: 1;
+        }
+
+        .glass-home-card {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 520px;
+            padding: 48px 42px 42px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 28px;
+            box-shadow: 0 32px 72px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+            margin: 24px;
+            text-align: center;
+        }
+
+        .glass-home-card .glass-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+            .glass-home-card .glass-brand img {
+                width: 52px;
+                height: 52px;
+                border-radius: 14px;
+            }
+
+            .glass-home-card .glass-brand div {
+                display: flex;
+                flex-direction: column;
+                text-align: left;
+            }
+
+            .glass-home-card .glass-brand strong {
+                color: #fff;
+                font-size: 1.1rem;
+                font-weight: 850;
+            }
+
+            .glass-home-card .glass-brand span {
+                color: rgba(255, 255, 255, 0.55);
+                font-size: 0.78rem;
+            }
+
+        .glass-home-card h1 {
+            margin: 0 0 6px;
+            color: #ffffff;
+            font-size: 1.75rem;
+            font-weight: 950;
+            letter-spacing: -0.035em;
+            line-height: 1.15;
+        }
+
+        .glass-home-card .glass-lead {
+            margin: 0 0 32px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .glass-home-card .glass-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .glass-home-card .btn-glass-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 52px;
+            padding: 0 28px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border: 0;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+        }
+
+            .glass-home-card .btn-glass-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 28px rgba(37, 99, 235, 0.35);
+                color: #fff;
+                text-decoration: none;
+            }
+
+            .glass-home-card .btn-glass-primary:active {
+                transform: translateY(0);
+            }
+
+        .glass-home-card .btn-glass-outline {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 52px;
+            padding: 0 28px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.15s;
+        }
+
+            .glass-home-card .btn-glass-outline:hover {
+                background: rgba(255, 255, 255, 0.12);
+                border-color: rgba(255, 255, 255, 0.35);
+                color: #fff;
+                text-decoration: none;
+                transform: translateY(-2px);
+            }
+
+            .glass-home-card .btn-glass-outline:active {
+                transform: translateY(0);
+                color: #fff;
+                text-decoration: none;
+            }
+
+        .glass-home-card .glass-footer-text {
+            margin-top: 28px;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.78rem;
+        }
+
+        @@media (max-width: 480px) {
+            .glass-home-card {
+                padding: 36px 26px 30px;
+                margin: 16px;
+                border-radius: 22px;
+            }
+
+            .glass-home-card h1 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-home-wrapper">
+        <div class="glass-home-bg"></div>
+        <div class="glass-home-overlay"></div>
+
+        <div class="glass-home-card">
+            <div class="glass-brand">
+                <img src="@Url.Content("~/Content/images/logo-ungbuou.png")" alt="BV Ung Bướu" />
+                <div>
+                    <strong>BV Ung Bướu</strong>
+                    <span>Quality Dashboard</span>
+                </div>
+            </div>
+
+            <h1>Bảng điều khiển chất lượng bệnh viện</h1>
+            <p class="glass-lead">Hệ thống quản lý chỉ số chất lượng, phân công khoa/phòng và báo cáo định kỳ.</p>
+
+            @if (Session["TaiKhoanId"] == null)
+            {
+                <div class="glass-btn-group">
+                    @Html.ActionLink("Đăng nhập User", "UserLogin", "Account", null, new { @class = "btn-glass-primary" })
+                    @Html.ActionLink("Đăng nhập Admin", "AdminLogin", "Account", null, new { @class = "btn-glass-outline" })
+                </div>
+            }
+            else
+            {
+                var area = Convert.ToString(Session["LoaiTaiKhoan"]) == "Admin" ? "Admin" : "User";
+                <div class="glass-btn-group">
+                    @Html.ActionLink("Vào tổng quan", "Index", "Dashboard", new { area }, new { @class = "btn-glass-primary" })
+                </div>
+            }
+
+            <div class="glass-footer-text">
+                &copy; @DateTime.Now.Year - Bệnh viện Ung Bướu
+            </div>
+        </div>
+    </div>
+</body>
+</html>
