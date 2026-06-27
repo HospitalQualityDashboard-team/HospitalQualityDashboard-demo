@@ -44,22 +44,31 @@
 
         @if (notifications.Any())
         {
-            <div class="notification-list">
+            <div class="notification-list border rounded-3 overflow-hidden shadow-sm">
                 @foreach (var item in notifications)
                 {
-                    var detailUrl = Url.Action("Details", new { id = item.ThongBaoId });
                     <article class="notification-item @(item.DaDoc ? "" : "is-unread")">
-                        <div>
-                            @Html.ActionLink(item.TieuDe, "Details", new { id = item.ThongBaoId }, new { @class = "notification-title" })
-                            <a href="@detailUrl" class="notification-body notification-body-link">@item.NoiDung</a>
-                            <div class="notification-meta">
-                                <span class="status-pill status-muted">@item.LoaiThongBao</span>
-                                <span class="status-pill @(item.DaDoc ? "status-read" : "status-unread")">@(item.DaDoc ? "Đã đọc" : "Chưa đọc")</span>
-                                <span class="status-pill status-muted">@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
+                        <div class="d-flex align-items-start gap-3 w-100">
+                            <div class="mt-1">
+                                <i class="bi @(item.DaDoc ? "bi-envelope-open" : "bi-envelope-fill text-primary") fs-4"></i>
+                            </div>
+
+                            <div class="flex-grow-1">
+                                @Html.ActionLink(item.TieuDe, "Details", new { id = item.ThongBaoId }, new { @class = "notification-title" })
+                                <a href="@Url.Action("Details", new { id = item.ThongBaoId })" class="text-decoration-none text-secondary">@item.NoiDung</a>
+
+                                <div class="notification-meta">
+                                    <span class="badge bg-light text-dark border">@item.LoaiThongBao</span>
+                                    <span class="badge @(item.DaDoc ? "bg-secondary" : "bg-primary") rounded-pill">
+                                        @(item.DaDoc ? "Đã đọc" : "Chưa đọc")
+                                    </span>
+                                    <span class="text-muted small"><i class="bi bi-calendar-event me-1"></i>@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="text-end table-actions">
-                            @Html.ActionLink("Xem chi tiết", "Details", new { id = item.ThongBaoId }, new { @class = "btn btn-sm btn-outline-primary" })
+
+                        <div class="ms-4">
+                            @Html.ActionLink("Xem", "Details", new { id = item.ThongBaoId }, new { @class = "btn btn-sm btn-outline-primary rounded-pill px-3" })
                         </div>
                     </article>
                 }

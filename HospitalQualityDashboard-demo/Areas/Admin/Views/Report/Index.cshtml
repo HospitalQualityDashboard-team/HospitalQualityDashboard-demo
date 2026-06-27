@@ -58,18 +58,18 @@
             <h1>Báo cáo</h1>
             <p>Theo dõi kỳ đang mở, nhập số liệu theo phân công và rà soát lịch sử báo cáo đã phát sinh.</p>
         </div>
-        <div class="flex gap-4">
-            <div class="bg-white border border-slate-100 p-4 rounded-xl card-shadow w-32 flex flex-col justify-between h-24">
-                <span class="text-slate-500 text-xs font-semibold">Kỳ Đang Mở</span>
-                <span class="text-3xl font-black text-hcm-blue">@activePeriods.Count</span>
+        <div class="report-header-metrics">
+            <div>
+                <span>Kỳ đang mở</span>
+                <strong>@activePeriods.Count</strong>
             </div>
-            <div class="bg-white border border-slate-100 p-4 rounded-xl card-shadow w-32 flex flex-col justify-between h-24">
-                <span class="text-slate-500 text-xs font-semibold">Báo Cáo</span>
-                <span class="text-3xl font-black text-slate-800">@reports.Count</span>
+            <div>
+                <span>Báo cáo</span>
+                <strong>@reports.Count</strong>
             </div>
-            <div class="bg-white border border-slate-100 p-4 rounded-xl card-shadow w-32 flex flex-col justify-between h-24">
-                <span class="text-slate-500 text-xs font-semibold">Nháp</span>
-                <span class="text-3xl font-black text-slate-400">@draftCount</span>
+            <div>
+                <span>Nháp</span>
+                <strong>@draftCount</strong>
             </div>
         </div>
     </div>
@@ -199,79 +199,79 @@
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach (var item in reports)
-                    {
-                        <tr>
-                            <td>@item.TenKyBaoCao</td>
-                            <td>@item.TenKhoaPhong</td>
-                            <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
-                            <td class="numeric-value">@(item.KetQua.HasValue ? item.KetQua.Value.ToString("0.##") : "")</td>
-                            <td>
-                                @switch (item.TrangThai)
-                                {
-                                    case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap:
-                                        <span class="status-pill status-muted">Nháp</span>
-                                        break;
-                                    case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui:
-                                        <span class="status-pill status-info">Đã gửi chờ duyệt</span>
-                                        break;
-                                    case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan:
-                                        <span class="status-pill status-danger">Quá hạn</span>
-                                        break;
-                                    case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaKhoa:
-                                        <span class="status-pill status-muted">Đã khóa</span>
-                                        break;
-                                    case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaDuyet:
-                                        <span class="status-pill status-success">Đã duyệt</span>
-                                        break;
-                                    case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai:
-                                        <span class="status-pill status-warning">Trả lại</span>
-                                        break;
-                                    default:
-                                        <span class="status-pill status-muted">@item.TrangThai</span>
-                                        break;
-                                }
-                            </td>
-                            <td>@(item.NgayGui.HasValue ? item.NgayGui.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
-                            <td>@item.TenNguoiGui</td>
-                            <td class="text-end table-actions">
-                                @{
-                                    var detailLabel = Model.IsAdmin ? "Xem" : (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai ? "Sửa" : "Xem");
-                                }
-                                @Html.ActionLink(detailLabel, "Edit", new { id = item.BaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
-                                @if (!Model.IsAdmin && (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai))
-                                {
-                                    using (Html.BeginForm("Submit", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                        @foreach (var item in reports)
+                        {
+                            <tr>
+                                <td>@item.TenKyBaoCao</td>
+                                <td>@item.TenKhoaPhong</td>
+                                <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
+                                <td class="numeric-value">@(item.KetQua.HasValue ? item.KetQua.Value.ToString("0.##") : "")</td>
+                                <td>
+                                    @switch (item.TrangThai)
                                     {
-                                        @Html.AntiForgeryToken()
-                                        <button class="btn btn-sm btn-outline-success" type="submit">Gửi</button>
+                                        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap:
+                                            <span class="status-pill status-muted">Nháp</span>
+                                            break;
+                                        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui:
+                                            <span class="status-pill status-info">Đã gửi chờ duyệt</span>
+                                            break;
+                                        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan:
+                                            <span class="status-pill status-danger">Quá hạn</span>
+                                            break;
+                                        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaKhoa:
+                                            <span class="status-pill status-muted">Đã khóa</span>
+                                            break;
+                                        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaDuyet:
+                                            <span class="status-pill status-success">Đã duyệt</span>
+                                            break;
+                                        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai:
+                                            <span class="status-pill status-warning">Trả lại</span>
+                                            break;
+                                        default:
+                                            <span class="status-pill status-muted">@item.TrangThai</span>
+                                            break;
                                     }
-                                }
-                                @if (Model.IsAdmin)
-                                {
-                                    if (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui)
+                                </td>
+                                <td>@(item.NgayGui.HasValue ? item.NgayGui.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
+                                <td>@item.TenNguoiGui</td>
+                                <td class="text-end table-actions">
+                                    @{
+                                        var detailLabel = Model.IsAdmin ? "Xem" : (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai ? "Sửa" : "Xem");
+                                    }
+                                    @Html.ActionLink(detailLabel, "Edit", new { id = item.BaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
+                                    @if (!Model.IsAdmin && (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai))
                                     {
-                                        using (Html.BeginForm("Approve", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                        using (Html.BeginForm("Submit", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
                                         {
                                             @Html.AntiForgeryToken()
-                                            <button class="btn btn-sm btn-outline-success" type="submit">Duyệt</button>
+                                            <button class="btn btn-sm btn-outline-success" type="submit">Gửi</button>
                                         }
-                                        @Html.ActionLink("Trả về", "Edit", new { id = item.BaoCaoId, showReject = 1 }, new { @class = "btn btn-sm btn-outline-warning" })
                                     }
-                                    if (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui ||
-                                        item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan ||
-                                        item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaDuyet)
+                                    @if (Model.IsAdmin)
                                     {
-                                        using (Html.BeginForm("Lock", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                        if (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui)
                                         {
-                                            @Html.AntiForgeryToken()
-                                            <button class="btn btn-sm btn-outline-secondary" type="submit">Khóa</button>
+                                            using (Html.BeginForm("Approve", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm btn-outline-success" type="submit">Duyệt</button>
+                                            }
+                                            @Html.ActionLink("Trả về", "Edit", new { id = item.BaoCaoId, showReject = 1 }, new { @class = "btn btn-sm btn-outline-warning" })
+                                        }
+                                        if (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui ||
+                                            item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan ||
+                                            item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaDuyet)
+                                        {
+                                            using (Html.BeginForm("Lock", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm btn-outline-secondary" type="submit">Khóa</button>
+                                            }
                                         }
                                     }
-                                }
-                            </td>
-                        </tr>
-                    }
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
