@@ -58,18 +58,18 @@
             <h1>Báo cáo</h1>
             <p>Theo dõi kỳ đang mở, nhập số liệu theo phân công và rà soát lịch sử báo cáo đã phát sinh.</p>
         </div>
-        <div class="report-header-metrics">
-            <div>
-                <span>Kỳ đang mở</span>
-                <strong>@activePeriods.Count</strong>
+        <div class="flex gap-4">
+            <div class="bg-white border border-slate-100 p-4 rounded-xl card-shadow w-32 flex flex-col justify-between h-24">
+                <span class="text-slate-500 text-xs font-semibold">Kỳ Đang Mở</span>
+                <span class="text-3xl font-black text-hcm-blue">@activePeriods.Count</span>
             </div>
-            <div>
-                <span>Báo cáo</span>
-                <strong>@reports.Count</strong>
+            <div class="bg-white border border-slate-100 p-4 rounded-xl card-shadow w-32 flex flex-col justify-between h-24">
+                <span class="text-slate-500 text-xs font-semibold">Báo Cáo</span>
+                <span class="text-3xl font-black text-slate-800">@reports.Count</span>
             </div>
-            <div>
-                <span>Nháp</span>
-                <strong>@draftCount</strong>
+            <div class="bg-white border border-slate-100 p-4 rounded-xl card-shadow w-32 flex flex-col justify-between h-24">
+                <span class="text-slate-500 text-xs font-semibold">Nháp</span>
+                <span class="text-3xl font-black text-slate-400">@draftCount</span>
             </div>
         </div>
     </div>
