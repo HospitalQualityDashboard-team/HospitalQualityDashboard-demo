@@ -43,7 +43,9 @@ scratch/
 ExcelDump/
 HospitalQualityDashboard-demo/Tai_Lieu/DM_KHOA_PHONG.zip
 
-# Local secrets
+# Local scripts and secrets
+*.bat
+run.bat
 HospitalQualityDashboard-demo/ConnectionStrings.config
 
 # IIS / publish artifacts
