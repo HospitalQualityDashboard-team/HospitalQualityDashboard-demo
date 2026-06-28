@@ -1,3 +1,4 @@
+// Mục đích: truy vấn dữ liệu phân công chỉ số theo bộ lọc và phạm vi quyền hạn.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -16,7 +17,7 @@ namespace HospitalQualityDashboardDemo.Services
 {
     public partial class AssignmentService
     {
-        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
+        // Xử lý chức năng phân công chỉ số của method GetCount, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         public int GetCount(int? khoaPhongId = null, int? chiSoId = null, string trangThai = null, string search = null)
         {
             var conditions = new List<string>();
@@ -63,7 +64,7 @@ INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
             return Convert.ToInt32(Scalar(sql, parameters.ToArray()));
         }
 
-        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
+        // Lấy danh sách phân công chỉ số theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<AssignmentItemViewModel> GetAll(
             int? khoaPhongId = null,
             int? chiSoId = null,
@@ -137,7 +138,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             return items;
         }
 
-        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
+        // Lấy danh sách phân công chỉ số theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<AssignmentItemViewModel> GetAll(int? khoaPhongId = null)
         {
             return GetAll(khoaPhongId, null, null, null, 1, 999999);
@@ -159,7 +160,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             }
         }
 
-        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
+        // Xử lý chức năng phân công chỉ số của method GetFrequencyTextByIndicatorIds, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private IDictionary<int, string> GetFrequencyTextByIndicatorIds(IEnumerable<int> indicatorIds)
         {
             var ids = (indicatorIds ?? new int[0]).Distinct().ToList();
@@ -194,7 +195,7 @@ ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
                 .ToDictionary(g => g.Key, g => FormatFrequencies(g.Select(x => x.TanSuatBaoCao)));
         }
 
-        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
+        // Xử lý chức năng phân công chỉ số của method GetExportRows, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         public IList<AssignmentExportRow> GetExportRows(
             int? khoaPhongId = null,
             int? chiSoId = null,
@@ -311,7 +312,5 @@ ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
                 }
             }
         }
-
-        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
     }
 }

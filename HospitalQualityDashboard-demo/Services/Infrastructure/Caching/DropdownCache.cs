@@ -9,7 +9,7 @@ namespace HospitalQualityDashboardDemo.Services
     {
         private static readonly TimeSpan Duration = TimeSpan.FromMinutes(5);
 
-        // Truy vấn cache dữ liệu danh mục theo điều kiện được cung cấp.
+        // Lấy dữ liệu dropdown từ cache nếu còn hạn; khi cache trống mới gọi factory để truy vấn database.
         public static T GetOrAdd<T>(string key, Func<T> factory) where T : class
         {
             var cache = HttpRuntime.Cache;

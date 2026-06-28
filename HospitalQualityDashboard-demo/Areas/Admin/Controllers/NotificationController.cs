@@ -81,7 +81,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // Đánh dấu trạng thái xử lý tương ứng trong thông báo.
+        // Đánh dấu thông báo đã đọc cho người nhận hiện tại, không làm thay đổi nội dung thông báo gốc.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult MarkAsRead(int id)
@@ -90,7 +90,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // Mở các bản ghi đủ điều kiện trong thông báo.
+        // Kích hoạt tự động mở kỳ và sinh thông báo nhắc hạn/quá hạn theo lịch nghiệp vụ.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult OpenDuePeriodsAndRunAutomation()
@@ -101,7 +101,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // Thực thi quy trình xử lý của thông báo.
+        // Chạy sinh thông báo tự động theo tiến độ kỳ báo cáo và quay lại danh sách để Admin kiểm tra.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult RunAutomation()
@@ -109,7 +109,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return OpenDuePeriodsAndRunAutomation();
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho thông báo.
+        // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;

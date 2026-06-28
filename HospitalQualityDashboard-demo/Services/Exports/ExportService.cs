@@ -1,3 +1,4 @@
+// Mục đích: xuất dữ liệu báo cáo định kỳ ra Excel theo quyền Admin hoặc khoa/phòng.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -126,7 +127,7 @@ namespace HospitalQualityDashboardDemo.Services
             });
         }
 
-        // Truy vấn xuất dữ liệu quản trị theo điều kiện được cung cấp.
+        // Truy vấn tiến độ theo khoa/phòng để xuất Excel dashboard tổng hợp.
         private IList<DepartmentProgressViewModel> QueryDepartmentProgress(int? tanSuatFilter = null)
         {
             const string query = @"
@@ -219,7 +220,7 @@ ORDER BY kp.TenKhoaPhong";
             return list;
         }
 
-        // Truy vấn xuất dữ liệu quản trị theo điều kiện được cung cấp.
+        // Truy vấn chi tiết báo cáo phía sau dashboard để xuất file hoặc mở modal drill-down.
         private IList<DashboardReportDetailExportRow> QueryDashboardReportDetails(int? tanSuatFilter = null)
         {
             var sql = @"
@@ -371,7 +372,7 @@ ORDER BY kp.TenKhoaPhong, ky.TuNgay DESC, cs.MaChiSo";
 
         private class AssignmentExportColumn
         {
-            // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của AssignmentExportColumn.
+            // Khởi tạo xuất dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
             public AssignmentExportColumn(string key, string header, Func<AssignmentExportRow, object> value)
             {
                 Key = key;
@@ -448,7 +449,7 @@ ORDER BY kp.TenKhoaPhong, ky.TuNgay DESC, cs.MaChiSo";
 
         private class DashboardProgressExportColumn
         {
-            // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của DashboardProgressExportColumn.
+            // Khởi tạo xuất dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
             public DashboardProgressExportColumn(string key, string header, Func<DepartmentProgressViewModel, object> value)
             {
                 Key = key;
@@ -463,7 +464,7 @@ ORDER BY kp.TenKhoaPhong, ky.TuNgay DESC, cs.MaChiSo";
 
         private class DashboardReportDetailExportColumn
         {
-            // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của DashboardReportDetailExportColumn.
+            // Khởi tạo xuất dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
             public DashboardReportDetailExportColumn(string key, string header, Func<DashboardReportDetailExportRow, object> value)
             {
                 Key = key;

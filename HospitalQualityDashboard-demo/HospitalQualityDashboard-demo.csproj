@@ -340,6 +340,7 @@
     <Content Include="tools\VerifyManagementPaging.ps1" />
     <Content Include="tools\VerifyReportSubmissionNavigationAndAdminAudit.ps1" />
     <Content Include="tools\VerifyIndicatorDeploymentLifecycle.ps1" />
+    <Content Include="tools\VerifySqlMigrations.ps1" />
     <Content Include="tools\VerifyUnreadNotificationBadge.ps1" />
   </ItemGroup>
   <ItemGroup>

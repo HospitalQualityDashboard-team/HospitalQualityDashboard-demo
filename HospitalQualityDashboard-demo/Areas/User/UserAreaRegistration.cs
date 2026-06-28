@@ -1,3 +1,4 @@
+// Mục đích: đăng ký route riêng cho khu vực User để giới hạn luồng thao tác của khoa/phòng.
 using System.Web.Mvc;
 
 namespace HospitalQualityDashboardDemo.Areas.User

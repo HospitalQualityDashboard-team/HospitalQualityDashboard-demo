@@ -1,3 +1,4 @@
+// Mục đích: tính các chỉ số tổng hợp cho dashboard Admin và User theo phạm vi truy cập.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -24,7 +25,7 @@ namespace HospitalQualityDashboardDemo.Services
             return "Yếu";
         }
 
-        // Truy vấn dữ liệu Dashboard theo điều kiện được cung cấp.
+        // Tổng hợp số liệu dashboard theo role, khoa/phòng và tần suất để tránh lộ dữ liệu ngoài phạm vi.
         private DashboardViewModel GetDashboardOptimized(bool admin, int? departmentId, int? tanSuatFilter)
         {
             var model = new DashboardViewModel
@@ -46,6 +47,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
             else if (departmentId.HasValue)
             {
+                model.MetricDetails = GetUserMetricDetails(departmentId.Value, tanSuatFilter);
                 model.MissingReports = GetMissingReportsForDepartment(departmentId.Value);
                 model.BaoCaoThieu = model.MissingReports.Count;
                 model.DueSoonReportCount = model.MissingReports.Count(x => x.IsDueSoon);
@@ -55,7 +57,7 @@ namespace HospitalQualityDashboardDemo.Services
             return model;
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
+        // Gán kết quả truy vấn tổng hợp vào model dashboard mà không phải chạy nhiều truy vấn nhỏ.
         private void ApplyOptimizedDashboardSummary(DashboardViewModel model, bool admin, int? departmentId, int? tanSuatFilter)
         {
             var sql = admin ? @"
@@ -159,7 +161,7 @@ SELECT
                 : model.ChiSoDuocPhanCong - model.BaoCaoDaGui;
         }
 
-        // Truy vấn dữ liệu Dashboard theo điều kiện được cung cấp.
+        // Tính tiến độ báo cáo theo khoa/phòng bằng truy vấn tối ưu cho dashboard Admin.
         private IList<DepartmentProgressViewModel> GetOptimizedDepartmentProgress(int? departmentId, int? tanSuatFilter)
         {
             const string sql = @"

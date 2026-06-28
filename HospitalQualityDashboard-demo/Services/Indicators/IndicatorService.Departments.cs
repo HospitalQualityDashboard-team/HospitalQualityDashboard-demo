@@ -1,3 +1,4 @@
+// Mục đích: xử lý khoa/phòng thu thập, tổng hợp và tùy chọn liên quan đến chỉ số.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -31,7 +32,7 @@ namespace HospitalQualityDashboardDemo.Services
             return idByName == null ? (int?)null : Convert.ToInt32(idByName);
         }
 
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Xử lý chức năng chỉ số chất lượng của method FindIndicatorId, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private int? FindIndicatorId(SqlConnection connection, SqlTransaction transaction, string code, string name)
         {
             if (!string.IsNullOrWhiteSpace(code))
@@ -47,7 +48,7 @@ namespace HospitalQualityDashboardDemo.Services
             return idByName == null ? (int?)null : Convert.ToInt32(idByName);
         }
 
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Xử lý chức năng chỉ số chất lượng của method GetDepartmentLookups, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private IList<DepartmentLookup> GetDepartmentLookups()
         {
             return Query("SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong FROM dbo.KhoaPhong WHERE Used=1",
@@ -129,7 +130,7 @@ namespace HospitalQualityDashboardDemo.Services
             return ids;
         }
 
-        // Bổ sung dữ liệu mới phục vụ danh mục chỉ số chất lượng.
+        // Xử lý chức năng chỉ số chất lượng của method AddAllMatchingDepartments, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private static void AddAllMatchingDepartments(IList<int> ids, string normalizedValue, IList<DepartmentLookup> departments)
         {
             if (string.IsNullOrWhiteSpace(normalizedValue))
@@ -151,7 +152,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Bổ sung dữ liệu mới phục vụ danh mục chỉ số chất lượng.
+        // Xử lý chức năng chỉ số chất lượng của method AddDepartmentId, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private static void AddDepartmentId(IList<int> ids, DepartmentLookup department)
         {
             if (department != null && !ids.Contains(department.KhoaPhongId))
@@ -220,7 +221,7 @@ namespace HospitalQualityDashboardDemo.Services
             return null;
         }
 
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Xử lý chức năng chỉ số chất lượng của method GetDepartmentSource, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private static string GetDepartmentSource(IDictionary<string, string> row, string collectionText)
         {
             var explicitValue = GetValue(row, "KhoaPhongQuanLy", "KHOAPHONGQUANLY", "Khoa phong quan ly", "Khoa/Phong quan ly", "Đơn vị thu thập", "Don vi thu thap");

@@ -11,13 +11,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         private readonly ExportService _service = new ExportService();
         private readonly DashboardExcelExportService _dashboardExcelExport = new DashboardExcelExportService();
 
-        // Điều phối yêu cầu HTTP và phản hồi cho xuất dữ liệu Excel.
+        // Trả file Excel cho nhóm dữ liệu Departments, áp dụng bộ lọc và quyền truy cập trước khi xuất.
         public ActionResult Departments()
         {
             return File(_service.ExportDepartments(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "khoa-phong.xlsx");
         }
 
-        // Điều phối yêu cầu HTTP và phản hồi cho xuất dữ liệu Excel.
+        // Trả file Excel cho nhóm dữ liệu Employees, áp dụng bộ lọc và quyền truy cập trước khi xuất.
         public ActionResult Employees(int? khoaPhongId)
         {
             return File(_service.ExportEmployees(new EmployeeExportQueryDto
@@ -28,13 +28,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             }), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "nhan-vien.xlsx");
         }
 
-        // Điều phối yêu cầu HTTP và phản hồi cho xuất dữ liệu Excel.
+        // Trả file Excel cho nhóm dữ liệu Indicators, áp dụng bộ lọc và quyền truy cập trước khi xuất.
         public ActionResult Indicators()
         {
             return File(_service.ExportIndicators(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "chi-so-chat-luong.xlsx");
         }
 
-        // Điều phối yêu cầu HTTP và phản hồi cho xuất dữ liệu Excel.
+        // Trả file Excel cho nhóm dữ liệu Assignments, áp dụng bộ lọc và quyền truy cập trước khi xuất.
         public ActionResult Assignments(int? khoaPhongId, int? chiSoId, string trangThai, string trangThaiPhanCong, string search, string[] columns)
         {
             return File(
@@ -51,7 +51,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
                 "phan-cong-chi-so.xlsx");
         }
 
-        // Điều phối yêu cầu HTTP và phản hồi cho xuất dữ liệu Excel.
+        // Trả file Excel cho nhóm dữ liệu Reports, áp dụng bộ lọc và quyền truy cập trước khi xuất.
         public ActionResult Reports(int? kyBaoCaoId, int? khoaPhongId, int? chiSoChatLuongId)
         {
             return File(_service.ExportReports(new ReportExportQueryDto
@@ -64,13 +64,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             }), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "bao-cao.xlsx");
         }
 
-        // Điều phối yêu cầu HTTP và phản hồi cho xuất dữ liệu Excel.
+        // Trả file Excel cho nhóm dữ liệu DashboardProgress, áp dụng bộ lọc và quyền truy cập trước khi xuất.
         public ActionResult DashboardProgress(string[] columns, int? tanSuat)
         {
             return File(_service.ExportDashboardProgress(columns, tanSuat), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "tien-do-khoa-phong.xlsx");
         }
 
-        // Điều phối yêu cầu HTTP và phản hồi cho xuất dữ liệu Excel.
+        // Trả file Excel cho nhóm dữ liệu Dashboard, áp dụng bộ lọc và quyền truy cập trước khi xuất.
         public ActionResult Dashboard(DashboardExcelExportQueryDto query)
         {
             try

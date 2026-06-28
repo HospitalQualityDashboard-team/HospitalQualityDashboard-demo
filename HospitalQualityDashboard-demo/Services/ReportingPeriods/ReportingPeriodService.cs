@@ -1,3 +1,4 @@
+// Mục đích: quản lý kỳ báo cáo, trạng thái mở/khóa và phạm vi áp dụng cho khoa/phòng.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -12,7 +13,7 @@ namespace HospitalQualityDashboardDemo.Services
 {
     public class ReportingPeriodService : DbServiceBase
     {
-        // Truy vấn kỳ báo cáo theo điều kiện được cung cấp.
+        // Lấy danh sách kỳ báo cáo theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<KyBaoCaoViewModel> GetAll()
         {
             const string sql = @"
@@ -26,7 +27,7 @@ ORDER BY ky.TuNgay DESC";
             return Query(sql, MapPeriod);
         }
 
-        // Truy vấn kỳ báo cáo theo điều kiện được cung cấp.
+        // Lấy danh sách kỳ báo cáo theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<KyBaoCaoViewModel> GetAll(int page, int pageSize, out int totalItems)
         {
             page = NormalizePage(page);
@@ -48,7 +49,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
                 Param("@PageSize", pageSize));
         }
 
-        // Truy vấn kỳ báo cáo theo điều kiện được cung cấp.
+        // Xử lý chức năng kỳ báo cáo của method GetFrequenciesForDepartment, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         public IList<TanSuatBaoCao> GetFrequenciesForDepartment(int departmentId)
         {
             const string sql = @"
@@ -60,7 +61,7 @@ WHERE pc.KhoaPhongId = @KhoaPhongId AND pc.DangHoatDong = 1";
             return Query(sql, r => (TanSuatBaoCao)r.GetByte(0), Param("@KhoaPhongId", departmentId));
         }
 
-        // Truy vấn kỳ báo cáo theo điều kiện được cung cấp.
+        // Dựng danh sách lựa chọn kỳ báo cáo cho dropdown, chỉ gồm các bản ghi phù hợp với trạng thái sử dụng.
         public IList<SelectListItem> GetOptions()
         {
             return DropdownCache.GetOrAdd("dropdown:periods", () => Query(@"
@@ -74,7 +75,7 @@ ORDER BY TuNgay DESC",
                 }).ToList());
         }
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của kỳ báo cáo hay không.
+        // Xác định điều kiện nghiệp vụ của kỳ báo cáo để controller/service chọn nhánh xử lý an toàn.
         public bool IsOpenForDepartment(int periodId, int departmentId)
         {
             var count = Convert.ToInt32(Scalar(@"
@@ -92,14 +93,14 @@ WHERE ky.KyBaoCaoId=@KyBaoCaoId
             return count > 0;
         }
 
-        // Truy vấn kỳ báo cáo theo điều kiện được cung cấp.
+        // Lấy một bản ghi kỳ báo cáo theo khóa chính; trả null khi không tìm thấy để tầng gọi xử lý 404/empty state.
         public KyBaoCaoViewModel Get(int id)
         {
             return QuerySingle(@"SELECT KyBaoCaoId, TenKyBaoCao, LoaiKyBaoCao, TuNgay, DenNgay, HanNop, TrangThai, 0 AS TongBaoCao, 0 AS DaGui FROM dbo.KyBaoCao WHERE KyBaoCaoId=@Id",
                 MapPeriod, Param("@Id", id));
         }
 
-        // Kiểm tra và cập nhật dữ liệu của kỳ báo cáo.
+        // Lưu kỳ báo cáo theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         public void Save(ReportingPeriodSaveDto dto)
         {
             Save(new KyBaoCaoViewModel
@@ -114,7 +115,7 @@ WHERE ky.KyBaoCaoId=@KyBaoCaoId
             });
         }
 
-        // Kiểm tra và cập nhật dữ liệu của kỳ báo cáo.
+        // Lưu kỳ báo cáo theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         public void Save(KyBaoCaoViewModel model)
         {
             if (model.TuNgay > model.DenNgay || model.HanNop < model.DenNgay)
@@ -137,7 +138,7 @@ HanNop=@HanNop, TrangThai=@TrangThai, NgayCapNhat=GETDATE() WHERE KyBaoCaoId=@Ky
             DropdownCache.Remove("dropdown:periods");
         }
 
-        // Kiểm tra và cập nhật dữ liệu của kỳ báo cáo.
+        // Xử lý chức năng kỳ báo cáo của method SetStatus, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         public void SetStatus(int id, TrangThaiKyBaoCao status)
         {
             Execute("UPDATE dbo.KyBaoCao SET TrangThai=@TrangThai, NgayCapNhat=GETDATE() WHERE KyBaoCaoId=@Id", Param("@TrangThai", (byte)status), Param("@Id", id));
@@ -175,7 +176,7 @@ SELECT
             };
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho kỳ báo cáo.
+        // Chuyển một dòng dữ liệu từ SqlDataReader sang view model/dto kỳ báo cáo đúng kiểu và tên trường.
         private static KyBaoCaoViewModel MapPeriod(SqlDataReader reader)
         {
             return new KyBaoCaoViewModel
@@ -192,13 +193,13 @@ SELECT
             };
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho kỳ báo cáo.
+        // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho kỳ báo cáo.
+        // Giới hạn kích thước trang để tránh truy vấn quá lớn hoặc giá trị không hợp lệ.
         private static int NormalizePageSize(int pageSize)
         {
             if (pageSize < 1) return 20;

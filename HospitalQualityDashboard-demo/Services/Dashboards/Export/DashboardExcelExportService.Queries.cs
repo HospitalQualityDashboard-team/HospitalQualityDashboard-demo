@@ -1,3 +1,4 @@
+// Mục đích: gom các truy vấn nguồn cho file Excel dashboard theo quyền và bộ lọc.
 using ClosedXML.Excel;
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
@@ -108,7 +109,7 @@ ORDER BY kp.TenKhoaPhong, ky.TuNgay DESC, cs.MaChiSo";
             return rows;
         }
 
-        // Truy vấn workbook Dashboard và lịch sử xuất theo điều kiện được cung cấp.
+        // Truy vấn các báo cáo thiếu/quá hạn để đưa vào sheet cảnh báo trong workbook dashboard.
         private IList<DashboardMissingIndicatorRow> QueryMissingRows(DashboardExcelExportQueryDto query)
         {
             // Một chỉ số được xem là thiếu khi có phân công phù hợp tần suất nhưng chưa có báo cáo ở trạng thái đã nộp.
@@ -175,7 +176,7 @@ ORDER BY ky.HanNop, kp.TenKhoaPhong, cs.MaChiSo";
             return rows;
         }
 
-        // Truy vấn workbook Dashboard và lịch sử xuất theo điều kiện được cung cấp.
+        // Truy vấn lịch sử duyệt/trả lại báo cáo để audit quy trình trong file xuất dashboard.
         private IList<DashboardReviewHistoryRow> QueryReviewHistory(DashboardExcelExportQueryDto query)
         {
             const string sql = @"
@@ -228,7 +229,7 @@ ORDER BY log.ThoiGian DESC";
             return rows;
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
+        // Quy đổi bộ lọc dashboard thành tham số SQL, bao gồm các mã trạng thái dùng trong truy vấn tổng hợp.
         private SqlParameter[] BuildQueryParameters(DashboardExcelExportQueryDto query)
         {
             return new[]
@@ -251,7 +252,7 @@ ORDER BY log.ThoiGian DESC";
             };
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
+        // Tổng hợp số lượng chỉ số đã nhập và còn thiếu theo từng khoa/phòng cho sheet tóm tắt.
         private IList<DashboardDepartmentSummaryRow> BuildDepartmentSummary(
             IList<DashboardExcelDetailRow> details,
             IList<DashboardMissingIndicatorRow> missing)

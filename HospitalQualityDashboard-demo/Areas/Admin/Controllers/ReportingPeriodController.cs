@@ -29,7 +29,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             });
         }
 
-        // Mở các bản ghi đủ điều kiện trong kỳ báo cáo.
+        // Mở các kỳ báo cáo đến hạn theo lịch để khoa/phòng bắt đầu nhập số liệu.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult OpenDuePeriods()
@@ -65,7 +65,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return View("GenerateSchedule", _schedule.PopulateOptions(model));
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ kỳ báo cáo.
+        // Ghi chính thức lịch kỳ báo cáo đã xem trước, tránh tạo trùng kỳ theo tần suất và khoảng ngày.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateSchedule(ReportingPeriodScheduleRequestViewModel model)
@@ -126,7 +126,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return Save(model);
         }
 
-        // Mở các bản ghi đủ điều kiện trong kỳ báo cáo.
+        // Mở kỳ báo cáo cho các thao tác nghiệp vụ tiếp theo, thường là cho phép khoa/phòng nhập liệu.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Open(int id)
@@ -161,7 +161,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // Kiểm tra và cập nhật dữ liệu của kỳ báo cáo.
+        // Lưu kỳ báo cáo theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         private ActionResult Save(KyBaoCaoViewModel model)
         {
             if (!ModelState.IsValid) return View("Edit", model);
@@ -178,7 +178,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho kỳ báo cáo.
+        // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;

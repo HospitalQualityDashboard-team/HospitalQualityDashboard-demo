@@ -46,7 +46,8 @@ HospitalQualityDashboard-demo/                      # Thư mục gốc của pro
 │       ├── 001_CreateSchema.sql                # Schema đầy đủ cho database mới
 │       ├── 002_PerformanceIndexes.sql           # Index hiệu năng idempotent
 │       ├── 003_AddExportHistory.sql             # Audit xuất Dashboard chi tiết
-│       └── 004_AddIndicatorWarning.sql          # Cảnh báo theo chỉ số và dedup
+│       ├── 004_AddIndicatorWarning.sql          # Cảnh báo theo chỉ số và dedup
+│       └── 005_AddIndicatorDeploymentHistory.sql # Lịch sử triển khai chỉ số
 ├── App_Start/                                # Cấu hình MVC khởi động
 │   ├── BundleConfig.cs                       # Bundle CSS/JS
 │   ├── FilterConfig.cs                       # Global filter
@@ -249,6 +250,7 @@ Các service chứa nghiệp vụ và truy cập database trực tiếp qua ADO.
 | `FrequencyHelper.cs` | Chuẩn hóa và đối chiếu tần suất giữa chỉ số với kỳ báo cáo |
 | `IndicatorWarningMessageBuilder.cs` | Tạo nội dung cảnh báo trước hạn, đúng hạn và quá hạn theo ngày Việt Nam |
 | `IndicatorServices.cs` | Nghiệp vụ chỉ số: CRUD, import, parser tần suất/khoa phòng, suy luận công thức/đơn vị, phân công (AssignmentService) |
+| `IndicatorService.Deployment.cs` | Triển khai/ngừng triển khai chỉ số, ghi `LichSuTrienKhaiChiSo` và log thao tác |
 | `ManagementServices.cs` | Nghiệp vụ khoa/phòng và nhân viên |
 | `NotificationExportServices.cs` | Thông báo thủ công, thông báo tự động (NotificationAutomationService), chống gửi trùng, xuất dữ liệu XLSX |
 | `PasswordHasher.cs` | Hash/verify mật khẩu bằng PBKDF2 |
@@ -530,7 +532,7 @@ Hệ thống đã được nâng cấp toàn diện với các giải pháp kỹ
 - Bổ sung trang quản lý tài khoản riêng nếu Admin cần CRUD tài khoản độc lập ngoài chức năng tạo tài khoản từ nhân viên.
 - Bổ sung audit log đầy đủ cho thao tác sửa/xóa/khóa báo cáo.
 - Bổ sung test tự động ở mức service cho parser import và nghiệp vụ báo cáo.
-- Chuẩn hóa export Excel định dạng đẹp hơn thay vì chỉ CSV.
+- Tiếp tục hoàn thiện định dạng workbook Excel, audit và bộ lọc xuất dữ liệu theo nhu cầu vận hành thực tế.
 - Tích hợp kênh gửi thông báo ngoài hệ thống như email, SMS hoặc Zalo nếu bệnh viện cần nhắc việc ngoài web app.
 
 ## 14. Cập Nhật Ngày 26/05/2026
@@ -887,9 +889,18 @@ Thư mục `tools/` hiện có các script:
 - `VerifyEmployeeOrder.ps1`
 - `VerifyIndicatorWarningMessages.ps1`
 - `VerifyIndicatorWarnings.ps1`
+- `VerifyIndicatorDeploymentLifecycle.ps1`
 - `VerifyManagementPaging.ps1`
 - `VerifyReportResultAndExcelTime.ps1`
 - `VerifyReportSubmissionNavigationAndAdminAudit.ps1`
 - `VerifyUnreadNotificationBadge.ps1`
 
 Các script này không thay thế build/Razor compile/checklist thủ công, nhưng giúp kiểm tra nhanh những luồng nghiệp vụ đã từng phát sinh lỗi.
+
+## 22. Cập Nhật Ngày 27/06/2026 - Vòng Đời Triển Khai Chỉ Số
+
+- Admin có thể `Triển khai` hoặc `Ngừng triển khai` chỉ số tại màn hình Chỉ số; thao tác này không xóa định nghĩa chỉ số mà ghi lịch sử áp dụng theo từng tần suất.
+- `LichSuTrienKhaiChiSo` lưu `TuNgayApDung`, `DenNgayApDung`, người tạo/người kết thúc và bảo đảm mỗi chỉ số/tần suất chỉ có một lịch sử mở.
+- `fn_ChiSoDuocTrienKhaiTrongKy` được dùng trong Report, Dashboard, Notification và Export để chỉ tính các chỉ số có hiệu lực giao với khoảng ngày của kỳ báo cáo.
+- Database cũ cần chạy `App_Data/Sql/005_AddIndicatorDeploymentHistory.sql`; bootstrap cũng gọi `EnsureIndicatorDeploymentLifecycle()` để bảo đảm migration này có mặt.
+- Kiểm tra cấu trúc bằng `tools/VerifyIndicatorDeploymentLifecycle.ps1` sau khi sửa logic triển khai, query dashboard/report/export hoặc schema liên quan.

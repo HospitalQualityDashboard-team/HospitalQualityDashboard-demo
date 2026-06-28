@@ -25,7 +25,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
         public DateTime NgayTao { get; set; }
         public DateTime? NgayCapNhat { get; set; }
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của KhoaPhong.
+        // Khởi tạo entity dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public KhoaPhong()
         {
             Used = true;
@@ -66,7 +66,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của NhanVien.
+        // Khởi tạo entity dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public NhanVien()
         {
             DangHoatDong = true;
@@ -96,7 +96,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của TaiKhoan.
+        // Khởi tạo entity dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public TaiKhoan()
         {
             DangHoatDong = true;
@@ -139,7 +139,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
         public DateTime NgayTao { get; set; }
         public DateTime? NgayCapNhat { get; set; }
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của ChiSoChatLuong.
+        // Khởi tạo entity dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public ChiSoChatLuong()
         {
             DangHoatDong = true;
@@ -178,7 +178,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của PhanCongChiSo.
+        // Khởi tạo entity dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public PhanCongChiSo()
         {
             DangHoatDong = true;
@@ -202,7 +202,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
         public DateTime NgayTao { get; set; }
         public DateTime? NgayCapNhat { get; set; }
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của KyBaoCao.
+        // Khởi tạo entity dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public KyBaoCao()
         {
             TrangThai = TrangThaiKyBaoCao.Nhap;
@@ -226,7 +226,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của BaoCao.
+        // Khởi tạo entity dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public BaoCao()
         {
             TrangThai = TrangThaiBaoCao.Nhap;
@@ -271,7 +271,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
         public int? NguoiTaoId { get; set; }
         public DateTime NgayTao { get; set; }
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của ThongBao.
+        // Khởi tạo entity dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public ThongBao()
         {
             NgayTao = DateTime.UtcNow;
@@ -306,7 +306,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của LichSuImport.
+        // Khởi tạo entity dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public LichSuImport()
         {
             NgayImport = DateTime.UtcNow;
@@ -335,7 +335,7 @@ namespace HospitalQualityDashboardDemo.Models.Entities
 
 
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của NhatKyHeThong.
+        // Khởi tạo entity dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public NhatKyHeThong()
         {
             ThoiGian = DateTime.UtcNow;

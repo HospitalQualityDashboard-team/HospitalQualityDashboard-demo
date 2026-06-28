@@ -1,3 +1,4 @@
+// Mục đích: ghi và đọc lịch sử xuất Excel dashboard phục vụ kiểm toán thao tác.
 using ClosedXML.Excel;
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
@@ -58,7 +59,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
                 Param("@NgayXuat", GetVietnamLocalNow()));
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
+        // Đặt tên file xuất theo phạm vi khoa/phòng và kỳ báo cáo để người dùng dễ lưu trữ, đối chiếu.
         private string BuildFileName(DashboardExcelExportQueryDto query, ExportUserContextDto userContext)
         {
             var scope = query.KhoaPhongId.HasValue
@@ -72,7 +73,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
             return string.Format(CultureInfo.InvariantCulture, "Dashboard_{0}_{1}.xlsx", SanitizeFileToken(scope), period);
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
+        // Ưu tiên tên kỳ báo cáo cụ thể; nếu không có thì dùng tần suất và năm để tạo mã file ổn định.
         private string BuildPeriodToken(DashboardExcelExportQueryDto query)
         {
             if (query.KyBaoCaoId.HasValue)
@@ -93,7 +94,7 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
             return year.ToString(CultureInfo.InvariantCulture);
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
+        // Chuyển bộ lọc xuất Excel thành mô tả đọc được để ghi vào sheet thông tin báo cáo.
         private string BuildFilterDescription(DashboardExcelExportQueryDto query)
         {
             var parts = new List<string>();
@@ -107,21 +108,21 @@ VALUES(@NguoiDungId, @LoaiBaoCao, @BoLoc, @TenFile, @SoDongDuLieu, @DiaChiIP, @V
             return parts.Count == 0 ? "Tất cả dữ liệu" : string.Join("; ", parts);
         }
 
-        // Truy vấn workbook Dashboard và lịch sử xuất theo điều kiện được cung cấp.
+        // Lấy tên khoa/phòng cho tiêu đề và tên file; dùng mã dự phòng nếu bản ghi đã bị thiếu.
         private string GetDepartmentName(int departmentId)
         {
             var value = Convert.ToString(Scalar("SELECT TenKhoaPhong FROM dbo.KhoaPhong WHERE KhoaPhongId=@Id", Param("@Id", departmentId)));
             return string.IsNullOrWhiteSpace(value) ? "KhoaPhong" + departmentId.ToString(CultureInfo.InvariantCulture) : value;
         }
 
-        // Truy vấn workbook Dashboard và lịch sử xuất theo điều kiện được cung cấp.
+        // Lấy tên kỳ báo cáo phục vụ mô tả bộ lọc, kèm giá trị dự phòng khi dữ liệu kỳ không còn tồn tại.
         private string GetPeriodName(int periodId)
         {
             var value = Convert.ToString(Scalar("SELECT TenKyBaoCao FROM dbo.KyBaoCao WHERE KyBaoCaoId=@Id", Param("@Id", periodId)));
             return string.IsNullOrWhiteSpace(value) ? "Kỳ báo cáo " + periodId.ToString(CultureInfo.InvariantCulture) : value;
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho workbook Dashboard và lịch sử xuất.
+        // Làm sạch từng phần tên file để tránh ký tự tiếng Việt hoặc ký tự đặc biệt gây lỗi tải xuống.
         private static string SanitizeFileToken(string value)
         {
             value = RemoveDiacritics(string.IsNullOrWhiteSpace(value) ? "BaoCao" : value);

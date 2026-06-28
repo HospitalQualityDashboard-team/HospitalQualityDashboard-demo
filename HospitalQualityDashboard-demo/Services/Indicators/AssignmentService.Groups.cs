@@ -1,3 +1,4 @@
+// Mục đích: gom nhóm phân công chỉ số theo khoa/phòng và tần suất để hiển thị quản trị.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -69,7 +70,7 @@ namespace HospitalQualityDashboardDemo.Services
             return Convert.ToInt32(Scalar(sql, parameters.ToArray()));
         }
 
-        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
+        // Xử lý chức năng phân công chỉ số của method GetAllIndicatorGroups, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         public IList<IndicatorAssignmentGroup> GetAllIndicatorGroups(
             string trangThaiPhanCong = null,
             string search = null,
@@ -226,7 +227,7 @@ ORDER BY kp.TenKhoaPhong";
             return groups;
         }
 
-        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
+        // Xử lý chức năng phân công chỉ số của method GetDepartmentsCount, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         public int GetDepartmentsCount(string search = null, int? khoaPhongId = null, int? chiSoId = null, string trangThai = null)
         {
             var conditions = new List<string> { "kp.Used = 1" };
@@ -268,7 +269,7 @@ ORDER BY kp.TenKhoaPhong";
             return Convert.ToInt32(Scalar(sql, parameters.ToArray()));
         }
 
-        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
+        // Xử lý chức năng phân công chỉ số của method GetAllDepartmentGroups, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         public IList<DepartmentAssignmentGroup> GetAllDepartmentGroups(
             string search = null,
             int page = 1,
@@ -404,7 +405,7 @@ ORDER BY cs.MaChiSo";
             return groups;
         }
 
-        // Truy vấn phân công chỉ số theo điều kiện được cung cấp.
+        // Xử lý chức năng phân công chỉ số của method GetStatistics, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         public AssignmentViewModel GetStatistics()
         {
             var model = new AssignmentViewModel();

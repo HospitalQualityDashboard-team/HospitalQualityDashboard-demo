@@ -1,3 +1,4 @@
+// Mục đích: chuyển dữ liệu Excel đầu vào thành model nghiệp vụ và gom lỗi import.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -63,7 +64,7 @@ namespace HospitalQualityDashboardDemo.Services
             return rows;
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
+        // Đọc nội dung XLSX bằng OpenXml và chuẩn hóa thành bảng chuỗi để các luồng import dùng chung.
         private static IList<IDictionary<string, string>> ReadXlsx(Stream stream)
         {
             var rows = new List<IDictionary<string, string>>();
@@ -135,7 +136,7 @@ namespace HospitalQualityDashboardDemo.Services
             return rows;
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
+        // Đọc bảng chỉ số từ file Word để hỗ trợ import danh mục chỉ số từ tài liệu nghiệp vụ.
         private static IList<IDictionary<string, string>> ReadIndicatorDocxTables(Stream stream)
         {
             var rows = new List<IDictionary<string, string>>();
@@ -174,7 +175,7 @@ namespace HospitalQualityDashboardDemo.Services
             return rows;
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
+        // Chuyển một bảng chỉ số trong tài liệu Word thành các dòng import có thể kiểm tra lỗi.
         private static IDictionary<string, string> ReadIndicatorTable(XElement table, XNamespace w)
         {
             var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -215,7 +216,7 @@ namespace HospitalQualityDashboardDemo.Services
             return result;
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
+        // Gom text trong một ô Word, giữ thứ tự đoạn để không mất ý nghĩa định nghĩa chỉ số.
         private static string ReadWordCellText(XElement cell, XNamespace w)
         {
             var paragraphs = cell.Elements(w + "p")
@@ -231,7 +232,7 @@ namespace HospitalQualityDashboardDemo.Services
             return string.Concat(cell.Descendants(w + "t").Select(t => t.Value)).Trim();
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
+        // Ánh xạ nhãn trong tài liệu Word sang tên cột chuẩn để import chỉ số không phụ thuộc cách viết tiêu đề.
         private static string MapIndicatorDocxLabel(string label)
         {
             var normalized = NormalizeLabel(label);
@@ -255,21 +256,21 @@ namespace HospitalQualityDashboardDemo.Services
             return null;
         }
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của nhập và xuất dữ liệu Excel hay không.
+        // Nhận diện nhãn đặc biệt trong bảng định nghĩa chỉ số để ghép đúng phần mô tả công thức.
         private static bool IsDetailLabel(string label)
         {
             var normalized = NormalizeLabel(label);
             return normalized == "tu so" || normalized == "mau so";
         }
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của nhập và xuất dữ liệu Excel hay không.
+        // Bỏ qua dòng nhãn phương pháp tính hoặc dòng trống khi đọc bảng định nghĩa chỉ số từ Word.
         private static bool IsMethodOrBlank(string label)
         {
             var normalized = NormalizeLabel(label);
             return string.IsNullOrWhiteSpace(normalized) || normalized == "phuong phap tinh";
         }
 
-        // Bổ sung dữ liệu mới phục vụ nhập và xuất dữ liệu Excel.
+        // Gộp nhiều mảnh mô tả cùng khóa để không mất nội dung dài khi đọc từ tài liệu nguồn.
         private static void AddOrAppend(IDictionary<string, string> row, string key, string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -287,7 +288,7 @@ namespace HospitalQualityDashboardDemo.Services
             row[key] = value;
         }
 
-        // Truy vấn nhập và xuất dữ liệu Excel theo điều kiện được cung cấp.
+        // Tìm năm trong nội dung import để gán mục tiêu hoặc kỳ áp dụng của chỉ số khi nguồn có nhiều năm.
         private static int? FindYear(string value)
         {
             var match = Regex.Match(value ?? string.Empty, @"(19|20)\d{2}");
@@ -295,7 +296,7 @@ namespace HospitalQualityDashboardDemo.Services
             return match.Success && int.TryParse(match.Value, out year) ? year : (int?)null;
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho nhập và xuất dữ liệu Excel.
+        // Chuẩn hóa nhãn import về dạng không dấu, chữ thường để nhận diện cột ổn định hơn.
         private static string NormalizeLabel(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -325,7 +326,7 @@ namespace HospitalQualityDashboardDemo.Services
             return Regex.Replace(builder.ToString(), @"\s+", " ").Trim();
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
+        // Đọc shared string của workbook Excel để giải mã giá trị cell kiểu chuỗi.
         private static IList<string> ReadSharedStrings(ZipArchive archive)
         {
             var entry = archive.GetEntry("xl/sharedStrings.xml");
@@ -351,7 +352,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
+        // Đọc giá trị cell Excel theo kiểu dữ liệu, bao gồm shared string và giá trị trực tiếp.
         private static string ReadCellValue(XElement cell, XNamespace ns, IList<string> sharedStrings)
         {
             var type = (string)cell.Attribute("t");
@@ -376,7 +377,7 @@ namespace HospitalQualityDashboardDemo.Services
             return value;
         }
 
-        // Tách nội dung đầu vào thành các phần tử độc lập để xử lý.
+        // Tách dòng CSV thủ công có xử lý dấu nháy để không làm vỡ dữ liệu có dấu phẩy trong ô.
         private static IEnumerable<string> SplitCsv(string line)
         {
             var values = new List<string>();
@@ -413,7 +414,7 @@ namespace HospitalQualityDashboardDemo.Services
             return values;
         }
 
-        // Thoát và bao giá trị để tạo đầu ra an toàn, đúng định dạng.
+        // Escape giá trị khi xuất CSV để tránh sai định dạng và giữ nguyên nội dung người dùng nhập.
         private static string Escape(string value)
         {
             value = value ?? string.Empty;
@@ -460,7 +461,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý nhập và xuất dữ liệu Excel.
+        // Giới hạn dung lượng file import để tránh xử lý file quá lớn gây treo request hoặc tốn bộ nhớ.
         private static void ValidateImportSize(HttpPostedFileBase file)
         {
             if (file.ContentLength > MaxImportBytes)
@@ -469,7 +470,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý nhập và xuất dữ liệu Excel.
+        // Chặn entry trong file Office nén quá lớn để giảm rủi ro zip bomb khi đọc Excel/Word.
         private static void ValidateZipEntry(ZipArchiveEntry entry)
         {
             if (entry.Length > MaxZipEntryBytes)

@@ -1,3 +1,4 @@
+// Mục đích: dựng danh sách bộ lọc dashboard theo kỳ báo cáo, tần suất và phạm vi người xem.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -78,7 +79,7 @@ ORDER BY TuNgay DESC",
                 });
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
+        // Tạo danh sách năm có dữ liệu báo cáo để bộ lọc dashboard không hiển thị năm rỗng.
         private IList<SelectListItem> BuildYearOptions(int? selectedYear)
         {
             var years = Query("SELECT DISTINCT DATEPART(YEAR, TuNgay) AS Nam FROM dbo.KyBaoCao ORDER BY Nam DESC",
@@ -102,7 +103,7 @@ ORDER BY TuNgay DESC",
             return options;
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
+        // Tạo danh sách kỳ báo cáo cho bộ lọc, giữ đúng kỳ đang được người dùng chọn.
         private IList<SelectListItem> BuildPeriodOptions(int? selectedPeriodId)
         {
             var periods = Query("SELECT KyBaoCaoId, TenKyBaoCao FROM dbo.KyBaoCao ORDER BY TuNgay DESC",
@@ -117,7 +118,7 @@ ORDER BY TuNgay DESC",
             return periods;
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
+        // Tạo bộ lọc khoa/phòng toàn viện dành cho admin khi xem dashboard tổng hợp.
         private IList<SelectListItem> BuildDepartmentOptions(int? selectedDepartmentId)
         {
             var departments = Query("SELECT KhoaPhongId, TenKhoaPhong FROM dbo.KhoaPhong ORDER BY TenKhoaPhong",
@@ -132,7 +133,7 @@ ORDER BY TuNgay DESC",
             return departments;
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
+        // Giới hạn bộ lọc khoa/phòng theo phạm vi của người dùng thường để tránh xem dữ liệu ngoài quyền.
         private IList<SelectListItem> BuildCurrentDepartmentOptions(int? departmentId)
         {
             if (!departmentId.HasValue)
@@ -150,7 +151,7 @@ ORDER BY TuNgay DESC",
                 Param("@KhoaPhongId", departmentId.Value));
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
+        // Tạo danh sách lĩnh vực có phát sinh chỉ số để người dùng lọc dashboard theo nhóm chuyên môn.
         private IList<SelectListItem> BuildFieldOptions(string selectedField)
         {
             var fields = Query(@"
@@ -173,7 +174,7 @@ ORDER BY LinhVucApDung",
             return options;
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
+        // Gom các trạng thái nhập liệu thành lựa chọn nghiệp vụ dễ đọc trên màn hình dashboard.
         private static IList<SelectListItem> BuildInputStatusOptions(int? selectedStatus)
         {
             return new List<SelectListItem>
@@ -189,7 +190,7 @@ ORDER BY LinhVucApDung",
             };
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
+        // Gom các trạng thái duyệt báo cáo để bộ lọc phản ánh đúng luồng khóa, duyệt và trả lại.
         private static IList<SelectListItem> BuildReviewStatusOptions(int? selectedStatus)
         {
             return new List<SelectListItem>
@@ -201,7 +202,7 @@ ORDER BY LinhVucApDung",
             };
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ dữ liệu Dashboard.
+        // Tạo lựa chọn đạt/chưa đạt mục tiêu để phân tích nhanh chất lượng theo ngưỡng chỉ số.
         private static IList<SelectListItem> BuildTargetStatusOptions(bool? selectedStatus)
         {
             return new List<SelectListItem>
@@ -212,6 +213,5 @@ ORDER BY LinhVucApDung",
             };
         }
 
-        // Áp dụng định dạng hoặc quy tắc trình bày cho dữ liệu Dashboard.
     }
 }

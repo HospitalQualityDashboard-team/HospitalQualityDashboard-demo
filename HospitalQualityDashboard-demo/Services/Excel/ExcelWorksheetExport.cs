@@ -1,3 +1,4 @@
+// Mục đích: tiện ích dựng worksheet Excel từ dữ liệu dạng bảng cho các luồng xuất file.
 using System;
 using System.Collections.Generic;
 using System.Globalization;

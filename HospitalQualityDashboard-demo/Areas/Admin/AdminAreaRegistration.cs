@@ -1,3 +1,4 @@
+// Mục đích: đăng ký route riêng cho khu vực Admin để tách luồng quản trị khỏi User.
 using System.Web.Mvc;
 
 namespace HospitalQualityDashboardDemo.Areas.Admin

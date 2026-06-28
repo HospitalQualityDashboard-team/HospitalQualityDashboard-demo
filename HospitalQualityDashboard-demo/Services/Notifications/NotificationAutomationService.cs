@@ -1,3 +1,4 @@
+// Mục đích: tự động tạo thông báo nhắc hạn, quá hạn và cảnh báo chỉ số theo kỳ báo cáo.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -13,7 +14,7 @@ namespace HospitalQualityDashboardDemo.Services
     {
         private readonly IndicatorService _indicators = new IndicatorService();
 
-        // Thực thi quy trình xử lý của thông báo tự động.
+        // Chạy quy trình tự động của thông báo theo thời điểm hiện tại và dữ liệu kỳ báo cáo đang mở.
         public void Run(DateTime now)
         {
             EnsureAutomationLogTable();
@@ -260,7 +261,7 @@ SELECT
             AddAdminRecipients(notificationId);
         }
 
-        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý thông báo tự động.
+        // Tự tạo bảng log nếu môi trường chưa chạy migration, giúp job thông báo không lỗi ngay khi khởi động.
         private void EnsureAutomationLogTable()
         {
             Execute(@"
@@ -292,7 +293,7 @@ BEGIN
 END");
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ thông báo tự động.
+        // Tạo thông báo tự động theo loại nhắc hạn/quá hạn/cảnh báo và gắn người nhận phù hợp.
         private int CreateAutoNotification(
             string dedupKey,
             LoaiThongBao type,
@@ -329,7 +330,7 @@ SELECT ISNULL(@ThongBaoId, 0);",
             return Convert.ToInt32(result);
         }
 
-        // Bổ sung dữ liệu mới phục vụ thông báo tự động.
+        // Thêm người nhận thuộc khoa/phòng chịu trách nhiệm để thông báo đi đúng đơn vị xử lý.
         private void AddDepartmentRecipients(int notificationId, int departmentId)
         {
             if (notificationId <= 0)
@@ -353,7 +354,7 @@ WHERE tk.KhoaPhongId=@KhoaPhongId
                 Param("@UserType", (byte)LoaiTaiKhoan.User));
         }
 
-        // Bổ sung dữ liệu mới phục vụ thông báo tự động.
+        // Thêm Admin làm người nhận khi thông báo cần theo dõi hoặc phối hợp xử lý toàn viện.
         private void AddAdminRecipients(int notificationId)
         {
             if (notificationId <= 0)
@@ -375,7 +376,7 @@ WHERE tk.LoaiTaiKhoan=@AdminType
                 Param("@AdminType", (byte)LoaiTaiKhoan.Admin));
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho thông báo tự động.
+        // Chuyển dữ liệu kỳ báo cáo/khoa phòng cần nhắc việc thành dòng xử lý thông báo tự động.
         private static AutomationNotificationRow MapAutomationRow(System.Data.SqlClient.SqlDataReader reader)
         {
             return new AutomationNotificationRow
@@ -389,7 +390,7 @@ WHERE tk.LoaiTaiKhoan=@AdminType
             };
         }
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của thông báo tự động hay không.
+        // Kiểm tra cột tùy chọn trong SqlDataReader vì từng loại thông báo tự động có SELECT khác nhau.
         private static bool HasColumn(System.Data.SqlClient.SqlDataReader reader, string name)
         {
             for (var i = 0; i < reader.FieldCount; i++)

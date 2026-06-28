@@ -64,7 +64,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Truy vấn tần suất báo cáo theo điều kiện được cung cấp.
+        // Dựng danh sách tần suất báo cáo thống nhất cho form và bộ lọc toàn hệ thống.
         public static IList<SelectListItem> GetFrequencyOptions(IEnumerable<TanSuatBaoCao> selectedFrequencies)
         {
             var selected = selectedFrequencies == null

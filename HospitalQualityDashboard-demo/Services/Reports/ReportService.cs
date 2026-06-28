@@ -1,3 +1,4 @@
+// Mục đích: quản lý vòng đời báo cáo từ nháp, gửi, duyệt, trả lại đến khóa dữ liệu.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -16,13 +17,13 @@ namespace HospitalQualityDashboardDemo.Services
         private readonly IndicatorService _indicators = new IndicatorService();
         private readonly IndicatorCalculationService _calculator = new IndicatorCalculationService();
 
-        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
+        // Lấy danh sách báo cáo định kỳ theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<ReportEntryViewModel> GetAll(ReportListQueryDto dto)
         {
             return GetAll(dto.PeriodId, dto.DepartmentId, dto.IndicatorId, dto.IsAdmin, dto.CurrentDepartmentId);
         }
 
-        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
+        // Lấy danh sách báo cáo định kỳ theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<ReportEntryViewModel> GetAll(ReportListQueryDto dto, int page, int pageSize, out int totalItems)
         {
             page = NormalizePage(page);
@@ -70,7 +71,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             return Query(sql, MapReport, pagedParameters);
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ quy trình báo cáo.
+        // Dựng cấu trúc dữ liệu báo cáo định kỳ từ input đã lọc để tái sử dụng cho truy vấn, view hoặc xuất file.
         private static SqlParameter[] BuildReportListParameters(ReportListQueryDto dto)
         {
             return new[]
@@ -89,20 +90,20 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             };
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho quy trình báo cáo.
+        // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho quy trình báo cáo.
+        // Giới hạn kích thước trang để tránh truy vấn quá lớn hoặc giá trị không hợp lệ.
         private static int NormalizePageSize(int pageSize)
         {
             if (pageSize < 1) return 20;
             return pageSize > 100 ? 100 : pageSize;
         }
 
-        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
+        // Lấy danh sách báo cáo định kỳ theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<ReportEntryViewModel> GetAll(int? periodId, int? departmentId, int? indicatorId, bool admin, int? currentDepartmentId)
         {
             const string sql = @"
@@ -138,7 +139,7 @@ ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
                 Param("@TraLaiStatus", (byte)TrangThaiBaoCao.TraLai));
         }
 
-        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
+        // Lấy các chỉ số đã phân công cho khoa/phòng trong kỳ, tạo dữ liệu nhập báo cáo nếu cần.
         public IList<ReportEntryViewModel> GetAssignedForUser(int periodId, int departmentId)
         {
             const string sql = @"
@@ -166,7 +167,7 @@ ORDER BY cs.MaChiSo";
                 Param("@Mo", (byte)TrangThaiKyBaoCao.Mo));
         }
 
-        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
+        // Lấy một bản ghi báo cáo định kỳ theo khóa chính; trả null khi không tìm thấy để tầng gọi xử lý 404/empty state.
         public ReportEntryViewModel Get(int id)
         {
             const string sql = @"
@@ -185,7 +186,7 @@ WHERE bc.BaoCaoId=@Id";
             return Query(sql, MapReport, Param("@Id", id)).FirstOrDefault();
         }
 
-        // Kiểm tra và cập nhật dữ liệu của quy trình báo cáo.
+        // Lưu nháp báo cáo định kỳ, tính lại kết quả chỉ số và giữ trạng thái cho phép chỉnh sửa trước khi gửi.
         public int SaveDraft(ReportDraftDto dto, int userId)
         {
             return SaveDraft(new ReportEntryViewModel
@@ -206,7 +207,7 @@ WHERE bc.BaoCaoId=@Id";
             }, userId);
         }
 
-        // Kiểm tra và cập nhật dữ liệu của quy trình báo cáo.
+        // Lưu nháp báo cáo định kỳ, tính lại kết quả chỉ số và giữ trạng thái cho phép chỉnh sửa trước khi gửi.
         public int SaveDraft(ReportEntryViewModel model, int userId)
         {
             var isNewReport = model.BaoCaoId == 0;
@@ -296,7 +297,7 @@ ELSE
             return model.BaoCaoId;
         }
 
-        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
+        // Xử lý chức năng báo cáo định kỳ của method GetReportingYear, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private int? GetReportingYear(int reportingPeriodId)
         {
             var value = Scalar("SELECT DATEPART(YEAR, TuNgay) FROM dbo.KyBaoCao WHERE KyBaoCaoId=@KyBaoCaoId",
@@ -400,7 +401,7 @@ WHERE BaoCaoId=@Id AND TrangThai=@DaGui",
             }
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho quy trình báo cáo.
+        // Chuyển một dòng dữ liệu từ SqlDataReader sang view model/dto báo cáo định kỳ đúng kiểu và tên trường.
         private static ReportEntryViewModel MapReport(SqlDataReader reader)
         {
             return new ReportEntryViewModel
@@ -429,7 +430,7 @@ WHERE BaoCaoId=@Id AND TrangThai=@DaGui",
             };
         }
 
-        // Truy vấn quy trình báo cáo theo điều kiện được cung cấp.
+        // Xử lý chức năng báo cáo định kỳ của method GetReportDetailSnapshot, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private string GetReportDetailSnapshot(int reportId)
         {
             var snapshot = QuerySingle(@"
@@ -457,7 +458,7 @@ WHERE bc.BaoCaoId = @BaoCaoId",
             return snapshot == null ? "Không tìm thấy dữ liệu báo cáo." : BuildReportDetailSnapshot(snapshot);
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ quy trình báo cáo.
+        // Dựng cấu trúc dữ liệu báo cáo định kỳ từ input đã lọc để tái sử dụng cho truy vấn, view hoặc xuất file.
         private static string BuildReportDetailSnapshot(ReportEntryViewModel model)
         {
             return string.Format(

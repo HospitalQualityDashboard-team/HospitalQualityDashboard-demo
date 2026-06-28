@@ -1,3 +1,4 @@
+// Mục đích: quản lý tần suất báo cáo gắn với chỉ số chất lượng.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -67,7 +68,7 @@ ORDER BY ChiSoChatLuongId, TanSuatBaoCao";
             }
         }
 
-        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
+        // Xử lý chức năng chỉ số chất lượng của method SaveFrequencies, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private void SaveFrequencies(int indicatorId, IEnumerable<TanSuatBaoCao> frequencies)
         {
             var values = FrequencyHelper.SortFrequencies(frequencies == null ? new[] { TanSuatBaoCao.HangThang } : frequencies)
@@ -88,7 +89,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             }
         }
 
-        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
+        // Xử lý chức năng chỉ số chất lượng của method SaveFrequencies, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private void SaveFrequencies(SqlConnection connection, SqlTransaction transaction, int indicatorId, IEnumerable<TanSuatBaoCao> frequencies)
         {
             var values = FrequencyHelper.SortFrequencies(frequencies == null ? new[] { TanSuatBaoCao.HangThang } : frequencies)
@@ -109,7 +110,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
             }
         }
 
-        // Áp dụng định dạng hoặc quy tắc trình bày cho danh mục chỉ số chất lượng.
+        // Đồng bộ danh sách tần suất được chọn thành các cờ lưu database của chỉ số chất lượng.
         private static void ApplySelectedFrequencies(ChiSoViewModel model)
         {
             var selected = model.SelectedTanSuatBaoCaoValues == null
@@ -141,7 +142,7 @@ VALUES(@ChiSoChatLuongId, @TanSuatBaoCao)",
 
 
 
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Xử lý chức năng chỉ số chất lượng của method TryParseFrequencies, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private static bool TryParseFrequencies(string value, out IList<TanSuatBaoCao> frequencies)
         {
             frequencies = new List<TanSuatBaoCao>();

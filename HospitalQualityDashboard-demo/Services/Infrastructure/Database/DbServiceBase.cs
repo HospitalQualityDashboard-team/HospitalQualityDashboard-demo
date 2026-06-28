@@ -12,19 +12,19 @@ namespace HospitalQualityDashboardDemo.Services
         protected readonly string ConnectionString;
         protected readonly int CommandTimeoutSeconds;
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho truy cập dữ liệu ADO.NET dùng chung.
+        // Khởi tạo truy cập cơ sở dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         protected DbServiceBase()
             : this(DatabaseConfiguration.GetConnectionString())
         {
         }
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho truy cập dữ liệu ADO.NET dùng chung.
+        // Khởi tạo truy cập cơ sở dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         protected DbServiceBase(string connectionString)
             : this(connectionString, DefaultCommandTimeoutSeconds)
         {
         }
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho truy cập dữ liệu ADO.NET dùng chung.
+        // Khởi tạo truy cập cơ sở dữ liệu với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         protected DbServiceBase(string connectionString, int commandTimeoutSeconds)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -36,7 +36,7 @@ namespace HospitalQualityDashboardDemo.Services
             CommandTimeoutSeconds = commandTimeoutSeconds > 0 ? commandTimeoutSeconds : DefaultCommandTimeoutSeconds;
         }
 
-        // Truy vấn truy cập dữ liệu ADO.NET dùng chung theo điều kiện được cung cấp.
+        // Chạy SELECT nhiều dòng bằng ADO.NET và map từng dòng sang model nghiệp vụ của service gọi.
         protected List<T> Query<T>(string sql, Func<SqlDataReader, T> map, params SqlParameter[] parameters)
         {
             var items = new List<T>();
@@ -58,7 +58,7 @@ namespace HospitalQualityDashboardDemo.Services
             return items;
         }
 
-        // Truy vấn truy cập dữ liệu ADO.NET dùng chung theo điều kiện được cung cấp.
+        // Chạy SELECT một dòng; trả null khi không có dữ liệu để controller/service tự xử lý 404 hoặc empty state.
         protected T QuerySingle<T>(string sql, Func<SqlDataReader, T> map, params SqlParameter[] parameters) where T : class
         {
             using (var connection = new SqlConnection(ConnectionString))
@@ -74,7 +74,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Thực thi quy trình xử lý của truy cập dữ liệu ADO.NET dùng chung.
+        // Bao nhiều thao tác ghi trong một transaction; rollback toàn bộ nếu bất kỳ bước nào lỗi.
         protected void ExecuteInTransaction(Action<SqlConnection, SqlTransaction> action)
         {
             using (var connection = new SqlConnection(ConnectionString))
@@ -96,7 +96,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Thực thi quy trình xử lý của truy cập dữ liệu ADO.NET dùng chung.
+        // Thực thi lệnh ghi dữ liệu không cần transaction ngoài, trả về số dòng bị ảnh hưởng.
         protected int Execute(string sql, params SqlParameter[] parameters)
         {
             using (var connection = new SqlConnection(ConnectionString))
@@ -109,7 +109,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Thực thi quy trình xử lý của truy cập dữ liệu ADO.NET dùng chung.
+        // Thực thi lệnh ghi dữ liệu trong transaction đang mở để nhiều cập nhật cùng commit/rollback.
         protected int Execute(SqlConnection connection, SqlTransaction transaction, string sql, params SqlParameter[] parameters)
         {
             using (var command = new SqlCommand(sql, connection, transaction))

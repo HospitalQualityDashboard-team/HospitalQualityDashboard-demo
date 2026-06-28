@@ -29,6 +29,7 @@ Tài liệu liên quan:
 - Quản lý nhân viên.
 - Tạo tài khoản User từ nhân viên.
 - Quản lý chỉ số chất lượng.
+- Triển khai hoặc ngừng triển khai chỉ số theo vòng đời áp dụng; các kỳ đã bắt đầu vẫn được giữ lịch sử, còn kỳ mới chỉ tính các chỉ số đang có hiệu lực theo tần suất.
 - Import chỉ số từ Excel/Word.
 - Import khoa/phòng từ Excel.
 - Import nhân viên từ Excel.
@@ -44,6 +45,7 @@ Tài liệu liên quan:
 ### User khoa/phòng
 
 - Dashboard theo khoa/phòng đang đăng nhập.
+- Bấm các thẻ tổng quan trên Dashboard User để xem danh sách chỉ số/báo cáo chi tiết, luôn bị giới hạn theo khoa/phòng của tài khoản đăng nhập.
 - Xem chỉ số được phân công.
 - Xem kỳ báo cáo đang mở phù hợp với tần suất chỉ số.
 - Nhập số liệu báo cáo.
@@ -66,7 +68,8 @@ HospitalQualityDashboard-demo/
     │       ├── 001_CreateSchema.sql
     │       ├── 002_PerformanceIndexes.sql
     │       ├── 003_AddExportHistory.sql
-    │       └── 004_AddIndicatorWarning.sql
+    │       ├── 004_AddIndicatorWarning.sql
+    │       └── 005_AddIndicatorDeploymentHistory.sql
     ├── App_Start/
     │   ├── BundleConfig.cs
     │   ├── FilterConfig.cs
@@ -195,6 +198,7 @@ Các script chính:
 - `App_Data/Sql/002_PerformanceIndexes.sql`: tạo index tối ưu hiệu năng, có `IF NOT EXISTS`.
 - `App_Data/Sql/003_AddExportHistory.sql`: tạo bảng `LichSuXuatBaoCao` và index phục vụ audit lịch sử xuất Excel.
 - `App_Data/Sql/004_AddIndicatorWarning.sql`: liên kết thông báo với chỉ số và bổ sung index chống gửi cảnh báo trùng.
+- `App_Data/Sql/005_AddIndicatorDeploymentHistory.sql`: tạo bảng `LichSuTrienKhaiChiSo`, index và hàm `fn_ChiSoDuocTrienKhaiTrongKy` để lọc chỉ số theo vòng đời triển khai trong từng kỳ báo cáo.
 
 Mặc định bootstrap nên tắt:
 
@@ -293,6 +297,7 @@ Danh sách nhân viên đã có phân trang server-side, mặc định 20 dòng/
 2. Thêm/sửa chỉ số thủ công.
 3. Import chỉ số từ Excel/Word nếu có file chuẩn.
 4. Kiểm tra tần suất báo cáo, đơn vị tính, loại công thức, mục tiêu.
+5. Dùng `Triển khai` hoặc `Ngừng triển khai` để điều chỉnh hiệu lực chỉ số. Hệ thống ghi lịch sử theo từng tần suất và dùng lịch sử này khi tính báo cáo, Dashboard, nhắc hạn và export.
 
 Dropdown chỉ số dùng query nhẹ và cache ngắn hạn 5 phút để giảm tải Azure SQL.
 
@@ -449,6 +454,7 @@ Các tối ưu hiện có:
 - Không tự chạy bảo trì kỳ báo cáo khi mở Dashboard/Report.
 - Script index hiệu năng nằm ở `App_Data/Sql/002_PerformanceIndexes.sql`.
 - Script audit lịch sử xuất Excel nằm ở `App_Data/Sql/003_AddExportHistory.sql`.
+- Script vòng đời triển khai chỉ số nằm ở `App_Data/Sql/005_AddIndicatorDeploymentHistory.sql`; các query báo cáo/dashboard/export dùng `fn_ChiSoDuocTrienKhaiTrongKy` để không tính chỉ số đã ngừng triển khai ngoài khoảng áp dụng.
 
 Các index được đề xuất/tạo idempotent:
 
@@ -463,6 +469,8 @@ Nếu database Azure SQL đã tồn tại từ trước, hãy chạy script inde
 Nếu dùng chức năng xuất Dashboard chi tiết trên database cũ, hãy chạy thêm `003_AddExportHistory.sql` để tránh lỗi thiếu bảng `LichSuXuatBaoCao`.
 
 Nếu dùng cảnh báo chỉ số trên Dashboard với database cũ, phải chạy `App_Data/Sql/004_AddIndicatorWarning.sql` trước khi khởi động tính năng.
+
+Nếu dùng vòng đời triển khai/ngừng triển khai chỉ số trên database cũ, phải chạy `App_Data/Sql/005_AddIndicatorDeploymentHistory.sql` để tạo `LichSuTrienKhaiChiSo`, seed các chỉ số đang hoạt động và tạo hàm `fn_ChiSoDuocTrienKhaiTrongKy`.
 
 ## 14. Bảo mật
 
@@ -490,12 +498,13 @@ Nếu dùng cảnh báo chỉ số trên Dashboard với database cũ, phải ch
 6. Tạo/sửa khoa phòng.
 7. Tạo/sửa nhân viên.
 8. Tạo tài khoản User.
-9. Import một file nhỏ để kiểm tra luồng import.
-10. Tạo kỳ báo cáo.
-11. Chạy mở kỳ báo cáo thủ công nếu cần.
-12. Xuất Excel một danh sách có filter.
-13. Xuất Dashboard chi tiết và kiểm tra file `.xlsx` có các sheet tổng hợp/chi tiết/còn thiếu; bật so sánh và kiểm tra thêm `SoSanhTongQuan`, `SoSanhChiSo`.
-14. Nếu có quyền truy cập DB, kiểm tra `LichSuXuatBaoCao` ghi nhận lịch sử xuất.
+9. Ngừng triển khai một chỉ số thử nghiệm rồi triển khai lại, kiểm tra danh sách chỉ số đổi nhãn đúng và Dashboard không tính chỉ số ngoài khoảng hiệu lực.
+10. Import một file nhỏ để kiểm tra luồng import.
+11. Tạo kỳ báo cáo.
+12. Chạy mở kỳ báo cáo thủ công nếu cần.
+13. Xuất Excel một danh sách có filter.
+14. Xuất Dashboard chi tiết và kiểm tra file `.xlsx` có các sheet tổng hợp/chi tiết/còn thiếu; bật so sánh và kiểm tra thêm `SoSanhTongQuan`, `SoSanhChiSo`.
+15. Nếu có quyền truy cập DB, kiểm tra `LichSuXuatBaoCao` ghi nhận lịch sử xuất.
 
 ### User
 
@@ -521,6 +530,7 @@ VerifyDashboardMetricDetails.ps1
 VerifyEmployeeOrder.ps1
 VerifyIndicatorWarningMessages.ps1
 VerifyIndicatorWarnings.ps1
+VerifyIndicatorDeploymentLifecycle.ps1
 VerifyManagementPaging.ps1
 VerifyReportResultAndExcelTime.ps1
 VerifyReportSubmissionNavigationAndAdminAudit.ps1

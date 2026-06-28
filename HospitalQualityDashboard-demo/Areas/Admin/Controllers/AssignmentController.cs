@@ -121,7 +121,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index", new { viewMode = viewMode, khoaPhongId = khoaPhongId, chiSoId = chiSoId, trangThai = trangThai, search = search, page = page });
         }
 
-        // Điều phối yêu cầu HTTP và phản hồi cho phân công chỉ số.
+        // Xử lý chức năng phân công chỉ số của method SyncFromIndicators, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult SyncFromIndicators(string viewMode)

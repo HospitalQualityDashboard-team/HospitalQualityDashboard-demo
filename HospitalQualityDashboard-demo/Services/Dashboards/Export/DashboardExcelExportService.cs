@@ -1,3 +1,4 @@
+// Mục đích: điều phối xuất Excel dashboard và ghi nhận lịch sử xuất báo cáo.
 using ClosedXML.Excel;
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
@@ -63,7 +64,7 @@ namespace HospitalQualityDashboardDemo.Services
             };
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho workbook Dashboard và lịch sử xuất.
+        // Chuẩn hóa phạm vi xuất: admin được chọn khoa/phòng, user luôn bị khóa về khoa/phòng của mình.
         private DashboardExcelExportQueryDto NormalizeQuery(DashboardExcelExportQueryDto query, ExportUserContextDto userContext)
         {
             query = query ?? new DashboardExcelExportQueryDto();
@@ -96,7 +97,5 @@ namespace HospitalQualityDashboardDemo.Services
 
             return normalized;
         }
-
-        // Truy vấn workbook Dashboard và lịch sử xuất theo điều kiện được cung cấp.
     }
 }

@@ -1,3 +1,4 @@
+-- Mục đích: lưu lịch sử xuất báo cáo để phục vụ audit và tra cứu vận hành.
 IF OBJECT_ID('dbo.LichSuXuatBaoCao', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.LichSuXuatBaoCao (

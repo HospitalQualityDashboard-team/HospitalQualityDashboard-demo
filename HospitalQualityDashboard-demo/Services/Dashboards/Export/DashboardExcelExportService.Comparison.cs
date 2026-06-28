@@ -1,3 +1,4 @@
+// Mục đích: xuất dữ liệu so sánh dashboard nhiều kỳ ra Excel theo đúng bộ lọc nghiệp vụ.
 using ClosedXML.Excel;
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
@@ -401,7 +402,5 @@ FROM dbo.KyBaoCao",
             public Func<ComparisonMetrics, decimal> Selector { get; private set; }
             public bool? HigherIsBetter { get; private set; }
         }
-
-        // Tạo cấu trúc dữ liệu phục vụ workbook Dashboard và lịch sử xuất.
     }
 }

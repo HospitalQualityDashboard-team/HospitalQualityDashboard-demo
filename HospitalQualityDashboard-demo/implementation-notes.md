@@ -2,6 +2,22 @@
 
 Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiết kế và lưu ý vận hành của dự án `HospitalQualityDashboard-demo`.
 
+## 2026-06-27
+
+### Bổ sung drill-down Dashboard User theo phạm vi khoa/phòng
+
+- Dashboard User nạp `MetricDetails` để các thẻ Chỉ số được phân công, Đã báo cáo, Còn thiếu và Quá hạn mở được danh sách chi tiết.
+- Query chi tiết dùng chung với Admin nhưng thêm điều kiện `KhoaPhongId` khi chạy trong User, bảo đảm User chỉ thấy dữ liệu thuộc khoa/phòng của tài khoản đăng nhập.
+- Cập nhật `VerifyDashboardMetricDetails.ps1` để kiểm tra contract drill-down cho cả Admin và User.
+
+### Cập nhật tài liệu theo vòng đời triển khai chỉ số
+
+- Cập nhật README, PROJECT_STRUCTURE, AGENTS, PROJECT_CONTEXT và TAI_LIEU_NGHIEP_VU để phản ánh migration `App_Data/Sql/005_AddIndicatorDeploymentHistory.sql`.
+- Ghi nhận bảng `LichSuTrienKhaiChiSo`, hàm `fn_ChiSoDuocTrienKhaiTrongKy` và luồng Admin `Triển khai`/`Ngừng triển khai` chỉ số.
+- Làm rõ Report, Dashboard, Notification và Export chỉ tính chỉ số có hiệu lực trong khoảng ngày kỳ báo cáo; dữ liệu lịch sử vẫn được giữ khi chỉ số ngừng triển khai.
+- Cập nhật danh sách verifier với `tools/VerifyIndicatorDeploymentLifecycle.ps1` và số lượng hiện tại là 13 script `Verify*.ps1`.
+- Không cập nhật các file Markdown trong `HospitalQualityDashboard-demo/Tai_Lieu/` theo yêu cầu.
+
 ## 2026-06-17
 
 ### Cập nhật đồng bộ tài liệu Markdown toàn dự án
@@ -60,13 +76,9 @@ Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiế
 - `packages/` NuGet trùng (các version `.0`, MVC5, Razor3, WebPages3)
 - `.csproj.user`
 
-**Còn tồn đọng:**
-- `.claude/worktrees/`, `.superpowers/brainstorm/` — workspace tạm chưa xóa
-- `docs/superpowers/` — plan/spec cũ chưa xóa (cả root và project)
-- `Filters/` — thư mục rỗng
-- `Content/` CSS không dùng, `Scripts/` JS không dùng — vẫn còn trong `.csproj`
-
-**Cần làm tiếp:** Chạy cleanup script triệt để để xóa các mục tồn đọng.
+**Đối chiếu lại ngày 27/06/2026:**
+- `.claude/worktrees/`, `.superpowers/brainstorm/`, `docs/superpowers/` và `Filters/` không còn xuất hiện trong danh sách file hiện tại.
+- `Content/` và `Scripts/` vẫn là tài nguyên frontend do project quản lý; chỉ dọn tiếp sau khi đối chiếu `.csproj` và `BundleConfig`.
 
 ## 2026-06-09
 
@@ -838,7 +850,7 @@ powershell -ExecutionPolicy Bypass -File .\HospitalQualityDashboard-demo\tools\V
 
 ### Đồng bộ tài liệu theo hiện trạng code
 
-- Đối chiếu bảy file Markdown còn lại với `.csproj`, `Web.config`, enum, service, controller, bốn migration SQL và 11 script verify.
+- Đối chiếu bảy file Markdown còn lại với `.csproj`, `Web.config`, enum, service, controller, năm migration SQL và 13 script verify.
 - Cập nhật README/AGENTS về cấu trúc controller, migration, script kiểm tra, session, lockout và giới hạn import.
 - Cập nhật `PROJECT_CONTEXT.md`, tài liệu nghiệp vụ và SDD về service mới, trạng thái `DaDuyet`, Dashboard chi tiết, cảnh báo chỉ số và cấu hình bảo mật hiện tại.
 - Giữ nguyên nội dung lịch sử; báo cáo bảo mật được bổ sung bảng trạng thái ngày 19/06/2026 thay vì xóa bằng chứng rà soát ngày 02/06/2026.

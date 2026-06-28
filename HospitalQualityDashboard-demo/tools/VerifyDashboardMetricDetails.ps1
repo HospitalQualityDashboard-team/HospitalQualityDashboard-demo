@@ -4,19 +4,27 @@ $ErrorActionPreference = 'Stop'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $viewModel = Get-Content -Raw (Join-Path $root 'Models\ViewModels\AppViewModels.cs')
 $service = Get-ServiceSource -Root $root -Patterns 'Services\Dashboards\DashboardService*.cs'
-$view = Get-Content -Raw (Join-Path $root 'Areas\Admin\Views\Dashboard\Index.cshtml')
+$adminView = Get-Content -Raw (Join-Path $root 'Areas\Admin\Views\Dashboard\Index.cshtml')
+$userView = Get-Content -Raw (Join-Path $root 'Areas\User\Views\Dashboard\Index.cshtml')
 $css = Get-Content -Raw (Join-Path $root 'Content\Site.css')
 
 $checks = @(
     @{ Source = $viewModel; Token = 'class DashboardMetricDetailViewModel' },
     @{ Source = $viewModel; Token = 'IList<DashboardMetricDetailViewModel> MetricDetails' },
     @{ Source = $service; Token = 'GetAdminMetricDetails' },
+    @{ Source = $service; Token = 'GetUserMetricDetails' },
+    @{ Source = $service; Token = 'model.MetricDetails = GetUserMetricDetails(departmentId.Value, tanSuatFilter)' },
+    @{ Source = $service; Token = 'pc.KhoaPhongId = @KhoaPhongId' },
     @{ Source = $service; Token = 'ct.DatMucTieu' },
     @{ Source = $service; Token = 'IsOverdueMissing' },
-    @{ Source = $view; Token = 'id="dashboardMetricDetailModal"' },
-    @{ Source = $view; Token = 'data-metric="submitted"' },
-    @{ Source = $view; Token = 'data-metric-groups' },
-    @{ Source = $view; Token = 'show.bs.modal' },
+    @{ Source = $adminView; Token = 'id="dashboardMetricDetailModal"' },
+    @{ Source = $adminView; Token = 'data-metric="submitted"' },
+    @{ Source = $adminView; Token = 'data-metric-groups' },
+    @{ Source = $adminView; Token = 'show.bs.modal' },
+    @{ Source = $userView; Token = 'id="dashboardMetricDetailModal"' },
+    @{ Source = $userView; Token = 'data-metric="submitted"' },
+    @{ Source = $userView; Token = 'data-metric-groups' },
+    @{ Source = $userView; Token = 'show.bs.modal' },
     @{ Source = $css; Token = '.metric-card-button' }
 )
 

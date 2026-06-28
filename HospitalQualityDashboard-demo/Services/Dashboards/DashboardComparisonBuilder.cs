@@ -1,3 +1,4 @@
+// Mục đích: gom dữ liệu so sánh dashboard giữa các kỳ báo cáo theo chỉ số và khoa/phòng.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using System;
 using System.Collections.Generic;

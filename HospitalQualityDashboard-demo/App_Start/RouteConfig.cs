@@ -1,4 +1,4 @@
-﻿// Má»¥c Ä‘Ã­ch: Ä‘á»‹nh nghÄ©a route máº·c Ä‘á»‹nh Ä‘á»ƒ Ä‘iá»u hÆ°á»›ng controller/action/id.
+// Mục đích: định nghĩa route mặc định để điều hướng controller/action/id.
 using System.Web.Mvc;
 using System.Web.Routing;
 

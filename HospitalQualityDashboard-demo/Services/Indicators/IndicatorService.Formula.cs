@@ -1,3 +1,4 @@
+// Mục đích: chuẩn hóa công thức tính và quy tắc hiển thị kết quả của chỉ số.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -207,7 +208,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho danh mục chỉ số chất lượng.
+        // Chuẩn hóa dữ liệu chỉ số chất lượng trước khi so sánh, lọc hoặc lưu để giảm lỗi do khoảng trắng/định dạng.
         private static string NormalizeIndicatorName(string value)
         {
             return Regex.Replace(NormalizeKey(value), @"^\d+\s+", string.Empty).Trim();

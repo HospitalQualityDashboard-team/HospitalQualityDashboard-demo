@@ -1,3 +1,4 @@
+// Mục đích: tổng hợp tiến độ nộp báo cáo nhiều kỳ để hiển thị biểu đồ so sánh.
 using System;
 
 namespace HospitalQualityDashboardDemo.Services

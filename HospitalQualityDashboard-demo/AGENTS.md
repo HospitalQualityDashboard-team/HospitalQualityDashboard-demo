@@ -26,7 +26,7 @@ msbuild HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildV
 
 Khi phát triển local, mở `HospitalQualityDashboard-demo.csproj` bằng Visual Studio và chạy bằng IIS Express. Project được cấu hình cho IIS Express với SSL port `44387`.
 
-Các script verify bổ sung nằm trong `tools/` và kiểm tra các luồng như tổng hợp/chi tiết Dashboard, Dashboard Excel, so sánh nhiều kỳ, cảnh báo chỉ số, badge thông báo chưa đọc, phân trang quản lý, thứ tự nhân viên, thời gian/kết quả báo cáo và audit điều hướng sau khi gửi báo cáo. Hiện thư mục có 12 script `Verify*.ps1`; chỉ chạy chúng khi app local, database và dữ liệu mẫu đã sẵn sàng.
+Các script verify bổ sung nằm trong `tools/` và kiểm tra các luồng như tổng hợp/chi tiết Dashboard, Dashboard Excel, so sánh nhiều kỳ, cảnh báo chỉ số, vòng đời triển khai chỉ số, badge thông báo chưa đọc, phân trang quản lý, thứ tự nhân viên, thời gian/kết quả báo cáo và audit điều hướng sau khi gửi báo cáo. Hiện thư mục có 13 script `Verify*.ps1`; chỉ chạy chúng khi app local, database và dữ liệu mẫu đã sẵn sàng.
 
 ## Quy ước code và đặt tên
 
@@ -48,6 +48,6 @@ Không commit credential thật, connection string nhạy cảm, file upload b�
 
 Khi thay đổi hành vi vận hành, cấu hình, database, import/export hoặc hiệu năng, cập nhật `README.md` trước, sau đó bổ sung ngắn gọn vào `PROJECT_CONTEXT.md` hoặc `implementation-notes.md` nếu thay đổi ảnh hưởng người phát triển/người vận hành.
 
-Hiện project có bốn script SQL trong `App_Data/Sql/`: `001_CreateSchema.sql`, `002_PerformanceIndexes.sql`, `003_AddExportHistory.sql` và `004_AddIndicatorWarning.sql`. Nếu chỉnh export Dashboard chi tiết hoặc audit lịch sử xuất, cập nhật script `003`; nếu chỉnh cảnh báo theo chỉ số hoặc cơ chế chống gửi trùng, cập nhật script `004` và phần hướng dẫn vận hành liên quan.
+Hiện project có năm script SQL trong `App_Data/Sql/`: `001_CreateSchema.sql`, `002_PerformanceIndexes.sql`, `003_AddExportHistory.sql`, `004_AddIndicatorWarning.sql` và `005_AddIndicatorDeploymentHistory.sql`. Nếu chỉnh export Dashboard chi tiết hoặc audit lịch sử xuất, cập nhật script `003`; nếu chỉnh cảnh báo theo chỉ số hoặc cơ chế chống gửi trùng, cập nhật script `004`; nếu chỉnh triển khai/ngừng triển khai chỉ số hoặc hàm lọc hiệu lực theo kỳ, cập nhật script `005` và phần hướng dẫn vận hành liên quan.
 
 `Web.config` đặt session timeout 30 phút, cookie `HttpOnly` và `SameSite=Lax`; transform Release bắt buộc cookie HTTPS. Không hạ các thiết lập này khi sửa cấu hình môi trường.

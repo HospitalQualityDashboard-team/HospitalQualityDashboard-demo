@@ -10,7 +10,7 @@ namespace HospitalQualityDashboardDemo.Services
         private const int HashSize = 32;
         private const int Iterations = 10000;
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của băm và xác minh mật khẩu hay không.
+        // Tạo hash mật khẩu mới bằng salt riêng và PBKDF2 để không bao giờ lưu mật khẩu gốc.
         public static string Hash(string password)
         {
             if (password == null)

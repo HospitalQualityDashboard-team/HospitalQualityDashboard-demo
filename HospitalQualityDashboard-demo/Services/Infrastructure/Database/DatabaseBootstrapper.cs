@@ -43,7 +43,7 @@ namespace HospitalQualityDashboardDemo.Services
             RunSchemaScripts(databaseConnection.ConnectionString, scriptDirectory);
         }
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của khởi tạo cấu trúc cơ sở dữ liệu hay không.
+        // Đảm bảo database đích tồn tại trước khi chạy schema, chỉ tạo mới khi cấu hình cho phép bootstrap.
         public static void EnsureIndicatorDeploymentLifecycle()
         {
             if (!IsBootstrapEnabled())
@@ -73,7 +73,7 @@ namespace HospitalQualityDashboardDemo.Services
             return enabled;
         }
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của khởi tạo cấu trúc cơ sở dữ liệu hay không.
+        // Kiểm tra schema hệ thống đã sẵn sàng để quyết định có cần chạy script khởi tạo hay không.
         private static bool IsCreateDatabaseEnabled()
         {
             var enabled = string.Equals(
@@ -83,7 +83,7 @@ namespace HospitalQualityDashboardDemo.Services
             return enabled;
         }
 
-        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý khởi tạo cấu trúc cơ sở dữ liệu.
+        // Tạo database ứng dụng khi cấu hình cho phép, phục vụ môi trường demo hoặc máy mới dựng.
         private static void EnsureDatabaseExists(SqlConnectionStringBuilder databaseConnection, string databaseName)
         {
             var masterConnection = new SqlConnectionStringBuilder(databaseConnection.ConnectionString)
@@ -120,7 +120,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Thực thi quy trình xử lý của khởi tạo cấu trúc cơ sở dữ liệu.
+        // Chạy script nền tảng trước, sau đó áp dụng các migration bổ sung nếu file có trong thư mục SQL.
         private static void RunSchemaScripts(string connectionString, string scriptDirectory)
         {
             using (var connection = new SqlConnection(connectionString))
@@ -134,6 +134,7 @@ namespace HospitalQualityDashboardDemo.Services
                 }
 
                 RunOptionalScript(connection, scriptDirectory, "002_PerformanceIndexes.sql");
+                RunOptionalScript(connection, scriptDirectory, "003_AddExportHistory.sql");
                 RunOptionalScript(connection, scriptDirectory, "004_AddIndicatorWarning.sql");
                 RunOptionalScript(connection, scriptDirectory, "005_AddIndicatorDeploymentHistory.sql");
             }
@@ -163,7 +164,7 @@ END";
             }
         }
 
-        // Thực thi quy trình xử lý của khởi tạo cấu trúc cơ sở dữ liệu.
+        // Chạy script SQL bắt buộc và bọc lỗi bằng tên file để dễ xác định migration hỏng.
         private static void RunScript(SqlConnection connection, string scriptDirectory, string fileName)
         {
             var scriptPath = Path.Combine(scriptDirectory, fileName);
@@ -186,7 +187,7 @@ END";
             }
         }
 
-        // Thực thi quy trình xử lý của khởi tạo cấu trúc cơ sở dữ liệu.
+        // Bỏ qua migration tùy chọn khi file chưa tồn tại, giúp demo cũ vẫn khởi động được.
         private static void RunOptionalScript(SqlConnection connection, string scriptDirectory, string fileName)
         {
             var scriptPath = Path.Combine(scriptDirectory, fileName);
@@ -198,7 +199,7 @@ END";
             RunScript(connection, scriptDirectory, fileName);
         }
 
-        // Tách nội dung đầu vào thành các phần tử độc lập để xử lý.
+        // Tách script theo lệnh GO của SQL Server để thực thi đúng từng batch.
         private static IEnumerable<string> SplitSqlBatches(string script)
         {
             var batch = new StringBuilder();
@@ -228,7 +229,7 @@ END";
             }
         }
 
-        // Thực thi quy trình xử lý của khởi tạo cấu trúc cơ sở dữ liệu.
+        // Thực thi câu lệnh ghi dữ liệu có tham số, dùng chung cho các cập nhật nhỏ trong service.
         private static void ExecuteNonQuery(SqlConnection connection, string sql)
         {
             if (string.IsNullOrWhiteSpace(sql))
@@ -243,7 +244,7 @@ END";
             }
         }
 
-        // Thoát và bao giá trị để tạo đầu ra an toàn, đúng định dạng.
+        // Quote tên database an toàn trước khi ghép vào câu CREATE DATABASE.
         private static string QuoteIdentifier(string identifier)
         {
             if (string.IsNullOrWhiteSpace(identifier) || identifier.IndexOf('\0') >= 0)

@@ -4,12 +4,14 @@ $ErrorActionPreference = 'Stop'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $adminReportIndexPath = Join-Path $root 'Areas\Admin\Views\Report\Index.cshtml'
 $userReportIndexPath = Join-Path $root 'Areas\User\Views\Report\Index.cshtml'
+$userReportNhapPath = Join-Path $root 'Areas\User\Views\Report\Nhap.cshtml'
 
 $reportService = Get-ServiceSource -Root $root -Patterns @('Services\Reports\IndicatorCalculationService.cs', 'Services\Reports\ReportService.cs')
 $dashboardExport = Get-ServiceSource -Root $root -Patterns 'Services\Dashboards\Export\DashboardExcelExportService*.cs'
 $notificationExport = Get-ServiceSource -Root $root -Patterns @('Services\Notifications\Notification*.cs', 'Services\Exports\ExportService.cs')
 $adminReportIndex = Get-Content -Raw -Path $adminReportIndexPath
 $userReportIndex = Get-Content -Raw -Path $userReportIndexPath
+$userReportNhap = Get-Content -Raw -Path $userReportNhapPath
 
 if ($reportService -notmatch 'MidpointRounding\.AwayFromZero') {
     throw 'Report result must round to 2 decimal places with explicit midpoint behavior.'
@@ -67,9 +69,13 @@ if ($notificationExport -notmatch 'ToString\("0\.##"') {
     throw 'Report Excel exports must format KetQua with at most 2 decimal places.'
 }
 
-foreach ($view in @($adminReportIndex, $userReportIndex)) {
-    if ($view -notmatch 'ToString\("0\.##"\)') {
-        throw 'Report index views must display KetQua with at most 2 decimal places.'
+if ($adminReportIndex -notmatch 'ToString\("0\.##"\)') {
+    throw 'Admin report index view must display KetQua with at most 2 decimal places.'
+}
+
+foreach ($view in @($userReportIndex, $userReportNhap)) {
+    if ($view -notmatch 'ToString\("0\.00"\)') {
+        throw 'User report views must display KetQua with exactly 2 decimal places.'
     }
 }
 

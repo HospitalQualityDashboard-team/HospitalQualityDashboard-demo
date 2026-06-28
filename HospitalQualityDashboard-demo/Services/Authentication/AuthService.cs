@@ -26,13 +26,13 @@ namespace HospitalQualityDashboardDemo.Services
         private const int LockoutMinutes = 15;
         private readonly string _connectionString;
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho xác thực và hồ sơ người dùng.
+        // Khởi tạo xác thực và hồ sơ người dùng với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public AuthService()
             : this(DatabaseConfiguration.GetConnectionString())
         {
         }
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho xác thực và hồ sơ người dùng.
+        // Khởi tạo xác thực và hồ sơ người dùng với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public AuthService(string connectionString)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -94,7 +94,7 @@ WHERE tk.TenDangNhap = @TenDangNhap";
             }
         }
 
-        // Truy vấn xác thực và hồ sơ người dùng theo điều kiện được cung cấp.
+        // Nạp lại ngữ cảnh tài khoản từ database để session phản ánh khóa tài khoản, role và khoa/phòng mới nhất.
         public AuthenticatedUser GetAuthenticatedUser(int taiKhoanId)
         {
             const string sql = @"
@@ -133,7 +133,7 @@ WHERE tk.TaiKhoanId = @TaiKhoanId";
             }
         }
 
-        // Kiểm tra và cập nhật dữ liệu của xác thực và hồ sơ người dùng.
+        // Ghi thời điểm đăng nhập thành công để phục vụ audit và theo dõi hoạt động tài khoản.
         public void UpdateLastLogin(int taiKhoanId)
         {
             ExecuteNonQuery(
@@ -180,7 +180,7 @@ WHERE TenDangNhap = @TenDangNhap",
             return true;
         }
 
-        // Truy vấn xác thực và hồ sơ người dùng theo điều kiện được cung cấp.
+        // Lấy hồ sơ tài khoản kèm thông tin nhân viên/khoa phòng để hiển thị trang profile.
         public UserProfileViewModel GetUserProfile(int taiKhoanId)
         {
             const string sql = @"
@@ -244,7 +244,7 @@ WHERE tk.TaiKhoanId = @TaiKhoanId";
             }
         }
 
-        // Kiểm tra và cập nhật dữ liệu của xác thực và hồ sơ người dùng.
+        // Cập nhật nhanh hồ sơ người dùng qua DTO, dùng cho luồng profile không đổi thông tin đăng nhập.
         public void UpdateProfile(int taiKhoanId, ProfileUpdateDto dto)
         {
             if (dto == null)
@@ -279,7 +279,7 @@ WHERE NhanVienId = @NhanVienId";
                 new SqlParameter("@NhanVienId", nhanVienId.Value));
         }
 
-        // Truy vấn xác thực và hồ sơ người dùng theo điều kiện được cung cấp.
+        // Lấy nhân viên liên kết với tài khoản trước khi cho phép cập nhật thông tin cá nhân.
         private int? GetNhanVienId(int taiKhoanId)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -292,7 +292,7 @@ WHERE NhanVienId = @NhanVienId";
             }
         }
 
-        // Truy vấn xác thực và hồ sơ người dùng theo điều kiện được cung cấp.
+        // Lấy hash mật khẩu hiện tại để xác minh trước khi đổi mật khẩu.
         private string GetPasswordHash(int taiKhoanId)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -304,7 +304,7 @@ WHERE NhanVienId = @NhanVienId";
             }
         }
 
-        // Thực thi quy trình xử lý của xác thực và hồ sơ người dùng.
+        // Thực thi câu lệnh ghi dữ liệu có tham số, dùng chung cho các cập nhật nhỏ trong service.
         private void ExecuteNonQuery(string sql, params SqlParameter[] parameters)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -316,14 +316,14 @@ WHERE NhanVienId = @NhanVienId";
             }
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho xác thực và hồ sơ người dùng.
+        // Đọc trường có thể null từ SqlDataReader và chuyển về kiểu C# tương ứng để tránh lỗi DBNull.
         private static int? ReadNullableInt(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
             return reader.IsDBNull(ordinal) ? (int?)null : reader.GetInt32(ordinal);
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho xác thực và hồ sơ người dùng.
+        // Đọc trường có thể null từ SqlDataReader và chuyển về kiểu C# tương ứng để tránh lỗi DBNull.
         private static string ReadNullableString(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
@@ -332,28 +332,28 @@ WHERE NhanVienId = @NhanVienId";
 
 
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho xác thực và hồ sơ người dùng.
+        // Đọc trường có thể null từ SqlDataReader và chuyển về kiểu C# tương ứng để tránh lỗi DBNull.
         private static DateTime? ReadNullableDateTime(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
             return reader.IsDBNull(ordinal) ? (DateTime?)null : reader.GetDateTime(ordinal);
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho xác thực và hồ sơ người dùng.
+        // Đọc trường có thể null từ SqlDataReader và chuyển về kiểu C# tương ứng để tránh lỗi DBNull.
         private static bool? ReadNullableBool(SqlDataReader reader, string name)
         {
             var ordinal = reader.GetOrdinal(name);
             return reader.IsDBNull(ordinal) ? (bool?)null : reader.GetBoolean(ordinal);
         }
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của xác thực và hồ sơ người dùng hay không.
+        // Xác định nhân viên liên kết tài khoản có đang bị khóa hay không để chặn đăng nhập gián tiếp.
         private static bool IsEmployeeLocked(SqlDataReader reader)
         {
             var ordinal = reader.GetOrdinal("NhanVienDangHoatDong");
             return !reader.IsDBNull(ordinal) && !reader.GetBoolean(ordinal);
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho xác thực và hồ sơ người dùng.
+        // Chuyển dữ liệu tài khoản, role, khóa tạm và khoa/phòng thành ngữ cảnh đăng nhập dùng trong session.
         private static AuthenticatedUser MapAuthenticatedUser(SqlDataReader reader, bool isTemporarilyLocked)
         {
             return new AuthenticatedUser

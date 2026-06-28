@@ -1,3 +1,4 @@
+// Mục đích: tính kết quả chỉ số và áp dụng ngoại lệ nghiệp vụ giữa tử số, mẫu số, mục tiêu.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -93,19 +94,19 @@ namespace HospitalQualityDashboardDemo.Services
             report.DatMucTieu = CompareTarget(report.KetQua, indicator.ToanTuSoSanh, indicator.GiaTriMucTieu);
         }
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của tính kết quả chỉ số hay không.
+        // Xác định điều kiện nghiệp vụ của tính kết quả chỉ số để controller/service chọn nhánh xử lý an toàn.
         public static bool RequiresNumeratorWithinDenominator(ChiSoViewModel indicator)
         {
             return indicator != null && RequiresNumeratorWithinDenominator(indicator.MaChiSo, indicator.TenChiSo);
         }
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của tính kết quả chỉ số hay không.
+        // Xác định điều kiện nghiệp vụ của tính kết quả chỉ số để controller/service chọn nhánh xử lý an toàn.
         public static bool RequiresNumeratorWithinDenominator(string indicatorCode)
         {
             return RequiresNumeratorWithinDenominator(indicatorCode, null);
         }
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của tính kết quả chỉ số hay không.
+        // Xác định điều kiện nghiệp vụ của tính kết quả chỉ số để controller/service chọn nhánh xử lý an toàn.
         public static bool RequiresNumeratorWithinDenominator(string indicatorCode, string indicatorName)
         {
             var normalizedCode = NormalizeIndicatorCode(indicatorCode);
@@ -120,7 +121,7 @@ namespace HospitalQualityDashboardDemo.Services
                 NumeratorWithinDenominatorIndicatorNameTokens.Any(normalizedName.Contains);
         }
 
-        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý tính kết quả chỉ số.
+        // Với chỉ số tỷ lệ thông thường, tử số không được vượt mẫu số để tránh kết quả nghiệp vụ vô lý.
         private static void EnsureNumeratorWithinDenominator(decimal? numerator, decimal? denominator, ChiSoViewModel indicator)
         {
             if (!RequiresNumeratorWithinDenominator(indicator) || !numerator.HasValue || !denominator.HasValue)
@@ -134,7 +135,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho tính kết quả chỉ số.
+        // Chuẩn hóa dữ liệu tính kết quả chỉ số trước khi so sánh, lọc hoặc lưu để giảm lỗi do khoảng trắng/định dạng.
         private static string NormalizeIndicatorCode(string indicatorCode)
         {
             if (string.IsNullOrWhiteSpace(indicatorCode))
@@ -155,7 +156,7 @@ namespace HospitalQualityDashboardDemo.Services
             return trimmed;
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho tính kết quả chỉ số.
+        // Chuẩn hóa dữ liệu tính kết quả chỉ số trước khi so sánh, lọc hoặc lưu để giảm lỗi do khoảng trắng/định dạng.
         private static string NormalizeText(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -189,7 +190,7 @@ namespace HospitalQualityDashboardDemo.Services
             return text;
         }
 
-        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý tính kết quả chỉ số.
+        // Mẫu số bắt buộc phải có và khác 0 trước khi tính tỷ lệ hoặc trung bình.
         private static void EnsureDenominator(decimal? denominator)
         {
             if (!denominator.HasValue || denominator.Value == 0)

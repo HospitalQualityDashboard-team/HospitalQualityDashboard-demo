@@ -1,3 +1,4 @@
+// Mục đích: dựng workbook Excel dashboard với sheet tổng quan, chi tiết và so sánh.
 using ClosedXML.Excel;
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
@@ -54,7 +55,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
+        // Tạo sheet tổng quan dashboard với các chỉ số chính để người đọc nắm tình hình nhanh.
         private void AddSummarySheet(
             XLWorkbook workbook,
             DashboardExcelExportQueryDto query,
@@ -86,7 +87,7 @@ namespace HospitalQualityDashboardDemo.Services
             });
         }
 
-        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
+        // Tạo sheet chi tiết báo cáo theo bộ lọc, phục vụ kiểm tra từng chỉ số/khoa phòng.
         private void AddDetailSheet(XLWorkbook workbook, string sheetName, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, IList<DashboardExcelDetailRow> rows)
         {
             var worksheet = workbook.Worksheets.Add(sheetName);
@@ -114,7 +115,7 @@ namespace HospitalQualityDashboardDemo.Services
             }, ApplyDetailRowStyle);
         }
 
-        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
+        // Tạo sheet tiến độ theo khoa/phòng để so sánh trách nhiệm nộp báo cáo giữa các đơn vị.
         private void AddDepartmentSheet(XLWorkbook workbook, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, IList<DashboardDepartmentSummaryRow> rows)
         {
             var worksheet = workbook.Worksheets.Add("TheoKhoaPhong");
@@ -133,7 +134,7 @@ namespace HospitalQualityDashboardDemo.Services
             });
         }
 
-        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
+        // Tạo sheet báo cáo còn thiếu/quá hạn để Admin xử lý nhắc việc sau khi xuất file.
         private void AddMissingSheet(XLWorkbook workbook, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, IList<DashboardMissingIndicatorRow> rows)
         {
             var worksheet = workbook.Worksheets.Add("ChiSoChuaNhap");
@@ -151,13 +152,13 @@ namespace HospitalQualityDashboardDemo.Services
             }, ApplyMissingRowStyle);
         }
 
-        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
+        // Tạo sheet chỉ số chưa đạt mục tiêu để hỗ trợ rà soát chất lượng bệnh viện.
         private void AddFailedSheet(XLWorkbook workbook, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, IList<DashboardExcelDetailRow> rows)
         {
             AddDetailSheet(workbook, "ChiSoChuaDat", query, userContext, rows);
         }
 
-        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
+        // Tạo sheet lịch sử duyệt/trả lại để theo dõi quyết định của Admin trên từng báo cáo.
         private void AddReviewHistorySheet(XLWorkbook workbook, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, IList<DashboardReviewHistoryRow> rows)
         {
             var worksheet = workbook.Worksheets.Add("LichSuDuyet");
@@ -176,7 +177,7 @@ namespace HospitalQualityDashboardDemo.Services
             });
         }
 
-        // Bổ sung dữ liệu mới phục vụ workbook Dashboard và lịch sử xuất.
+        // Ghi metadata bộ lọc và thời điểm xuất để file Excel có ngữ cảnh kiểm toán.
         private int AddMetadata(IXLWorksheet worksheet, DashboardExcelExportQueryDto query, ExportUserContextDto userContext, string reportTitle)
         {
             worksheet.Cell(1, 1).Value = HospitalName;
@@ -248,7 +249,7 @@ namespace HospitalQualityDashboardDemo.Services
             worksheet.Columns().AdjustToContents();
         }
 
-        // Kiểm tra và cập nhật dữ liệu của workbook Dashboard và lịch sử xuất.
+        // Ghi giá trị vào cell Excel và chọn kiểu dữ liệu phù hợp để file mở đúng định dạng.
         private static void SetCellValue(IXLCell cell, object value)
         {
             if (value == null)
@@ -304,7 +305,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Áp dụng định dạng hoặc quy tắc trình bày cho workbook Dashboard và lịch sử xuất.
+        // Tô màu dòng chi tiết theo kết quả đạt mục tiêu để người đọc nhận ra điểm tốt/xấu ngay trong Excel.
         private static void ApplyDetailRowStyle(IXLRow row, DashboardExcelDetailRow item)
         {
             if (item.DatMucTieu == true)
@@ -325,7 +326,7 @@ namespace HospitalQualityDashboardDemo.Services
             }
         }
 
-        // Áp dụng định dạng hoặc quy tắc trình bày cho workbook Dashboard và lịch sử xuất.
+        // Tô màu chỉ số chưa nhập, nhấn mạnh trường hợp quá hạn bằng màu cảnh báo mạnh hơn.
         private static void ApplyMissingRowStyle(IXLRow row, DashboardMissingIndicatorRow item)
         {
             row.Style.Fill.BackgroundColor = item.TrangThai.Contains("Quá hạn")
@@ -335,7 +336,7 @@ namespace HospitalQualityDashboardDemo.Services
 
         private class ExcelColumn<T>
         {
-            // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của ExcelColumn.
+            // Mô tả một cột Excel bằng tiêu đề và cách lấy giá trị từ dòng dữ liệu nguồn.
             public ExcelColumn(string header, Func<T, object> value)
             {
                 Header = header;
@@ -348,7 +349,7 @@ namespace HospitalQualityDashboardDemo.Services
 
         private class SummaryMetricRow
         {
-            // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của SummaryMetricRow.
+            // Lưu một dòng chỉ tiêu tổng quan để ghi nhanh vào sheet tóm tắt xuất Excel.
             public SummaryMetricRow(string label, object value)
             {
                 Label = label;
@@ -359,6 +360,5 @@ namespace HospitalQualityDashboardDemo.Services
             public object Value { get; private set; }
         }
 
-        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý workbook Dashboard và lịch sử xuất.
     }
 }

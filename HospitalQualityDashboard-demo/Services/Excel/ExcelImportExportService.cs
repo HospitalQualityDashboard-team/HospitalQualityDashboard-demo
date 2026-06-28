@@ -1,3 +1,4 @@
+// Mục đích: điều phối import/export Excel cho danh mục chỉ số và dữ liệu mẫu.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -22,7 +23,7 @@ namespace HospitalQualityDashboardDemo.Services
         private const int MaxSharedStrings = 50000;
         private const int MaxZipExpansionRatio = 100;
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
+        // Đọc worksheet Excel upload thành các dòng dữ liệu thô trước khi service kiểm tra nghiệp vụ.
         public IList<IDictionary<string, string>> ReadWorksheet(HttpPostedFileBase file)
         {
             if (file == null || file.ContentLength == 0)
@@ -46,7 +47,7 @@ namespace HospitalQualityDashboardDemo.Services
             return ReadXlsx(file.InputStream);
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
+        // Đọc bảng chỉ số từ file Word để hỗ trợ import danh mục chỉ số từ tài liệu nghiệp vụ.
         public IList<IDictionary<string, string>> ReadIndicatorDocxTables(HttpPostedFileBase file)
         {
             if (file == null || file.ContentLength == 0)
@@ -65,7 +66,7 @@ namespace HospitalQualityDashboardDemo.Services
             return ReadIndicatorDocxTables(file.InputStream);
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
+        // Tạo nội dung CSV từ dữ liệu đã chọn cột, đồng thời trung hòa công thức để tránh CSV injection.
         public byte[] CreateCsv<T>(IEnumerable<T> items, IList<KeyValuePair<string, Func<T, object>>> columns)
         {
             var builder = new StringBuilder();
@@ -79,7 +80,7 @@ namespace HospitalQualityDashboardDemo.Services
             return Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(builder.ToString())).ToArray();
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
+        // Tạo workbook một sheet từ dữ liệu bảng đơn giản, dùng cho các màn hình export không cần nhiều tab.
         public byte[] CreateXlsx<T>(IEnumerable<T> items, IList<KeyValuePair<string, Func<T, object>>> columns)
         {
             return CreateXlsxWorkbook(new List<ExcelWorksheetExport>
@@ -88,7 +89,7 @@ namespace HospitalQualityDashboardDemo.Services
             });
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
+        // Tạo workbook XLSX tối giản từ các sheet đã chuẩn bị, dùng khi không cần template phức tạp.
         public byte[] CreateXlsxWorkbook(IList<ExcelWorksheetExport> worksheets)
         {
             worksheets = NormalizeWorksheets(worksheets);
@@ -114,7 +115,5 @@ namespace HospitalQualityDashboardDemo.Services
                 return stream.ToArray();
             }
         }
-
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho nhập và xuất dữ liệu Excel.
     }
 }

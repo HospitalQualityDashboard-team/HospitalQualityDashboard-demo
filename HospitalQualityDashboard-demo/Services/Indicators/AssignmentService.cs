@@ -1,3 +1,4 @@
+// Mục đích: điều phối nghiệp vụ phân công chỉ số chất lượng cho khoa/phòng phụ trách.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;

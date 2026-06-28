@@ -1,4 +1,4 @@
-// M?c d�ch: c?u h�nh filter to�n c?c cho pipeline MVC.
+// Mục đích: cấu hình filter toàn cục cho pipeline MVC.
 using System.Web.Mvc;
 
 namespace HospitalQualityDashboardDemo

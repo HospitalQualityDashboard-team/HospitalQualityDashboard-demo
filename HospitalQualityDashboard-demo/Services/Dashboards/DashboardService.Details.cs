@@ -1,3 +1,4 @@
+// Mục đích: truy vấn dữ liệu chi tiết phục vụ drill-down từ các chỉ số trên dashboard.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -15,6 +16,16 @@ namespace HospitalQualityDashboardDemo.Services
     {
         private IList<DashboardMetricDetailViewModel> GetAdminMetricDetails(int? tanSuatFilter)
         {
+            return GetMetricDetails(null, tanSuatFilter);
+        }
+
+        private IList<DashboardMetricDetailViewModel> GetUserMetricDetails(int departmentId, int? tanSuatFilter)
+        {
+            return GetMetricDetails(departmentId, tanSuatFilter);
+        }
+
+        private IList<DashboardMetricDetailViewModel> GetMetricDetails(int? departmentId, int? tanSuatFilter)
+        {
             const string sql = @"
 WITH ExpectedSlots AS
 (
@@ -31,6 +42,7 @@ WITH ExpectedSlots AS
        AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
     WHERE ky.TrangThai <> @DraftPeriodStatus
       AND (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
+      AND (@KhoaPhongId IS NULL OR pc.KhoaPhongId = @KhoaPhongId)
       AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 )
 SELECT es.KyBaoCaoId, es.KhoaPhongId, es.ChiSoChatLuongId,
@@ -91,6 +103,7 @@ ORDER BY es.HanNop, es.TenKhoaPhong, es.MaChiSo";
                     HasWarningToday = Int(reader, "HasWarningToday") == 1
                 };
             },
+                Param("@KhoaPhongId", departmentId),
                 Param("@TanSuat", tanSuatFilter),
                 Param("@Today", GetVietnamLocalNow().Date),
                 Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap),

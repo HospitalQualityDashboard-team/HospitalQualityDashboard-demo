@@ -200,14 +200,17 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int? FilterKhoaPhongId { get; set; }
         public int? FilterChiSoId { get; set; }
         public string FilterTrangThai { get; set; }
-        public string FilterTrangThaiPhanCong { get; set; } // "all"/"assigned"/"unassigned"
+        // Lọc trạng thái phân công theo tất cả, đã phân công hoặc chưa phân công.
+        public string FilterTrangThaiPhanCong { get; set; }
         public string Search { get; set; }
-        public string ViewMode { get; set; } // "table" | "byDepartment" | "byIndicator"
+        // Chọn cách hiển thị danh sách theo bảng, theo khoa/phòng hoặc theo chỉ số.
+        public string ViewMode { get; set; }
         // Phân trang
         public int CurrentPage { get; set; }
         public int TotalPages { get; set; }
         public int TotalItems { get; set; }
-        public int PageSize { get; set; } // = 20
+        // Số dòng mỗi trang mặc định cho màn hình phân công chỉ số.
+        public int PageSize { get; set; }
         // Thống kê
         public int TongChiSo { get; set; }
         public int SoChiSoDaPhanCong { get; set; }
@@ -264,7 +267,8 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public string TanSuatBaoCaoText { get; set; }
         public string LoaiCongThucText { get; set; }
         public int SoKhoaPhong { get; set; }
-        public bool ChuaPhanCong { get; set; }  // true nếu chưa có khoa/phòng nào
+        // Đánh dấu chỉ số chưa được giao cho bất kỳ khoa/phòng nào.
+        public bool ChuaPhanCong { get; set; }
         public IList<AssignmentItemViewModel> Items { get; set; }
     }
 
@@ -277,7 +281,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int NewCount => Total - ExistingCount;
         public IList<AssignmentPreviewItem> Items => _items;
 
-        // Bổ sung dữ liệu mới phục vụ dữ liệu nội bộ của PreviewAssignmentResultViewModel.
+        // Thêm một dòng xem trước phân công và tự cập nhật các bộ đếm tổng/đã có/mới.
         public void Add(AssignmentPreviewItem item)
         {
             _items.Add(item);
@@ -352,7 +356,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public IList<ReportingPeriodSchedulePreviewItemViewModel> PreviewItems { get; set; }
         public ReportingPeriodScheduleResultViewModel Result { get; set; }
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của ReportingPeriodScheduleRequestViewModel.
+        // Khởi tạo view model với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public ReportingPeriodScheduleRequestViewModel()
         {
             Year = DateTime.Today.Year;
@@ -775,7 +779,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         // Danh sách lỗi chi tiết theo dòng.
         public IList<string> Errors { get; set; }
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu nội bộ của ImportResultViewModel.
+        // Khởi tạo view model với giá trị mặc định để các luồng xử lý phía sau không gặp trạng thái null ngoài ý muốn.
         public ImportResultViewModel()
         {
             // Khởi tạo sẵn để view/service có thể thêm lỗi trực tiếp.

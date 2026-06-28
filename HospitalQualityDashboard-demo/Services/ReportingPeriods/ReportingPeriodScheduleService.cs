@@ -1,3 +1,4 @@
+// Mục đích: sinh lịch kỳ báo cáo theo tần suất và mở kỳ phù hợp với phân công chỉ số.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -22,7 +23,7 @@ namespace HospitalQualityDashboardDemo.Services
             TanSuatBaoCao.HangNam
         };
 
-        // Tạo cấu trúc dữ liệu phục vụ lịch kỳ báo cáo.
+        // Xử lý chức năng lịch kỳ báo cáo của method CreateDefaultRequest, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         public ReportingPeriodScheduleRequestViewModel CreateDefaultRequest()
         {
             return PopulateOptions(new ReportingPeriodScheduleRequestViewModel());
@@ -60,7 +61,7 @@ namespace HospitalQualityDashboardDemo.Services
             return model;
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ lịch kỳ báo cáo.
+        // Dựng cấu trúc dữ liệu lịch kỳ báo cáo từ input đã lọc để tái sử dụng cho truy vấn, view hoặc xuất file.
         public IList<ReportingPeriodSchedulePreviewItemViewModel> BuildSchedulePreview(ReportingPeriodScheduleRequestViewModel request, DateTime now)
         {
             ValidateScheduleRequest(request);
@@ -161,7 +162,7 @@ namespace HospitalQualityDashboardDemo.Services
             return result;
         }
 
-        // Mở các bản ghi đủ điều kiện trong lịch kỳ báo cáo.
+        // Mở các kỳ báo cáo đến hạn theo lịch để khoa/phòng bắt đầu nhập số liệu.
         public int OpenDuePeriods(DateTime now)
         {
             const string sql = @"
@@ -181,7 +182,7 @@ WHERE TrangThai=@Nhap AND TuNgay <= @Today";
             return openedCount;
         }
 
-        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý lịch kỳ báo cáo.
+        // Kiểm tra cấu hình sinh kỳ báo cáo để tránh tạo lịch thiếu tần suất, sai ngày hoặc không có khoa/phòng.
         private static void ValidateScheduleRequest(ReportingPeriodScheduleRequestViewModel request)
         {
             if (request == null)
@@ -205,7 +206,7 @@ WHERE TrangThai=@Nhap AND TuNgay <= @Today";
             }
         }
 
-        // Truy vấn lịch kỳ báo cáo theo điều kiện được cung cấp.
+        // Xử lý chức năng lịch kỳ báo cáo của method GetSelectedFrequencies, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private static IList<TanSuatBaoCao> GetSelectedFrequencies(ReportingPeriodScheduleRequestViewModel request)
         {
             if (request.SelectedFrequencyValues == null)
@@ -222,7 +223,7 @@ WHERE TrangThai=@Nhap AND TuNgay <= @Today";
                 .ToList();
         }
 
-        // Bổ sung dữ liệu mới phục vụ lịch kỳ báo cáo.
+        // Xử lý chức năng lịch kỳ báo cáo của method AddPeriod, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private static void AddPeriod(
             IList<ReportingPeriodSchedulePreviewItemViewModel> items,
             string name,
@@ -263,7 +264,7 @@ WHERE LoaiKyBaoCao=@LoaiKyBaoCao AND TuNgay=@TuNgay AND DenNgay=@DenNgay";
                 Param("@DenNgay", end.Date))) > 0;
         }
 
-        // Bổ sung dữ liệu mới phục vụ lịch kỳ báo cáo.
+        // Xử lý chức năng lịch kỳ báo cáo của method InsertPeriod, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private void InsertPeriod(ReportingPeriodSchedulePreviewItemViewModel item)
         {
             Execute(@"INSERT INTO dbo.KyBaoCao(TenKyBaoCao, LoaiKyBaoCao, TuNgay, DenNgay, HanNop, TrangThai)
@@ -276,7 +277,7 @@ VALUES(@TenKyBaoCao, @LoaiKyBaoCao, @TuNgay, @DenNgay, @HanNop, @TrangThai)",
                 Param("@TrangThai", (byte)item.TrangThai));
         }
 
-        // Truy vấn lịch kỳ báo cáo theo điều kiện được cung cấp.
+        // Xử lý chức năng lịch kỳ báo cáo của method GetFrequencyOrder, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private static int GetFrequencyOrder(TanSuatBaoCao frequency)
         {
             switch (frequency)

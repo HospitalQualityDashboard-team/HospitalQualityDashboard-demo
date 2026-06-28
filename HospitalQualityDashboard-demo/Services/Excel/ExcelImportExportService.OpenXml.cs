@@ -1,3 +1,4 @@
+// Mục đích: đọc ghi workbook Excel bằng OpenXml, giữ định dạng và kiểu dữ liệu cần thiết.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -41,7 +42,7 @@ namespace HospitalQualityDashboardDemo.Services
             return worksheets;
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
+        // Tạo file [Content_Types].xml để Excel nhận diện workbook và toàn bộ worksheet bên trong gói XLSX.
         private static string BuildContentTypesXml(int sheetCount)
         {
             var builder = new StringBuilder();
@@ -61,7 +62,7 @@ namespace HospitalQualityDashboardDemo.Services
             return builder.ToString();
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
+        // Tạo xl/workbook.xml, khai báo tên sheet và liên kết rId tương ứng cho từng worksheet.
         private static string BuildWorkbookXml(IList<ExcelWorksheetExport> worksheets)
         {
             var builder = new StringBuilder();
@@ -80,7 +81,7 @@ namespace HospitalQualityDashboardDemo.Services
             return builder.ToString();
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ nhập và xuất dữ liệu Excel.
+        // Tạo quan hệ giữa workbook và các worksheet để Excel mở đúng từng sheet trong file.
         private static string BuildWorkbookRelationshipsXml(int sheetCount)
         {
             var builder = new StringBuilder();
@@ -97,7 +98,7 @@ namespace HospitalQualityDashboardDemo.Services
             return builder.ToString();
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho nhập và xuất dữ liệu Excel.
+        // Làm sạch tên sheet Excel để tránh ký tự cấm và giới hạn độ dài của định dạng XLSX.
         private static string SanitizeWorksheetName(string name, int fallbackIndex)
         {
             var value = string.IsNullOrWhiteSpace(name) ? "Sheet" + fallbackIndex.ToString(CultureInfo.InvariantCulture) : name.Trim();
@@ -116,13 +117,13 @@ namespace HospitalQualityDashboardDemo.Services
             return value.Length > 31 ? value.Substring(0, 31) : value;
         }
 
-        // Thoát và bao giá trị để tạo đầu ra an toàn, đúng định dạng.
+        // Escape giá trị đưa vào XML attribute để workbook sinh ra vẫn parse hợp lệ.
         private static string EscapeXmlAttribute(string value)
         {
             return SecurityElement.Escape(SanitizeXmlText(value)) ?? string.Empty;
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho nhập và xuất dữ liệu Excel.
+        // Thêm chuỗi vào shared string table và trả index để cell Excel tham chiếu lại.
         private static void AddTextEntry(ZipArchive archive, string name, string content)
         {
             var entry = archive.CreateEntry(name);
@@ -197,7 +198,7 @@ namespace HospitalQualityDashboardDemo.Services
             writer.WriteEndElement();
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho nhập và xuất dữ liệu Excel.
+        // Loại ký tự XML không hợp lệ trước khi ghi workbook, tránh làm hỏng file Excel xuất ra.
         private static string SanitizeXmlText(string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -214,7 +215,7 @@ namespace HospitalQualityDashboardDemo.Services
             return builder.ToString();
         }
 
-        // Truy vấn nhập và xuất dữ liệu Excel theo điều kiện được cung cấp.
+        // Chuyển số thứ tự cột thành tên cột Excel như A, B, AA để ghi địa chỉ cell đúng chuẩn.
         private static string GetExcelColumnName(int columnNumber)
         {
             var builder = new StringBuilder();
@@ -228,7 +229,7 @@ namespace HospitalQualityDashboardDemo.Services
             return builder.ToString();
         }
 
-        // Truy vấn nhập và xuất dữ liệu Excel theo điều kiện được cung cấp.
+        // Chuyển số thứ tự cột thành tên cột Excel như A, B, AA để ghi địa chỉ cell đúng chuẩn.
         private static string GetColumnName(string cellReference)
         {
             return new string(cellReference.TakeWhile(char.IsLetter).ToArray());

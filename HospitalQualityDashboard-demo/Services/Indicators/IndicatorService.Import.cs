@@ -1,3 +1,4 @@
+// Mục đích: nhập danh mục chỉ số từ Excel và ghi nhận lỗi nghiệp vụ khi import.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -94,7 +95,7 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
             return result;
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho danh mục chỉ số chất lượng.
+        // Xử lý chức năng chỉ số chất lượng của method ReadIndicatorImportRows, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private IList<IDictionary<string, string>> ReadIndicatorImportRows(HttpPostedFileBase file)
         {
             if (file == null || file.ContentLength == 0)
@@ -108,7 +109,7 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
                 : _excel.ReadWorksheet(file);
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ danh mục chỉ số chất lượng.
+        // Dựng cấu trúc dữ liệu chỉ số chất lượng từ input đã lọc để tái sử dụng cho truy vấn, view hoặc xuất file.
         private ChiSoViewModel BuildIndicatorFromRow(IDictionary<string, string> row)
         {
             var model = new ChiSoViewModel
@@ -166,7 +167,7 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
             return model;
         }
 
-        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
+        // Xử lý chức năng chỉ số chất lượng của method SaveImportedIndicator, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private void SaveImportedIndicator(SqlConnection connection, SqlTransaction transaction, ChiSoViewModel model, IList<int> departmentIds, int userId)
         {
             var existingId = FindIndicatorId(connection, transaction, model.MaChiSo, model.TenChiSo);

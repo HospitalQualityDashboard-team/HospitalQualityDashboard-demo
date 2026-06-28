@@ -1,3 +1,4 @@
+// Mục đích: phân tích dữ liệu thô từ tài liệu/Excel thành trường chỉ số có cấu trúc.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -16,7 +17,7 @@ namespace HospitalQualityDashboardDemo.Services
 {
     public partial class IndicatorService
     {
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Xử lý chức năng chỉ số chất lượng của method GetTargetText, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private static string GetTargetText(IDictionary<string, string> row)
         {
             var explicitValue = GetValue(row, "MucTieuDatDuoc", "MUCTIEUDATDUOC", "Muc tieu dat duoc", "Mục tiêu đạt được");
@@ -37,7 +38,7 @@ namespace HospitalQualityDashboardDemo.Services
             return null;
         }
 
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Xử lý chức năng chỉ số chất lượng của method GetTargetYear, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private static int? GetTargetYear(IDictionary<string, string> row)
         {
             foreach (var item in row)
@@ -53,7 +54,7 @@ namespace HospitalQualityDashboardDemo.Services
             return null;
         }
 
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Xử lý chức năng chỉ số chất lượng của method GetValue, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private static string GetValue(IDictionary<string, string> row, params string[] names)
         {
             string value;
@@ -127,7 +128,7 @@ namespace HospitalQualityDashboardDemo.Services
             return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho danh mục chỉ số chất lượng.
+        // Chuẩn hóa dữ liệu chỉ số chất lượng trước khi so sánh, lọc hoặc lưu để giảm lỗi do khoảng trắng/định dạng.
         internal static string NormalizeKey(string value)
         {
             if (string.IsNullOrWhiteSpace(value))

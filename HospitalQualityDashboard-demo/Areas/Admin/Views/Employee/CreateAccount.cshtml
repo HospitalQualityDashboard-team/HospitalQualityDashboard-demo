@@ -1,4 +1,4 @@
-﻿@* Mục đích: form tạo tài khoản đăng nhập cho nhân viên. *@
+@* Mục đích: form tạo tài khoản đăng nhập cho nhân viên. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.CreateUserAccountViewModel
 @{
     @* Tiêu đề màn hình tạo tài khoản cho nhân viên. *@
@@ -9,7 +9,6 @@
 <div class="app-responsive-page auth-page employee-account-page">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
-            <!-- Nút quay lại danh sách -->
             @* Nút quay lại danh sách nhân viên. *@
             <div class="mb-4">
                 <a href="@Url.Action("Index")" class="text-decoration-none text-muted d-inline-flex align-items-center fw-medium hover-translate">
@@ -20,7 +19,6 @@
                 </a>
             </div>
 
-            <!-- Card chính -->
             @* Card chính chứa thông tin nhân viên và form tài khoản. *@
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
                 <div class="card-header bg-dark text-white py-4 px-4 border-0">
@@ -36,7 +34,6 @@
                         @Html.HiddenFor(m => m.NhanVienId)
                         @Html.HiddenFor(m => m.HoTen)
 
-                        <!-- Model-level Errors (e.g. trùng tên đăng nhập, nhân viên đã có tài khoản) -->
                         @* Hiển thị lỗi chung của form như trùng tài khoản hoặc nhân viên đã có tài khoản. *@
                         if (!ViewData.ModelState.IsValid && ViewData.ModelState.ContainsKey(string.Empty) && ViewData.ModelState[string.Empty].Errors.Count > 0)
                         {
@@ -50,7 +47,6 @@
                             </div>
                         }
 
-                        <!-- Tên đăng nhập -->
                         @* Trường tên đăng nhập của tài khoản mới. *@
                         <div class="mb-4">
                             @Html.LabelFor(m => m.TenDangNhap, new { @class = "form-label fw-semibold text-secondary small text-uppercase tracking-wider" })
@@ -65,7 +61,6 @@
                             @Html.ValidationMessageFor(m => m.TenDangNhap, "", new { @class = "text-danger small mt-1 d-block fw-medium" })
                         </div>
 
-                        <!-- Mật khẩu -->
                         @* Trường mật khẩu, sẽ được hash ở service trước khi lưu. *@
                         <div class="mb-4">
                             @Html.LabelFor(m => m.MatKhau, new { @class = "form-label fw-semibold text-secondary small text-uppercase tracking-wider" })
@@ -80,7 +75,6 @@
                             @Html.ValidationMessageFor(m => m.MatKhau, "", new { @class = "text-danger small mt-1 d-block fw-medium" })
                         </div>
 
-                        <!-- Nút hành động -->
                         @* Nút submit tạo tài khoản. *@
                         <div class="d-grid gap-2 mt-4 pt-2">
                             <button type="submit" class="btn btn-primary btn-lg rounded-3 fw-bold py-2 shadow border-0 btn-hover-scale bg-gradient">
@@ -99,7 +93,7 @@
 
 @* Style riêng cho màn hình tạo tài khoản. *@
 <style>
-    /* Hieu ung nhe cho nut tao tai khoan. */
+    /* Hiệu ứng nhẹ cho nút tạo tài khoản. */
     .btn-hover-scale {
         transition: all 0.2s ease-in-out;
     }
@@ -107,7 +101,7 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
     }
-    /* Hieu ung cho link quay lai. */
+    /* Hiệu ứng cho link quay lại. */
     .hover-translate {
         transition: transform 0.2s ease;
     }
@@ -115,14 +109,14 @@
         transform: translateX(-3px);
         color: #212529 !important;
     }
-    /* Hieu ung cho card chinh. */
+    /* Hiệu ứng cho card chính. */
     .card {
         transition: all 0.3s ease;
     }
     .card:hover {
         box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
     }
-    /* Giu focus input gon, khong bi bong do Bootstrap mac dinh. */
+    /* Giữ focus input gọn, không dùng bóng mặc định của Bootstrap. */
     .form-control:focus {
         border-color: #86b7fe;
         box-shadow: none;

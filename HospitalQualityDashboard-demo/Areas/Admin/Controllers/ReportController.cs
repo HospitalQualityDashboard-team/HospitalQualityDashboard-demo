@@ -93,13 +93,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // Truy vấn báo cáo định kỳ theo điều kiện được cung cấp.
+        // Lấy các kỳ báo cáo đang mở và còn phù hợp với phạm vi khoa/phòng của người xem hiện tại.
         private IList<KyBaoCaoViewModel> GetActivePeriods()
         {
             return _periods.GetAll().Where(p => p.TrangThai == TrangThaiKyBaoCao.Mo).ToList();
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho báo cáo định kỳ.
+        // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;

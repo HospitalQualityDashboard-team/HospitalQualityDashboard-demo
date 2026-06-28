@@ -1,3 +1,4 @@
+// Mục đích: khởi tạo ứng dụng MVC và đăng ký cấu hình toàn cục khi website bắt đầu chạy.
 using HospitalQualityDashboardDemo.Services;
 using System.Web.Mvc;
 using System.Web.Optimization;

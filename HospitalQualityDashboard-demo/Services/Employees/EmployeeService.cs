@@ -1,3 +1,4 @@
+// Mục đích: quản lý hồ sơ nhân viên, tài khoản liên kết và dữ liệu phân quyền khoa/phòng.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -35,7 +36,7 @@ ORDER BY nv.NhanVienId";
             return Query(sql, MapEmployee, Param("@KhoaPhongId", khoaPhongId));
         }
 
-        // Truy vấn hồ sơ nhân viên theo điều kiện được cung cấp.
+        // Lấy danh sách hồ sơ nhân viên theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<NhanVienViewModel> GetAll(int? khoaPhongId, int page, int pageSize, out int totalItems)
         {
             page = NormalizePage(page);
@@ -102,7 +103,7 @@ WHERE nv.NhanVienId = @Id";
             });
         }
 
-        // Kiểm tra và cập nhật dữ liệu của hồ sơ nhân viên.
+        // Lưu hồ sơ nhân viên theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         public void Save(NhanVienViewModel model)
         {
             if (model.NhanVienId == 0)
@@ -158,7 +159,7 @@ WHERE tk.NhanVienId = nv.NhanVienId OR tk.TenDangNhap = nv.MaNhanVien;",
             });
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ hồ sơ nhân viên.
+        // Tạo tài khoản User gắn với nhân viên và khoa/phòng hiện tại của nhân viên.
         public void CreateUserAccount(CreateUserAccountViewModel model)
         {
             var employee = Get(model.NhanVienId);
@@ -302,7 +303,7 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
             return page < 1 ? 1 : page;
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho hồ sơ nhân viên.
+        // Giới hạn kích thước trang để tránh truy vấn quá lớn hoặc giá trị không hợp lệ.
         private static int NormalizePageSize(int pageSize)
         {
             if (pageSize < 1) return 20;

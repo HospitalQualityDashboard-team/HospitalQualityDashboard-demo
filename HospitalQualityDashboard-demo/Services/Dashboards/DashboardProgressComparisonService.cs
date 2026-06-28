@@ -1,3 +1,4 @@
+// Mục đích: truy vấn và chuẩn hóa dữ liệu so sánh tiến độ dashboard theo bộ lọc.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using System;

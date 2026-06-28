@@ -1,3 +1,4 @@
+// Mục đích: phát hiện báo cáo còn thiếu hoặc quá hạn để cảnh báo trên dashboard.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -18,7 +19,7 @@ namespace HospitalQualityDashboardDemo.Services
             return GetMissingReportsForDepartment(departmentId, null, false, null);
         }
 
-        // Truy vấn dữ liệu Dashboard theo điều kiện được cung cấp.
+        // Xử lý chức năng báo cáo định kỳ của method GetMissingReportsForDepartment, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         public IList<MissingReportAlertViewModel> GetMissingReportsForDepartment(int departmentId, int? periodId, bool overdueOnly)
         {
             return GetMissingReportsForDepartment(departmentId, periodId, overdueOnly, null);

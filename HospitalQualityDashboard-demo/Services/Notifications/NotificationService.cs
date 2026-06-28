@@ -1,3 +1,4 @@
+// Mục đích: quản lý thông báo, người nhận và trạng thái đọc/xử lý của từng tài khoản.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -20,14 +21,14 @@ WHERE TaiKhoanId=@TaiKhoanId AND DaDoc=0",
                 Param("@TaiKhoanId", accountId)));
         }
 
-        // Truy vấn thông báo theo điều kiện được cung cấp.
+        // Lấy thông báo dành cho tài khoản/khoa phòng hiện tại, có phân trang để tránh tải quá nhiều dữ liệu.
         public IList<NotificationViewModel> GetForUser(int accountId, bool admin)
         {
             int totalItems;
             return GetForUser(accountId, admin, 1, int.MaxValue, out totalItems);
         }
 
-        // Truy vấn thông báo theo điều kiện được cung cấp.
+        // Lấy thông báo dành cho tài khoản/khoa phòng hiện tại, có phân trang để tránh tải quá nhiều dữ liệu.
         public IList<NotificationViewModel> GetForUser(int accountId, bool admin, int page, int pageSize, out int totalItems)
         {
             page = NormalizePage(page);
@@ -54,7 +55,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
                 Param("@PageSize", pageSize));
         }
 
-        // Truy vấn thông báo theo điều kiện được cung cấp.
+        // Lấy chi tiết thông báo trong phạm vi người nhận hợp lệ, tránh đọc thông báo của tài khoản khác.
         public NotificationViewModel GetDetailForUser(int notificationId, int accountId, bool admin)
         {
             const string sql = @"
@@ -107,14 +108,14 @@ SELECT @ThongBaoId, TaiKhoanId FROM dbo.TaiKhoan WHERE KhoaPhongId=@KhoaPhongId 
             }
         }
 
-        // Đánh dấu trạng thái xử lý tương ứng trong thông báo.
+        // Đánh dấu thông báo đã đọc cho người nhận hiện tại, không làm thay đổi nội dung thông báo gốc.
         public void MarkAsRead(int notificationId, int accountId)
         {
             Execute("UPDATE dbo.ThongBaoNguoiNhan SET DaDoc=1, NgayDoc=GETDATE() WHERE ThongBaoId=@ThongBaoId AND TaiKhoanId=@TaiKhoanId",
                 Param("@ThongBaoId", notificationId), Param("@TaiKhoanId", accountId));
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho thông báo.
+        // Chuyển dữ liệu thông báo và trạng thái đọc của người nhận sang view model hiển thị.
         private static NotificationViewModel MapNotification(SqlDataReader r)
         {
             return new NotificationViewModel
@@ -131,13 +132,13 @@ SELECT @ThongBaoId, TaiKhoanId FROM dbo.TaiKhoan WHERE KhoaPhongId=@KhoaPhongId 
             };
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho thông báo.
+        // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho thông báo.
+        // Giới hạn kích thước trang để tránh truy vấn quá lớn hoặc giá trị không hợp lệ.
         private static int NormalizePageSize(int pageSize)
         {
             if (pageSize < 1) return 20;

@@ -56,7 +56,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             });
         }
 
-        // Đánh dấu trạng thái xử lý tương ứng trong thông báo.
+        // Đánh dấu thông báo đã đọc cho người nhận hiện tại, không làm thay đổi nội dung thông báo gốc.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult MarkAsRead(int id, int page = 1)
@@ -66,7 +66,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return RedirectToAction("Index", new { page = page });
         }
 
-        // Đánh dấu trạng thái xử lý tương ứng trong thông báo.
+        // Đánh dấu thông báo chi tiết đã đọc sau khi người dùng mở màn hình xử lý liên quan.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult MarkDetailAsRead(int id)
@@ -75,7 +75,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return RedirectToAction("Details", new { id = id });
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho thông báo.
+        // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;

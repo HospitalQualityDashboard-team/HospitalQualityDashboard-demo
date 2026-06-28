@@ -1,3 +1,4 @@
+// Mục đích: quản lý vòng đời triển khai chỉ số và lịch sử hiệu lực theo tần suất.
 using HospitalQualityDashboardDemo.Models.Enums;
 using System;
 using System.Collections.Generic;

@@ -63,6 +63,7 @@ Hệ thống hướng đến các mục tiêu chính:
 - Tạo tài khoản User cho nhân viên.
 - Quản lý chỉ số chất lượng.
 - Import chỉ số từ Excel/Word.
+- Triển khai hoặc ngừng triển khai chỉ số theo vòng đời áp dụng.
 - Nhận diện tần suất báo cáo từ dữ liệu nguồn.
 - Nhận diện khoa/phòng phụ trách từ trường thu thập/tổng hợp số liệu.
 - Phân công chỉ số cho một hoặc nhiều khoa/phòng.
@@ -99,6 +100,7 @@ Admin có quyền:
 - Tạo tài khoản User cho nhân viên. (có thể thêm chức năng Import dữ liệu nhân viên và khi Import tự động tạo tài khoản User cho nhân viên tài khoản mật khẩu được tạo theo mã nhân viên và nhân viên đó sẽ được phân theo Khoa/Phòng dựa trên cột khoa Phòng)
 - Quản lý danh mục chỉ số.
 - Import chỉ số từ file nguồn.
+- Triển khai/ngừng triển khai chỉ số; khi ngừng triển khai, dữ liệu lịch sử vẫn giữ nguyên nhưng các kỳ ngoài khoảng hiệu lực không còn tính chỉ số đó vào Dashboard, nhắc hạn, báo cáo cần nộp hoặc export.
 - Phân công chỉ số cho khoa/phòng (Thêm chức năng phân công bằng tay thay vì dựa vào dữ liệu Import các chỉ số vì các phân công dễ bị sai xót và lỗi.)
 - Đồng bộ phân công từ trường thu thập/tổng hợp của chỉ số.
 - Quản lý kỳ báo cáo (Thêm chức năng CRUD kì báo cáo).
@@ -143,6 +145,7 @@ User không có quyền:
 | Dashboard | Toàn viện, có bộ lọc và chi tiết tiến độ | Chỉ dữ liệu khoa/phòng đang đăng nhập |
 | Khoa/phòng, nhân viên và tài khoản | Quản lý và import dữ liệu | Không có quyền quản lý |
 | Danh mục chỉ số và phân công | Quản lý, import và phân công | Chỉ xem chỉ số được phân công |
+| Vòng đời triển khai chỉ số | Triển khai/ngừng triển khai và kiểm soát hiệu lực theo kỳ | Chỉ thấy/chỉ phải báo cáo chỉ số đang có hiệu lực trong kỳ |
 | Kỳ báo cáo | Tạo, sửa, mở và quản lý kỳ | Chỉ xem kỳ mở phù hợp với tần suất chỉ số |
 | Nhập, lưu nháp và gửi báo cáo | Theo dõi và quản lý báo cáo toàn viện | Thực hiện cho chỉ số thuộc khoa/phòng mình |
 | Khóa hoặc xóa báo cáo | Có | Không |
@@ -246,6 +249,8 @@ Quy tắc:
 - Một chỉ số có thể liên quan nhiều khoa/phòng.
 - Chỉ số đã có báo cáo không nên xóa cứng.
 - Nếu chỉ số không còn áp dụng, nên ngừng hoạt động.
+- Khi ngừng triển khai chỉ số, hệ thống ghi `DenNgayApDung` trong `LichSuTrienKhaiChiSo`; các kỳ đã giao với khoảng áp dụng vẫn giữ dữ liệu lịch sử, còn kỳ mới ngoài khoảng áp dụng sẽ không tính chỉ số đó là slot cần nộp.
+- Khi triển khai lại chỉ số, hệ thống mở dòng lịch sử mới theo từng tần suất đang khai báo và bắt đầu tính chỉ số cho các kỳ phù hợp từ ngày triển khai.
 - Thông tin `Thu thập và tổng hợp số liệu` là nguồn quan trọng để tự động phân công khoa/phòng.
 - Khi import từ file Word/Excel mà không có cột `Đơn vị tính`, hệ thống phải tự suy luận `DonViTinh` từ tên chỉ số, loại công thức, tử số, mẫu số và phương pháp tính.
 
@@ -1063,15 +1068,11 @@ Da co ke hoach don dep va ghi nhan trong tai lieu. Hien trang thuc te van con mo
 - `packages/` NuGet trung - cac ban MVC5, Razor3, WebPages3 khong dung.
 - `HospitalQualityDashboard-demo.csproj.user` - file cau hinh VS ca nhan.
 
-**Con ton dong:**
-- `docs/superpowers/` - van con o ca root va project (plans, specs cu).
-- `.claude/worktrees/` - van con worktree `agent-a54a28c7483c11085`.
-- `.superpowers/brainstorm/` - van con brainstorm cu.
-- `Content/` CSS variants khong can (grid, reboot, utilities, rtl, map).
-- `Scripts/` JS variants (bundle, esm, slim, map).
-- `Filters/` - thu muc rong, co the xoa.
+**Trạng thái đối chiếu lại ngày 27/06/2026:**
+- `docs/superpowers/`, `.claude/worktrees/`, `.superpowers/brainstorm/` và `Filters/` không còn xuất hiện trong danh sách file hiện tại.
+- `Content/` và `Scripts/` vẫn giữ các file Bootstrap, jQuery, validation, bundle/esm/slim và source map đang được project quản lý; không xem đây là tồn đọng nếu `.csproj` hoặc bundle còn tham chiếu.
 
-Can chay lai cleanup script hoac xoa thu cong de don triet de. Chi giu lai cac file duoc BundleConfig tham chieu va cac file that su can cho phat trien.
+Khi dọn dẹp tiếp, chỉ xóa file sau khi đối chiếu `.csproj`, `BundleConfig` và nhu cầu debug frontend.
 
 ## 29. Cải Tiến Bộ Lọc Tần Suất, Xếp Loại Hoàn Thành & Thống Kê Nâng Cao (Ngày 13/06/2026)
 
@@ -1138,4 +1139,27 @@ Audit này phục vụ truy vết vận hành và hỗ trợ kiểm tra khi có 
 - Database cũ phải chạy `App_Data/Sql/004_AddIndicatorWarning.sql` để bổ sung liên kết cảnh báo theo chỉ số và index chống gửi trùng.
 - Nhắc hạn tự động chạy ở các mốc 10, 7, 3, 1 và 0 ngày; User có badge thông báo chưa đọc và thao tác đánh dấu đã đọc bằng POST.
 - User chỉ nhập, xem và xuất dữ liệu trong phạm vi `KhoaPhongId` của phiên đăng nhập; controller/service kiểm tra lại quyền ở server.
+
+## 32. Vòng Đời Triển Khai Chỉ Số (Ngày 27/06/2026)
+
+### 32.1. Nhu cầu nghiệp vụ
+
+Không phải chỉ số nào cũng áp dụng mãi mãi. Khi bệnh viện ngừng theo dõi một chỉ số, hệ thống cần dừng tính chỉ số đó trong các kỳ mới nhưng vẫn bảo toàn báo cáo, dashboard và audit của những kỳ đã phát sinh.
+
+### 32.2. Quy tắc vận hành
+
+- Admin dùng `Ngừng triển khai` để đóng hiệu lực chỉ số từ ngày hiện tại theo giờ Việt Nam.
+- Admin dùng `Triển khai` để mở lại hiệu lực chỉ số theo các tần suất đang khai báo.
+- Ngừng triển khai không xóa chỉ số, không xóa phân công và không xóa báo cáo cũ.
+- Dashboard, nhắc hạn, danh sách báo cáo cần nộp và export chỉ tính chỉ số nếu khoảng hiệu lực triển khai giao với khoảng ngày của kỳ báo cáo.
+- Database cũ phải chạy `App_Data/Sql/005_AddIndicatorDeploymentHistory.sql` để tạo `LichSuTrienKhaiChiSo`, seed các chỉ số đang hoạt động và tạo hàm `fn_ChiSoDuocTrienKhaiTrongKy`.
+
+### 32.3. Tiêu chí nghiệm thu
+
+| STT | Tiêu chí | Kết quả mong đợi |
+|---:|---|---|
+| 1 | Admin ngừng triển khai chỉ số đang hoạt động | Chỉ số đổi trạng thái, có dòng lịch sử được đóng `DenNgayApDung`. |
+| 2 | Admin triển khai lại chỉ số | Có dòng lịch sử mở mới cho từng tần suất đang áp dụng. |
+| 3 | Dashboard kỳ ngoài khoảng hiệu lực | Không tính chỉ số đó vào tổng cần nộp/còn thiếu/quá hạn. |
+| 4 | Báo cáo hoặc export kỳ còn giao với khoảng hiệu lực cũ | Dữ liệu lịch sử vẫn được giữ và đọc đúng. |
 

@@ -1,3 +1,4 @@
+// Mục đích: lưu, cập nhật và xóa chỉ số cùng các bảng phụ thuộc trong cơ sở dữ liệu.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -16,7 +17,7 @@ namespace HospitalQualityDashboardDemo.Services
 {
     public partial class IndicatorService
     {
-        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
+        // Xử lý chức năng chỉ số chất lượng của method SaveTarget, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private void SaveTarget(ChiSoViewModel model)
         {
             if (!model.NamMucTieu.HasValue || string.IsNullOrWhiteSpace(model.ToanTuSoSanh))
@@ -36,7 +37,7 @@ ELSE
                 Param("@MoTaMucTieu", model.MoTaMucTieu));
         }
 
-        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
+        // Xử lý chức năng chỉ số chất lượng của method SaveTarget, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private void SaveTarget(SqlConnection connection, SqlTransaction transaction, ChiSoViewModel model)
         {
             if (!model.NamMucTieu.HasValue || string.IsNullOrWhiteSpace(model.ToanTuSoSanh))
@@ -83,7 +84,7 @@ ELSE
             };
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho danh mục chỉ số chất lượng.
+        // Chuyển một dòng dữ liệu từ SqlDataReader sang view model/dto chỉ số chất lượng đúng kiểu và tên trường.
         private static ChiSoViewModel MapIndicator(SqlDataReader reader)
         {
             return new ChiSoViewModel

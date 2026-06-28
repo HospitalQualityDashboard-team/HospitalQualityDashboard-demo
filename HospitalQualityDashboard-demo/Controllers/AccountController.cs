@@ -12,13 +12,13 @@ namespace HospitalQualityDashboardDemo.Controllers
     {
         private readonly AuthService _authService;
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho tài khoản và hồ sơ người dùng.
+        // Khởi tạo controller với AuthService mặc định cho luồng đăng nhập thực tế.
         public AccountController()
             : this(new AuthService())
         {
         }
 
-        // Khởi tạo thành phần và các giá trị cần thiết cho tài khoản và hồ sơ người dùng.
+        // Cho phép truyền AuthService khi kiểm thử hoặc khi cần thay đổi cách xác thực.
         public AccountController(AuthService authService)
         {
             _authService = authService;
@@ -210,7 +210,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             return RedirectToAction("Profile");
         }
 
-        // Kiểm tra và cập nhật dữ liệu của tài khoản và hồ sơ người dùng.
+        // Cập nhật nhanh hồ sơ người dùng qua DTO, dùng cho luồng profile không đổi thông tin đăng nhập.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult UpdateProfile(ProfileUpdateDto model)

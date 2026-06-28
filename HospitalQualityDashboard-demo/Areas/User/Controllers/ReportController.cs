@@ -184,7 +184,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return RedirectToAction("Nhap", new { kyBaoCaoId = report.KyBaoCaoId });
         }
 
-        // Truy vấn báo cáo định kỳ theo điều kiện được cung cấp.
+        // Lấy các kỳ báo cáo đang mở và còn phù hợp với phạm vi khoa/phòng của người xem hiện tại.
         private IList<KyBaoCaoViewModel> GetActivePeriodsForCurrentViewer()
         {
             var activePeriods = _periods.GetAll()
@@ -196,7 +196,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
                 .ToList();
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ báo cáo định kỳ.
+        // Dựng cấu trúc dữ liệu báo cáo định kỳ từ input đã lọc để tái sử dụng cho truy vấn, view hoặc xuất file.
         private static IList<SelectListItem> BuildUserPeriodOptions(IEnumerable<KyBaoCaoViewModel> activePeriods)
         {
             return activePeriods
@@ -204,7 +204,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
                 .ToList();
         }
 
-        // Kiểm tra các điều kiện hợp lệ trước khi tiếp tục xử lý báo cáo định kỳ.
+        // Chỉ cho nhập hoặc gửi báo cáo khi kỳ đang mở với khoa/phòng của người dùng hiện tại.
         private ActionResult EnsureOpenPeriodForUser(int kyBaoCaoId)
         {
             if (!_periods.IsOpenForDepartment(kyBaoCaoId, CurrentKhoaPhongId.Value))
@@ -215,7 +215,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return null;
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho báo cáo định kỳ.
+        // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;

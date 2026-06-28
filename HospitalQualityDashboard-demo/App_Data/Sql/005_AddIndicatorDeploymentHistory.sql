@@ -1,3 +1,4 @@
+-- Mục đích: theo dõi lịch sử triển khai/ngừng triển khai chỉ số theo tần suất báo cáo.
 IF OBJECT_ID('dbo.LichSuTrienKhaiChiSo', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.LichSuTrienKhaiChiSo (
@@ -9,13 +10,48 @@ BEGIN
         NguoiTaoId INT NULL,
         NgayTao DATETIME NOT NULL CONSTRAINT DF_LichSuTrienKhaiChiSo_NgayTao DEFAULT (GETDATE()),
         NguoiKetThucId INT NULL,
-        NgayKetThuc DATETIME NULL,
-        CONSTRAINT FK_LichSuTrienKhaiChiSo_ChiSo FOREIGN KEY (ChiSoChatLuongId) REFERENCES dbo.ChiSoChatLuong(ChiSoChatLuongId),
-        CONSTRAINT FK_LichSuTrienKhaiChiSo_NguoiTao FOREIGN KEY (NguoiTaoId) REFERENCES dbo.TaiKhoan(TaiKhoanId),
-        CONSTRAINT FK_LichSuTrienKhaiChiSo_NguoiKetThuc FOREIGN KEY (NguoiKetThucId) REFERENCES dbo.TaiKhoan(TaiKhoanId),
-        CONSTRAINT CK_LichSuTrienKhaiChiSo_TanSuat CHECK (TanSuatBaoCao IN (1, 2, 3, 4, 5, 6, 7, 8, 9)),
-        CONSTRAINT CK_LichSuTrienKhaiChiSo_DateRange CHECK (DenNgayApDung IS NULL OR TuNgayApDung <= DenNgayApDung)
+        NgayKetThuc DATETIME NULL
     );
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_LichSuTrienKhaiChiSo_ChiSo')
+BEGIN
+    ALTER TABLE dbo.LichSuTrienKhaiChiSo WITH CHECK
+    ADD CONSTRAINT FK_LichSuTrienKhaiChiSo_ChiSo
+        FOREIGN KEY (ChiSoChatLuongId) REFERENCES dbo.ChiSoChatLuong(ChiSoChatLuongId);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_LichSuTrienKhaiChiSo_NguoiTao')
+BEGIN
+    ALTER TABLE dbo.LichSuTrienKhaiChiSo WITH CHECK
+    ADD CONSTRAINT FK_LichSuTrienKhaiChiSo_NguoiTao
+        FOREIGN KEY (NguoiTaoId) REFERENCES dbo.TaiKhoan(TaiKhoanId);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_LichSuTrienKhaiChiSo_NguoiKetThuc')
+BEGIN
+    ALTER TABLE dbo.LichSuTrienKhaiChiSo WITH CHECK
+    ADD CONSTRAINT FK_LichSuTrienKhaiChiSo_NguoiKetThuc
+        FOREIGN KEY (NguoiKetThucId) REFERENCES dbo.TaiKhoan(TaiKhoanId);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_LichSuTrienKhaiChiSo_TanSuat')
+BEGIN
+    ALTER TABLE dbo.LichSuTrienKhaiChiSo WITH CHECK
+    ADD CONSTRAINT CK_LichSuTrienKhaiChiSo_TanSuat
+        CHECK (TanSuatBaoCao IN (1, 2, 3, 4, 5, 6, 7, 8, 9));
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_LichSuTrienKhaiChiSo_DateRange')
+BEGIN
+    ALTER TABLE dbo.LichSuTrienKhaiChiSo WITH CHECK
+    ADD CONSTRAINT CK_LichSuTrienKhaiChiSo_DateRange
+        CHECK (DenNgayApDung IS NULL OR TuNgayApDung <= DenNgayApDung);
 END
 GO
 

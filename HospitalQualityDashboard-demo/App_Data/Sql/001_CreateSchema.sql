@@ -1,3 +1,4 @@
+-- Mục đích: tạo schema nền cho cơ sở dữ liệu chất lượng bệnh viện khi triển khai mới.
 
 SET NOCOUNT ON;
 

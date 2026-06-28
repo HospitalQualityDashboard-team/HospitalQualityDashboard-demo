@@ -42,7 +42,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return View(model);
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho chỉ số chất lượng.
+        // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;

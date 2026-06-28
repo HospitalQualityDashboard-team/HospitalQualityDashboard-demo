@@ -1,3 +1,4 @@
+-- Mục đích: bổ sung liên kết chỉ số cho cảnh báo tự động và chống gửi trùng thông báo.
 IF COL_LENGTH('dbo.ThongBao', 'ChiSoChatLuongId') IS NULL
 BEGIN
     ALTER TABLE dbo.ThongBao ADD ChiSoChatLuongId INT NULL;

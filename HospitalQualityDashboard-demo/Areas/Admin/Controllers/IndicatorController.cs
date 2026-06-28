@@ -110,7 +110,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return View("Index", viewModel);
         }
 
-        // Kiểm tra và cập nhật dữ liệu của chỉ số chất lượng.
+        // Lưu chỉ số chất lượng theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         private ActionResult Save(ChiSoViewModel model)
         {
             if (!ModelState.IsValid) return View("Edit", Prepare(model));
@@ -147,14 +147,14 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // Điều phối yêu cầu HTTP và phản hồi cho chỉ số chất lượng.
+        // Nạp dữ liệu phụ trợ cho form chỉ số chất lượng như dropdown, lựa chọn tần suất hoặc trạng thái liên quan.
         private ChiSoViewModel Prepare(ChiSoViewModel model)
         {
             model.TanSuatBaoCaoOptions = FrequencyHelper.GetFrequencyOptions(model.TanSuatBaoCaos ?? new[] { model.TanSuatBaoCao });
             return model;
         }
 
-        // Tạo cấu trúc dữ liệu phục vụ chỉ số chất lượng.
+        // Xử lý chức năng chỉ số chất lượng của method CreateIndexViewModel, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private static ChiSoIndexViewModel CreateIndexViewModel(System.Collections.Generic.IList<ChiSoViewModel> items, int page, int totalItems)
         {
             return new ChiSoIndexViewModel
@@ -167,7 +167,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             };
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho chỉ số chất lượng.
+        // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;

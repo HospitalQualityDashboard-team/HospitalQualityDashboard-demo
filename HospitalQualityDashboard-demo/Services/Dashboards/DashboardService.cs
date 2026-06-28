@@ -1,3 +1,4 @@
+// Mục đích: cung cấp số liệu tổng quan dashboard theo vai trò, khoa/phòng và tần suất báo cáo.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -13,14 +14,14 @@ namespace HospitalQualityDashboardDemo.Services
 {
     public partial class DashboardService : DbServiceBase
     {
-        // Khởi tạo thành phần và các giá trị cần thiết cho dữ liệu Dashboard.
+        // Dùng timeout dài hơn mặc định vì dashboard phải tổng hợp nhiều bảng báo cáo và chỉ số.
         public DashboardService()
             : base(DatabaseConfiguration.GetConnectionString(), 60)
         {
         }
 
         #pragma warning disable 0162
-        // Truy vấn dữ liệu Dashboard theo điều kiện được cung cấp.
+        // Tổng hợp số liệu dashboard theo role, khoa/phòng và tần suất để tránh lộ dữ liệu ngoài phạm vi.
         public DashboardViewModel GetDashboard(bool admin, int? departmentId, int? tanSuatFilter = null)
         {
             return GetDashboardOptimized(admin, departmentId, tanSuatFilter);
@@ -274,8 +275,6 @@ SELECT
 
             return model;
         }
-
         #pragma warning restore 0162
-        // Truy vấn dữ liệu Dashboard theo điều kiện được cung cấp.
     }
 }

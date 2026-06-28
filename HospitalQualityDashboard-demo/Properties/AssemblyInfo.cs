@@ -1,10 +1,10 @@
-// M?c d�ch: th�ng tin metadata c?a assembly khi build ?ng d?ng .NET Framework.
+// Mục đích: khai báo metadata assembly cho quá trình build ứng dụng .NET Framework.
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-// Th�ng tin chung c?a assembly du?c di?u khi?n b?ng c�c
-// attribute b�n du?i. Thay d?i gi� tr? attribute d? c?p nh?t th�ng tin
-// g?n v?i assembly.
+// Metadata chung của assembly được khai báo bằng các attribute bên dưới.
+// Khi đổi tên sản phẩm hoặc thông tin phát hành, chỉ cập nhật các attribute liên quan.
+// Tránh đưa thông tin nhạy cảm vào metadata vì có thể xuất hiện trong file build.
 [assembly: AssemblyTitle("HospitalQualityDashboardDemo")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
@@ -14,22 +14,22 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-// �?t ComVisible l� false d? c�c type trong assembly n�y kh�ng hi?n th?
-// v?i COM component. N?u c?n truy c?p m?t type trong assembly n�y t?
-// COM, d?t ComVisible l� true tr�n type d�.
+// Không expose type sang COM; chỉ bật lại khi có tích hợp COM rõ ràng.
+// Nếu cần truy cập một type từ COM, đặt ComVisible(true) trực tiếp trên type đó.
+// Giữ mặc định false để giảm bề mặt tích hợp ngoài ý muốn.
 [assembly: ComVisible(false)]
 
-// GUID b�n du?i l� ID c?a typelib n?u project du?c expose cho COM.
+// GUID dùng cho typelib nếu project từng được expose qua COM.
 [assembly: Guid("e45e113e-ee91-4265-a1bc-50117c4ca952")]
 
-// Th�ng tin version c?a assembly g?m b?n gi� tr? sau:
+// Version assembly dùng cho nhận diện bản build và phụ thuộc runtime.
 //
-//      Phi�n b?n ch�nh
-//      Phi�n b?n ph?
-//      S? build
+//      Phiên bản chính
+//      Phiên bản phụ
+//      Số build
 //      Revision
 //
-// C� th? ch? d?nh to�n b? gi� tr? ho?c d? m?c d?nh Revision v� Build Number
-// b?ng c�ch d�ng '*' nhu b�n du?i:
+// Có thể chỉ định đủ giá trị hoặc dùng * cho Build/Revision khi cần tự sinh.
+// Dùng giá trị cố định để tránh thay đổi version ngoài ý muốn trong bản demo.
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]

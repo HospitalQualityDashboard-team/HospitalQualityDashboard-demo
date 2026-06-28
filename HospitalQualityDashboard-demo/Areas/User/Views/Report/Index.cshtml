@@ -202,7 +202,7 @@
                             <td>@item.TenKyBaoCao</td>
                             <td>@item.TenKhoaPhong</td>
                             <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
-                            <td class="numeric-value">@(item.KetQua.HasValue ? item.KetQua.Value.ToString("0.##") : "")</td>
+                            <td class="numeric-value">@(item.KetQua.HasValue ? item.KetQua.Value.ToString("0.00") : "")</td>
                             <td>
                                 @switch (item.TrangThai)
                                 {

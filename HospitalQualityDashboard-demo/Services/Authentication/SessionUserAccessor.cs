@@ -16,13 +16,13 @@ namespace HospitalQualityDashboardDemo.Services
         public const string TenKhoaPhongKey = "TenKhoaPhong";
         public const string LastSessionRevalidatedUtcKey = "LastSessionRevalidatedUtc";
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của người dùng trong session hay không.
+        // Xác định session đã có tài khoản đăng nhập hay chưa trước khi controller kiểm tra role/phạm vi.
         public static bool IsAuthenticated(HttpSessionStateBase session)
         {
             return session != null && session[TaiKhoanIdKey] != null;
         }
 
-        // Truy vấn người dùng trong session theo điều kiện được cung cấp.
+        // Đọc giá trị số từ session và trả null khi session/key không tồn tại để controller tự quyết định điều hướng.
         public static int? GetInt(HttpSessionStateBase session, string key)
         {
             if (session == null || session[key] == null)
@@ -33,13 +33,13 @@ namespace HospitalQualityDashboardDemo.Services
             return Convert.ToInt32(session[key]);
         }
 
-        // Truy vấn người dùng trong session theo điều kiện được cung cấp.
+        // Đọc chuỗi session như tên đăng nhập hoặc tên khoa/phòng, không ép kiểu khi dữ liệu vắng mặt.
         public static string GetString(HttpSessionStateBase session, string key)
         {
             return session == null ? null : session[key] as string;
         }
 
-        // Truy vấn người dùng trong session theo điều kiện được cung cấp.
+        // Chuyển role đã lưu trong session về enum để các controller kiểm tra quyền nhất quán.
         public static LoaiTaiKhoan? GetLoaiTaiKhoan(HttpSessionStateBase session)
         {
             if (session == null || session[LoaiTaiKhoanKey] == null)
@@ -50,7 +50,7 @@ namespace HospitalQualityDashboardDemo.Services
             return (LoaiTaiKhoan)session[LoaiTaiKhoanKey];
         }
 
-        // Truy vấn người dùng trong session theo điều kiện được cung cấp.
+        // Đọc mốc thời gian session như lần revalidate gần nhất, trả null nếu chưa từng ghi.
         public static DateTime? GetDateTime(HttpSessionStateBase session, string key)
         {
             if (session == null || session[key] == null)
@@ -61,7 +61,7 @@ namespace HospitalQualityDashboardDemo.Services
             return Convert.ToDateTime(session[key]);
         }
 
-        // Kiểm tra và cập nhật dữ liệu của người dùng trong session.
+        // Ghi thông tin đăng nhập tối thiểu vào session để các controller kiểm tra quyền nhanh.
         public static void SetLoginSession(HttpSessionStateBase session, AuthenticatedUser user)
         {
             if (session == null)
@@ -90,7 +90,7 @@ namespace HospitalQualityDashboardDemo.Services
             session.Abandon();
         }
 
-        // Kiểm tra và cập nhật dữ liệu của người dùng trong session.
+        // Ghi thông tin đăng nhập tối thiểu vào session để các controller kiểm tra quyền nhanh.
         public static void SetLoginSession(HttpSessionState session, AuthenticatedUser user)
         {
             if (session == null)

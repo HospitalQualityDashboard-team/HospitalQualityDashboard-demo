@@ -1,3 +1,4 @@
+// Mục đích: xử lý lệnh phân công, hủy phân công và cập nhật trạng thái chỉ số cho khoa/phòng.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;

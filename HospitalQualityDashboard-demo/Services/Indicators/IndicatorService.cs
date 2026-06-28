@@ -1,3 +1,4 @@
+// Mục đích: quản lý danh mục chỉ số chất lượng, công thức, tần suất và import dữ liệu.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -18,7 +19,7 @@ namespace HospitalQualityDashboardDemo.Services
     {
         private readonly ExcelImportExportService _excel = new ExcelImportExportService();
 
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Lấy danh sách chỉ số chất lượng theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<ChiSoViewModel> GetAll(bool includeInactive = true, int? filterKhoaPhongId = null)
         {
             string sql;
@@ -52,7 +53,7 @@ ORDER BY ISNULL(SoThuTu, 9999), MaChiSo";
             return items;
         }
 
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Lấy danh sách chỉ số chất lượng theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<ChiSoViewModel> GetAll(bool includeInactive, int? filterKhoaPhongId, int page, int pageSize, out int totalItems)
         {
             page = NormalizePage(page);
@@ -113,7 +114,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             return items;
         }
 
-        // Xác định dữ liệu có thỏa điều kiện nghiệp vụ của danh mục chỉ số chất lượng hay không.
+        // Xác định điều kiện nghiệp vụ của chỉ số chất lượng để controller/service chọn nhánh xử lý an toàn.
         public bool IsAssigned(int indicatorId, int khoaPhongId)
         {
             var count = Convert.ToInt32(Scalar(@"
@@ -124,20 +125,20 @@ WHERE ChiSoChatLuongId = @IndicatorId AND KhoaPhongId = @KhoaPhongId AND DangHoa
             return count > 0;
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho danh mục chỉ số chất lượng.
+        // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;
         }
 
-        // Chuẩn hóa dữ liệu đầu vào trước khi dùng cho danh mục chỉ số chất lượng.
+        // Giới hạn kích thước trang để tránh truy vấn quá lớn hoặc giá trị không hợp lệ.
         private static int NormalizePageSize(int pageSize)
         {
             if (pageSize < 1) return 20;
             return pageSize > 100 ? 100 : pageSize;
         }
 
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Dựng danh sách lựa chọn chỉ số chất lượng cho dropdown, chỉ gồm các bản ghi phù hợp với trạng thái sử dụng.
         public IList<SelectListItem> GetOptions()
         {
             return DropdownCache.GetOrAdd("dropdown:indicators", () => Query(@"
@@ -152,13 +153,13 @@ ORDER BY ISNULL(SoThuTu, 9999), MaChiSo",
                 }).ToList());
         }
 
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Lấy một bản ghi chỉ số chất lượng theo khóa chính; trả null khi không tìm thấy để tầng gọi xử lý 404/empty state.
         public ChiSoViewModel Get(int id)
         {
             return Get(id, null);
         }
 
-        // Truy vấn danh mục chỉ số chất lượng theo điều kiện được cung cấp.
+        // Lấy một bản ghi chỉ số chất lượng theo khóa chính; trả null khi không tìm thấy để tầng gọi xử lý 404/empty state.
         public ChiSoViewModel Get(int id, int? targetYear)
         {
             var model = QuerySingle(@"SELECT ChiSoChatLuongId, MaChiSo, SoThuTu, TenChiSo, DinhNghia, LinhVucApDung, KhiaCanhChatLuong, ThanhToChatLuong,
@@ -204,7 +205,7 @@ ORDER BY
             return model;
         }
 
-        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
+        // Lưu chỉ số chất lượng theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         public void Save(IndicatorSaveDto dto)
         {
             Save(new ChiSoViewModel
@@ -239,14 +240,14 @@ ORDER BY
             });
         }
 
-        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
+        // Lưu chỉ số chất lượng theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         public void Save(ChiSoViewModel model)
         {
             ExecuteInTransaction((conn, trans) => Save(conn, trans, model));
             DropdownCache.Remove("dropdown:indicators");
         }
 
-        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
+        // Lưu chỉ số chất lượng theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         public void Save(SqlConnection connection, SqlTransaction transaction, ChiSoViewModel model)
         {
             ApplySelectedFrequencies(model);
@@ -275,7 +276,7 @@ WHERE ChiSoChatLuongId=@ChiSoChatLuongId", parameters);
             ReconcileDeploymentHistory(connection, transaction, model.ChiSoChatLuongId, model.TanSuatBaoCaos, model.DangHoatDong);
         }
 
-        // Kiểm tra và cập nhật dữ liệu của danh mục chỉ số chất lượng.
+        // Xử lý chức năng chỉ số chất lượng của method SetActive, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         public void SetActive(int id, bool active)
         {
             Execute("UPDATE dbo.ChiSoChatLuong SET DangHoatDong = @Active, NgayCapNhat = GETDATE() WHERE ChiSoChatLuongId = @Id", Param("@Active", active), Param("@Id", id));
@@ -296,6 +297,7 @@ WHERE ChiSoChatLuongId=@ChiSoChatLuongId", parameters);
                 Execute(conn, trans, "DELETE FROM dbo.ChiSoTanSuatBaoCao WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
                 Execute(conn, trans, "DELETE FROM dbo.PhanCongChiSo WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
                 Execute(conn, trans, "DELETE FROM dbo.ChiSoMucTieu WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
+                Execute(conn, trans, "IF OBJECT_ID('dbo.LichSuTrienKhaiChiSo', 'U') IS NOT NULL DELETE FROM dbo.LichSuTrienKhaiChiSo WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
                 Execute(conn, trans, "DELETE FROM dbo.ChiSoChatLuong WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
             });
             DropdownCache.Remove("dropdown:indicators");

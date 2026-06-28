@@ -1,3 +1,4 @@
+// Mục đích: quản lý danh mục khoa/phòng và các ràng buộc khi cập nhật hoặc xóa.
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
@@ -14,7 +15,7 @@ namespace HospitalQualityDashboardDemo.Services
     {
         private readonly ExcelImportExportService _excel = new ExcelImportExportService();
 
-        // Truy vấn danh mục khoa/phòng theo điều kiện được cung cấp.
+        // Lấy danh sách danh mục khoa/phòng theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<KhoaPhongViewModel> GetAll(string search = null, bool includeInactive = true)
         {
             const string sql = @"
@@ -29,14 +30,14 @@ ORDER BY IdKhoaPhongNguon, TenKhoaPhong";
                 Param("@IncludeInactive", includeInactive));
         }
 
-        // Truy vấn danh mục khoa/phòng theo điều kiện được cung cấp.
+        // Lấy một bản ghi danh mục khoa/phòng theo khóa chính; trả null khi không tìm thấy để tầng gọi xử lý 404/empty state.
         public KhoaPhongViewModel Get(int id)
         {
             return QuerySingle("SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong, Used, GhiChu FROM dbo.KhoaPhong WHERE KhoaPhongId = @Id",
                 MapDepartment, Param("@Id", id));
         }
 
-        // Truy vấn danh mục khoa/phòng theo điều kiện được cung cấp.
+        // Dựng danh sách lựa chọn danh mục khoa/phòng cho dropdown, chỉ gồm các bản ghi phù hợp với trạng thái sử dụng.
         public IList<SelectListItem> GetOptions()
         {
             return DropdownCache.GetOrAdd("dropdown:departments", () => Query(@"
@@ -51,7 +52,7 @@ ORDER BY TenKhoaPhong",
                 }).ToList());
         }
 
-        // Kiểm tra và cập nhật dữ liệu của danh mục khoa/phòng.
+        // Lưu danh mục khoa/phòng theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         public void Save(DepartmentSaveDto dto)
         {
             Save(new KhoaPhongViewModel
@@ -64,7 +65,7 @@ ORDER BY TenKhoaPhong",
             });
         }
 
-        // Kiểm tra và cập nhật dữ liệu của danh mục khoa/phòng.
+        // Lưu danh mục khoa/phòng theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         public void Save(KhoaPhongViewModel model)
         {
             if (model.KhoaPhongId == 0)
@@ -90,7 +91,7 @@ WHERE KhoaPhongId = @KhoaPhongId",
             DropdownCache.Remove("dropdown:departments");
         }
 
-        // Kiểm tra và cập nhật dữ liệu của danh mục khoa/phòng.
+        // Khóa hoặc mở sử dụng khoa/phòng nhưng giữ dữ liệu liên quan để lịch sử báo cáo không bị mất.
         public void SetUsed(int id, bool used)
         {
             Execute("UPDATE dbo.KhoaPhong SET Used = @Used, NgayCapNhat = GETDATE() WHERE KhoaPhongId = @Id", Param("@Used", used), Param("@Id", id));
@@ -194,7 +195,7 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
             return result;
         }
 
-        // Chuyển dữ liệu nguồn sang cấu trúc dùng cho danh mục khoa/phòng.
+        // Chuyển một dòng khoa/phòng từ database sang view model quản trị danh mục.
         private static KhoaPhongViewModel MapDepartment(SqlDataReader reader)
         {
             return new KhoaPhongViewModel
