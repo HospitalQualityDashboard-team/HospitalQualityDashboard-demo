@@ -32,18 +32,11 @@ namespace HospitalQualityDashboardDemo.Services
             var periods = QueryPeriods();
             var frequency = query.TanSuat ?? SupportedFrequencies.First();
             var eligible = periods.Where(x => x.TanSuat == frequency).OrderByDescending(x => x.TuNgay).ToList();
-            var primaryId = query.KyBaoCaoId ?? eligible.Select(x => (int?)x.KyBaoCaoId).FirstOrDefault();
+            var primaryId = NormalizePrimaryPeriodId(frequency, query.KyBaoCaoId, periods);
             IList<DashboardComparisonPeriodDto> selected = new List<DashboardComparisonPeriodDto>();
             if (primaryId.HasValue)
             {
-                var comparisonIds = query.ComparisonPeriodIds;
-                if (comparisonIds == null || comparisonIds.Length == 0)
-                {
-                    var primary = eligible.FirstOrDefault(x => x.KyBaoCaoId == primaryId.Value);
-                    comparisonIds = primary == null
-                        ? new int[0]
-                        : eligible.Where(x => x.TuNgay < primary.TuNgay).Take(1).Select(x => x.KyBaoCaoId).ToArray();
-                }
+                var comparisonIds = NormalizeComparisonPeriodIds(primaryId.Value, query.ComparisonPeriodIds, eligible);
 
                 selected = DashboardComparisonBuilder.ValidateAndOrderPeriods(primaryId.Value, comparisonIds, periods);
                 query.ComparisonPeriodIds = selected.Skip(1).Select(x => x.KyBaoCaoId).ToArray();
@@ -82,6 +75,62 @@ namespace HospitalQualityDashboardDemo.Services
                 TotalPages = totalPages,
                 TotalRows = orderedRows.Count
             };
+        }
+
+        private static int? NormalizePrimaryPeriodId(
+            int frequency,
+            int? requestedPrimaryId,
+            IEnumerable<DashboardComparisonPeriodDto> periods)
+        {
+            var eligible = (periods ?? Enumerable.Empty<DashboardComparisonPeriodDto>())
+                .Where(x => x.TanSuat == frequency)
+                .OrderByDescending(x => x.TuNgay)
+                .ToList();
+
+            if (requestedPrimaryId.HasValue && eligible.Any(x => x.KyBaoCaoId == requestedPrimaryId.Value))
+            {
+                return requestedPrimaryId.Value;
+            }
+
+            return eligible.Select(x => (int?)x.KyBaoCaoId).FirstOrDefault();
+        }
+
+        private static int[] NormalizeComparisonPeriodIds(
+            int primaryId,
+            IEnumerable<int> requestedComparisonIds,
+            IList<DashboardComparisonPeriodDto> eligiblePeriods)
+        {
+            var primary = eligiblePeriods.FirstOrDefault(x => x.KyBaoCaoId == primaryId);
+            if (primary == null)
+            {
+                return new int[0];
+            }
+
+            var requested = (requestedComparisonIds ?? Enumerable.Empty<int>())
+                .Where(x => x != primaryId)
+                .Distinct()
+                .ToList();
+
+            if (requested.Count > 0)
+            {
+                var validRequested = eligiblePeriods
+                    .Where(x => requested.Contains(x.KyBaoCaoId) && x.TuNgay < primary.TuNgay)
+                    .OrderByDescending(x => x.TuNgay)
+                    .Select(x => x.KyBaoCaoId)
+                    .ToArray();
+
+                if (validRequested.Length > 0)
+                {
+                    return validRequested;
+                }
+            }
+
+            return eligiblePeriods
+                .Where(x => x.TuNgay < primary.TuNgay)
+                .OrderByDescending(x => x.TuNgay)
+                .Take(1)
+                .Select(x => x.KyBaoCaoId)
+                .ToArray();
         }
 
         public DashboardTrendViewModel GetTrend(
