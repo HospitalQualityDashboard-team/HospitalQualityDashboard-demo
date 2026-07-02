@@ -2,6 +2,13 @@
 
 Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiết kế và lưu ý vận hành của dự án `HospitalQualityDashboard-demo`.
 
+## 2026-07-01
+
+### Định dạng mục tiêu khi xuất Excel báo cáo
+
+- `ExportService.ExportReports` định dạng cột `DatMucTieu` thành `Đạt`, `Chưa đạt` hoặc `Chưa đánh giá` thay vì xuất raw boolean `True/False`.
+- `VerifyReportResultAndExcelTime.ps1` kiểm tra hồi quy để không ghi lại `DatMucTieu` dạng boolean trong file báo cáo.
+
 ## 2026-06-27
 
 ### Bổ sung drill-down Dashboard User theo phạm vi khoa/phòng
