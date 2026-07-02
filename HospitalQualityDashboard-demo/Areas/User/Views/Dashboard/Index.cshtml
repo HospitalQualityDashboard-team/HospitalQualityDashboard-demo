@@ -9,13 +9,14 @@
     var progressItems = (Model.DepartmentProgress ?? new System.Collections.Generic.List<HospitalQualityDashboardDemo.Models.ViewModels.DepartmentProgressViewModel>()).ToList();
     var missingReports = (Model.MissingReports ?? new System.Collections.Generic.List<HospitalQualityDashboardDemo.Models.ViewModels.MissingReportAlertViewModel>()).ToList();
     var metricDetails = (Model.MetricDetails ?? new System.Collections.Generic.List<HospitalQualityDashboardDemo.Models.ViewModels.DashboardMetricDetailViewModel>()).ToList();
+    var openReportSlots = Model.TongBaoCaoCanNopKyDangMo;
     var totalReportSlots = Model.BaoCaoDaGui + Model.BaoCaoThieu;
     var completionRate = totalReportSlots > 0
         ? Math.Round((decimal)Model.BaoCaoDaGui * 100 / totalReportSlots, 2)
         : 0;
     var completionRateText = completionRate.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN"));
     var roleLabel = Model.IsAdmin ? "Admin hệ thống" : "Khoa/phòng";
-    var totalMetricLabel = Model.IsAdmin ? "Tổng cần nộp" : "Chỉ số được phân công";
+    var totalMetricLabel = "Chỉ số cần nộp";
     var urgentCount = Model.OverdueMissingReportCount + Model.DueSoonReportCount;
     var activeTab = string.IsNullOrWhiteSpace(Model.ActiveTab) ? "comparison" : Model.ActiveTab;
     ViewBag.Title = activeTab == "comparison" ? "So sánh kỳ báo cáo" : activeTab == "trend" ? "Xu hướng" : "Tổng quan";
@@ -798,7 +799,8 @@
 
     /* Dashboard metric detail modal */
     .dashboard-metric-modal .modal-dialog {
-        max-width: 1180px;
+        width: min(1400px, calc(100vw - 32px));
+        max-width: 1400px;
     }
 
     .dashboard-metric-modal .modal-content {
@@ -839,25 +841,63 @@
 
     .dashboard-metric-table {
         margin-bottom: 0;
+        width: 100%;
+        min-width: 1120px;
+        table-layout: fixed;
     }
+
+        .dashboard-metric-table .metric-period-col {
+            width: 110px;
+        }
+
+        .dashboard-metric-table .metric-due-col {
+            width: 92px;
+        }
+
+        .dashboard-metric-table .metric-department-col {
+            width: 135px;
+        }
+
+        .dashboard-metric-table .metric-indicator-col {
+            width: 380px;
+        }
+
+        .dashboard-metric-table .metric-period-state-col {
+            width: 115px;
+        }
+
+        .dashboard-metric-table .metric-status-col {
+            width: 120px;
+        }
+
+        .dashboard-metric-table .metric-result-col {
+            width: 78px;
+        }
+
+        .dashboard-metric-table .metric-review-col {
+            width: 100px;
+        }
 
         .dashboard-metric-table thead th {
             position: sticky;
             top: 0;
             z-index: 2;
-            padding: 15px 14px;
+            padding: 10px 8px;
             background: #f1f7ff !important;
             color: #10223a !important;
-            font-size: .74rem;
+            font-size: .72rem;
             font-weight: 950;
             text-transform: uppercase;
             letter-spacing: .03em;
             border-bottom: 2px solid #d8e2ea !important;
-            white-space: nowrap;
+            line-height: 1.2;
+            white-space: normal;
+            overflow-wrap: normal;
+            word-break: keep-all;
         }
 
         .dashboard-metric-table tbody td {
-            padding: 15px 14px;
+            padding: 12px 8px;
             vertical-align: middle;
             border-color: #e2e8f0 !important;
             color: #334155;
@@ -872,8 +912,10 @@
         }
 
         .dashboard-metric-table td:nth-child(4) {
-            min-width: 320px;
+            min-width: 0;
             line-height: 1.45;
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
 
             .dashboard-metric-table td:nth-child(4) strong {
@@ -928,6 +970,108 @@
         color: #1f4f91;
         border: 1px solid #c7d9f2;
         font-weight: 900;
+    }
+
+    .indicator-detail-panel {
+        margin-bottom: 14px;
+        padding: 16px 18px;
+        border: 1px solid #c7d9f2;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #ffffff, #f1f8ff);
+        box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+    }
+
+    .indicator-detail-kicker {
+        display: block;
+        color: #1f4f91;
+        font-size: .72rem;
+        font-weight: 950;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+
+    .indicator-detail-panel h3 {
+        margin: 4px 0 12px;
+        color: #10223a;
+        font-size: 1rem;
+        font-weight: 950;
+        line-height: 1.35;
+    }
+
+    .indicator-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin: 0;
+    }
+
+        .indicator-detail-grid div {
+            min-width: 0;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .indicator-detail-grid dt {
+            color: #64748b;
+            font-size: .72rem;
+            font-weight: 850;
+            text-transform: uppercase;
+        }
+
+        .indicator-detail-grid dd {
+            margin: 3px 0 0;
+            color: #10223a;
+            font-size: .88rem;
+            font-weight: 850;
+            overflow-wrap: anywhere;
+        }
+
+        .indicator-detail-grid .indicator-detail-target {
+            grid-column: span 2;
+        }
+
+        .dashboard-metric-table .metric-indicator-trigger {
+            width: 100%;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            text-align: left;
+            line-height: 1.42;
+            cursor: pointer;
+        }
+
+            .dashboard-metric-table .metric-indicator-trigger:focus-visible {
+                outline: 3px solid rgba(37, 99, 235, .28);
+                outline-offset: 4px;
+                border-radius: 8px;
+            }
+
+            .dashboard-metric-table .metric-indicator-trigger:hover .metric-name,
+            .dashboard-metric-table .metric-indicator-trigger:focus-visible .metric-name {
+                color: #1f4f91;
+                text-decoration: underline;
+            }
+
+        .dashboard-metric-table .metric-detail-hint {
+            display: block;
+            margin-top: 4px;
+            color: #64748b;
+            font-size: .72rem;
+            font-weight: 800;
+        }
+
+        .dashboard-metric-table tr.is-detail-active {
+            background: #eaf6ff !important;
+            box-shadow: inset 4px 0 0 #2563eb;
+        }
+
+    @@media (max-width: 768px) {
+        .indicator-detail-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
     }
 </style>
 
@@ -1030,13 +1174,13 @@
 }
 
 <section class="metric-grid" aria-label="Chỉ số tổng quan">
-    <button type="button" class="metric-card metric-card-button is-accent" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="total" data-title="Danh sách chỉ số được phân công">
+    <button type="button" class="metric-card metric-card-button is-accent" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="total" data-title="Danh sách chỉ số cần nộp">
         <span class="metric-card-header">
             <span class="metric-label">@totalMetricLabel</span>
             <span class="metric-icon">CS</span>
         </span>
-        <strong class="metric-value">@Model.TongChiSo</strong>
-        <span class="metric-caption">Phạm vi chỉ số đang được theo dõi.</span>
+        <strong class="metric-value">@openReportSlots</strong>
+        <span class="metric-caption">Tổng số báo cáo cần nộp trong các kỳ đang mở.</span>
     </button>
 
     <button type="button" class="metric-card metric-card-button is-success" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="submitted" data-title="Danh sách báo cáo đã nộp">
@@ -1054,16 +1198,16 @@
             <span class="metric-icon">CT</span>
         </span>
         <strong class="metric-value">@Model.BaoCaoThieu</strong>
-        <span class="metric-caption">Chỉ số chưa có báo cáo hợp lệ.</span>
+        <span class="metric-caption">Chỉ số chưa có báo cáo hợp lệ; kỳ đã khóa được ghi nhận là thiếu đã chốt.</span>
     </button>
 
-    <button type="button" class="metric-card metric-card-button is-danger" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="overdue" data-title="Danh sách chỉ số quá hạn chưa nộp">
+    <button type="button" class="metric-card metric-card-button is-danger" data-bs-toggle="modal" data-bs-target="#dashboardMetricDetailModal" data-metric="overdue" data-title="Danh sách chỉ số chưa nộp/quá hạn">
         <span class="metric-card-header">
             <span class="metric-label">Quá hạn</span>
             <span class="metric-icon">QH</span>
         </span>
         <strong class="metric-value">@Model.BaoCaoQuaHan</strong>
-        <span class="metric-caption">Cần rà soát và nhắc nộp bổ sung.</span>
+        <span class="metric-caption">Gồm chỉ số quá hạn chưa nộp, bao gồm kỳ đã khóa.</span>
     </button>
 </section>
 
@@ -1074,6 +1218,7 @@
                 <div>
                     <h2 class="modal-title fs-5" id="dashboardMetricDetailTitle" data-metric-title>Danh sách chỉ số cần nộp</h2>
                     <p class="text-muted small mb-0">Dữ liệu theo bộ lọc tần suất hiện tại.</p>
+                    <p class="text-muted small mb-0" data-period-lock-note>Kỳ đã khóa chỉ dùng để đối chiếu/thống kê, không còn cho nhập bổ sung.</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="status-pill status-muted" data-metric-count>0 dòng</span>
@@ -1081,14 +1226,73 @@
                 </div>
             </div>
             <div class="modal-body">
+                <div class="analysis-filter mb-3">
+                    <div class="analysis-filter-field">
+                        <label for="dashboard-period-state-filter">Tình trạng kỳ</label>
+                        <select id="dashboard-period-state-filter" class="form-select form-select-sm" data-period-state-filter>
+                            <option value="all">Tất cả kỳ</option>
+                            <option value="open">Kỳ đang mở</option>
+                            <option value="locked">Kỳ đã khóa</option>
+                        </select>
+                    </div>
+                </div>
+                <section class="indicator-detail-panel" id="dashboardIndicatorDetailPanel" data-indicator-detail-panel hidden aria-live="polite">
+                    <span class="indicator-detail-kicker">Chi tiết chỉ số</span>
+                    <h3><span data-indicator-detail-code>-</span> - <span data-indicator-detail-name>Chọn một chỉ số trong bảng</span></h3>
+                    <dl class="indicator-detail-grid">
+                        <div>
+                            <dt>Kỳ báo cáo</dt>
+                            <dd data-indicator-detail-period>-</dd>
+                        </div>
+                        <div>
+                            <dt>Hạn nộp</dt>
+                            <dd data-indicator-detail-due>-</dd>
+                        </div>
+                        <div>
+                            <dt>Khoa/phòng</dt>
+                            <dd data-indicator-detail-department>-</dd>
+                        </div>
+                        <div>
+                            <dt>Trạng thái</dt>
+                            <dd data-indicator-detail-status>-</dd>
+                        </div>
+                        <div>
+                            <dt>Tình trạng kỳ</dt>
+                            <dd data-indicator-detail-period-state>-</dd>
+                        </div>
+                        <div>
+                            <dt>Kết quả</dt>
+                            <dd data-indicator-detail-result>-</dd>
+                        </div>
+                        <div class="indicator-detail-target">
+                            <dt>Mục tiêu</dt>
+                            <dd data-indicator-detail-target>-</dd>
+                        </div>
+                        <div>
+                            <dt>Đánh giá</dt>
+                            <dd data-indicator-detail-review>-</dd>
+                        </div>
+                    </dl>
+                </section>
                 <div class="table-responsive dashboard-metric-table-wrap">
                     <table class="table table-sm align-middle mb-0 dashboard-metric-table">
+                        <colgroup>
+                            <col class="metric-period-col" />
+                            <col class="metric-due-col" />
+                            <col class="metric-department-col" />
+                            <col class="metric-indicator-col" />
+                            <col class="metric-period-state-col" />
+                            <col class="metric-status-col" />
+                            <col class="metric-result-col" />
+                            <col class="metric-review-col" />
+                        </colgroup>
                         <thead>
                             <tr>
                                 <th>Kỳ báo cáo</th>
                                 <th>Hạn nộp</th>
                                 <th>Khoa/phòng</th>
                                 <th>Chỉ số</th>
+                                <th>Tình trạng kỳ</th>
                                 <th>Trạng thái</th>
                                 <th class="text-end">Kết quả</th>
                                 <th>Đánh giá</th>
@@ -1100,15 +1304,69 @@
                                 var groups = item.IsSubmitted
                                     ? "total submitted"
                                     : item.IsOverdueMissing ? "total missing overdue" : "total missing";
-                                <tr data-metric-groups="@groups">
+                                var statusText = item.IsSubmitted
+                                    ? "Đã nộp"
+                                    : item.IsReportingPeriodLocked
+                                        ? "Quá hạn đã khóa"
+                                        : item.IsOverdueMissing
+                                            ? "Quá hạn"
+                                        : item.TrangThaiBaoCao == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap
+                                            ? "Chưa nộp (đã lưu nháp)"
+                                            : "Chưa nộp";
+                                var periodStateText = item.IsReportingPeriodLocked ? "Đã khóa" : "Đang mở";
+                                var resultText = item.IsSubmitted && item.KetQua.HasValue
+                                    ? item.KetQua.Value.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN"))
+                                    : "-";
+                                var reviewText = !item.IsSubmitted
+                                    ? "-"
+                                    : item.DatMucTieu == true
+                                        ? "Đạt"
+                                        : item.DatMucTieu == false ? "Chưa đạt" : "Chưa đánh giá";
+                                var targetText = string.IsNullOrWhiteSpace(item.MucTieu) ? "Chưa cấu hình mục tiêu" : item.MucTieu;
+                                var periodStateValue = item.IsReportingPeriodLocked ? "locked" : "open";
+                                <tr data-metric-groups="@groups" data-period-state="@periodStateValue">
                                     <td>@item.TenKyBaoCao</td>
                                     <td class="text-nowrap">@item.HanNop.ToString("dd/MM/yyyy")</td>
                                     <td>@item.TenKhoaPhong</td>
-                                    <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
+                                    <td>
+                                        <button type="button"
+                                                class="metric-indicator-trigger"
+                                                data-indicator-detail-trigger
+                                                data-detail-code="@item.MaChiSo"
+                                                data-detail-name="@item.TenChiSo"
+                                                data-detail-period="@item.TenKyBaoCao"
+                                                data-detail-due="@item.HanNop.ToString("dd/MM/yyyy")"
+                                                data-detail-department="@item.TenKhoaPhong"
+                                                data-detail-status="@statusText"
+                                                data-detail-period-state="@periodStateText"
+                                                data-detail-result="@resultText"
+                                                data-detail-target="@targetText"
+                                                data-detail-review="@reviewText"
+                                                aria-controls="dashboardIndicatorDetailPanel"
+                                                aria-expanded="false">
+                                            <strong class="metric-code">@item.MaChiSo</strong>
+                                            <span class="metric-name">- @item.TenChiSo</span>
+                                            <span class="metric-detail-hint">Xem chi tiết</span>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        @if (item.IsReportingPeriodLocked)
+                                        {
+                                            <span class="status-pill status-muted status-period-locked">Đã khóa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-pill status-success">Đang mở</span>
+                                        }
+                                    </td>
                                     <td>
                                         @if (item.IsSubmitted)
                                         {
                                             <span class="status-pill status-success">Đã nộp</span>
+                                        }
+                                        else if (item.IsReportingPeriodLocked)
+                                        {
+                                            <span class="status-pill status-danger status-period-locked">Quá hạn đã khóa</span>
                                         }
                                         else if (item.IsOverdueMissing)
                                         {
@@ -1124,7 +1382,7 @@
                                         }
                                     </td>
                                     <td class="numeric-value text-end">
-                                        @(item.IsSubmitted && item.KetQua.HasValue ? item.KetQua.Value.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN")) : "-")
+                                        @resultText
                                     </td>
                                     <td>
                                         @if (!item.IsSubmitted)
@@ -1147,7 +1405,7 @@
                                 </tr>
                             }
                             <tr data-metric-empty hidden>
-                                <td colspan="7" class="empty-state">Không có dữ liệu trong nhóm này.</td>
+                                <td colspan="8" class="empty-state">Không có dữ liệu trong nhóm này.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1360,115 +1618,6 @@ else
                             <div class="text-danger small mt-1" id="dashboard-comparison-message"></div>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted small fw-semibold">Cột xuất file</span>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-3" id="dashboard-export-select-all">Chọn tất cả</button>
-                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-3" id="dashboard-export-clear">Bỏ chọn</button>
-                        </div>
-                    </div>
-
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="TenKhoaPhong" id="db_export_TenKhoaPhong" checked />
-                                <label class="form-check-label" for="db_export_TenKhoaPhong">Khoa / Phòng</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="DaGui" id="db_export_DaGui" checked />
-                                <label class="form-check-label" for="db_export_DaGui">Số báo cáo đã gửi</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="Tong" id="db_export_Tong" checked />
-                                <label class="form-check-label" for="db_export_Tong">Tổng số chỉ số</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="PhanTram" id="db_export_PhanTram" checked />
-                                <label class="form-check-label" for="db_export_PhanTram">Tỷ lệ hoàn tất (%)</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="LuuNhap" id="db_export_LuuNhap" checked />
-                                <label class="form-check-label" for="db_export_LuuNhap">Báo cáo lưu nháp</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="ConThieu" id="db_export_ConThieu" checked />
-                                <label class="form-check-label" for="db_export_ConThieu">Báo cáo còn thiếu</label>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="XepLoai" id="db_export_XepLoai" checked />
-                                <label class="form-check-label" for="db_export_XepLoai">Xếp loại tổng thể</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="SoBaoCaoDatMucTieuNam" id="db_export_SoBaoCaoDatMucTieuNam" checked />
-                                <label class="form-check-label" for="db_export_SoBaoCaoDatMucTieuNam">Đạt mục tiêu năm</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="SoBaoCaoDanhGiaMucTieuNam" id="db_export_SoBaoCaoDanhGiaMucTieuNam" checked />
-                                <label class="form-check-label" for="db_export_SoBaoCaoDanhGiaMucTieuNam">Đã đánh giá mục tiêu</label>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="TyLeDatMucTieuNam" id="db_export_TyLeDatMucTieuNam" checked />
-                                <label class="form-check-label" for="db_export_TyLeDatMucTieuNam">Tỷ lệ đạt mục tiêu năm (%)</label>
-                            </div>
-                        </div>
-
-                        <div class="col-6 border-top pt-2">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="TiendoThang" id="db_export_TiendoThang" />
-                                <label class="form-check-label text-muted small" for="db_export_TiendoThang">Tiến độ Tháng</label>
-                            </div>
-                        </div>
-                        <div class="col-6 border-top pt-2">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="XepLoaiThang" id="db_export_XepLoaiThang" />
-                                <label class="form-check-label text-muted small" for="db_export_XepLoaiThang">Xếp loại Tháng</label>
-                            </div>
-                        </div>
-
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="TiendoQuy" id="db_export_TiendoQuy" />
-                                <label class="form-check-label text-muted small" for="db_export_TiendoQuy">Tiến độ Quý</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="XepLoaiQuy" id="db_export_XepLoaiQuy" />
-                                <label class="form-check-label text-muted small" for="db_export_XepLoaiQuy">Xếp loại Quý</label>
-                            </div>
-                        </div>
-
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="TiendoNam" id="db_export_TiendoNam" />
-                                <label class="form-check-label text-muted small" for="db_export_TiendoNam">Tiến độ Năm</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-check py-1">
-                                <input class="form-check-input dashboard-export-column" type="checkbox" name="columns" value="XepLoaiNam" id="db_export_XepLoaiNam" />
-                                <label class="form-check-label text-muted small" for="db_export_XepLoaiNam">Xếp loại Năm</label>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
@@ -1518,6 +1667,18 @@ function initializeDashboardAnalysis() {
         var forms = pane.querySelectorAll('[data-dashboard-analysis-form], [data-dashboard-trend-form]');
         forms.forEach(function(form) {
             form.addEventListener('submit', function(event) { event.preventDefault(); loadPane(pane, new URLSearchParams(new FormData(form)).toString()); });
+        });
+        pane.querySelectorAll('[data-analysis-export]').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                var form = link.closest('form');
+                if (!form) return;
+                event.preventDefault();
+                var parameters = new URLSearchParams(new FormData(form));
+                parameters.delete('Page');
+                parameters.delete('PageSize');
+                var exportUrl = link.dataset.exportUrl || link.getAttribute('href');
+                window.location.href = exportUrl + (parameters.toString() ? '?' + parameters.toString() : '');
+            });
         });
         pane.querySelectorAll('[data-analysis-page]').forEach(function(button) {
             button.addEventListener('click', function() { var form = pane.querySelector('[data-dashboard-analysis-form]'); form.querySelector('[name=Page]').value = button.dataset.analysisPage; form.dispatchEvent(new Event('submit')); });
@@ -1660,58 +1821,110 @@ if (chartElement && labels.length) {
 
 var metricDetailModal = document.getElementById('dashboardMetricDetailModal');
 if (metricDetailModal) {
-    metricDetailModal.addEventListener('show.bs.modal', function(event) {
-        var trigger = event.relatedTarget;
-        var metric = trigger ? trigger.getAttribute('data-metric') : 'total';
-        var title = trigger ? trigger.getAttribute('data-title') : 'Danh sách chỉ số cần nộp';
+    var periodStateFilter = metricDetailModal.querySelector('[data-period-state-filter]');
+    var indicatorDetailPanel = metricDetailModal.querySelector('[data-indicator-detail-panel]');
+    var indicatorDetailTriggers = Array.from(metricDetailModal.querySelectorAll('[data-indicator-detail-trigger]'));
+    var activeMetric = 'total';
+
+    function setIndicatorDetail(target) {
+        if (!indicatorDetailPanel || !target) return;
+
+        var fields = {
+            code: target.getAttribute('data-detail-code') || '-',
+            name: target.getAttribute('data-detail-name') || '-',
+            period: target.getAttribute('data-detail-period') || '-',
+            due: target.getAttribute('data-detail-due') || '-',
+            department: target.getAttribute('data-detail-department') || '-',
+            status: target.getAttribute('data-detail-status') || '-',
+            'period-state': target.getAttribute('data-detail-period-state') || '-',
+            result: target.getAttribute('data-detail-result') || '-',
+            target: target.getAttribute('data-detail-target') || '-',
+            review: target.getAttribute('data-detail-review') || '-'
+        };
+
+        Object.keys(fields).forEach(function(key) {
+            var node = indicatorDetailPanel.querySelector('[data-indicator-detail-' + key + ']');
+            if (node) node.textContent = fields[key];
+        });
+
+        indicatorDetailPanel.hidden = false;
+        indicatorDetailTriggers.forEach(function(trigger) {
+            trigger.setAttribute('aria-expanded', trigger === target ? 'true' : 'false');
+            var row = trigger.closest('tr[data-metric-groups]');
+            if (row) row.classList.toggle('is-detail-active', trigger === target);
+        });
+    }
+
+    function resetIndicatorDetail() {
+        if (indicatorDetailPanel) {
+            indicatorDetailPanel.hidden = true;
+        }
+        indicatorDetailTriggers.forEach(function(trigger) {
+            trigger.setAttribute('aria-expanded', 'false');
+            var row = trigger.closest('tr[data-metric-groups]');
+            if (row) row.classList.remove('is-detail-active');
+        });
+    }
+
+    function forceOpenPeriodOnly(metric) {
+        if (!periodStateFilter) return;
+
+        if (metric === 'total') {
+            periodStateFilter.value = 'open';
+            periodStateFilter.disabled = true;
+        } else {
+            periodStateFilter.disabled = false;
+            periodStateFilter.value = 'all';
+        }
+    }
+
+    function applyMetricFilters(metric) {
+        if (metric) activeMetric = metric;
+        var selectedPeriodState = periodStateFilter ? periodStateFilter.value : 'all';
         var visibleCount = 0;
 
-        metricDetailModal.querySelector('[data-metric-title]').textContent = title;
         metricDetailModal.querySelectorAll('tbody tr[data-metric-groups]').forEach(function(row) {
             var groups = (row.getAttribute('data-metric-groups') || '').split(' ');
-            var visible = groups.indexOf(metric) >= 0;
+            var periodState = row.getAttribute('data-period-state') || 'open';
+            var matchesMetric = groups.indexOf(activeMetric) >= 0;
+            var matchesPeriodState = selectedPeriodState === 'all' || periodState === selectedPeriodState;
+            var visible = matchesMetric && matchesPeriodState;
             row.hidden = !visible;
             if (visible) visibleCount += 1;
         });
 
         metricDetailModal.querySelector('[data-metric-count]').textContent = visibleCount + ' dòng';
         metricDetailModal.querySelector('[data-metric-empty]').hidden = visibleCount !== 0;
+    }
+
+    metricDetailModal.addEventListener('show.bs.modal', function(event) {
+        var trigger = event.relatedTarget;
+        var metric = trigger ? trigger.getAttribute('data-metric') : 'total';
+        var title = trigger ? trigger.getAttribute('data-title') : 'Danh sách chỉ số chưa nộp/quá hạn';
+
+        metricDetailModal.querySelector('[data-metric-title]').textContent = title;
+        resetIndicatorDetail();
+        forceOpenPeriodOnly(metric);
+        applyMetricFilters(metric);
+    });
+
+    if (periodStateFilter) {
+        periodStateFilter.addEventListener('change', function() {
+            resetIndicatorDetail();
+            applyMetricFilters();
+        });
+    }
+
+    indicatorDetailTriggers.forEach(function(trigger) {
+        trigger.addEventListener('click', function() {
+            setIndicatorDetail(trigger);
+        });
     });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeDashboardAnalysis();
     initializeDashboardComparison();
-    var dbExportColumnCheckboxes = document.querySelectorAll('.dashboard-export-column');
-    var dbExportSubmitBtn = document.getElementById('dashboard-export-submit');
-
-    function updateDashboardExportSubmit() {
-        if (!dbExportSubmitBtn) return;
-        var selectedCount = Array.from(dbExportColumnCheckboxes).filter(cb => cb.checked).length;
-        dbExportSubmitBtn.disabled = selectedCount === 0;
-    }
-
-    dbExportColumnCheckboxes.forEach(function(checkbox) {
-        checkbox.addEventListener('change', updateDashboardExportSubmit);
-    });
-
-    var dbExportSelectAll = document.getElementById('dashboard-export-select-all');
-    if (dbExportSelectAll) {
-        dbExportSelectAll.addEventListener('click', function() {
-            dbExportColumnCheckboxes.forEach(cb => cb.checked = true);
-            updateDashboardExportSubmit();
-        });
-    }
-
-    var dbExportClear = document.getElementById('dashboard-export-clear');
-    if (dbExportClear) {
-        dbExportClear.addEventListener('click', function() {
-            dbExportColumnCheckboxes.forEach(cb => cb.checked = false);
-            updateDashboardExportSubmit();
-        });
-    }
-
-    updateDashboardExportSubmit();
 });
     </script>
 }

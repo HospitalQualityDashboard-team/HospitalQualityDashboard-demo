@@ -4,6 +4,7 @@ using HospitalQualityDashboardDemo.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -175,6 +176,27 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public decimal? GiaTriMucTieu { get; set; }
         [Display(Name = "Mô tả mục tiêu")]
         public string MoTaMucTieu { get; set; }
+        public string MucTieuHienThi
+        {
+            get
+            {
+                var namMucTieu = NamMucTieu.HasValue ? " (" + NamMucTieu.Value + ")" : string.Empty;
+
+                if (!string.IsNullOrWhiteSpace(MoTaMucTieu))
+                {
+                    return MoTaMucTieu.Trim() + namMucTieu;
+                }
+
+                if (string.IsNullOrWhiteSpace(ToanTuSoSanh) || !GiaTriMucTieu.HasValue)
+                {
+                    return "Chưa cấu hình mục tiêu";
+                }
+
+                return ToanTuSoSanh.Trim() + " "
+                    + GiaTriMucTieu.Value.ToString("0.####", CultureInfo.GetCultureInfo("vi-VN"))
+                    + namMucTieu;
+            }
+        }
     }
 
     public class ChiSoIndexViewModel
@@ -335,6 +357,39 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int TotalPages { get; set; }
     }
 
+    public class ReportingPeriodDetailsViewModel
+    {
+        public int KyBaoCaoId { get; set; }
+        public string TenKyBaoCao { get; set; }
+        public TanSuatBaoCao LoaiKyBaoCao { get; set; }
+        public DateTime TuNgay { get; set; }
+        public DateTime DenNgay { get; set; }
+        public DateTime HanNop { get; set; }
+        public TrangThaiKyBaoCao TrangThai { get; set; }
+        public int TongCanNop { get; set; }
+        public int DaNop { get; set; }
+        public int ChuaNop => TongCanNop - DaNop;
+        public IList<ReportingPeriodIndicatorViewModel> Items { get; set; }
+    }
+
+    public class ReportingPeriodIndicatorViewModel
+    {
+        public int KyBaoCaoId { get; set; }
+        public int KhoaPhongId { get; set; }
+        public int ChiSoChatLuongId { get; set; }
+        public int? BaoCaoId { get; set; }
+        public string TenKyBaoCao { get; set; }
+        public DateTime HanNop { get; set; }
+        public string TenKhoaPhong { get; set; }
+        public string MaChiSo { get; set; }
+        public string TenChiSo { get; set; }
+        public TrangThaiKyBaoCao TrangThaiKyBaoCao { get; set; }
+        public TrangThaiBaoCao? TrangThaiBaoCao { get; set; }
+        public decimal? KetQua { get; set; }
+        public bool? DatMucTieu { get; set; }
+        public bool IsSubmitted { get; set; }
+    }
+
     public class ReportingPeriodScheduleRequestViewModel
     {
         [Range(2000, 2100, ErrorMessage = "Năm phải nằm trong khoảng 2000 đến 2100.")]
@@ -487,6 +542,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public bool IsAdmin { get; set; }
         public int TongChiSo { get; set; }
         public int TongBaoCaoCanNop { get; set; }
+        public int TongBaoCaoCanNopKyDangMo { get; set; }
         public int BaoCaoDaGui { get; set; }
         public int BaoCaoThieu { get; set; }
         public int BaoCaoQuaHan { get; set; }
@@ -530,10 +586,14 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public string MaChiSo { get; set; }
         public string TenChiSo { get; set; }
         public decimal? KetQua { get; set; }
+        public string MucTieu { get; set; }
         public bool? DatMucTieu { get; set; }
         public TrangThaiBaoCao? TrangThaiBaoCao { get; set; }
+        public TrangThaiKyBaoCao TrangThaiKyBaoCao { get; set; }
         public bool IsSubmitted { get; set; }
         public bool IsOverdueMissing { get; set; }
+        public bool IsReportingPeriodLocked { get; set; }
+        public bool CanSendWarning { get; set; }
         public bool HasWarningToday { get; set; }
     }
 

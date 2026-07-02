@@ -37,3 +37,35 @@ BEGIN
     ON dbo.ThongBaoTuDongLog(KyBaoCaoId, KhoaPhongId, ChiSoChatLuongId, NgayMoc, LoaiThongBao);
 END
 GO
+
+IF EXISTS (
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = N'CK_ThongBao_LoaiThongBao'
+      AND parent_object_id = OBJECT_ID(N'dbo.ThongBao')
+)
+BEGIN
+    ALTER TABLE dbo.ThongBao DROP CONSTRAINT CK_ThongBao_LoaiThongBao;
+END
+GO
+
+ALTER TABLE dbo.ThongBao WITH CHECK
+ADD CONSTRAINT CK_ThongBao_LoaiThongBao
+CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6, 7));
+GO
+
+IF EXISTS (
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = N'CK_ThongBaoTuDongLog_LoaiThongBao'
+      AND parent_object_id = OBJECT_ID(N'dbo.ThongBaoTuDongLog')
+)
+BEGIN
+    ALTER TABLE dbo.ThongBaoTuDongLog DROP CONSTRAINT CK_ThongBaoTuDongLog_LoaiThongBao;
+END
+GO
+
+ALTER TABLE dbo.ThongBaoTuDongLog WITH CHECK
+ADD CONSTRAINT CK_ThongBaoTuDongLog_LoaiThongBao
+CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6, 7));
+GO

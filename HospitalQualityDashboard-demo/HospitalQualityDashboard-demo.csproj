@@ -175,6 +175,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\MaintenanceController.cs" />
     <Compile Include="Controllers\PageController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -235,6 +236,7 @@
     <Compile Include="Services\Notifications\IndicatorWarningMessageBuilder.cs" />
     <Compile Include="Services\Notifications\NotificationAutomationService.cs" />
     <Compile Include="Services\Notifications\NotificationService.cs" />
+    <Compile Include="Services\ReportingPeriods\ReportingPeriodMaintenanceService.cs" />
     <Compile Include="Services\ReportingPeriods\ReportingPeriodScheduleService.cs" />
     <Compile Include="Services\ReportingPeriods\ReportingPeriodService.cs" />
     <Compile Include="Services\Reports\IndicatorCalculationService.cs" />
@@ -244,7 +246,6 @@
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\images\logo-ungbuou.png" />
-    <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="implementation-notes.md" />
     <Content Include="App_Data\Sql\001_CreateSchema.sql" />
@@ -262,7 +263,6 @@
     <Content Include="Scripts\dashboard-analysis.js" />
     <Content Include="Areas\Admin\Views\Dashboard\Index.cshtml" />
     <Content Include="ConnectionStrings.example.config" />
-    <Content Include="ConnectionStrings.config" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -302,6 +302,7 @@
     <Content Include="Areas\Admin\Views\Report\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Report\Nhap.cshtml" />
     <Content Include="Areas\Admin\Views\ReportingPeriod\Edit.cshtml" />
+    <Content Include="Areas\Admin\Views\ReportingPeriod\Details.cshtml" />
     <Content Include="Areas\Admin\Views\ReportingPeriod\GenerateSchedule.cshtml" />
     <Content Include="Areas\Admin\Views\ReportingPeriod\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Shared\_AdminLayout.cshtml" />
@@ -341,23 +342,10 @@
     <Content Include="tools\VerifyReportSubmissionNavigationAndAdminAudit.ps1" />
     <Content Include="tools\VerifyIndicatorDeploymentLifecycle.ps1" />
     <Content Include="tools\VerifySqlMigrations.ps1" />
+    <Content Include="tools\VerifyReportingPeriodMaintenance.ps1" />
     <Content Include="tools\VerifyUnreadNotificationBadge.ps1" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="AGENTS.md" />
-    <None Include="PROJECT_CONTEXT.md" />
-    <None Include="TAI_LIEU_NGHIEP_VU.md" />
-    <None Include="Tai_Lieu\**\*" />
-    <None Include="..\README.md">
-      <Link>Solution Documentation\README.md</Link>
-    </None>
-    <None Include="..\PROJECT_STRUCTURE.md">
-      <Link>Solution Documentation\PROJECT_STRUCTURE.md</Link>
-    </None>
-    <None Include="..\design-qa.md">
-      <Link>Solution Documentation\design-qa.md</Link>
-    </None>
-  </ItemGroup>
+  
   <ItemGroup>
     <Content Include="Content\bootstrap.min.css.map" />
     <Content Include="Content\bootstrap.css.map" />

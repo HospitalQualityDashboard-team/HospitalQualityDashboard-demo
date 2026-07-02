@@ -11,8 +11,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
     {
         private const int DefaultPageSize = 20;
         private readonly NotificationService _service = new NotificationService();
-        private readonly NotificationAutomationService _automation = new NotificationAutomationService();
-        private readonly ReportingPeriodScheduleService _periodSchedule = new ReportingPeriodScheduleService();
+        private readonly ReportingPeriodMaintenanceService _maintenance = new ReportingPeriodMaintenanceService();
         private readonly DepartmentService _departments = new DepartmentService();
 
         // Hiển thị danh sách và các bộ lọc của thông báo.
@@ -95,9 +94,10 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult OpenDuePeriodsAndRunAutomation()
         {
-            _periodSchedule.OpenDuePeriods(DateTime.Now);
-            _automation.Run(DateTime.Now);
-            TempData["Message"] = "Đã chạy kiểm tra thông báo tự động.";
+            var result = _maintenance.Run(DateTime.Now);
+            TempData["Message"] = string.Format("Đã chạy tự động: mở {0} kỳ, khóa {1} kỳ.",
+                result.OpenedCount,
+                result.ClosedCount);
             return RedirectToAction("Index");
         }
 

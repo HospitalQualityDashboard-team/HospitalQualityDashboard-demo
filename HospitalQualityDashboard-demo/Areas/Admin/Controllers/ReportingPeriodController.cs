@@ -119,6 +119,17 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         }
 
         // Kiểm tra và lưu các thay đổi của kỳ báo cáo.
+        public ActionResult Details(int id)
+        {
+            var model = _service.GetDetails(id);
+            if (model == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(model);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(KyBaoCaoViewModel model)

@@ -13,4 +13,20 @@ namespace HospitalQualityDashboardDemo.Models.DTOs
         public int? BaoCaoId { get; set; }
         public int[] SelectedKhoaPhongIds { get; set; }
     }
+
+    public class IndicatorWarningTargetDto
+    {
+        public int KyBaoCaoId { get; set; }
+        public int KhoaPhongId { get; set; }
+        public int ChiSoChatLuongId { get; set; }
+    }
+
+    public class IndicatorWarningBatchResultDto
+    {
+        public int TotalRequested { get; set; }
+        public int Sent { get; set; }
+        public int AlreadySentToday { get; set; }
+        public int AlreadySubmitted { get; set; }
+        public int NotEligible { get; set; }
+    }
 }

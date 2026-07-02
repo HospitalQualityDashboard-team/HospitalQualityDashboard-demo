@@ -20,6 +20,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return View(CreateIndexViewModel(items, page, totalItems));
         }
 
+
         // Tải và hiển thị thông tin chi tiết của chỉ số chất lượng.
         public ActionResult Details(int id)
         {

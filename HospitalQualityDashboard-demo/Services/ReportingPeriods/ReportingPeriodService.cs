@@ -17,14 +17,34 @@ namespace HospitalQualityDashboardDemo.Services
         public IList<KyBaoCaoViewModel> GetAll()
         {
             const string sql = @"
+WITH ExpectedSlots AS
+(
+    SELECT DISTINCT ky.KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId
+    FROM dbo.KyBaoCao ky
+    INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
+    INNER JOIN dbo.ChiSoTanSuatBaoCao cst
+        ON cst.ChiSoChatLuongId = pc.ChiSoChatLuongId
+       AND cst.TanSuatBaoCao = ky.LoaiKyBaoCao
+    WHERE dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
+),
+CompletedSlots AS
+(
+    SELECT DISTINCT bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId
+    FROM dbo.BaoCao bc
+    WHERE bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus)
+)
 SELECT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay, ky.HanNop, ky.TrangThai,
-       COUNT(bc.BaoCaoId) AS TongBaoCao,
-       ISNULL(SUM(CASE WHEN bc.TrangThai IN (2,3,4) THEN 1 ELSE 0 END), 0) AS DaGui
+       COUNT(es.ChiSoChatLuongId) AS TongBaoCao,
+       ISNULL(SUM(CASE WHEN bc.KyBaoCaoId IS NOT NULL THEN 1 ELSE 0 END), 0) AS DaGui
 FROM dbo.KyBaoCao ky
-LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
+LEFT JOIN ExpectedSlots es ON es.KyBaoCaoId = ky.KyBaoCaoId
+LEFT JOIN CompletedSlots bc
+    ON bc.KyBaoCaoId = es.KyBaoCaoId
+   AND bc.KhoaPhongId = es.KhoaPhongId
+   AND bc.ChiSoChatLuongId = es.ChiSoChatLuongId
 GROUP BY ky.KyBaoCaoId, ky.TenKyBaoCao, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay, ky.HanNop, ky.TrangThai
 ORDER BY ky.TuNgay DESC";
-            return Query(sql, MapPeriod);
+            return Query(sql, MapPeriod, SubmittedStatusParams());
         }
 
         // Lấy danh sách kỳ báo cáo theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
@@ -35,18 +55,43 @@ ORDER BY ky.TuNgay DESC";
             totalItems = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM dbo.KyBaoCao"));
 
             const string sql = @"
+WITH ExpectedSlots AS
+(
+    SELECT DISTINCT ky.KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId
+    FROM dbo.KyBaoCao ky
+    INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
+    INNER JOIN dbo.ChiSoTanSuatBaoCao cst
+        ON cst.ChiSoChatLuongId = pc.ChiSoChatLuongId
+       AND cst.TanSuatBaoCao = ky.LoaiKyBaoCao
+    WHERE dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
+),
+CompletedSlots AS
+(
+    SELECT DISTINCT bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId
+    FROM dbo.BaoCao bc
+    WHERE bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus)
+)
 SELECT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay, ky.HanNop, ky.TrangThai,
-       COUNT(bc.BaoCaoId) AS TongBaoCao,
-       ISNULL(SUM(CASE WHEN bc.TrangThai IN (2,3,4) THEN 1 ELSE 0 END), 0) AS DaGui
+       COUNT(es.ChiSoChatLuongId) AS TongBaoCao,
+       ISNULL(SUM(CASE WHEN bc.KyBaoCaoId IS NOT NULL THEN 1 ELSE 0 END), 0) AS DaGui
 FROM dbo.KyBaoCao ky
-LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
+LEFT JOIN ExpectedSlots es ON es.KyBaoCaoId = ky.KyBaoCaoId
+LEFT JOIN CompletedSlots bc
+    ON bc.KyBaoCaoId = es.KyBaoCaoId
+   AND bc.KhoaPhongId = es.KhoaPhongId
+   AND bc.ChiSoChatLuongId = es.ChiSoChatLuongId
 GROUP BY ky.KyBaoCaoId, ky.TenKyBaoCao, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay, ky.HanNop, ky.TrangThai
 ORDER BY ky.TuNgay DESC
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
             return Query(sql, MapPeriod,
-                Param("@Offset", (page - 1) * pageSize),
-                Param("@PageSize", pageSize));
+                SubmittedStatusParams()
+                    .Concat(new[]
+                    {
+                        Param("@Offset", (page - 1) * pageSize),
+                        Param("@PageSize", pageSize)
+                    })
+                    .ToArray());
         }
 
         // Xử lý chức năng kỳ báo cáo của method GetFrequenciesForDepartment, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
@@ -101,6 +146,74 @@ WHERE ky.KyBaoCaoId=@KyBaoCaoId
         }
 
         // Lưu kỳ báo cáo theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
+        public ReportingPeriodDetailsViewModel GetDetails(int id)
+        {
+            var period = Get(id);
+            if (period == null)
+            {
+                return null;
+            }
+
+            const string sql = @"
+SELECT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.HanNop, ky.TrangThai AS TrangThaiKyBaoCao,
+       pc.KhoaPhongId, pc.ChiSoChatLuongId, kp.TenKhoaPhong, cs.MaChiSo, cs.TenChiSo,
+       bc.BaoCaoId, bc.TrangThai AS TrangThaiBaoCao, ct.KetQua, ct.DatMucTieu,
+       CASE WHEN bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus) THEN 1 ELSE 0 END AS IsSubmitted
+FROM dbo.KyBaoCao ky
+INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
+INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
+INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
+INNER JOIN dbo.ChiSoTanSuatBaoCao cst
+    ON cst.ChiSoChatLuongId = pc.ChiSoChatLuongId
+   AND cst.TanSuatBaoCao = ky.LoaiKyBaoCao
+LEFT JOIN dbo.BaoCao bc
+    ON bc.KyBaoCaoId = ky.KyBaoCaoId
+   AND bc.KhoaPhongId = pc.KhoaPhongId
+   AND bc.ChiSoChatLuongId = pc.ChiSoChatLuongId
+LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
+WHERE ky.KyBaoCaoId = @KyBaoCaoId
+  AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
+ORDER BY kp.TenKhoaPhong, cs.MaChiSo";
+
+            var items = Query(sql, reader => new ReportingPeriodIndicatorViewModel
+            {
+                KyBaoCaoId = Int(reader, "KyBaoCaoId"),
+                KhoaPhongId = Int(reader, "KhoaPhongId"),
+                ChiSoChatLuongId = Int(reader, "ChiSoChatLuongId"),
+                BaoCaoId = NullableInt(reader, "BaoCaoId"),
+                TenKyBaoCao = String(reader, "TenKyBaoCao"),
+                HanNop = reader.GetDateTime(reader.GetOrdinal("HanNop")),
+                TenKhoaPhong = String(reader, "TenKhoaPhong"),
+                MaChiSo = String(reader, "MaChiSo"),
+                TenChiSo = String(reader, "TenChiSo"),
+                TrangThaiKyBaoCao = (TrangThaiKyBaoCao)reader.GetByte(reader.GetOrdinal("TrangThaiKyBaoCao")),
+                TrangThaiBaoCao = reader.IsDBNull(reader.GetOrdinal("TrangThaiBaoCao"))
+                    ? (TrangThaiBaoCao?)null
+                    : (TrangThaiBaoCao)reader.GetByte(reader.GetOrdinal("TrangThaiBaoCao")),
+                KetQua = NullableDecimal(reader, "KetQua"),
+                DatMucTieu = reader.IsDBNull(reader.GetOrdinal("DatMucTieu"))
+                    ? (bool?)null
+                    : reader.GetBoolean(reader.GetOrdinal("DatMucTieu")),
+                IsSubmitted = Int(reader, "IsSubmitted") == 1
+            }, SubmittedStatusParams()
+                .Concat(new[] { Param("@KyBaoCaoId", id) })
+                .ToArray());
+
+            return new ReportingPeriodDetailsViewModel
+            {
+                KyBaoCaoId = period.KyBaoCaoId,
+                TenKyBaoCao = period.TenKyBaoCao,
+                LoaiKyBaoCao = period.LoaiKyBaoCao,
+                TuNgay = period.TuNgay,
+                DenNgay = period.DenNgay,
+                HanNop = period.HanNop,
+                TrangThai = period.TrangThai,
+                TongCanNop = items.Count,
+                DaNop = items.Count(x => x.IsSubmitted),
+                Items = items
+            };
+        }
+
         public void Save(ReportingPeriodSaveDto dto)
         {
             Save(new KyBaoCaoViewModel
@@ -177,6 +290,17 @@ SELECT
         }
 
         // Chuyển một dòng dữ liệu từ SqlDataReader sang view model/dto kỳ báo cáo đúng kiểu và tên trường.
+        private static SqlParameter[] SubmittedStatusParams()
+        {
+            return new[]
+            {
+                Param("@DaGuiStatus", (byte)TrangThaiBaoCao.DaGui),
+                Param("@QuaHanStatus", (byte)TrangThaiBaoCao.QuaHan),
+                Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa),
+                Param("@DaDuyetStatus", (byte)TrangThaiBaoCao.DaDuyet)
+            };
+        }
+
         private static KyBaoCaoViewModel MapPeriod(SqlDataReader reader)
         {
             return new KyBaoCaoViewModel

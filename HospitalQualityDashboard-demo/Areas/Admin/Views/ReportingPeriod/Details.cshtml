@@ -1,0 +1,135 @@
+@* Mục đích: xem danh sách chỉ số/khoa phòng cần báo cáo trong một kỳ cụ thể. *@
+@model HospitalQualityDashboardDemo.Models.ViewModels.ReportingPeriodDetailsViewModel
+@using System.Globalization
+@using System.Linq
+@using HospitalQualityDashboardDemo.Models.Enums
+@{
+    ViewBag.Title = "Chi tiết kỳ báo cáo";
+    var items = (Model.Items ?? Enumerable.Empty<HospitalQualityDashboardDemo.Models.ViewModels.ReportingPeriodIndicatorViewModel>()).ToList();
+    var percent = Model.TongCanNop > 0 ? (int)System.Math.Round((decimal)Model.DaNop * 100 / Model.TongCanNop) : 0;
+}
+@functions {
+    private string FormatPeriodStatus(TrangThaiKyBaoCao status)
+    {
+        switch (status)
+        {
+            case TrangThaiKyBaoCao.Nhap: return "Nháp";
+            case TrangThaiKyBaoCao.Mo: return "Mở";
+            case TrangThaiKyBaoCao.Khoa: return "Khóa";
+            default: return status.ToString();
+        }
+    }
+
+    private string PeriodStatusClass(TrangThaiKyBaoCao status)
+    {
+        switch (status)
+        {
+            case TrangThaiKyBaoCao.Mo: return "status-open";
+            case TrangThaiKyBaoCao.Khoa: return "status-locked";
+            default: return "status-draft";
+        }
+    }
+
+    private string FormatReportStatus(HospitalQualityDashboardDemo.Models.ViewModels.ReportingPeriodIndicatorViewModel item)
+    {
+        if (item.IsSubmitted)
+        {
+            return "Đã nộp";
+        }
+
+        if (item.TrangThaiBaoCao == TrangThaiBaoCao.Nhap)
+        {
+            return "Chưa nộp (đã lưu nháp)";
+        }
+
+        if (item.TrangThaiBaoCao == TrangThaiBaoCao.TraLai)
+        {
+            return "Trả lại";
+        }
+
+        return "Chưa nộp";
+    }
+
+    private string ReportStatusClass(HospitalQualityDashboardDemo.Models.ViewModels.ReportingPeriodIndicatorViewModel item)
+    {
+        if (item.IsSubmitted) return "status-success";
+        if (item.TrangThaiBaoCao == TrangThaiBaoCao.Nhap || item.TrangThaiBaoCao == TrangThaiBaoCao.TraLai) return "status-warning";
+        return "status-muted";
+    }
+}
+
+<section class="management-page">
+    <div class="page-header">
+        <div>
+            <span class="dashboard-role">Chi tiết kỳ báo cáo</span>
+            <h1>@Model.TenKyBaoCao</h1>
+            <p>@Model.TuNgay.ToString("dd/MM/yyyy") - @Model.DenNgay.ToString("dd/MM/yyyy") · Hạn nộp @Model.HanNop.ToString("dd/MM/yyyy") 23:59</p>
+        </div>
+        <div class="management-toolbar">
+            @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn btn-outline-secondary" })
+            @Html.ActionLink("Sửa kỳ", "Edit", new { id = Model.KyBaoCaoId }, new { @class = "btn btn-primary" })
+        </div>
+    </div>
+
+    <section class="data-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Danh sách chỉ số cần báo</h2>
+                <p>@Model.TongCanNop chỉ số/khoa phòng cần nộp trong kỳ này.</p>
+            </div>
+            <div class="panel-toolbar">
+                <span class="status-pill @PeriodStatusClass(Model.TrangThai)">@FormatPeriodStatus(Model.TrangThai)</span>
+                <span class="status-pill status-success">@Model.DaNop đã nộp</span>
+                <span class="status-pill status-muted">@Model.ChuaNop chưa nộp</span>
+            </div>
+        </div>
+
+        <div class="period-progress mb-3" title="Đã nộp @Model.DaNop trên @Model.TongCanNop báo cáo cần nộp" aria-label="Đã nộp @Model.DaNop trên @Model.TongCanNop báo cáo cần nộp">
+            <div class="progress-track">
+                <div class="progress-fill" style="width: @(percent)%"></div>
+            </div>
+            <span>@Model.DaNop/@Model.TongCanNop</span>
+        </div>
+
+        @if (items.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle data-table">
+                    <thead>
+                        <tr>
+                            <th>Khoa/phòng</th>
+                            <th>Chỉ số</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Kết quả</th>
+                            <th>Đánh giá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items)
+                    {
+                        var resultText = item.IsSubmitted && item.KetQua.HasValue
+                            ? item.KetQua.Value.ToString("0.##", CultureInfo.GetCultureInfo("vi-VN"))
+                            : "-";
+                        var reviewText = !item.IsSubmitted
+                            ? "-"
+                            : item.DatMucTieu == true
+                                ? "Đạt"
+                                : item.DatMucTieu == false ? "Chưa đạt" : "Chưa đánh giá";
+                        <tr>
+                            <td>@item.TenKhoaPhong</td>
+                            <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
+                            <td><span class="status-pill @ReportStatusClass(item)">@FormatReportStatus(item)</span></td>
+                            <td class="numeric-value text-end">@resultText</td>
+                            <td>@reviewText</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">Chưa có chỉ số nào cần báo trong kỳ này.</div>
+        }
+    </section>
+</section>

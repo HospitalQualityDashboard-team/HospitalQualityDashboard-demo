@@ -82,7 +82,7 @@ namespace HospitalQualityDashboardDemo.Services
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("TenChiSo", x => x.TenChiSo),
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("KetQua", x => FormatDecimal(x.KetQua)),
                 new KeyValuePair<string, Func<ReportEntryViewModel, object>>("TrangThai", x => x.TrangThai),
-                new KeyValuePair<string, Func<ReportEntryViewModel, object>>("DatMucTieu", x => x.DatMucTieu)
+                new KeyValuePair<string, Func<ReportEntryViewModel, object>>("DatMucTieu", x => FormatDatMucTieu(x.DatMucTieu))
             });
         }
 
@@ -311,6 +311,12 @@ ORDER BY kp.TenKhoaPhong, ky.TuNgay DESC, cs.MaChiSo";
         private static string FormatDecimal(decimal? value)
         {
             return value.HasValue ? value.Value.ToString("0.##", CultureInfo.InvariantCulture) : string.Empty;
+        }
+
+        private static string FormatDatMucTieu(bool? value)
+        {
+            if (!value.HasValue) return "Chưa đánh giá";
+            return value.Value ? "Đạt" : "Chưa đạt";
         }
 
         // Định dạng giá trị theo quy ước hiển thị của xuất dữ liệu quản trị.

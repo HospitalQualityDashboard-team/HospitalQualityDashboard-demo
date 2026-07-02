@@ -130,6 +130,8 @@ $integrationChecks = @(
     @{ Path = Join-Path $root 'Services\Dashboards\Export\DashboardExcelExportService.Comparison.cs'; Tokens = @('SoSanhTongQuan', 'SoSanhChiSo', 'SubmittedLate', 'OverdueMissing', 'DashboardProgressComparisonBuilder.Compare', 'ProgressStatus') },
     @{ Path = Join-Path $root 'Areas\Admin\Views\Dashboard\Index.cshtml'; Tokens = @('dashboard-analysis-tabs', 'Model.Comparison', 'DashboardTab = "comparison"') },
     @{ Path = Join-Path $root 'Areas\User\Views\Dashboard\Index.cshtml'; Tokens = @('dashboard-analysis-tabs', 'Model.Comparison', 'DashboardTab = "comparison"') },
+    @{ Path = Join-Path $root 'Views\Shared\_DashboardComparison.cshtml'; Tokens = @('data-analysis-export', 'data-export-url') },
+    @{ Path = Join-Path $root 'Scripts\dashboard-analysis.js'; Tokens = @('[data-analysis-export]', 'new URLSearchParams(new FormData(form))', "parameters.delete('Page')", 'window.location.href = exportUrl') },
     @{ Path = Join-Path $root 'HospitalQualityDashboard-demo.csproj'; Tokens = @('DashboardProgressComparisonBuilder.cs', 'DashboardProgressComparisonService.cs', 'VerifyDashboardPeriodComparison.ps1') }
 )
 
@@ -140,6 +142,11 @@ foreach ($check in $integrationChecks) {
             throw "Missing comparison integration token '$token' in $($check.Path)"
         }
     }
+}
+
+$comparisonPartial = Get-Content -Raw -Path (Join-Path $root 'Views\Shared\_DashboardComparison.cshtml')
+if ($comparisonPartial -match [regex]::Escape('ComparisonPeriodIds = Model.ComparisonPeriodIds')) {
+    throw 'Comparison export link must not build a static array route value; it should serialize the current form values on click.'
 }
 
 Write-Host 'Dashboard period comparison behavior verification passed.'

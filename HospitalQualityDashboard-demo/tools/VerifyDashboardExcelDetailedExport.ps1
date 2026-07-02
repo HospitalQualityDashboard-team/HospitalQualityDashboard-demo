@@ -43,14 +43,28 @@ foreach ($token in $requiredExcelTokens) {
 }
 
 $requiredViewTokens = @(
-    'db_export_SoBaoCaoDatMucTieuNam',
-    'db_export_SoBaoCaoDanhGiaMucTieuNam',
-    'db_export_TyLeDatMucTieuNam'
+    'dashboardExportModal',
+    'enable-dashboard-comparison',
+    'dashboard-comparison-periods',
+    'ComparisonPeriodIds'
 )
 
 foreach ($token in $requiredViewTokens) {
     if ($viewText -notmatch [regex]::Escape($token)) {
-        throw "Missing dashboard export option token: $token"
+        throw "Missing dashboard export modal token: $token"
+    }
+}
+
+$removedViewTokens = @(
+    'dashboard-export-column',
+    'dashboard-export-select-all',
+    'dashboard-export-clear',
+    'db_export_'
+)
+
+foreach ($token in $removedViewTokens) {
+    if ($viewText -match [regex]::Escape($token)) {
+        throw "Dashboard export still contains removed column selector token: $token"
     }
 }
 

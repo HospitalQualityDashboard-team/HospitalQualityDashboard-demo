@@ -21,4 +21,12 @@ namespace HospitalQualityDashboardDemo.Models.DTOs
         public int DueDayOffset { get; set; }
         public TrangThaiKyBaoCao DefaultStatus { get; set; }
     }
+
+    public class ReportingPeriodMaintenanceResultDto
+    {
+        public int OpenedCount { get; set; }
+        public int ClosedCount { get; set; }
+        public bool NotificationAutomationRan { get; set; }
+        public System.DateTime RanAt { get; set; }
+    }
 }

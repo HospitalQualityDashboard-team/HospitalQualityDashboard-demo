@@ -63,7 +63,7 @@ namespace HospitalQualityDashboardDemo.Services
             var sql = admin ? @"
 WITH ExpectedSlots AS
 (
-    SELECT DISTINCT ky.KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, ky.HanNop
+    SELECT DISTINCT ky.KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, ky.HanNop, ky.TrangThai AS TrangThaiKyBaoCao
     FROM dbo.KyBaoCao ky
     INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
     INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
@@ -82,6 +82,7 @@ CompletedSlots AS
 )
 SELECT
     COUNT(es.KyBaoCaoId) AS TongBaoCaoCanNop,
+    ISNULL(SUM(CASE WHEN es.TrangThaiKyBaoCao = @OpenPeriodStatus THEN 1 ELSE 0 END), 0) AS TongBaoCaoCanNopKyDangMo,
     ISNULL(SUM(CASE WHEN completed.KyBaoCaoId IS NOT NULL THEN 1 ELSE 0 END), 0) AS BaoCaoDaGui,
     (SELECT COUNT(DISTINCT pc.PhanCongChiSoId)
      FROM dbo.PhanCongChiSo pc
@@ -104,6 +105,17 @@ LEFT JOIN CompletedSlots completed
    AND completed.ChiSoChatLuongId = es.ChiSoChatLuongId"
             : @"
 SELECT
+    (SELECT COUNT(*)
+     FROM (
+         SELECT DISTINCT ky.KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId
+         FROM dbo.KyBaoCao ky
+         INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
+         INNER JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
+         WHERE ky.TrangThai = @OpenPeriodStatus
+           AND pc.KhoaPhongId = @KhoaPhongId
+           AND (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
+           AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
+     ) openSlots) AS TongBaoCaoCanNopKyDangMo,
     (SELECT COUNT(DISTINCT bc.BaoCaoId)
      FROM dbo.BaoCao bc
      LEFT JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = bc.ChiSoChatLuongId
@@ -132,6 +144,7 @@ SELECT
             var summary = QuerySingle(sql, r => new DashboardSummaryRow
             {
                 TongBaoCaoCanNop = admin ? Int(r, "TongBaoCaoCanNop") : 0,
+                TongBaoCaoCanNopKyDangMo = Int(r, "TongBaoCaoCanNopKyDangMo"),
                 BaoCaoDaGui = Int(r, "BaoCaoDaGui"),
                 ChiSoDuocPhanCong = Int(r, "ChiSoDuocPhanCong"),
                 TongChiSo = Int(r, "TongChiSo"),
@@ -141,6 +154,7 @@ SELECT
                 Param("@TanSuat", tanSuatFilter),
                 Param("@Today", GetVietnamLocalNow().Date),
                 Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap),
+                Param("@OpenPeriodStatus", (byte)TrangThaiKyBaoCao.Mo),
                 Param("@DaGuiStatus", (byte)TrangThaiBaoCao.DaGui),
                 Param("@QuaHanStatus", (byte)TrangThaiBaoCao.QuaHan),
                 Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa),
@@ -152,6 +166,7 @@ SELECT
             }
 
             model.TongBaoCaoCanNop = summary.TongBaoCaoCanNop;
+            model.TongBaoCaoCanNopKyDangMo = summary.TongBaoCaoCanNopKyDangMo;
             model.BaoCaoDaGui = summary.BaoCaoDaGui;
             model.ChiSoDuocPhanCong = summary.ChiSoDuocPhanCong;
             model.TongChiSo = summary.TongChiSo;
@@ -233,6 +248,7 @@ ORDER BY kp.TenKhoaPhong";
         private class DashboardSummaryRow
         {
             public int TongBaoCaoCanNop { get; set; }
+            public int TongBaoCaoCanNopKyDangMo { get; set; }
             public int BaoCaoDaGui { get; set; }
             public int ChiSoDuocPhanCong { get; set; }
             public int TongChiSo { get; set; }

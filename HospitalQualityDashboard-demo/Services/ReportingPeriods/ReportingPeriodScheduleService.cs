@@ -182,6 +182,26 @@ WHERE TrangThai=@Nhap AND TuNgay <= @Today";
             return openedCount;
         }
 
+        // Khóa các kỳ báo cáo đã qua hạn nộp để ngăn nhập/sửa sau 23:59 ngày hạn nộp.
+        public int CloseOverduePeriods(DateTime now)
+        {
+            const string sql = @"
+UPDATE dbo.KyBaoCao
+SET TrangThai=@Khoa, NgayCapNhat=GETDATE()
+WHERE TrangThai=@Mo AND HanNop < @Today";
+
+            var closedCount = Execute(sql,
+                Param("@Khoa", (byte)TrangThaiKyBaoCao.Khoa),
+                Param("@Mo", (byte)TrangThaiKyBaoCao.Mo),
+                Param("@Today", now.Date));
+            if (closedCount > 0)
+            {
+                DropdownCache.Remove("dropdown:periods");
+            }
+
+            return closedCount;
+        }
+
         // Kiểm tra cấu hình sinh kỳ báo cáo để tránh tạo lịch thiếu tần suất, sai ngày hoặc không có khoa/phòng.
         private static void ValidateScheduleRequest(ReportingPeriodScheduleRequestViewModel request)
         {

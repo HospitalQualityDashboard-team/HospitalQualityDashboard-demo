@@ -11,12 +11,12 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
     {
         private readonly DashboardService _service = new DashboardService();
         private readonly DashboardProgressComparisonService _comparisonService = new DashboardProgressComparisonService();
-        private readonly NotificationAutomationService _automation = new NotificationAutomationService();
+        private readonly ReportingPeriodMaintenanceService _maintenance = new ReportingPeriodMaintenanceService();
 
         // Hiển thị danh sách và các bộ lọc của Dashboard chất lượng.
         public ActionResult Index(DashboardExcelExportQueryDto query)
         {
-            RunNotificationAutomation();
+            RunReportingPeriodMaintenance();
             query = query ?? new DashboardExcelExportQueryDto();
             query.KhoaPhongId = CurrentKhoaPhongId;
             var model = _service.GetDashboard(false, CurrentKhoaPhongId, query.TanSuat);
@@ -76,15 +76,15 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return PartialView("~/Views/Shared/_DashboardTrend.cshtml", model);
         }
 
-        private void RunNotificationAutomation()
+        private void RunReportingPeriodMaintenance()
         {
             try
             {
-                _automation.Run(GetVietnamLocalNow());
+                _maintenance.Run(GetVietnamLocalNow());
             }
             catch (Exception exception)
             {
-                Trace.TraceError("Dashboard notification automation failed: {0}", exception);
+                Trace.TraceError("Dashboard reporting period maintenance failed: {0}", exception);
             }
         }
 

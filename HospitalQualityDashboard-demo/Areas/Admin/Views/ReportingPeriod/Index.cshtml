@@ -84,6 +84,9 @@
                     @foreach (var item in periods)
                     {
                         var percent = item.TongBaoCao > 0 ? (int)System.Math.Round((decimal)item.DaGui * 100 / item.TongBaoCao) : 0;
+                        var progressLabel = item.TongBaoCao > 0
+                            ? string.Format("Đã nộp {0} trên {1} báo cáo cần nộp", item.DaGui, item.TongBaoCao)
+                            : "Chưa có báo cáo cần nộp cho kỳ này";
                         <tr>
                             <td><strong>@item.TenKyBaoCao</strong></td>
                             <td>@item.TuNgay.ToString("dd/MM/yyyy")</td>
@@ -91,7 +94,7 @@
                             <td>@item.HanNop.ToString("dd/MM/yyyy") 23:59</td>
                             <td><span class="status-pill @StatusClass(item.TrangThai)">@FormatPeriodStatus(item.TrangThai)</span></td>
                             <td>
-                                <div class="period-progress mb-0">
+                                <div class="period-progress mb-0" title="@progressLabel" aria-label="@progressLabel">
                                     <div class="progress-track">
                                         <div class="progress-fill" style="width: @(percent)%"></div>
                                     </div>
@@ -99,6 +102,7 @@
                                 </div>
                             </td>
                             <td class="text-end table-actions">
+                                @Html.ActionLink("Xem", "Details", new { id = item.KyBaoCaoId }, new { @class = "btn btn-sm btn-outline-secondary" })
                                 @Html.ActionLink("Sửa", "Edit", new { id = item.KyBaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
                                 @using (Html.BeginForm("Open", "ReportingPeriod", new { id = item.KyBaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
                                 {

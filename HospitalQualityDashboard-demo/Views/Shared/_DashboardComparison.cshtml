@@ -116,7 +116,10 @@
         <input type="hidden" name="Page" value="1" />
         <input type="hidden" name="PageSize" value="20" />
         <button type="submit" class="btn btn-primary btn-sm analysis-submit"><i class="bi bi-bar-chart-line me-1"></i>Xem so sánh</button>
-        <a class="btn btn-outline-success btn-sm analysis-export" href="@Url.Action("Dashboard", "Export", new { area = areaName, TanSuat = Model.TanSuat, KyBaoCaoId = Model.KyBaoCaoId, KhoaPhongId = Model.KhoaPhongId, ComparisonPeriodIds = Model.ComparisonPeriodIds })">
+        <a class="btn btn-outline-success btn-sm analysis-export"
+           href="@Url.Action("Dashboard", "Export", new { area = areaName })"
+           data-analysis-export
+           data-export-url="@Url.Action("Dashboard", "Export", new { area = areaName })">
             <i class="bi bi-file-earmark-excel me-1"></i>Xuất Excel
         </a>
     </form>

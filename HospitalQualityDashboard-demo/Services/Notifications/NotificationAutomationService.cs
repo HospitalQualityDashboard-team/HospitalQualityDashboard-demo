@@ -186,6 +186,52 @@ WHERE ky.KyBaoCaoId = @KyBaoCaoId
             return IndicatorWarningResult.Sent;
         }
 
+        public IndicatorWarningBatchResultDto SendIndicatorWarnings(
+            IEnumerable<IndicatorWarningTargetDto> targets,
+            int adminUserId,
+            DateTime now)
+        {
+            var summary = new IndicatorWarningBatchResultDto();
+            if (targets == null)
+            {
+                return summary;
+            }
+
+            foreach (var target in targets)
+            {
+                if (target == null)
+                {
+                    continue;
+                }
+
+                summary.TotalRequested++;
+                var result = SendIndicatorWarning(
+                    target.KyBaoCaoId,
+                    target.KhoaPhongId,
+                    target.ChiSoChatLuongId,
+                    adminUserId,
+                    now);
+
+                switch (result)
+                {
+                    case IndicatorWarningResult.Sent:
+                        summary.Sent++;
+                        break;
+                    case IndicatorWarningResult.AlreadySentToday:
+                        summary.AlreadySentToday++;
+                        break;
+                    case IndicatorWarningResult.AlreadySubmitted:
+                        summary.AlreadySubmitted++;
+                        break;
+                    default:
+                        summary.NotEligible++;
+                        break;
+                }
+            }
+
+            return summary;
+        }
+
         // Gửi dữ liệu và cập nhật trạng thái tương ứng của thông báo tự động.
         public void SendOverdueNotifications(DateTime now)
         {
@@ -290,6 +336,52 @@ END
 IF COL_LENGTH('dbo.ThongBaoTuDongLog', 'ChiSoChatLuongId') IS NULL
 BEGIN
     ALTER TABLE dbo.ThongBaoTuDongLog ADD ChiSoChatLuongId INT NULL;
+END
+
+IF EXISTS (
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = N'CK_ThongBao_LoaiThongBao'
+      AND parent_object_id = OBJECT_ID(N'dbo.ThongBao')
+      AND definition NOT LIKE N'%7%'
+)
+BEGIN
+    ALTER TABLE dbo.ThongBao DROP CONSTRAINT CK_ThongBao_LoaiThongBao;
+END
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = N'CK_ThongBao_LoaiThongBao'
+      AND parent_object_id = OBJECT_ID(N'dbo.ThongBao')
+)
+BEGIN
+    ALTER TABLE dbo.ThongBao WITH CHECK
+    ADD CONSTRAINT CK_ThongBao_LoaiThongBao
+    CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6, 7));
+END
+
+IF EXISTS (
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = N'CK_ThongBaoTuDongLog_LoaiThongBao'
+      AND parent_object_id = OBJECT_ID(N'dbo.ThongBaoTuDongLog')
+      AND definition NOT LIKE N'%7%'
+)
+BEGIN
+    ALTER TABLE dbo.ThongBaoTuDongLog DROP CONSTRAINT CK_ThongBaoTuDongLog_LoaiThongBao;
+END
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = N'CK_ThongBaoTuDongLog_LoaiThongBao'
+      AND parent_object_id = OBJECT_ID(N'dbo.ThongBaoTuDongLog')
+)
+BEGIN
+    ALTER TABLE dbo.ThongBaoTuDongLog WITH CHECK
+    ADD CONSTRAINT CK_ThongBaoTuDongLog_LoaiThongBao
+    CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6, 7));
 END");
         }
 

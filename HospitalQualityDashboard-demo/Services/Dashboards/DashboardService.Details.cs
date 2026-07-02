@@ -29,7 +29,8 @@ namespace HospitalQualityDashboardDemo.Services
             const string sql = @"
 WITH ExpectedSlots AS
 (
-    SELECT DISTINCT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.HanNop,
+    SELECT DISTINCT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.TuNgay, ky.HanNop,
+           ky.TrangThai AS TrangThaiKyBaoCao,
            pc.KhoaPhongId, kp.TenKhoaPhong, pc.ChiSoChatLuongId,
            cs.MaChiSo, cs.TenChiSo
     FROM dbo.KyBaoCao ky
@@ -46,9 +47,12 @@ WITH ExpectedSlots AS
       AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 )
 SELECT es.KyBaoCaoId, es.KhoaPhongId, es.ChiSoChatLuongId,
-       es.TenKyBaoCao, es.HanNop, es.TenKhoaPhong,
+       es.TenKyBaoCao, es.HanNop, es.TrangThaiKyBaoCao, es.TenKhoaPhong,
        es.MaChiSo, es.TenChiSo, bc.BaoCaoId, bc.TrangThai,
        ct.KetQua, ct.DatMucTieu,
+       COALESCE(mt.ToanTuSoSanh, mtFallback.ToanTuSoSanh) AS ToanTuSoSanh,
+       COALESCE(mt.GiaTriMucTieu, mtFallback.GiaTriMucTieu) AS GiaTriMucTieu,
+       COALESCE(mt.MoTaMucTieu, mtFallback.MoTaMucTieu) AS MoTaMucTieu,
        CASE
            WHEN bc.TrangThai IN (@DaGuiStatus, @QuaHanStatus, @DaKhoaStatus, @DaDuyetStatus) THEN 1
            ELSE 0
@@ -61,11 +65,15 @@ SELECT es.KyBaoCaoId, es.KhoaPhongId, es.ChiSoChatLuongId,
        CASE WHEN EXISTS (
            SELECT 1
            FROM dbo.ThongBaoTuDongLog warningLog
-           WHERE warningLog.LoaiThongBao = @NhacHan
-             AND warningLog.KyBaoCaoId = es.KyBaoCaoId
-             AND warningLog.KhoaPhongId = es.KhoaPhongId
-             AND warningLog.ChiSoChatLuongId = es.ChiSoChatLuongId
-             AND warningLog.NgayMoc = @Today
+           WHERE warningLog.DedupKey = CONCAT(
+               'indicator-warning:',
+               es.KyBaoCaoId,
+               ':',
+               es.KhoaPhongId,
+               ':',
+               es.ChiSoChatLuongId,
+               ':',
+               CONVERT(char(8), @Today, 112))
        ) THEN 1 ELSE 0 END AS HasWarningToday
 FROM ExpectedSlots es
 LEFT JOIN dbo.BaoCao bc
@@ -73,11 +81,26 @@ LEFT JOIN dbo.BaoCao bc
    AND bc.KhoaPhongId = es.KhoaPhongId
    AND bc.ChiSoChatLuongId = es.ChiSoChatLuongId
 LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
+LEFT JOIN dbo.ChiSoMucTieu mt
+    ON mt.ChiSoChatLuongId = es.ChiSoChatLuongId
+   AND mt.Nam = DATEPART(YEAR, es.TuNgay)
+OUTER APPLY (
+    SELECT TOP 1 mt2.ToanTuSoSanh, mt2.GiaTriMucTieu, mt2.MoTaMucTieu
+    FROM dbo.ChiSoMucTieu mt2
+    WHERE mt2.ChiSoChatLuongId = es.ChiSoChatLuongId
+    ORDER BY
+        CASE WHEN mt2.Nam <= DATEPART(YEAR, es.TuNgay) THEN 0 ELSE 1 END,
+        CASE WHEN mt2.Nam <= DATEPART(YEAR, es.TuNgay) THEN mt2.Nam END DESC,
+        mt2.Nam DESC
+) mtFallback
 ORDER BY es.HanNop, es.TenKhoaPhong, es.MaChiSo";
 
             return Query(sql, reader =>
             {
                 var isSubmitted = Int(reader, "IsSubmitted") == 1;
+                var hasWarningToday = Int(reader, "HasWarningToday") == 1;
+                var reportingPeriodStatus = (TrangThaiKyBaoCao)Convert.ToByte(reader["TrangThaiKyBaoCao"]);
+                var isReportingPeriodLocked = reportingPeriodStatus == TrangThaiKyBaoCao.Khoa;
                 return new DashboardMetricDetailViewModel
                 {
                     KyBaoCaoId = Int(reader, "KyBaoCaoId"),
@@ -92,15 +115,22 @@ ORDER BY es.HanNop, es.TenKhoaPhong, es.MaChiSo";
                     MaChiSo = String(reader, "MaChiSo"),
                     TenChiSo = String(reader, "TenChiSo"),
                     KetQua = isSubmitted ? NullableDecimal(reader, "KetQua") : null,
+                    MucTieu = FormatMucTieu(
+                        String(reader, "ToanTuSoSanh"),
+                        NullableDecimal(reader, "GiaTriMucTieu"),
+                        String(reader, "MoTaMucTieu")),
                     DatMucTieu = isSubmitted && !reader.IsDBNull(reader.GetOrdinal("DatMucTieu"))
                         ? (bool?)reader.GetBoolean(reader.GetOrdinal("DatMucTieu"))
                         : null,
                     TrangThaiBaoCao = reader.IsDBNull(reader.GetOrdinal("TrangThai"))
                         ? (TrangThaiBaoCao?)null
                         : (TrangThaiBaoCao)Convert.ToByte(reader["TrangThai"]),
+                    TrangThaiKyBaoCao = reportingPeriodStatus,
                     IsSubmitted = isSubmitted,
                     IsOverdueMissing = Int(reader, "IsOverdueMissing") == 1,
-                    HasWarningToday = Int(reader, "HasWarningToday") == 1
+                    IsReportingPeriodLocked = isReportingPeriodLocked,
+                    CanSendWarning = !isSubmitted && !hasWarningToday && !isReportingPeriodLocked,
+                    HasWarningToday = hasWarningToday
                 };
             },
                 Param("@KhoaPhongId", departmentId),
@@ -110,8 +140,14 @@ ORDER BY es.HanNop, es.TenKhoaPhong, es.MaChiSo";
                 Param("@DaGuiStatus", (byte)TrangThaiBaoCao.DaGui),
                 Param("@QuaHanStatus", (byte)TrangThaiBaoCao.QuaHan),
                 Param("@DaKhoaStatus", (byte)TrangThaiBaoCao.DaKhoa),
-                Param("@DaDuyetStatus", (byte)TrangThaiBaoCao.DaDuyet),
-                Param("@NhacHan", (byte)LoaiThongBao.NhacHan));
+                Param("@DaDuyetStatus", (byte)TrangThaiBaoCao.DaDuyet));
+        }
+
+        private static string FormatMucTieu(string op, decimal? value, string description)
+        {
+            if (!string.IsNullOrWhiteSpace(description)) return description.Trim();
+            if (string.IsNullOrWhiteSpace(op) || !value.HasValue) return "Chưa cấu hình mục tiêu";
+            return op.Trim() + " " + value.Value.ToString("0.####", CultureInfo.GetCultureInfo("vi-VN"));
         }
 
     }

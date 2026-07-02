@@ -69,6 +69,14 @@ if ($notificationExport -notmatch 'ToString\("0\.##"') {
     throw 'Report Excel exports must format KetQua with at most 2 decimal places.'
 }
 
+if ($notificationExport -match 'DatMucTieu", x => x\.DatMucTieu\)') {
+    throw 'Report Excel exports must not write raw DatMucTieu booleans.'
+}
+
+if ($notificationExport -notmatch 'FormatDatMucTieu\(x\.DatMucTieu\)') {
+    throw 'Report Excel exports must format DatMucTieu as Vietnamese text.'
+}
+
 if ($adminReportIndex -notmatch 'ToString\("0\.##"\)') {
     throw 'Admin report index view must display KetQua with at most 2 decimal places.'
 }

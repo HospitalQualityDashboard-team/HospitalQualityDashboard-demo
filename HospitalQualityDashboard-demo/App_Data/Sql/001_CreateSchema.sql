@@ -226,7 +226,7 @@ CREATE TABLE dbo.ThongBao (
     CONSTRAINT FK_ThongBao_ChiSoChatLuong FOREIGN KEY (ChiSoChatLuongId) REFERENCES dbo.ChiSoChatLuong(ChiSoChatLuongId),
     CONSTRAINT FK_ThongBao_BaoCao FOREIGN KEY (BaoCaoId) REFERENCES dbo.BaoCao(BaoCaoId),
     CONSTRAINT FK_ThongBao_NguoiTao FOREIGN KEY (NguoiTaoId) REFERENCES dbo.TaiKhoan(TaiKhoanId),
-    CONSTRAINT CK_ThongBao_LoaiThongBao CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6))
+    CONSTRAINT CK_ThongBao_LoaiThongBao CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6, 7))
 );
 
 CREATE TABLE dbo.ThongBaoNguoiNhan (
@@ -253,7 +253,7 @@ CREATE TABLE dbo.ThongBaoTuDongLog (
     CONSTRAINT FK_ThongBaoTuDongLog_KyBaoCao FOREIGN KEY (KyBaoCaoId) REFERENCES dbo.KyBaoCao(KyBaoCaoId),
     CONSTRAINT FK_ThongBaoTuDongLog_KhoaPhong FOREIGN KEY (KhoaPhongId) REFERENCES dbo.KhoaPhong(KhoaPhongId),
     CONSTRAINT FK_ThongBaoTuDongLog_ChiSoChatLuong FOREIGN KEY (ChiSoChatLuongId) REFERENCES dbo.ChiSoChatLuong(ChiSoChatLuongId),
-    CONSTRAINT CK_ThongBaoTuDongLog_LoaiThongBao CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6))
+    CONSTRAINT CK_ThongBaoTuDongLog_LoaiThongBao CHECK (LoaiThongBao IN (1, 2, 3, 4, 5, 6, 7))
 );
 
 CREATE TABLE dbo.LichSuImport (

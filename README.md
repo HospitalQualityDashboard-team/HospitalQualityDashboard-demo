@@ -434,7 +434,7 @@ Các màn hình Admin/User có nút xuất Excel tùy module:
 - Dashboard chi tiết (`Dashboard`): xuất workbook nhiều sheet gồm dữ liệu chi tiết, tổng hợp khoa/phòng, chỉ số còn thiếu, báo cáo chưa đạt mục tiêu và lịch sử duyệt/trả lại nếu có dữ liệu. Admin/User có thể bật `So sánh nhiều kỳ`, chọn một kỳ chính và tối đa 11 kỳ cũ hơn cùng tần suất; file bổ sung `SoSanhTongQuan` và `SoSanhChiSo`.
 - Các danh sách nghiệp vụ khác nếu controller export hỗ trợ.
 
-Khi export báo cáo, nên dùng filter trước để giảm dung lượng file và thời gian truy vấn.
+Khi export báo cáo, nên dùng filter trước để giảm dung lượng file và thời gian truy vấn. Cột `DatMucTieu` hiển thị nhãn `Đạt`, `Chưa đạt` hoặc `Chưa đánh giá` thay vì giá trị boolean `True/False`.
 
 So sánh nhiều kỳ hỗ trợ tần suất tháng, quý, 6 tháng, 9 tháng và năm. Kỳ liền trước được chọn sẵn; các bộ lọc và phạm vi khoa/phòng được áp dụng giống nhau cho mọi kỳ. Sheet tổng quan tách `Nộp quá hạn` khỏi `Quá hạn chưa nộp`; sheet chi tiết không quy dữ liệu thiếu về `0` mà hiển thị trạng thái chưa nộp/không áp dụng/mới phát sinh/không còn phát sinh.
 

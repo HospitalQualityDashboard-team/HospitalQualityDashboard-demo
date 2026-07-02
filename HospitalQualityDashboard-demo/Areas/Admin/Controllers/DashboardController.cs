@@ -3,6 +3,7 @@ using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Services;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Web.Mvc;
 
@@ -13,11 +14,12 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         private readonly DashboardService _service = new DashboardService();
         private readonly DashboardProgressComparisonService _comparisonService = new DashboardProgressComparisonService();
         private readonly NotificationAutomationService _automation = new NotificationAutomationService();
+        private readonly ReportingPeriodMaintenanceService _maintenance = new ReportingPeriodMaintenanceService();
 
         // Hiển thị danh sách và các bộ lọc của Dashboard chất lượng.
         public ActionResult Index(DashboardExcelExportQueryDto query)
         {
-            RunNotificationAutomation();
+            RunReportingPeriodMaintenance();
             query = query ?? new DashboardExcelExportQueryDto();
             var model = _service.GetDashboard(true, null, query.TanSuat);
             _service.PrepareExportFilters(model, query, true, null);
@@ -106,15 +108,80 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index", new { tanSuat = tanSuat });
         }
 
-        private void RunNotificationAutomation()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult WarnIndicators(string[] warningTargets, int? tanSuat)
+        {
+            var targets = ParseWarningTargets(warningTargets);
+            if (targets.Count == 0)
+            {
+                TempData["Message"] = "Vui lòng chọn ít nhất một chỉ số cần cảnh báo.";
+                return RedirectToAction("Index", new { tanSuat = tanSuat });
+            }
+
+            var summary = _automation.SendIndicatorWarnings(
+                targets,
+                CurrentTaiKhoanId.Value,
+                GetVietnamLocalNow());
+
+            TempData["Message"] = string.Format(
+                "Đã gửi {0}/{1} cảnh báo. Đã cảnh báo hôm nay: {2}. Đã nộp hoặc không còn hợp lệ: {3}.",
+                summary.Sent,
+                summary.TotalRequested,
+                summary.AlreadySentToday,
+                summary.AlreadySubmitted + summary.NotEligible);
+
+            return RedirectToAction("Index", new { tanSuat = tanSuat });
+        }
+
+        private static IList<IndicatorWarningTargetDto> ParseWarningTargets(string[] warningTargets)
+        {
+            var targets = new List<IndicatorWarningTargetDto>();
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            if (warningTargets == null)
+            {
+                return targets;
+            }
+
+            foreach (var warningTarget in warningTargets)
+            {
+                if (string.IsNullOrWhiteSpace(warningTarget) || !seen.Add(warningTarget))
+                {
+                    continue;
+                }
+
+                var parts = warningTarget.Split('|');
+                int periodId;
+                int departmentId;
+                int indicatorId;
+                if (parts.Length != 3
+                    || !int.TryParse(parts[0], out periodId)
+                    || !int.TryParse(parts[1], out departmentId)
+                    || !int.TryParse(parts[2], out indicatorId))
+                {
+                    continue;
+                }
+
+                targets.Add(new IndicatorWarningTargetDto
+                {
+                    KyBaoCaoId = periodId,
+                    KhoaPhongId = departmentId,
+                    ChiSoChatLuongId = indicatorId
+                });
+            }
+
+            return targets;
+        }
+
+        private void RunReportingPeriodMaintenance()
         {
             try
             {
-                _automation.Run(GetVietnamLocalNow());
+                _maintenance.Run(GetVietnamLocalNow());
             }
             catch (Exception exception)
             {
-                Trace.TraceError("Dashboard notification automation failed: {0}", exception);
+                Trace.TraceError("Dashboard reporting period maintenance failed: {0}", exception);
             }
         }
 

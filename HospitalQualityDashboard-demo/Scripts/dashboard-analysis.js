@@ -74,6 +74,18 @@ function initializeDashboardAnalysis() {
                 loadPane(pane, new URLSearchParams(new FormData(form)).toString());
             });
         });
+        pane.querySelectorAll('[data-analysis-export]').forEach(function (link) {
+            link.addEventListener('click', function (event) {
+                var form = link.closest('form');
+                if (!form) return;
+                event.preventDefault();
+                var parameters = new URLSearchParams(new FormData(form));
+                parameters.delete('Page');
+                parameters.delete('PageSize');
+                var exportUrl = link.dataset.exportUrl || link.getAttribute('href');
+                window.location.href = exportUrl + (parameters.toString() ? '?' + parameters.toString() : '');
+            });
+        });
         pane.querySelectorAll('[data-analysis-page]').forEach(function (button) {
             button.addEventListener('click', function () {
                 var form = pane.querySelector('[data-dashboard-analysis-form]');
