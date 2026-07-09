@@ -52,6 +52,7 @@ HospitalQualityDashboard-demo/ConnectionStrings.config
 _PublishedWebsites/
 *.Publish.xml
 *.pubxml.user
+HospitalQualityDashboard-demo/Properties/PublishProfiles/FolderProfile.pubxml
 publish/
 
 # Test and coverage outputs
