@@ -135,6 +135,7 @@ HospitalQualityDashboard-demo/                      # Thư mục gốc của pro
 ├── Controllers/                               # Root controllers
 │   ├── AccountController.cs                   # Login/logout, profile (giữ nguyên logic)
 │   ├── HomeController.cs                      # Landing page
+│   ├── MaintenanceController.cs               # Endpoint bảo trì có token cho scheduler ngoài app
 │   └── PageController.cs                      # Lớp base: session guard, phân quyền
 ├── Models/
 │   ├── DTOs/                                  # Data Transfer Objects
@@ -188,8 +189,7 @@ HospitalQualityDashboard-demo/                      # Thư mục gốc của pro
 │   ├── Phân chia các chỉ số dựa theo đơn vị thu thập và tổng hợp.docx
 │   ├── Phân công chỉ số.xlsx
 │   ├── Phan Tich Thiet Ke He Thong Chi Tiet.md
-│   ├── Phieu-Theo-doi-Tien-do-TTTN-Tuan7.docx
-│   ├── Phieu-Theo-doi-Tien-do-TTTN-Tuan8.docx
+│   ├── Phieu-Theo-doi-Tien-do-TTTN.docx
 │   ├── SRS_HeThongDauThauBenhVien.docx
 │   └── Định nghĩa(55 chí số) _55.docx
 ├── Views/                                     # Root views
@@ -206,7 +206,7 @@ HospitalQualityDashboard-demo/                      # Thư mục gốc của pro
 │   └── _ViewStart.cshtml
 ├── AGENTS.md                                  # Hướng dẫn làm việc
 ├── Global.asax                                # Entry point
-├── Global.asax.cs                             # Application_Start + tự mở kỳ
+├── Global.asax.cs                             # Application_Start + MVC setup, bootstrap DB, ensure migration
 ├── HospitalQualityDashboard-demo.csproj
 ├── implementation-notes.md                    # Nhật ký triển khai
 ├── packages.config                            # NuGet packages
@@ -219,19 +219,20 @@ HospitalQualityDashboard-demo/                      # Thư mục gốc của pro
 
 > **Ghi chú:** Thư mục `Filters/` và các root redirect controller cũ đã được xóa. `Content/` giữ CSS Bootstrap chính, bản minified và source map; `Scripts/` vẫn giữ các biến thể bundle/esm/slim và source map có trong project.
 >
-> **Cấp thư mục gốc repo (`D:\Hoc_Tap\Thuc_Tap\HospitalQualityDashboard-demo\`):** chứa `README.md`, `HospitalQualityDashboard-demo.slnx`, `.gitignore`, thư mục local `.worktrees/`, project ASP.NET và `packages/` NuGet.
+> **Cấp thư mục gốc repo (`D:\Hoc_Tap\Thuc_Tap\HospitalQualityDashboard-demo\`):** chứa `README.md`, `PROJECT_STRUCTURE.md`, `HospitalQualityDashboard-demo.slnx`, `.gitignore`, project ASP.NET và `packages/` NuGet.
 
 ## 4. Kiến Trúc Ứng Dụng
 
 ### 4.1. Controller
 
 Các controller kế thừa `PageController` để dùng chung cơ chế session và phân quyền.
-Sau đợt tái cấu trúc tháng 06/2026, các redirect wrapper ở root đã được xóa. Logic nghiệp vụ và render view nằm trong `Areas/Admin/Controllers/` và `Areas/User/Controllers/`; root chỉ giữ đăng nhập/hồ sơ, trang Home và lớp cơ sở phân quyền.
+Sau đợt tái cấu trúc tháng 06/2026, các redirect wrapper ở root đã được xóa. Logic nghiệp vụ và render view nằm trong `Areas/Admin/Controllers/` và `Areas/User/Controllers/`; root chỉ giữ đăng nhập/hồ sơ, trang Home, endpoint bảo trì có token và lớp cơ sở phân quyền.
 
 - `AccountController`: đăng nhập Admin/User riêng biệt, đăng xuất, đổi mật khẩu (giữ nguyên root).
 - `HomeController`: trang landing page root, điều hướng người dùng theo trạng thái đăng nhập.
+- `MaintenanceController`: endpoint `POST /Maintenance/RunReportingPeriodAutomation`, yêu cầu `HospitalQualityMaintenanceToken` qua header `X-Maintenance-Token` hoặc query `token`, dùng cho scheduler ngoài app chạy bảo trì kỳ báo cáo.
 - `PageController`: lớp cơ sở, cung cấp session guard, `RequireAdmin()`, `EnsureUserDepartment()`.
-- `Areas/Admin/Controllers/`: chứa logic quản trị cho khoa/phòng, nhân viên, chỉ số, phân công, kỳ báo cáo, báo cáo, thông báo, xuất dữ liệu và dashboard..
+- `Areas/Admin/Controllers/`: chứa logic quản trị cho khoa/phòng, nhân viên, chỉ số, phân công, kỳ báo cáo, báo cáo, thông báo, xuất dữ liệu và dashboard.
 - `Areas/User/Controllers/`: chứa logic cho User khoa/phòng: dashboard, báo cáo, chỉ số (xem), thông báo, xuất báo cáo.
 
 ### 4.2. Service
@@ -240,23 +241,32 @@ Các service chứa nghiệp vụ và truy cập database trực tiếp qua ADO.
 
 | File | Vai trò chính |
 |---|---|
-| `DbServiceBase.cs` | Lớp cơ sở: `Query`, `Scalar`, `Execute`, `Param`, helper đọc dữ liệu |
-| `AuthService.cs` | Xác thực tài khoản, đổi mật khẩu, cập nhật lần đăng nhập cuối, update profile |
-| `DashboardExcelExportService.cs` | Xuất Dashboard nhiều sheet, áp dụng phạm vi theo vai trò và ghi `LichSuXuatBaoCao` |
-| `DatabaseConfiguration.cs` | Cấu hình tên connection string dùng chung cho các service |
-| `DatabaseBootstrapper.cs` | Khởi tạo CSDL và chạy script SQL tự động khi enabled |
-| `DropdownCache.cs` | Cache tùy chọn khoa/phòng, chỉ số và kỳ báo cáo trong 5 phút |
-| `ExcelImportExportService.cs` | Đọc Excel, xử lý shared string, inline string, ô trống bị Excel lược bỏ |
-| `FrequencyHelper.cs` | Chuẩn hóa và đối chiếu tần suất giữa chỉ số với kỳ báo cáo |
-| `IndicatorWarningMessageBuilder.cs` | Tạo nội dung cảnh báo trước hạn, đúng hạn và quá hạn theo ngày Việt Nam |
-| `IndicatorServices.cs` | Nghiệp vụ chỉ số: CRUD, import, parser tần suất/khoa phòng, suy luận công thức/đơn vị, phân công (AssignmentService) |
-| `IndicatorService.Deployment.cs` | Triển khai/ngừng triển khai chỉ số, ghi `LichSuTrienKhaiChiSo` và log thao tác |
-| `ManagementServices.cs` | Nghiệp vụ khoa/phòng và nhân viên |
-| `NotificationExportServices.cs` | Thông báo thủ công, thông báo tự động (NotificationAutomationService), chống gửi trùng, xuất dữ liệu XLSX |
-| `PasswordHasher.cs` | Hash/verify mật khẩu bằng PBKDF2 |
-| `ReportDashboardServices.cs` | Nhập báo cáo, tính kết quả (IndicatorCalculationService), gửi/khóa/xóa, dashboard (DashboardService), cảnh báo |
-| `ReportingPeriodServices.cs` | Kỳ báo cáo (ReportingPeriodService), tạo lịch tự động (ReportingPeriodScheduleService), tự mở kỳ |
-| `SessionUserAccessor.cs` | Chuẩn hóa các key session: `TaiKhoanId`, `LoaiTaiKhoan`, `KhoaPhongId` |
+| `Services/Infrastructure/Database/DbServiceBase.cs` | Lớp cơ sở ADO.NET: `Query`, `Scalar`, `Execute`, transaction, parameter và helper đọc dữ liệu |
+| `Services/Infrastructure/Database/DatabaseConfiguration.cs` | Cấu hình tên connection string dùng chung cho các service |
+| `Services/Infrastructure/Database/DatabaseBootstrapper.cs` | Khởi tạo CSDL, chạy script SQL khi enabled và ensure migration vòng đời triển khai chỉ số |
+| `Services/Infrastructure/Caching/DropdownCache.cs` | Cache tùy chọn khoa/phòng, chỉ số và kỳ báo cáo trong 5 phút |
+| `Services/Authentication/AuthService.cs` | Xác thực tài khoản, lockout, đổi mật khẩu, cập nhật lần đăng nhập cuối và update profile |
+| `Services/Authentication/PasswordHasher.cs` | Hash/verify mật khẩu bằng PBKDF2 |
+| `Services/Authentication/SessionUserAccessor.cs` | Chuẩn hóa các key session: `TaiKhoanId`, `LoaiTaiKhoan`, `KhoaPhongId` |
+| `Services/Common/FrequencyHelper.cs` | Chuẩn hóa và đối chiếu tần suất giữa chỉ số với kỳ báo cáo |
+| `Services/Departments/DepartmentService.cs` | Nghiệp vụ khoa/phòng: danh sách, CRUD, import, export option và cache dropdown |
+| `Services/Employees/EmployeeService.cs` | Nghiệp vụ nhân viên/tài khoản: phân trang, CRUD, import và tạo tài khoản |
+| `Services/Excel/ExcelImportExportService*.cs` | Đọc CSV/XLSX/DOCX, chống file rủi ro và tạo workbook Excel |
+| `Services/Excel/ExcelWorksheetExport.cs` | Descriptor sheet/cột cho các luồng xuất Excel |
+| `Services/Indicators/IndicatorService*.cs` | Nghiệp vụ chỉ số: CRUD, import, parser tần suất/khoa phòng, công thức, mục tiêu và triển khai/ngừng triển khai |
+| `Services/Indicators/AssignmentService*.cs` | Phân công chỉ số cho khoa/phòng, preview, nhóm, query, bulk action và export |
+| `Services/ReportingPeriods/ReportingPeriodService.cs` | Kỳ báo cáo: danh sách, chi tiết, CRUD, dropdown và đổi trạng thái |
+| `Services/ReportingPeriods/ReportingPeriodScheduleService.cs` | Tạo lịch tự động, mở kỳ đến hạn và khóa kỳ quá hạn |
+| `Services/ReportingPeriods/ReportingPeriodMaintenanceService.cs` | Điều phối mở kỳ, chạy notification automation và khóa kỳ quá hạn |
+| `Services/Reports/ReportService.cs` | Nhập báo cáo, lưu nháp/gửi/khóa/xóa, tính kết quả server-side và audit |
+| `Services/Reports/IndicatorCalculationService.cs` | Tính kết quả, làm tròn và đánh giá đạt mục tiêu |
+| `Services/Notifications/NotificationService.cs` | Hộp thư, đếm chưa đọc, gửi thủ công, chi tiết và đánh dấu đã đọc |
+| `Services/Notifications/NotificationAutomationService.cs` | Tự động gửi thông báo kỳ mở, nhắc hạn, quá hạn, tổng hợp Admin và chống gửi trùng |
+| `Services/Notifications/IndicatorWarningMessageBuilder.cs` | Tạo nội dung cảnh báo trước hạn, đúng hạn và quá hạn theo ngày Việt Nam |
+| `Services/Dashboards/DashboardService*.cs` | Dashboard Admin/User: summary, chi tiết metric, báo cáo thiếu và filter |
+| `Services/Dashboards/DashboardProgressComparison*.cs` | So sánh tiến độ và xu hướng nhiều kỳ |
+| `Services/Dashboards/Export/DashboardExcelExportService*.cs` | Xuất Dashboard nhiều sheet, áp dụng phạm vi theo vai trò và ghi `LichSuXuatBaoCao` |
+| `Services/Exports/ExportService.cs` | Xuất XLSX danh mục, báo cáo, phân công và tiến độ dashboard |
 
 ### 4.3. Quy ước chú thích code
 
@@ -642,17 +652,15 @@ Khi tạo lịch:
 
 - Nếu `TuNgay <= hôm nay`, kỳ được tạo ở trạng thái `Mo`.
 - Nếu `TuNgay > hôm nay`, kỳ được tạo ở trạng thái `Nhap`.
-- Các kỳ `Nhap` sẽ tự chuyển sang `Mo` khi tới ngày bắt đầu.
+- Các kỳ `Nhap` sẽ chuyển sang `Mo` khi luồng bảo trì kỳ báo cáo chạy tới ngày bắt đầu.
 
-Hàm tự mở kỳ được gọi ở các điểm nhẹ:
+Luồng bảo trì kỳ báo cáo hiện do `ReportingPeriodMaintenanceService.Run(now)` điều phối theo thứ tự:
 
-- khi ứng dụng khởi động;
-- khi truy cập Dashboard;
-- khi truy cập Báo cáo;
-- khi truy cập Kỳ báo cáo;
-- khi truy cập Thông báo.
+- mở các kỳ đã tới ngày bắt đầu;
+- chạy notification automation;
+- khóa các kỳ mở đã quá hạn nộp.
 
-Giai đoạn này chưa dùng background scheduler phức tạp vì nhu cầu chỉ cần tự đồng bộ trạng thái theo ngày.
+Luồng này được gọi khi truy cập Dashboard Admin/User, khi Admin chạy automation thủ công ở màn hình Thông báo, và qua endpoint bảo trì `POST /Maintenance/RunReportingPeriodAutomation` nếu có token cấu hình. `Global.asax.cs` không còn tự mở kỳ; file này chỉ đăng ký MVC/bundle, bootstrap database khi bật cấu hình và ensure migration vòng đời triển khai chỉ số.
 
 ### 16.6. Chống trùng và không tạo báo cáo rỗng
 
@@ -683,12 +691,14 @@ Nhờ vậy, nếu Admin thay đổi phân công sau khi tạo kỳ, danh sách 
 ### 16.7. File kỹ thuật chính
 
 - `Models/ViewModels/AppViewModels.cs`: chứa ViewModel tạo lịch và preview.
-- `Services/ReportingPeriods/ReportingPeriodScheduleService.cs`: logic sinh kỳ, chống trùng, bỏ qua kỳ cũ và tự mở kỳ.
+- `Services/ReportingPeriods/ReportingPeriodScheduleService.cs`: logic sinh kỳ, chống trùng, bỏ qua kỳ cũ, mở kỳ đến hạn và khóa kỳ quá hạn.
+- `Services/ReportingPeriods/ReportingPeriodMaintenanceService.cs`: điều phối mở kỳ, chạy notification automation và khóa kỳ quá hạn.
 - `Areas/Admin/Controllers/ReportingPeriodController.cs`: thêm action `GenerateSchedule`, `PreviewSchedule`, `CreateSchedule`.
 - `Areas/Admin/Views/ReportingPeriod/GenerateSchedule.cshtml`: màn hình Admin chọn năm, loại kỳ và xem preview.
 - `Areas/Admin/Views/ReportingPeriod/Index.cshtml`: thêm nút **Tạo lịch tự động**.
 - `Areas/Admin/Controllers/ReportingPeriodController.cs` và `Areas/Admin/Controllers/NotificationController.cs`: có endpoint POST có anti-forgery để Admin mở kỳ đến hạn hoặc chạy automation thủ công; các trang GET chính giữ nguyên read-only.
-- `Global.asax.cs`: gọi tự mở kỳ khi ứng dụng khởi động.
+- `Controllers/MaintenanceController.cs`: endpoint bảo trì có token cho scheduler ngoài app chạy automation kỳ báo cáo.
+- `Global.asax.cs`: đăng ký Area/filter/route/bundle, bootstrap database khi bật cấu hình và ensure migration triển khai chỉ số.
 - `Services/Reports/ReportService.cs`: xác định báo cáo trễ theo ngày hạn nộp, phù hợp quy ước hạn cuối 23:59.
 - Kiểm tra chức năng tạo lịch tự động bằng build Razor view và checklist thủ công.
 
@@ -727,11 +737,10 @@ Mục này lưu lịch sử dọn dẹp ngày 10/06/2026. Trạng thái được
 
 | Mục | Vị trí | Trạng thái |
 |---|---|---|
-| `.worktrees/` | Root repo | Thư mục local còn tồn tại; không thuộc mã ứng dụng. |
 | `Content/` | CSS Bootstrap chính, minified và source map | Đang được project quản lý. |
 | `Scripts/` | `bootstrap.bundle.*`, `bootstrap.esm.*`, `jquery-*.slim.*`, `*.map` | Đang được project quản lý; có thể rà soát riêng nếu cần giảm dung lượng. |
 
-**Lưu ý:** Không xóa `.worktrees/`, `Content/` hoặc `Scripts/` chỉ dựa trên danh sách này; phải kiểm tra đăng ký Git worktree, `.csproj` và `BundleConfig` trước.
+**Lưu ý:** Không xóa `Content/` hoặc `Scripts/` chỉ dựa trên danh sách này; phải kiểm tra `.csproj` và `BundleConfig` trước.
 
 ## 18. Cập Nhật Ngày 13/06/2026 - Cải tiến Tầng CSDL, Xuất Excel & Sửa Lỗi Hồ Sơ
 
@@ -742,11 +751,11 @@ Mục này lưu lịch sử dọn dẹp ngày 10/06/2026. Trạng thái được
 - **Bảo lưu dữ liệu**: Khi validation thất bại hoặc xảy ra ngoại lệ `InvalidOperationException` (như tài khoản chưa liên kết nhân viên), hệ thống nạp lại profile của user nhưng giữ nguyên dữ liệu vừa điền trên form để hiển thị lỗi mà không làm mất thông tin nhập liệu.
 - **Tập tin chính**:
   - [AccountController.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Controllers/AccountController.cs): Cập nhật logic xử lý lỗi và lưu trạng thái form.
-  - [AuthService.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Services/AuthService.cs): Bổ sung phương thức `UpdateProfile` và helper `GetNhanVienId`.
+  - [AuthService.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Services/Authentication/AuthService.cs): Bổ sung phương thức `UpdateProfile` và helper `GetNhanVienId`.
 
 ### 18.2. Áp dụng SqlTransaction cho các tác vụ nhiều bước
 - **Mục tiêu**: Đảm bảo tính toàn vẹn dữ liệu (Atomicity), rollback toàn bộ nếu có bất cứ lỗi nào xảy ra trong quá trình cập nhật hoặc import dữ liệu nhiều bảng.
-- **Cơ sở hạ tầng**: Bổ sung helper `ExecuteInTransaction` trong [DbServiceBase.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Services/DbServiceBase.cs) cùng các overload nhận `SqlConnection` và `SqlTransaction` để tái sử dụng.
+- **Cơ sở hạ tầng**: Bổ sung helper `ExecuteInTransaction` trong [DbServiceBase.cs](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Services/Infrastructure/Database/DbServiceBase.cs) cùng các overload nhận `SqlConnection` và `SqlTransaction` để tái sử dụng.
 - **Nghiệp vụ áp dụng**:
   - **Báo cáo**: Lưu nháp (`SaveDraft`) và Xóa (`Delete`) trong `Services/Reports/ReportService.cs`.
   - **Chỉ số**: Thêm/Sửa (`Save`), Xóa (`Delete`) và `Import` trong các partial tại `Services/Indicators/IndicatorService*.cs`.
@@ -761,7 +770,7 @@ Mục này lưu lịch sử dọn dẹp ngày 10/06/2026. Trạng thái được
   - Xuất động dữ liệu tiến độ theo các cột được chọn thành file `tien-do-khoa-phong.xlsx`.
 - **Tập tin chính**:
   - `Services/Exports/ExportService.cs`: Cập nhật `ExportService` và bổ sung `ExportDashboardProgress`.
-  - [ExportController.cs (Admin)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Controllers/ExportController.cs), [ExportController.cs (User)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/User/Controllers/ExportController.cs), [ExportController.cs (Root)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Controllers/ExportController.cs): Thay đổi MIME type, phần mở rộng `.xlsx` và thêm các action xử lý xuất Excel Dashboard.
+  - [ExportController.cs (Admin)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Controllers/ExportController.cs) và [ExportController.cs (User)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/User/Controllers/ExportController.cs): Thay đổi MIME type, phần mở rộng `.xlsx` và thêm các action xử lý xuất Excel Dashboard.
   - [Index.cshtml (Admin Dashboard)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Views/Dashboard/Index.cshtml): Bổ sung nút bấm và modal chọn cột.
 
 ### 18.4. Dọn dẹp Repository
@@ -803,7 +812,7 @@ Mục này lưu lịch sử dọn dẹp ngày 10/06/2026. Trạng thái được
 - `Services/Dashboards/DashboardService*.cs`: Nâng cấp `GetDashboard` và thêm helper `CalculateXepLoai`.
 - `Services/Exports/ExportService.cs`: Cập nhật `ExportDashboardProgress` và các cột cấu hình `DashboardProgressExportColumns`.
 - [DashboardController.cs (Admin)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Controllers/DashboardController.cs): Tiếp nhận tham số lọc `tanSuat`.
-- [ExportController.cs (Admin)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Controllers/ExportController.cs) & [ExportController.cs (Root)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Controllers/ExportController.cs): Tiếp nhận và truyền tham số `tanSuat`.
+- [ExportController.cs (Admin)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Controllers/ExportController.cs): Tiếp nhận và truyền tham số `tanSuat`.
 - [Index.cshtml (Admin Dashboard)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Views/Dashboard/Index.cshtml): Thêm form lọc, hiển thị badge xếp loại và cập nhật cấu hình modal xuất Excel.
 
 ## 20. Cập Nhật Ngày 15/06/2026 - Hướng Dẫn Sử Dụng, Bảo Mật Cấu Hình & Tối Ưu Tốc Độ
@@ -891,8 +900,10 @@ Thư mục `tools/` hiện có các script:
 - `VerifyIndicatorWarnings.ps1`
 - `VerifyIndicatorDeploymentLifecycle.ps1`
 - `VerifyManagementPaging.ps1`
+- `VerifyReportingPeriodMaintenance.ps1`
 - `VerifyReportResultAndExcelTime.ps1`
 - `VerifyReportSubmissionNavigationAndAdminAudit.ps1`
+- `VerifySqlMigrations.ps1`
 - `VerifyUnreadNotificationBadge.ps1`
 
 Các script này không thay thế build/Razor compile/checklist thủ công, nhưng giúp kiểm tra nhanh những luồng nghiệp vụ đã từng phát sinh lỗi.

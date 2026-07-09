@@ -311,8 +311,11 @@ hệ nhiều-nhiều giữa chỉ số và khoa/phòng.
 - **`Services/ReportingPeriods/ReportingPeriodService.cs`**: danh sách,
   dropdown, kiểm tra kỳ mở cho khoa, CRUD và chuyển trạng thái kỳ báo cáo.
 - **`Services/ReportingPeriods/ReportingPeriodScheduleService.cs`**: tạo request
-  mặc định, preview khoảng thời gian, sinh lịch theo tần suất, chống trùng và tự
-  mở kỳ đến ngày bắt đầu.
+  mặc định, preview khoảng thời gian, sinh lịch theo tần suất, chống trùng, mở
+  kỳ đến hạn và khóa kỳ quá hạn.
+- **`Services/ReportingPeriods/ReportingPeriodMaintenanceService.cs`**: điều
+  phối bảo trì kỳ báo cáo: mở kỳ đến hạn, chạy notification automation rồi khóa
+  kỳ quá hạn.
 - **`Services/Reports/IndicatorCalculationService.cs`**: tính `KetQua`, đánh giá
   mục tiêu, làm tròn và validate tử số/mẫu số theo loại công thức.
 - **`Services/Reports/ReportService.cs`**: truy vấn có khóa phạm vi khoa, lấy chỉ
@@ -383,6 +386,10 @@ Folder này xử lý trang công khai, tài khoản và base phân quyền dùng
 - **`Controllers/AccountController.cs`**: đăng nhập Admin/User, ghi nhận thất
   bại/khóa tạm, logout, đổi mật khẩu, xem và cập nhật hồ sơ; POST dùng
   anti-forgery và `AuthService`.
+- **`Controllers/MaintenanceController.cs`**: endpoint `POST
+  /Maintenance/RunReportingPeriodAutomation` cho scheduler ngoài app; yêu cầu
+  token cấu hình `HospitalQualityMaintenanceToken` qua header
+  `X-Maintenance-Token` hoặc query `token`.
 
 ### `Areas/Admin`
 
@@ -447,6 +454,8 @@ phải có session hợp lệ và role Admin.
   tạo lịch, khóa/xóa và phân trang.
 - **`Areas/Admin/Views/ReportingPeriod/Edit.cshtml`**: form tên, tần suất, ngày,
   hạn nộp và trạng thái kỳ.
+- **`Areas/Admin/Views/ReportingPeriod/Details.cshtml`**: chi tiết kỳ, thống kê
+  chỉ số áp dụng và danh sách chỉ số theo tần suất.
 - **`Areas/Admin/Views/ReportingPeriod/GenerateSchedule.cshtml`**: chọn năm/
   tần suất, preview và xác nhận sinh lịch.
 - **`Areas/Admin/Views/Report/Index.cshtml`**: filter/export và lịch sử báo cáo
@@ -596,6 +605,9 @@ test database hoặc browser test.
   `fn_ChiSoDuocTrienKhaiTrongKy`.
 - **`tools/VerifyManagementPaging.ps1`**: kiểm paging ViewModel/Controller/
   Service/UI của kỳ, chỉ số và thông báo Admin/User.
+- **`tools/VerifyReportingPeriodMaintenance.ps1`**: kiểm service bảo trì kỳ báo
+  cáo, thứ tự mở kỳ/gửi thông báo/khóa kỳ quá hạn, controller Dashboard,
+  Notification và endpoint liên quan.
 - **`tools/VerifyReportResultAndExcelTime.ps1`**: kiểm làm tròn, giờ Việt Nam,
   format thời gian Excel/audit và số chữ số thập phân.
 - **`tools/VerifySqlMigrations.ps1`**: kiểm các script migration quan trọng có
@@ -683,8 +695,8 @@ repo là `Services/Indicators/IndicatorService.cs`.
 | `HospitalQualityDashboard-demo.slnx` | Solution Visual Studio, trỏ tới web project chính. |
 | `HospitalQualityDashboard-demo/HospitalQualityDashboard-demo.csproj` | Khai báo project MVC, target framework, reference NuGet và danh sách file compile/content. |
 | `HospitalQualityDashboard-demo/Global.asax` | Entry directive để ASP.NET nạp `MvcApplication`. |
-| `HospitalQualityDashboard-demo/Global.asax.cs` | Đăng ký Area, route, filter, bundle và bootstrap database khi bật cấu hình. |
-| `HospitalQualityDashboard-demo/Web.config` | Cấu hình MVC, session, cookie, binding redirect, connection string source và app settings. |
+| `HospitalQualityDashboard-demo/Global.asax.cs` | Đăng ký Area, route, filter, bundle, bootstrap database khi bật cấu hình và ensure migration vòng đời triển khai chỉ số. |
+| `HospitalQualityDashboard-demo/Web.config` | Cấu hình MVC, session, cookie, binding redirect, connection string source, bootstrap flag và maintenance token. |
 | `HospitalQualityDashboard-demo/Web.Debug.config` | Transform cho môi trường Debug. |
 | `HospitalQualityDashboard-demo/Web.Release.config` | Transform Release, tắt debug và ép cookie HTTPS. |
 | `HospitalQualityDashboard-demo/ConnectionStrings.example.config` | Mẫu connection string local/deploy, không chứa mật khẩu thật. |
@@ -747,7 +759,8 @@ repo là `Services/Indicators/IndicatorService.cs`.
 | `HospitalQualityDashboard-demo/Services/Indicators/AssignmentService.Groups.cs` | Gom nhóm phân công theo khoa/chỉ số và tính thống kê. |
 | `HospitalQualityDashboard-demo/Services/Indicators/AssignmentService.Commands.cs` | Preview, tạo, đồng bộ, bật/tắt/xóa phân công đơn lẻ hoặc hàng loạt. |
 | `HospitalQualityDashboard-demo/Services/ReportingPeriods/ReportingPeriodService.cs` | CRUD kỳ báo cáo, dropdown, kiểm kỳ mở và đổi trạng thái kỳ. |
-| `HospitalQualityDashboard-demo/Services/ReportingPeriods/ReportingPeriodScheduleService.cs` | Preview/sinh lịch kỳ theo năm, tần suất, hạn nộp và chống trùng. |
+| `HospitalQualityDashboard-demo/Services/ReportingPeriods/ReportingPeriodScheduleService.cs` | Preview/sinh lịch kỳ theo năm, tần suất, hạn nộp, chống trùng, mở kỳ đến hạn và khóa kỳ quá hạn. |
+| `HospitalQualityDashboard-demo/Services/ReportingPeriods/ReportingPeriodMaintenanceService.cs` | Điều phối mở kỳ, chạy notification automation và khóa kỳ quá hạn. |
 | `HospitalQualityDashboard-demo/Services/Reports/IndicatorCalculationService.cs` | Tính kết quả, đánh giá mục tiêu, làm tròn và validate dữ liệu báo cáo. |
 | `HospitalQualityDashboard-demo/Services/Reports/ReportService.cs` | Lấy chỉ số được giao, lưu nháp/gửi/khóa/xóa báo cáo và ghi audit. |
 | `HospitalQualityDashboard-demo/Services/Notifications/IndicatorWarningMessageBuilder.cs` | Dựng nội dung cảnh báo trước hạn, đến hạn và quá hạn. |
@@ -775,6 +788,7 @@ repo là `Services/Indicators/IndicatorService.cs`.
 | `HospitalQualityDashboard-demo/Controllers/HomeController.cs` | Trang vào công khai. |
 | `HospitalQualityDashboard-demo/Controllers/AccountController.cs` | Đăng nhập Admin/User, logout, hồ sơ và đổi mật khẩu. |
 | `HospitalQualityDashboard-demo/Controllers/PageController.cs` | Base kiểm session, revalidate user và helper phân quyền/phạm vi. |
+| `HospitalQualityDashboard-demo/Controllers/MaintenanceController.cs` | Endpoint bảo trì có token để scheduler ngoài app chạy automation kỳ báo cáo. |
 | `HospitalQualityDashboard-demo/Areas/Admin/AdminAreaRegistration.cs` | Route cho Area Admin. |
 | `HospitalQualityDashboard-demo/Areas/Admin/Controllers/AdminBaseController.cs` | Base ép role Admin. |
 | `HospitalQualityDashboard-demo/Areas/Admin/Controllers/DashboardController.cs` | Dashboard toàn viện, partial comparison/trend và cảnh báo chỉ số. |
@@ -826,6 +840,7 @@ repo là `Services/Indicators/IndicatorService.cs`.
 | `HospitalQualityDashboard-demo/Areas/Admin/Views/Assignment/_TableView.cshtml` | Partial bảng phân công phẳng. |
 | `HospitalQualityDashboard-demo/Areas/Admin/Views/ReportingPeriod/Index.cshtml` | Danh sách kỳ, mở/khóa/xóa và vào luồng sinh lịch. |
 | `HospitalQualityDashboard-demo/Areas/Admin/Views/ReportingPeriod/Edit.cshtml` | Form tạo/sửa kỳ báo cáo. |
+| `HospitalQualityDashboard-demo/Areas/Admin/Views/ReportingPeriod/Details.cshtml` | Chi tiết kỳ báo cáo, thống kê và danh sách chỉ số áp dụng. |
 | `HospitalQualityDashboard-demo/Areas/Admin/Views/ReportingPeriod/GenerateSchedule.cshtml` | Preview và xác nhận sinh lịch kỳ tự động. |
 | `HospitalQualityDashboard-demo/Areas/Admin/Views/Report/Index.cshtml` | Tra cứu/export lịch sử báo cáo toàn viện. |
 | `HospitalQualityDashboard-demo/Areas/Admin/Views/Report/Edit.cshtml` | Xem chi tiết báo cáo readonly. |
@@ -900,6 +915,7 @@ repo là `Services/Indicators/IndicatorService.cs`.
 | `HospitalQualityDashboard-demo/tools/VerifyIndicatorWarningMessages.ps1` | Kiểm nội dung Unicode của thông báo cảnh báo chỉ số. |
 | `HospitalQualityDashboard-demo/tools/VerifyIndicatorWarnings.ps1` | Kiểm migration, automation, dedup và UI cảnh báo chỉ số. |
 | `HospitalQualityDashboard-demo/tools/VerifyManagementPaging.ps1` | Kiểm phân trang quản lý kỳ, chỉ số và notification. |
+| `HospitalQualityDashboard-demo/tools/VerifyReportingPeriodMaintenance.ps1` | Kiểm bảo trì kỳ báo cáo: mở kỳ, notification automation, khóa quá hạn và endpoint liên quan. |
 | `HospitalQualityDashboard-demo/tools/VerifyReportResultAndExcelTime.ps1` | Kiểm kết quả báo cáo, làm tròn và thời gian Excel/audit. |
 | `HospitalQualityDashboard-demo/tools/VerifyReportSubmissionNavigationAndAdminAudit.ps1` | Kiểm điều hướng sau gửi báo cáo và audit Admin. |
 | `HospitalQualityDashboard-demo/tools/VerifySqlMigrations.ps1` | Kiểm chất lượng/idempotency của các migration SQL. |

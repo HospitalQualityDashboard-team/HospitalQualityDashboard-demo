@@ -103,7 +103,7 @@ HospitalQualityDashboard-demo/
     └── Web.config
 ```
 
-Các controller nghiệp vụ chính nằm trong `Areas/Admin` và `Areas/User`. Thư mục root `Controllers/` hiện chỉ còn `AccountController`, `HomeController` và `PageController`; các controller redirect tương thích cũ đã được xóa.
+Các controller nghiệp vụ chính nằm trong `Areas/Admin` và `Areas/User`. Thư mục root `Controllers/` hiện giữ `AccountController`, `HomeController`, `PageController` và `MaintenanceController`; các controller redirect tương thích cũ đã được xóa. `MaintenanceController` là endpoint bảo trì có token để scheduler ngoài app kích hoạt automation kỳ báo cáo khi cần.
 
 ## 4. Yêu cầu môi trường
 
@@ -200,7 +200,15 @@ Các script chính:
 - `App_Data/Sql/004_AddIndicatorWarning.sql`: liên kết thông báo với chỉ số và bổ sung index chống gửi cảnh báo trùng.
 - `App_Data/Sql/005_AddIndicatorDeploymentHistory.sql`: tạo bảng `LichSuTrienKhaiChiSo`, index và hàm `fn_ChiSoDuocTrienKhaiTrongKy` để lọc chỉ số theo vòng đời triển khai trong từng kỳ báo cáo.
 
-Mặc định bootstrap nên tắt:
+Trong working tree hiện tại, `Web.config` đang bật bootstrap để phục vụ dev/test:
+
+```xml
+<add key="HospitalQualityBootstrapEnabled" value="true" />
+<add key="HospitalQualityBootstrapCreateDatabase" value="false" />
+<add key="HospitalQualityMaintenanceToken" value="" />
+```
+
+Khi dùng môi trường thật hoặc database đã ổn định, bootstrap nên tắt lại:
 
 ```xml
 <add key="HospitalQualityBootstrapEnabled" value="false" />
@@ -210,6 +218,8 @@ Mặc định bootstrap nên tắt:
 Chỉ bật `HospitalQualityBootstrapEnabled=true` khi cần tạo schema hoặc bổ sung index trên môi trường dev/test. Sau khi chạy xong nên tắt lại.
 
 Chỉ bật `HospitalQualityBootstrapCreateDatabase=true` khi tài khoản SQL có quyền tạo database và bạn thật sự muốn ứng dụng tự tạo database qua `master`.
+
+`HospitalQualityMaintenanceToken` dùng cho endpoint bảo trì `POST /Maintenance/RunReportingPeriodAutomation`; nếu không cấu hình token thì endpoint này trả 403.
 
 ## 7. Restore, build và chạy dự án
 
@@ -268,9 +278,10 @@ Nếu IIS Express đang giữ DLL, tắt IIS Express/Visual Studio rồi build l
 /User/Indicator              Chỉ số User được xem
 /User/Report                 Báo cáo của khoa/phòng
 /User/Notification           Thông báo User
+/Maintenance/RunReportingPeriodAutomation  Endpoint POST bảo trì, yêu cầu token
 ```
 
-Root controller như `/Dashboard`, `/Report`, `/Notification` vẫn redirect vào Area tương ứng để giữ tương thích, nhưng route chính nên dùng `/Admin/...` hoặc `/User/...`.
+Các route nghiệp vụ chính hiện dùng `/Admin/...` hoặc `/User/...`; root redirect controller cũ như `/Dashboard`, `/Report`, `/Notification` không còn trong repo.
 
 ## 9. Quy trình sử dụng cho Admin
 
@@ -532,8 +543,10 @@ VerifyIndicatorWarningMessages.ps1
 VerifyIndicatorWarnings.ps1
 VerifyIndicatorDeploymentLifecycle.ps1
 VerifyManagementPaging.ps1
+VerifyReportingPeriodMaintenance.ps1
 VerifyReportResultAndExcelTime.ps1
 VerifyReportSubmissionNavigationAndAdminAudit.ps1
+VerifySqlMigrations.ps1
 VerifyUnreadNotificationBadge.ps1
 ```
 
@@ -584,22 +597,6 @@ Cách xử lý:
 - Dùng filter và phân trang.
 - Kiểm tra firewall/region Azure SQL.
 - Với import lớn, chia file nhỏ hơn hoặc tối ưu riêng luồng import.
-
-### GitHub vẫn hiện contributor Claude
-
-Nguyên nhân thường gặp:
-
-- Commit message cũ có `Co-Authored-By: Claude ...`.
-- Branch khác vẫn trỏ tới commit cũ.
-- GitHub contributor graph còn cache.
-
-Cách kiểm tra:
-
-```powershell
-git log --remotes --format="%H%n%B%n---END---" | Select-String -Pattern "Claude|noreply@anthropic.com"
-```
-
-Nếu không còn kết quả trên remote branches, thường chỉ cần chờ GitHub cập nhật cache.
 
 ## 17. Quy ước commit
 

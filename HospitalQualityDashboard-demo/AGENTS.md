@@ -2,23 +2,35 @@
 
 ## Cấu trúc dự án và module
 
-Repository này là ứng dụng web ASP.NET MVC 4 chạy trên .NET Framework 4.7.2. Code server chính nằm trong `Controllers/` (Account, Home, PageController base), `Areas/Admin/`, `Areas/User/`, `Models/`, `Services/`. Cấu hình khởi động MVC nằm trong `App_Start/`, entry point của ứng dụng là `Global.asax` và `Global.asax.cs`. Tài nguyên tĩnh nằm trong `Content/` (bootstrap.css, Site.css) và `Scripts/` (jQuery, Bootstrap, jQuery Validate). Tài liệu nghiệp vụ hệ thống chỉ số chất lượng bệnh viện nằm trong `Tai_Lieu/`. `App_Data/` dành cho dữ liệu ứng dụng local; không commit file database sinh ra hoặc dữ liệu riêng tư nếu không có yêu cầu rõ ràng.
+Repository này là ứng dụng web ASP.NET MVC 4 chạy trên .NET Framework 4.7.2. Code server chính nằm trong `Controllers/` (Account, Home, PageController base, Maintenance endpoint), `Areas/Admin/`, `Areas/User/`, `Models/`, `Services/`. Cấu hình khởi động MVC nằm trong `App_Start/`, entry point của ứng dụng là `Global.asax` và `Global.asax.cs`. Tài nguyên tĩnh nằm trong `Content/` (bootstrap.css, Site.css, images) và `Scripts/` (jQuery, Bootstrap, jQuery Validate, dashboard-analysis.js). Tài liệu nghiệp vụ hệ thống chỉ số chất lượng bệnh viện nằm trong `Tai_Lieu/`. `App_Data/` dành cho dữ liệu ứng dụng local; không commit file database sinh ra hoặc dữ liệu riêng tư nếu không có yêu cầu rõ ràng.
 
 ## Lệnh build, kiểm thử và phát triển
 
-Restore NuGet packages trước khi build:
+Restore NuGet packages trước khi build. Nếu đang đứng trong thư mục project `HospitalQualityDashboard-demo/`, dùng:
 
 ```powershell
 nuget restore HospitalQualityDashboard-demo.csproj -PackagesDirectory ..\packages
 ```
 
-Build project bằng MSBuild:
+Nếu đang đứng ở root repo, dùng:
+
+```powershell
+nuget restore .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj -PackagesDirectory .\packages
+```
+
+Build project bằng MSBuild từ thư mục project:
 
 ```powershell
 msbuild HospitalQualityDashboard-demo.csproj /p:Configuration=Debug
 ```
 
-Build kèm kiểm tra Razor view:
+Hoặc từ root repo:
+
+```powershell
+msbuild .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug
+```
+
+Build kèm kiểm tra Razor view từ thư mục project:
 
 ```powershell
 msbuild HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildViews=true
@@ -26,7 +38,7 @@ msbuild HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildV
 
 Khi phát triển local, mở `HospitalQualityDashboard-demo.csproj` bằng Visual Studio và chạy bằng IIS Express. Project được cấu hình cho IIS Express với SSL port `44387`.
 
-Các script verify bổ sung nằm trong `tools/` và kiểm tra các luồng như tổng hợp/chi tiết Dashboard, Dashboard Excel, so sánh nhiều kỳ, cảnh báo chỉ số, vòng đời triển khai chỉ số, badge thông báo chưa đọc, phân trang quản lý, thứ tự nhân viên, thời gian/kết quả báo cáo và audit điều hướng sau khi gửi báo cáo. Hiện thư mục có 13 script `Verify*.ps1`; chỉ chạy chúng khi app local, database và dữ liệu mẫu đã sẵn sàng.
+Các script verify bổ sung nằm trong `tools/` và kiểm tra các luồng như tổng hợp/chi tiết Dashboard, Dashboard Excel, so sánh nhiều kỳ, cảnh báo chỉ số, vòng đời triển khai chỉ số, bảo trì kỳ báo cáo, migration SQL, badge thông báo chưa đọc, phân trang quản lý, thứ tự nhân viên, thời gian/kết quả báo cáo và audit điều hướng sau khi gửi báo cáo. Hiện thư mục có 15 script `Verify*.ps1`; chỉ chạy chúng khi app local, database và dữ liệu mẫu đã sẵn sàng.
 
 ## Quy ước code và đặt tên
 
@@ -48,6 +60,6 @@ Không commit credential thật, connection string nhạy cảm, file upload b�
 
 Khi thay đổi hành vi vận hành, cấu hình, database, import/export hoặc hiệu năng, cập nhật `README.md` trước, sau đó bổ sung ngắn gọn vào `PROJECT_CONTEXT.md` hoặc `implementation-notes.md` nếu thay đổi ảnh hưởng người phát triển/người vận hành.
 
-Hiện project có năm script SQL trong `App_Data/Sql/`: `001_CreateSchema.sql`, `002_PerformanceIndexes.sql`, `003_AddExportHistory.sql`, `004_AddIndicatorWarning.sql` và `005_AddIndicatorDeploymentHistory.sql`. Nếu chỉnh export Dashboard chi tiết hoặc audit lịch sử xuất, cập nhật script `003`; nếu chỉnh cảnh báo theo chỉ số hoặc cơ chế chống gửi trùng, cập nhật script `004`; nếu chỉnh triển khai/ngừng triển khai chỉ số hoặc hàm lọc hiệu lực theo kỳ, cập nhật script `005` và phần hướng dẫn vận hành liên quan.
+Hiện project có năm script SQL trong `App_Data/Sql/`: `001_CreateSchema.sql`, `002_PerformanceIndexes.sql`, `003_AddExportHistory.sql`, `004_AddIndicatorWarning.sql` và `005_AddIndicatorDeploymentHistory.sql`. Nếu chỉnh export Dashboard chi tiết hoặc audit lịch sử xuất, cập nhật script `003`; nếu chỉnh cảnh báo theo chỉ số hoặc cơ chế chống gửi trùng, cập nhật script `004`; nếu chỉnh triển khai/ngừng triển khai chỉ số hoặc hàm lọc hiệu lực theo kỳ, cập nhật script `005` và phần hướng dẫn vận hành liên quan. Nếu chỉnh automation mở/khóa kỳ hoặc endpoint bảo trì, cập nhật tài liệu về `ReportingPeriodMaintenanceService`, `MaintenanceController` và chạy `tools/VerifyReportingPeriodMaintenance.ps1`.
 
 `Web.config` đặt session timeout 30 phút, cookie `HttpOnly` và `SameSite=Lax`; transform Release bắt buộc cookie HTTPS. Không hạ các thiết lập này khi sửa cấu hình môi trường.
