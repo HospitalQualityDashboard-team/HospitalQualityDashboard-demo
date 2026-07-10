@@ -10,7 +10,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
 {
     public class ReportingPeriodController : AdminBaseController
     {
-        private const int DefaultPageSize = 20;
+        private const int DefaultPageSize = 10;
         private readonly ReportingPeriodService _service = new ReportingPeriodService();
         private readonly ReportingPeriodScheduleService _schedule = new ReportingPeriodScheduleService();
 

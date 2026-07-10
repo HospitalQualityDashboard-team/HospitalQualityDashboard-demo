@@ -30,7 +30,37 @@ ORDER BY IdKhoaPhongNguon, TenKhoaPhong";
                 Param("@IncludeInactive", includeInactive));
         }
 
-        // Lấy một bản ghi danh mục khoa/phòng theo khóa chính; trả null khi không tìm thấy để tầng gọi xử lý 404/empty state.
+        // Lay danh sach khoa/phong theo trang de man hinh quan ly khong tai qua nhieu dong mot luc.
+        public IList<KhoaPhongViewModel> GetAll(string search, int page, int pageSize, out int totalItems, bool includeInactive = true)
+        {
+            page = NormalizePage(page);
+            pageSize = NormalizePageSize(pageSize);
+            totalItems = Convert.ToInt32(Scalar(@"
+SELECT COUNT(*)
+FROM dbo.KhoaPhong
+WHERE (@Search IS NULL OR TenKhoaPhong LIKE @SearchLike OR CONVERT(NVARCHAR(20), IdKhoaPhongNguon) = @Search)
+  AND (@IncludeInactive = 1 OR Used = 1)",
+                Param("@Search", string.IsNullOrWhiteSpace(search) ? null : search),
+                Param("@SearchLike", string.IsNullOrWhiteSpace(search) ? null : "%" + search + "%"),
+                Param("@IncludeInactive", includeInactive)));
+
+            const string sql = @"
+SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong, Used, GhiChu
+FROM dbo.KhoaPhong
+WHERE (@Search IS NULL OR TenKhoaPhong LIKE @SearchLike OR CONVERT(NVARCHAR(20), IdKhoaPhongNguon) = @Search)
+  AND (@IncludeInactive = 1 OR Used = 1)
+ORDER BY IdKhoaPhongNguon, TenKhoaPhong
+OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+            return Query(sql, MapDepartment,
+                Param("@Search", string.IsNullOrWhiteSpace(search) ? null : search),
+                Param("@SearchLike", string.IsNullOrWhiteSpace(search) ? null : "%" + search + "%"),
+                Param("@IncludeInactive", includeInactive),
+                Param("@Offset", (page - 1) * pageSize),
+                Param("@PageSize", pageSize));
+        }
+
+        // Lay mot ban ghi danh muc khoa/phong theo khoa chinh.
         public KhoaPhongViewModel Get(int id)
         {
             return QuerySingle("SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong, Used, GhiChu FROM dbo.KhoaPhong WHERE KhoaPhongId = @Id",
@@ -195,7 +225,20 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
             return result;
         }
 
-        // Chuyển một dòng khoa/phòng từ database sang view model quản trị danh mục.
+        // Chuan hoa so trang de tranh page am/0 lam sai truy van phan trang.
+        private static int NormalizePage(int page)
+        {
+            return page < 1 ? 1 : page;
+        }
+
+        // Gioi han kich thuoc trang de tranh truy van qua lon hoac gia tri khong hop le.
+        private static int NormalizePageSize(int pageSize)
+        {
+            if (pageSize < 1) return 10;
+            return pageSize > 100 ? 100 : pageSize;
+        }
+
+        // Chuyen mot dong khoa/phong tu database sang view model quan tri danh muc.
         private static KhoaPhongViewModel MapDepartment(SqlDataReader reader)
         {
             return new KhoaPhongViewModel

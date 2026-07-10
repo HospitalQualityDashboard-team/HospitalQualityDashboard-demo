@@ -306,7 +306,7 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
         // Giới hạn kích thước trang để tránh truy vấn quá lớn hoặc giá trị không hợp lệ.
         private static int NormalizePageSize(int pageSize)
         {
-            if (pageSize < 1) return 20;
+            if (pageSize < 1) return 10;
             return pageSize > 100 ? 100 : pageSize;
         }
 

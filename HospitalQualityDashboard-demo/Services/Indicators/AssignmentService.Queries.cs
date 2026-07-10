@@ -71,7 +71,7 @@ INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
             string trangThai = null,
             string search = null,
             int page = 1,
-            int pageSize = 20)
+            int pageSize = 10)
         {
             var conditions = new List<string>();
             var parameters = new List<SqlParameter>();

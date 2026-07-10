@@ -31,6 +31,10 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
     {
         public string Search { get; set; }
         public IList<KhoaPhongViewModel> Items { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalItems { get; set; }
+        public int TotalPages { get; set; }
         public ImportResultViewModel ImportResult { get; set; }
     }
 

@@ -8,12 +8,23 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
 {
     public class DepartmentController : AdminBaseController
     {
+        private const int DefaultPageSize = 10;
         private readonly DepartmentService _service = new DepartmentService();
 
         // Hiển thị danh sách và các bộ lọc của danh mục khoa/phòng.
-        public ActionResult Index(string search)
+        public ActionResult Index(string search, int page = 1)
         {
-            return View(new KhoaPhongIndexViewModel { Search = search, Items = _service.GetAll(search) });
+            int totalItems;
+            var items = _service.GetAll(search, page, DefaultPageSize, out totalItems);
+            return View(new KhoaPhongIndexViewModel
+            {
+                Search = search,
+                Items = items,
+                Page = NormalizePage(page),
+                PageSize = DefaultPageSize,
+                TotalItems = totalItems,
+                TotalPages = GetTotalPages(totalItems, DefaultPageSize)
+            });
         }
 
         // Khởi tạo dữ liệu cho màn hình tạo mới danh mục khoa/phòng.
@@ -85,7 +96,17 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         public ActionResult Import(ImportFileViewModel model)
         {
             var result = _service.Import(model.File, CurrentTaiKhoanId.Value);
-            return View("Index", new KhoaPhongIndexViewModel { Items = _service.GetAll(), ImportResult = result });
+            int totalItems;
+            var items = _service.GetAll(null, 1, DefaultPageSize, out totalItems);
+            return View("Index", new KhoaPhongIndexViewModel
+            {
+                Items = items,
+                ImportResult = result,
+                Page = 1,
+                PageSize = DefaultPageSize,
+                TotalItems = totalItems,
+                TotalPages = GetTotalPages(totalItems, DefaultPageSize)
+            });
         }
 
         // Lưu danh mục khoa/phòng theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
@@ -101,6 +122,18 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
                 GhiChu = model.GhiChu
             });
             return RedirectToAction("Index");
+        }
+
+        // Chuan hoa so trang de tranh page am/0 lam sai truy van phan trang.
+        private static int NormalizePage(int page)
+        {
+            return page < 1 ? 1 : page;
+        }
+
+        // Tinh tong so trang tu so ban ghi va kich thuoc trang.
+        private static int GetTotalPages(int totalItems, int pageSize)
+        {
+            return totalItems <= 0 ? 1 : (int)System.Math.Ceiling((decimal)totalItems / pageSize);
         }
     }
 }

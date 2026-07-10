@@ -11,7 +11,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
 {
     public class ReportController : AdminBaseController
     {
-        private const int DefaultPageSize = 20;
+        private const int DefaultPageSize = 10;
         private readonly ReportService _service = new ReportService();
         private readonly ReportingPeriodService _periods = new ReportingPeriodService();
         private readonly DepartmentService _departments = new DepartmentService();

@@ -75,7 +75,7 @@ namespace HospitalQualityDashboardDemo.Services
             string trangThaiPhanCong = null,
             string search = null,
             int page = 1,
-            int pageSize = 20,
+            int pageSize = 10,
             int? khoaPhongId = null,
             int? chiSoId = null,
             string trangThai = null)
@@ -273,7 +273,7 @@ ORDER BY kp.TenKhoaPhong";
         public IList<DepartmentAssignmentGroup> GetAllDepartmentGroups(
             string search = null,
             int page = 1,
-            int pageSize = 20,
+            int pageSize = 10,
             int? khoaPhongId = null,
             int? chiSoId = null,
             string trangThai = null)

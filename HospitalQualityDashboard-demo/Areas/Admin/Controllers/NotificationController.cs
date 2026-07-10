@@ -9,7 +9,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
 {
     public class NotificationController : AdminBaseController
     {
-        private const int DefaultPageSize = 20;
+        private const int DefaultPageSize = 10;
         private readonly NotificationService _service = new NotificationService();
         private readonly ReportingPeriodMaintenanceService _maintenance = new ReportingPeriodMaintenanceService();
         private readonly DepartmentService _departments = new DepartmentService();

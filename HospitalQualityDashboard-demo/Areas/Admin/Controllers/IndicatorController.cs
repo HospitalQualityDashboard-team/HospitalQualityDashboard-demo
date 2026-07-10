@@ -9,7 +9,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
 {
     public class IndicatorController : AdminBaseController
     {
-        private const int DefaultPageSize = 20;
+        private const int DefaultPageSize = 10;
         private readonly IndicatorService _service = new IndicatorService();
 
         // Hiển thị danh sách và các bộ lọc của chỉ số chất lượng.

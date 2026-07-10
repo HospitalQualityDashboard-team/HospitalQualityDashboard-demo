@@ -65,7 +65,7 @@
         <div class="panel-header">
             <div>
                 <h2>Danh sách khoa/phòng</h2>
-                <p>@items.Count khoa/phòng trong bộ lọc hiện tại.</p>
+                <p>@Model.TotalItems khoa/phòng trong bộ lọc hiện tại.</p>
             </div>
             <span class="status-pill status-muted">@items.Count dòng</span>
         </div>
@@ -76,20 +76,16 @@
                 <table class="table table-sm align-middle data-table">
                     <thead>
                         <tr>
-                            <th>STT</th>
-                            <th>Mã khoa/phòng</th>
                             <th>Tên khoa/phòng</th>
                             <th>Trạng thái</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
-                    @{ var stt = 1; }
+                    @{ var stt = ((Model.Page < 1 ? 1 : Model.Page) - 1) * Model.PageSize + 1; }
                     @foreach (var item in items)
                     {
                         <tr>
-                            <td>@stt</td>
-                            <td>@item.IdKhoaPhongNguon</td>
                             <td><strong>@item.TenKhoaPhong</strong></td>
                             <td><span class="status-pill @(item.Used ? "status-active" : "status-muted")">@(item.Used ? "Đang dùng" : "Đã khóa")</span></td>
                             <td class="text-end table-actions">
@@ -115,6 +111,15 @@
         else
         {
             <div class="empty-state">Chưa có khoa/phòng phù hợp với bộ lọc hiện tại.</div>
+        }
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="management-toolbar mt-3 d-flex justify-content-center align-items-center gap-3">
+                @Html.ActionLink("Trước", "Index", new { search = Model.Search, page = Model.Page - 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page <= 1 ? "disabled" : "") })
+                <span class="status-pill status-muted">Trang @Model.Page / @Model.TotalPages</span>
+                @Html.ActionLink("Sau", "Index", new { search = Model.Search, page = Model.Page + 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page >= Model.TotalPages ? "disabled" : "") })
+            </div>
         }
     </section>
 </section>

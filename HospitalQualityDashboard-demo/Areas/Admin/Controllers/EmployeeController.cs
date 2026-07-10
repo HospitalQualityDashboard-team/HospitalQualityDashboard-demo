@@ -8,7 +8,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
 {
     public class EmployeeController : AdminBaseController
     {
-        private const int DefaultPageSize = 20;
+        private const int DefaultPageSize = 10;
         private readonly EmployeeService _service = new EmployeeService();
         private readonly DepartmentService _departments = new DepartmentService();
 

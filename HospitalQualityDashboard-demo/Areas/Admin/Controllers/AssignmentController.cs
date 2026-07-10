@@ -11,7 +11,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         private readonly AssignmentService _service = new AssignmentService();
         private readonly DepartmentService _departments = new DepartmentService();
         private readonly IndicatorService _indicators = new IndicatorService();
-        private const int PageSize = 20;
+        private const int PageSize = 10;
 
         // Hiển thị danh sách và các bộ lọc của phân công chỉ số.
         public ActionResult Index(int? khoaPhongId, int? chiSoId, string trangThai, string trangThaiPhanCong, string search, string viewMode, int page = 1)
