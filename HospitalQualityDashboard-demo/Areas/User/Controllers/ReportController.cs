@@ -13,6 +13,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
     public class ReportController : UserBaseController
     {
         private const int DefaultPageSize = 10;
+        private const string LockedPeriodMessage = "Kỳ báo cáo đã khóa, không thể gửi báo cáo lại.";
         private readonly ReportService _service = new ReportService();
         private readonly ReportingPeriodService _periods = new ReportingPeriodService();
         private readonly IndicatorService _indicators = new IndicatorService();
@@ -77,6 +78,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
 
                 var gate = EnsureUserDepartment(model.KhoaPhongId);
                 if (gate != null) return gate;
+                SetPeriodMessageIfLocked(model);
             }
             else
             {
@@ -209,10 +211,30 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
         {
             if (!_periods.IsOpenForDepartment(kyBaoCaoId, CurrentKhoaPhongId.Value))
             {
-                return new HttpStatusCodeResult(403, "Kỳ báo cáo chưa mở hoặc không phù hợp với phân công của khoa/phòng.");
+                TempData["Error"] = GetPeriodGateMessage(kyBaoCaoId);
+                return RedirectToAction("Index");
             }
 
             return null;
+        }
+
+        private string GetPeriodGateMessage(int kyBaoCaoId)
+        {
+            var period = _periods.Get(kyBaoCaoId);
+            if (period != null && period.TrangThai == TrangThaiKyBaoCao.Khoa)
+            {
+                return LockedPeriodMessage;
+            }
+
+            return "Kỳ báo cáo chưa mở hoặc không phù hợp với phân công của khoa/phòng.";
+        }
+
+        private void SetPeriodMessageIfLocked(ReportEntryViewModel model)
+        {
+            if (model != null && model.TrangThaiKyBaoCao == TrangThaiKyBaoCao.Khoa)
+            {
+                ViewBag.PeriodLockedMessage = LockedPeriodMessage;
+            }
         }
 
         // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.

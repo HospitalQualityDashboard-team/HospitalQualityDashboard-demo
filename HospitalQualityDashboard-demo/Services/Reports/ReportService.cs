@@ -44,7 +44,7 @@ WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
             totalItems = Convert.ToInt32(Scalar(countSql, parameters));
 
             const string sql = @"
-SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, kp.TenKhoaPhong,
+SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, ky.TrangThai AS TrangThaiKyBaoCao, kp.TenKhoaPhong,
        cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, bc.TrangThai, bc.YKienPhanHoi,
        ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
        bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
@@ -107,7 +107,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
         public IList<ReportEntryViewModel> GetAll(int? periodId, int? departmentId, int? indicatorId, bool admin, int? currentDepartmentId)
         {
             const string sql = @"
-SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, kp.TenKhoaPhong,
+SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, ky.TrangThai AS TrangThaiKyBaoCao, kp.TenKhoaPhong,
        cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, bc.TrangThai, bc.YKienPhanHoi,
        ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
        bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
@@ -144,7 +144,7 @@ ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
         {
             const string sql = @"
 SELECT ISNULL(bc.BaoCaoId, 0) AS BaoCaoId, @KyBaoCaoId AS KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, pc.PhanCongChiSoId,
-       ky.TenKyBaoCao, kp.TenKhoaPhong, cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc,
+       ky.TenKyBaoCao, ky.TrangThai AS TrangThaiKyBaoCao, kp.TenKhoaPhong, cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc,
        ISNULL(bc.TrangThai, 1) AS TrangThai, bc.YKienPhanHoi,
        ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
        bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
@@ -171,7 +171,7 @@ ORDER BY cs.MaChiSo";
         public ReportEntryViewModel Get(int id)
         {
             const string sql = @"
-SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, kp.TenKhoaPhong,
+SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, ky.TrangThai AS TrangThaiKyBaoCao, kp.TenKhoaPhong,
        cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, bc.TrangThai, bc.YKienPhanHoi,
        ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
        bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
@@ -417,6 +417,7 @@ WHERE BaoCaoId=@Id AND TrangThai=@DaGui",
                 TenChiSo = String(reader, "TenChiSo"),
                 LoaiCongThuc = (LoaiCongThuc)reader.GetByte(reader.GetOrdinal("LoaiCongThuc")),
                 TuSoKhongVuotMauSo = IndicatorCalculationService.RequiresNumeratorWithinDenominator(String(reader, "MaChiSo"), String(reader, "TenChiSo")),
+                TrangThaiKyBaoCao = (TrangThaiKyBaoCao)reader.GetByte(reader.GetOrdinal("TrangThaiKyBaoCao")),
                 TrangThai = (TrangThaiBaoCao)Convert.ToByte(reader["TrangThai"]),
                 TuSo = NullableDecimal(reader, "TuSo"),
                 MauSo = NullableDecimal(reader, "MauSo"),

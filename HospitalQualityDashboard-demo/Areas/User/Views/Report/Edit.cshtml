@@ -4,7 +4,10 @@
     ViewBag.Title = "Nhập báo cáo";
 
     bool isAdmin = ViewBag.IsAdmin == true;
+    bool isPeriodOpen = Model.TrangThaiKyBaoCao == HospitalQualityDashboardDemo.Models.Enums.TrangThaiKyBaoCao.Mo;
+    var periodLockedMessage = ViewBag.PeriodLockedMessage as string;
     bool isEditable = !isAdmin &&
+                      isPeriodOpen &&
                       (Model.BaoCaoId == 0 ||
                        Model.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap ||
                        Model.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai);
@@ -52,6 +55,10 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-3 h-100 bg-light">
                 <div class="card-body p-4">
+                    @if (!string.IsNullOrWhiteSpace(periodLockedMessage))
+                    {
+                        <div class="alert alert-warning p-2 mb-3 small">@periodLockedMessage</div>
+                    }
                     <h5 class="fw-bold mb-4 text-secondary">Thông tin chỉ số</h5>
                     
                     <div class="mb-3">
@@ -153,6 +160,7 @@
                         @Html.HiddenFor(m => m.TenChiSo)
                         @Html.HiddenFor(m => m.LoaiCongThuc)
                         @Html.HiddenFor(m => m.TuSoKhongVuotMauSo)
+                        @Html.HiddenFor(m => m.TrangThaiKyBaoCao)
                         @Html.HiddenFor(m => m.TrangThai)
                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
