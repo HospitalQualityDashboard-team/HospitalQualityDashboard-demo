@@ -1,65 +1,151 @@
 # Hướng dẫn làm việc trong repository
 
-## Cấu trúc dự án và module
+Tài liệu này dành cho developer và agent khi sửa `HospitalQualityDashboard-demo`. Ưu tiên đọc cùng `README.md`, `PROJECT_CONTEXT.md` và `PROJECT_STRUCTURE.md` trước khi thay đổi module nghiệp vụ lớn.
 
-Repository này là ứng dụng web ASP.NET MVC 4 chạy trên .NET Framework 4.7.2. Code server chính nằm trong `Controllers/` (Account, Home, PageController base, Maintenance endpoint), `Areas/Admin/`, `Areas/User/`, `Models/`, `Services/`. Cấu hình khởi động MVC nằm trong `App_Start/`, entry point của ứng dụng là `Global.asax` và `Global.asax.cs`. Tài nguyên tĩnh nằm trong `Content/` (bootstrap.css, Site.css, images) và `Scripts/` (jQuery, Bootstrap, jQuery Validate, dashboard-analysis.js). Tài liệu nghiệp vụ hệ thống chỉ số chất lượng bệnh viện nằm trong `Tai_Lieu/`. `App_Data/` dành cho dữ liệu ứng dụng local; không commit file database sinh ra hoặc dữ liệu riêng tư nếu không có yêu cầu rõ ràng.
+## 1. Tổng quan repo
 
-## Lệnh build, kiểm thử và phát triển
+Đây là ứng dụng ASP.NET MVC 4 chạy trên .NET Framework 4.7.2. Code server nằm trong:
 
-Restore NuGet packages trước khi build. Nếu đang đứng trong thư mục project `HospitalQualityDashboard-demo/`, dùng:
+- `Controllers/`: Home, Account, base controller và endpoint bảo trì.
+- `Areas/Admin/`: chức năng quản trị toàn viện.
+- `Areas/User/`: chức năng khoa/phòng.
+- `Models/`: enum, entity, DTO, ViewModel.
+- `Services/`: nghiệp vụ, truy cập SQL, import/export, notification, dashboard.
+- `App_Data/Sql/`: schema và migration SQL.
+- `Views/`, `Content/`, `Scripts/`: Razor, CSS và JavaScript.
+- `tools/`: script PowerShell verify.
 
-```powershell
-nuget restore HospitalQualityDashboard-demo.csproj -PackagesDirectory ..\packages
-```
+Không sửa trực tiếp file trong `bin/`, `obj/`, `.vs/` hoặc package restore artifact.
 
-Nếu đang đứng ở root repo, dùng:
+## 2. Lệnh build và chạy local
+
+Restore NuGet từ root repo:
 
 ```powershell
 nuget restore .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj -PackagesDirectory .\packages
 ```
 
-Build project bằng MSBuild từ thư mục project:
+Build từ root repo:
 
 ```powershell
-msbuild HospitalQualityDashboard-demo.csproj /p:Configuration=Debug
+msbuild .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:Platform=AnyCPU /m
 ```
 
-Hoặc từ root repo:
+Build kèm Razor view:
 
 ```powershell
-msbuild .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug
+msbuild .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildViews=true
 ```
 
-Build kèm kiểm tra Razor view từ thư mục project:
+Nếu `msbuild` không có trong PATH, dùng MSBuild của Visual Studio, ví dụ:
 
 ```powershell
-msbuild HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:MvcBuildViews=true
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" .\HospitalQualityDashboard-demo\HospitalQualityDashboard-demo.csproj /p:Configuration=Debug /p:Platform=AnyCPU /m
 ```
 
-Khi phát triển local, mở `HospitalQualityDashboard-demo.csproj` bằng Visual Studio và chạy bằng IIS Express. Project được cấu hình cho IIS Express với SSL port `44387`.
+Chạy local bằng Visual Studio/IIS Express. Project thường chạy ở:
 
-Các script verify bổ sung nằm trong `tools/` và kiểm tra các luồng như tổng hợp/chi tiết Dashboard, Dashboard Excel, so sánh nhiều kỳ, cảnh báo chỉ số, vòng đời triển khai chỉ số, bảo trì kỳ báo cáo, migration SQL, badge thông báo chưa đọc, phân trang quản lý, thứ tự nhân viên, thời gian/kết quả báo cáo và audit điều hướng sau khi gửi báo cáo. Hiện thư mục có 15 script `Verify*.ps1`; chỉ chạy chúng khi app local, database và dữ liệu mẫu đã sẵn sàng.
+```text
+https://localhost:44387/
+```
 
-## Quy ước code và đặt tên
+## 3. Cấu hình và secret
 
-Dùng quy ước C#: PascalCase cho class, controller, action method, view model và public property; camelCase cho biến local và parameter. Tên controller kết thúc bằng `Controller`, ví dụ `HomeController`. Razor view phải khớp với tên action và nằm đúng thư mục Area/View tương ứng. Giữ indent 4 spaces cho C# và Razor. Controller nên nhỏ gọn, chỉ điều phối request; logic dùng lại đặt trong service hoặc model phù hợp.
+- `ConnectionStrings.config` là file local secret, không commit.
+- Khi setup môi trường mới, copy `ConnectionStrings.example.config` thành `ConnectionStrings.config`.
+- Không đưa password, token, connection string thật, dump database, file bệnh án hoặc dữ liệu nhạy cảm vào Git, issue, PR, README hoặc ảnh chụp màn hình.
+- `Web.config` đang dùng `configSource="ConnectionStrings.config"`; nếu thiếu file sẽ lỗi `Missing connection string: HospitalQualityConnection`.
+- `HospitalQualityMaintenanceToken` bảo vệ endpoint `POST /Maintenance/RunReportingPeriodAutomation`; không để token thật trong tài liệu hoặc log.
 
-## Hướng dẫn kiểm thử
+## 4. Quy ước code
 
-Hiện chưa có test project riêng. Khi bổ sung test, tạo project như `HospitalQualityDashboard.Tests` và đặt tên rõ ràng theo mẫu `ControllerName_ActionName_ExpectedBehavior`. Ưu tiên test phân quyền, chuyển trạng thái báo cáo, tính toán chỉ số và validate import. Chạy đầy đủ test và script verify trước khi mở pull request.
+- C# dùng PascalCase cho class, controller, action, enum, public property; camelCase cho biến local và parameter.
+- Controller kết thúc bằng `Controller`; Razor view phải khớp action và nằm đúng thư mục Area/View.
+- Giữ indent 4 spaces cho C# và Razor.
+- Controller chỉ điều phối request, kiểm quyền/scope và map dữ liệu; nghiệp vụ đặt trong service.
+- Service truy cập database qua `DbServiceBase`; dùng parameterized SQL, không nối chuỗi input người dùng vào SQL.
+- Các thao tác nhiều bước cần transaction qua helper có sẵn.
+- DTO nằm trong `Models/DTOs`; ViewModel nằm trong `Models/ViewModels`; entity/enum dùng chung nằm trong `Models/Entities` và `Models/Enums`.
+- Với class `partial`, đặt phần mở rộng cạnh module hiện có và giữ tên class nhất quán.
+- Khi thêm file C#/view/static asset, kiểm tra `.csproj` kiểu cũ đã include file đúng chưa.
 
-## Quy ước commit và pull request
+## 5. Quy ước nghiệp vụ
 
-Dùng commit message ngắn gọn ở dạng mệnh lệnh, ví dụ `Add indicator assignment model` hoặc `Fix report status validation`. Pull request nên có tóm tắt thay đổi, module bị ảnh hưởng, bước kiểm thử thủ công, ảnh chụp màn hình nếu thay đổi UI và link đến issue/yêu cầu liên quan nếu có.
+- Admin có scope toàn viện; User luôn bị khóa theo `KhoaPhongId` trong session.
+- Không dựa vào ẩn/hiện nút trong Razor để bảo mật; phải kiểm quyền ở controller/service.
+- Dashboard, Report, Export và Notification phải áp dụng scope giống nhau giữa màn hình và file xuất.
+- Chỉ số đã ngừng triển khai không được tính cho kỳ ngoài khoảng hiệu lực; dùng logic/hàm liên quan `LichSuTrienKhaiChiSo` và `fn_ChiSoDuocTrienKhaiTrongKy`.
+- Khi chỉnh trạng thái báo cáo/kỳ, rà enum, SQL, label giao diện, filter, export và notification.
+- Khi chỉnh import, giữ giới hạn file/dòng và kiểm tra ZIP Office để giảm rủi ro file độc hại.
 
-## Bảo mật và cấu hình
+## 6. Database và migration
 
-Không commit credential thật, connection string nhạy cảm, file upload bằng chứng hoặc dữ liệu nhạy cảm của bệnh viện. Cấu hình theo môi trường nên đặt trong transform file như `Web.Debug.config` và `Web.Release.config`. Luôn validate file upload/import và enforce quyền Admin/User ở server-side, không chỉ ẩn/hiện trên Razor view.
+Các script SQL hiện có:
 
-`ConnectionStrings.config` là file local secret và đã được đưa vào `.gitignore`. Khi setup môi trường mới, copy `ConnectionStrings.example.config` thành `ConnectionStrings.config` rồi điền thông tin Azure SQL thật trên máy local hoặc môi trường deploy. Chỉ commit file example, không commit file config thật hoặc ảnh chụp có password.
+- `001_CreateSchema.sql`: schema ban đầu.
+- `002_PerformanceIndexes.sql`: index hiệu năng.
+- `003_AddExportHistory.sql`: audit xuất Dashboard Excel.
+- `004_AddIndicatorWarning.sql`: cảnh báo theo chỉ số và chống gửi trùng.
+- `005_AddIndicatorDeploymentHistory.sql`: vòng đời triển khai chỉ số.
 
-Khi thay đổi hành vi vận hành, cấu hình, database, import/export hoặc hiệu năng, cập nhật `README.md` trước, sau đó bổ sung ngắn gọn vào `PROJECT_CONTEXT.md` hoặc `implementation-notes.md` nếu thay đổi ảnh hưởng người phát triển/người vận hành.
+Quy ước khi sửa SQL:
 
-Hiện project có năm script SQL trong `App_Data/Sql/`: `001_CreateSchema.sql`, `002_PerformanceIndexes.sql`, `003_AddExportHistory.sql`, `004_AddIndicatorWarning.sql` và `005_AddIndicatorDeploymentHistory.sql`. Nếu chỉnh export Dashboard chi tiết hoặc audit lịch sử xuất, cập nhật script `003`; nếu chỉnh cảnh báo theo chỉ số hoặc cơ chế chống gửi trùng, cập nhật script `004`; nếu chỉnh triển khai/ngừng triển khai chỉ số hoặc hàm lọc hiệu lực theo kỳ, cập nhật script `005` và phần hướng dẫn vận hành liên quan. Nếu chỉnh automation mở/khóa kỳ hoặc endpoint bảo trì, cập nhật tài liệu về `ReportingPeriodMaintenanceService`, `MaintenanceController` và chạy `tools/VerifyReportingPeriodMaintenance.ps1`.
+- Script migration phải idempotent nếu có thể chạy lại.
+- Không phá dữ liệu hiện có khi nâng cấp database cũ.
+- Nếu sửa Dashboard/Report/Export liên quan hiệu lực chỉ số, rà script `005`.
+- Nếu sửa cảnh báo chỉ số hoặc notification dedup, rà script `004`.
+- Nếu sửa audit/export Dashboard chi tiết, rà script `003`.
+- Nếu sửa schema lõi, cập nhật `001` và migration bổ sung tương ứng.
 
-`Web.config` đặt session timeout 30 phút, cookie `HttpOnly` và `SameSite=Lax`; transform Release bắt buộc cookie HTTPS. Không hạ các thiết lập này khi sửa cấu hình môi trường.
+## 7. Kiểm thử và verify
+
+Hiện chưa có test project riêng. Sau khi sửa code, chọn mức kiểm tra theo rủi ro:
+
+- Build project bằng MSBuild.
+- Compile Razor nếu sửa `.cshtml`, layout, ViewModel hoặc route.
+- Chạy script verify liên quan trong `HospitalQualityDashboard-demo/tools/` khi app local/database/dữ liệu mẫu đã sẵn sàng.
+- Kiểm tra thủ công cả Admin và User nếu thay đổi scope, Dashboard, Report, Export hoặc Notification.
+
+Một số script verify thường dùng:
+
+```text
+VerifyDashboardAdminSummary.ps1
+VerifyDashboardExcelDetailedExport.ps1
+VerifyDashboardPeriodComparison.ps1
+VerifyIndicatorDeploymentLifecycle.ps1
+VerifyManagementPaging.ps1
+VerifyNotificationDropdown.ps1
+VerifyReportDetailModal.ps1
+VerifyReportingPeriodMaintenance.ps1
+VerifySqlMigrations.ps1
+VerifySystemLogPage.ps1
+VerifyUnreadNotificationBadge.ps1
+```
+
+## 8. Quy ước tài liệu
+
+- Khi thay đổi hành vi người dùng, cập nhật `README.md`.
+- Khi thay đổi kiến trúc, module, scope dữ liệu, database, bảo mật hoặc vận hành, cập nhật `PROJECT_CONTEXT.md`.
+- Khi thêm/đổi/xóa folder hoặc file tự viết, cập nhật `PROJECT_STRUCTURE.md`.
+- Khi thay đổi quy trình làm việc, build, verify, secret hoặc convention, cập nhật `AGENTS.md`.
+- Khi thay đổi nghiệp vụ chi tiết, cập nhật `TAI_LIEU_NGHIEP_VU.md` hoặc tài liệu trong `Tai_Lieu/` nếu phù hợp.
+
+## 9. Commit và pull request
+
+Commit message nên ngắn, rõ, dạng mệnh lệnh hoặc conventional commit:
+
+```text
+docs: update project business documentation
+fix: apply user scope to dashboard export
+perf: optimize report dashboard query
+```
+
+Pull request nên có:
+
+- Tóm tắt thay đổi.
+- Module bị ảnh hưởng.
+- Các bước đã kiểm thử.
+- Ảnh chụp nếu thay đổi UI.
+- Ghi chú migration/config nếu có.
+
+Không thêm trailer `Co-Authored-By` nếu không muốn GitHub hiển thị thêm contributor.
