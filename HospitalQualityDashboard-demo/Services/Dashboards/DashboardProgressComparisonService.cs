@@ -133,37 +133,6 @@ namespace HospitalQualityDashboardDemo.Services
                 .ToArray();
         }
 
-        public DashboardTrendViewModel GetTrend(
-            DashboardTrendQueryDto query,
-            bool isAdmin,
-            int? currentDepartmentId)
-        {
-            query = query ?? new DashboardTrendQueryDto();
-            query.PeriodCount = query.PeriodCount < 2 || query.PeriodCount > 12 ? 6 : query.PeriodCount;
-            query.KhoaPhongId = isAdmin ? query.KhoaPhongId : currentDepartmentId;
-            var periods = QueryPeriods();
-            var frequency = query.TanSuat ?? SupportedFrequencies.First();
-            var selected = periods.Where(x => x.TanSuat == frequency)
-                .OrderByDescending(x => x.TuNgay)
-                .Take(query.PeriodCount)
-                .OrderBy(x => x.TuNgay)
-                .ToList();
-            var slots = selected.Count == 0
-                ? new List<ProgressSlot>()
-                : QuerySlots(selected.Select(x => x.KyBaoCaoId), query.KhoaPhongId);
-
-            return new DashboardTrendViewModel
-            {
-                IsAdmin = isAdmin,
-                TanSuat = frequency,
-                KhoaPhongId = query.KhoaPhongId,
-                PeriodCount = query.PeriodCount,
-                TanSuatOptions = BuildFrequencyOptions(frequency),
-                KhoaPhongOptions = isAdmin ? BuildDepartmentOptions(query.KhoaPhongId) : new List<SelectListItem>(),
-                Metrics = BuildMetrics(selected, slots)
-            };
-        }
-
         private IList<DashboardComparisonPeriodDto> QueryPeriods()
         {
             return Query(@"

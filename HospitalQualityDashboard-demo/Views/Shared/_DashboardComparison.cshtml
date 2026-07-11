@@ -9,63 +9,6 @@
 
     var primaryPeriod = Model.AvailablePeriods
                              .FirstOrDefault(x => x.KyBaoCaoId == Model.KyBaoCaoId);
-
-    Func<string, string> statusText = code =>
-    {
-        switch (code)
-        {
-            case "OnTime":
-                return "Đúng hạn";
-
-            case "Late":
-                return "Nộp trễ";
-
-            case "Missing":
-                return "Chưa nộp";
-
-            case "OverdueMissing":
-                return "Quá hạn chưa nộp";
-
-            default:
-                return "Không áp dụng";
-        }
-    };
-
-    Func<string, string> statusClass = code =>
-    {
-        switch (code)
-        {
-            case "OnTime":
-                return "is-on-time";
-
-            case "Late":
-                return "is-late";
-
-            case "OverdueMissing":
-                return "is-overdue";
-
-            default:
-                return "is-missing";
-        }
-    };
-
-    Func<string, string> changeText = code =>
-    {
-        switch (code)
-        {
-            case "Better":
-                return "Tốt hơn";
-
-            case "Worse":
-                return "Xấu hơn";
-
-            case "Unchanged":
-                return "Không đổi";
-
-            default:
-                return "Chưa đủ dữ liệu";
-        }
-    };
 }
 
 <section class="dashboard-panel analysis-panel">
@@ -113,8 +56,6 @@
                 @Html.DropDownList("KhoaPhongId", Model.KhoaPhongOptions, new { id = "comparison-department", @class = "form-select form-select-sm" })
             </div>
         }
-        <input type="hidden" name="Page" value="1" />
-        <input type="hidden" name="PageSize" value="20" />
         <button type="submit" class="btn btn-primary btn-sm analysis-submit"><i class="bi bi-bar-chart-line me-1"></i>Xem so sánh</button>
         <a class="btn btn-outline-success btn-sm analysis-export"
            href="@Url.Action("Dashboard", "Export", new { area = areaName })"
@@ -133,30 +74,20 @@
             }
         </div>
 
-        <div class="comparison-kpi-grid">
-            @foreach (var metric in Model.Metrics)
-            {
-                <article class="comparison-period-card">
-                    <div class="comparison-period-title">
-                        <strong>@metric.TenKyBaoCao</strong>
-                        @if (metric.TrangThaiKy == 2)
-                        {<span class="analysis-live-badge">Đang cập nhật</span>}
-                    </div>
-                    <div class="comparison-period-metrics">
-                        <span><b>@metric.TongCanNop</b>Tổng cần nộp</span>
-                        <span class="text-success"><b>@metric.DungHan</b>Đúng hạn</span>
-                        <span class="text-danger"><b>@metric.NopTre</b>Nộp trễ</span>
-                        <span class="text-warning"><b>@(metric.ChuaNop + metric.QuaHanChuaNop)</b>Chưa nộp</span>
-                    </div>
-                    <div class="comparison-rate"><span>Hoàn thành</span><strong>@metric.TyLeHoanThanh.ToString("0.##")%</strong></div>
-                </article>
-            }
-        </div>
-
         <div class="analysis-chart-summary-grid">
             <div class="dashboard-panel analysis-inner-panel">
                 <div class="panel-header"><div><h3>Trạng thái nộp báo cáo theo kỳ</h3><p>Số lượng báo cáo trong từng trạng thái.</p></div></div>
-                <div class="chart-shell"><canvas class="comparison-progress-chart" data-metrics='@Html.Raw(JsonConvert.SerializeObject(Model.Metrics))' height="120"></canvas></div>
+                <div class="comparison-doughnut-grid" data-comparison-doughnut-grid>
+                    @foreach (var metric in Model.Metrics)
+                    {
+                        <article class="comparison-doughnut-card">
+                            <h4>@metric.TenKyBaoCao</h4>
+                            <div class="comparison-doughnut-shell">
+                                <canvas class="comparison-doughnut-chart" data-metric='@Html.Raw(JsonConvert.SerializeObject(metric))' height="180"></canvas>
+                            </div>
+                        </article>
+                    }
+                </div>
             </div>
             <div class="dashboard-panel analysis-inner-panel">
                 <div class="panel-header"><div><h3>Tóm tắt so sánh</h3><p>Đánh giá kỳ chính với các kỳ đã chọn.</p></div></div>
@@ -169,79 +100,6 @@
             </div>
         </div>
 
-        <div class="analysis-table-section">
-            <div class="analysis-table-card">
-                <div class="panel-header">
-                    <div>
-                        <h3>Chi tiết tiến độ theo chỉ số</h3>
-                        <h5> Ưu tiên các chỉ số có trạng thái xấu hơn kỳ trước.</h5>
-                    </div>
-                    <span class="status-pill status-muted">@Model.TotalRows chỉ số</span>
-                </div>
-
-                <div class="table-responsive analysis-table-wrap">
-                    <table class="table table-sm align-middle analysis-table">
-                        <thead>
-                            <tr>
-                                <th>Khoa/phòng</th>
-                                <th>Chỉ số</th>
-                                @foreach (var metric in Model.Metrics)
-                                {
-                                    <th>@metric.TenKyBaoCao</th>
-                                }
-                                <th>Đánh giá</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var row in Model.Rows)
-                            {
-                                <tr>
-                                    <td class="department-cell">@row.TenKhoaPhong</td>
-                                    <td class="indicator-cell">
-                                        <strong>@row.MaChiSo</strong>
-                                        <span>@row.TenChiSo</span>
-                                    </td>
-
-                                    @foreach (var period in row.Periods)
-                                    {
-                                        <td class="period-cell">
-                                            <span class="status-pill @statusClass(period.StatusCode)">
-                                                @statusText(period.StatusCode)
-                                            </span>
-
-                                            @if (period.NgayGui.HasValue)
-                                            {
-                                                <small>@period.NgayGui.Value.ToString("dd/MM/yyyy HH:mm")</small>
-                                            }
-                                        </td>
-                                    }
-
-                                <td class="text-nowrap">
-                                    <span class="change-pill change-@row.OverallChangeCode.ToLowerInvariant()">
-                                        @changeText(row.OverallChangeCode)
-                                    </span>
-                                </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                @if (Model.TotalPages > 1)
-                {
-                    <nav class="analysis-pagination" aria-label="Phân trang so sánh">
-                        @for (var page = 1; page <= Model.TotalPages; page++)
-                        {
-                            <button type="button"
-                                    class="btn btn-sm @(page == Model.CurrentPage ? "btn-primary" : "btn-light")"
-                                    data-analysis-page="@page">
-                                @page
-                            </button>
-                        }
-                    </nav>
-                }
-            </div>
-        </div>
     }
     else
     {

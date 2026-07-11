@@ -36,21 +36,12 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
                     PageSize = query.PageSize
                 }, true, null);
             }
-            else if (model.ActiveTab == "trend")
-            {
-                model.Trend = _comparisonService.GetTrend(new DashboardTrendQueryDto
-                {
-                    TanSuat = query.TanSuat,
-                    KhoaPhongId = query.KhoaPhongId,
-                    PeriodCount = query.PeriodCount
-                }, true, null);
-            }
             return View(model);
         }
 
         private static string NormalizeDashboardTab(string value)
         {
-            return value == "overview" || value == "trend" ? value : "comparison";
+            return value == "overview" ? value : "comparison";
         }
 
         [HttpGet]
@@ -65,13 +56,6 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             {
                 return new HttpStatusCodeResult(400, exception.Message);
             }
-        }
-
-        [HttpGet]
-        public ActionResult Trend(DashboardTrendQueryDto query)
-        {
-            var model = _comparisonService.GetTrend(query, true, null);
-            return PartialView("~/Views/Shared/_DashboardTrend.cshtml", model);
         }
 
         [HttpPost]

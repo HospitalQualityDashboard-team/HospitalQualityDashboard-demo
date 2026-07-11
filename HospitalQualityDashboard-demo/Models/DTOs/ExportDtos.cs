@@ -43,8 +43,6 @@ namespace HospitalQualityDashboardDemo.Models.DTOs
         public string DashboardTab { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }
-        public int TrendPeriodCount { get; set; }
-        public int PeriodCount { get; set; }
     }
 
     public class DashboardComparisonPeriodDto
@@ -64,13 +62,6 @@ namespace HospitalQualityDashboardDemo.Models.DTOs
         public int? KhoaPhongId { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }
-    }
-
-    public class DashboardTrendQueryDto
-    {
-        public int? TanSuat { get; set; }
-        public int? KhoaPhongId { get; set; }
-        public int PeriodCount { get; set; }
     }
 
     public class DashboardIndicatorPeriodValueDto

@@ -3,43 +3,29 @@ function initializeDashboardAnalysis() {
     var panes = document.querySelectorAll('[data-dashboard-pane]');
 
     function renderCharts(container) {
-        var comparison = container.querySelector('.comparison-progress-chart');
-        if (comparison && !comparison.dataset.rendered) {
-            var metrics = JSON.parse(comparison.dataset.metrics || '[]');
-            new Chart(comparison, {
-                type: 'bar',
+        container.querySelectorAll('.comparison-doughnut-chart').forEach(function (chart) {
+            if (chart.dataset.rendered) return;
+            var metric = JSON.parse(chart.dataset.metric || '{}');
+            new Chart(chart, {
+                type: 'doughnut',
                 data: {
-                    labels: metrics.map(function (x) { return x.TenKyBaoCao; }),
-                    datasets: [
-                        { label: 'Đúng hạn', data: metrics.map(function (x) { return x.DungHan; }), backgroundColor: '#22a06b' },
-                        { label: 'Nộp trễ', data: metrics.map(function (x) { return x.NopTre; }), backgroundColor: '#e5484d' },
-                        { label: 'Chưa nộp', data: metrics.map(function (x) { return x.ChuaNop; }), backgroundColor: '#f0a202' },
-                        { label: 'Quá hạn chưa nộp', data: metrics.map(function (x) { return x.QuaHanChuaNop; }), backgroundColor: '#9f1239' }
-                    ]
+                    labels: ['Đúng hạn', 'Nộp trễ', 'Chưa nộp', 'Quá hạn chưa nộp'],
+                    datasets: [{
+                        data: [metric.DungHan || 0, metric.NopTre || 0, metric.ChuaNop || 0, metric.QuaHanChuaNop || 0],
+                        backgroundColor: ['#22A06B', 'rgba(229, 72, 77, .74)', '#D8E2EA', '#E5484D'],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 3
+                    }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }, plugins: { legend: { position: 'bottom' } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '62%',
+                    plugins: { legend: { position: 'bottom' } }
+                }
             });
-            comparison.dataset.rendered = 'true';
-        }
-
-        var trend = container.querySelector('.dashboard-trend-chart');
-        if (trend && !trend.dataset.rendered) {
-            var trendMetrics = JSON.parse(trend.dataset.metrics || '[]');
-            new Chart(trend, {
-                type: 'line',
-                data: {
-                    labels: trendMetrics.map(function (x) { return x.TenKyBaoCao; }),
-                    datasets: [
-                        { label: 'Tỷ lệ hoàn thành', data: trendMetrics.map(function (x) { return x.TyLeHoanThanh; }), borderColor: '#146c78', tension: 0.28 },
-                        { label: 'Tỷ lệ đúng hạn', data: trendMetrics.map(function (x) { return x.TyLeDungHan; }), borderColor: '#2563eb', tension: 0.28 },
-                        { label: 'Nộp trễ', data: trendMetrics.map(function (x) { return x.NopTre; }), borderColor: '#e5484d', tension: 0.28, yAxisID: 'count' },
-                        { label: 'Quá hạn chưa nộp', data: trendMetrics.map(function (x) { return x.QuaHanChuaNop; }), borderColor: '#f0a202', tension: 0.28, yAxisID: 'count' }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 }, count: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false } } }, plugins: { legend: { position: 'bottom' } } }
-            });
-            trend.dataset.rendered = 'true';
-        }
+            chart.dataset.rendered = 'true';
+        });
     }
 
     function loadPane(pane, query) {
@@ -68,7 +54,7 @@ function initializeDashboardAnalysis() {
     }
 
     function bindPane(pane) {
-        pane.querySelectorAll('[data-dashboard-analysis-form], [data-dashboard-trend-form]').forEach(function (form) {
+        pane.querySelectorAll('[data-dashboard-analysis-form]').forEach(function (form) {
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
                 loadPane(pane, new URLSearchParams(new FormData(form)).toString());
@@ -84,13 +70,6 @@ function initializeDashboardAnalysis() {
                 parameters.delete('PageSize');
                 var exportUrl = link.dataset.exportUrl || link.getAttribute('href');
                 window.location.href = exportUrl + (parameters.toString() ? '?' + parameters.toString() : '');
-            });
-        });
-        pane.querySelectorAll('[data-analysis-page]').forEach(function (button) {
-            button.addEventListener('click', function () {
-                var form = pane.querySelector('[data-dashboard-analysis-form]');
-                form.querySelector('[name=Page]').value = button.dataset.analysisPage;
-                form.dispatchEvent(new Event('submit'));
             });
         });
         var picker = pane.querySelector('[data-period-picker]');
@@ -120,7 +99,8 @@ function initializeDashboardAnalysis() {
 
     panes.forEach(function (pane) { if (!pane.hidden) bindPane(pane); });
     tabs.forEach(function (tab) {
-        tab.addEventListener('click', function () {
+        tab.addEventListener('click', function (event) {
+            event.preventDefault();
             var name = tab.dataset.dashboardTab;
             tabs.forEach(function (item) { item.classList.toggle('is-active', item === tab); });
             panes.forEach(function (pane) {

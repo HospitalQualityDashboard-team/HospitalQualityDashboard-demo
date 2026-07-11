@@ -123,15 +123,15 @@ Assert-Equal 'Worse' ([HospitalQualityDashboardDemo.Services.DashboardProgressCo
 Assert-Equal 'Insufficient' ([HospitalQualityDashboardDemo.Services.DashboardProgressComparisonBuilder]::Compare('Missing', 'OnTime')) 'An open missing submission should not be judged early'
 
 $integrationChecks = @(
-    @{ Path = $dtoPath; Tokens = @('ComparisonPeriodIds', 'DashboardComparisonPeriodDto', 'DashboardAnalysisQueryDto', 'DashboardTrendQueryDto', 'DashboardTab') },
-    @{ Path = Join-Path $root 'Services\Dashboards\DashboardProgressComparisonService.cs'; Tokens = @('GetComparison', 'GetTrend', 'CurrentDepartmentId', 'ROW_NUMBER') },
-    @{ Path = Join-Path $root 'Areas\Admin\Controllers\DashboardController.cs'; Tokens = @('ActionResult Comparison', 'ActionResult Trend', '? value : "comparison"') },
-    @{ Path = Join-Path $root 'Areas\User\Controllers\DashboardController.cs'; Tokens = @('query.KhoaPhongId = CurrentKhoaPhongId', 'ActionResult Comparison', 'ActionResult Trend', '? value : "comparison"') },
+    @{ Path = $dtoPath; Tokens = @('ComparisonPeriodIds', 'DashboardComparisonPeriodDto', 'DashboardAnalysisQueryDto', 'DashboardTab') },
+    @{ Path = Join-Path $root 'Services\Dashboards\DashboardProgressComparisonService.cs'; Tokens = @('GetComparison', 'CurrentDepartmentId', 'ROW_NUMBER') },
+    @{ Path = Join-Path $root 'Areas\Admin\Controllers\DashboardController.cs'; Tokens = @('ActionResult Comparison', '? value : "comparison"') },
+    @{ Path = Join-Path $root 'Areas\User\Controllers\DashboardController.cs'; Tokens = @('query.KhoaPhongId = CurrentKhoaPhongId', 'ActionResult Comparison', '? value : "comparison"') },
     @{ Path = Join-Path $root 'Services\Dashboards\Export\DashboardExcelExportService.Comparison.cs'; Tokens = @('SoSanhTongQuan', 'SoSanhChiSo', 'SubmittedLate', 'OverdueMissing', 'DashboardProgressComparisonBuilder.Compare', 'ProgressStatus') },
-    @{ Path = Join-Path $root 'Areas\Admin\Views\Dashboard\Index.cshtml'; Tokens = @('dashboard-analysis-tabs', 'Model.Comparison', 'DashboardTab = "comparison"') },
-    @{ Path = Join-Path $root 'Areas\User\Views\Dashboard\Index.cshtml'; Tokens = @('dashboard-analysis-tabs', 'Model.Comparison', 'DashboardTab = "comparison"') },
-    @{ Path = Join-Path $root 'Views\Shared\_DashboardComparison.cshtml'; Tokens = @('data-analysis-export', 'data-export-url') },
-    @{ Path = Join-Path $root 'Scripts\dashboard-analysis.js'; Tokens = @('[data-analysis-export]', 'new URLSearchParams(new FormData(form))', "parameters.delete('Page')", 'window.location.href = exportUrl') },
+    @{ Path = Join-Path $root 'Areas\Admin\Views\Dashboard\Index.cshtml'; Tokens = @('dashboard-analysis-tabs', 'Model.Comparison', 'DashboardTab = "comparison"', 'comparison-doughnut-chart') },
+    @{ Path = Join-Path $root 'Areas\User\Views\Dashboard\Index.cshtml'; Tokens = @('dashboard-analysis-tabs', 'Model.Comparison', 'DashboardTab = "comparison"', 'comparison-doughnut-chart') },
+    @{ Path = Join-Path $root 'Views\Shared\_DashboardComparison.cshtml'; Tokens = @('data-analysis-export', 'data-export-url', 'comparison-doughnut-grid', 'comparison-doughnut-chart') },
+    @{ Path = Join-Path $root 'Scripts\dashboard-analysis.js'; Tokens = @('[data-analysis-export]', 'new URLSearchParams(new FormData(form))', "parameters.delete('Page')", 'window.location.href = exportUrl', "type: 'doughnut'") },
     @{ Path = Join-Path $root 'HospitalQualityDashboard-demo.csproj'; Tokens = @('DashboardProgressComparisonBuilder.cs', 'DashboardProgressComparisonService.cs', 'VerifyDashboardPeriodComparison.ps1') }
 )
 
@@ -147,6 +147,28 @@ foreach ($check in $integrationChecks) {
 $comparisonPartial = Get-Content -Raw -Path (Join-Path $root 'Views\Shared\_DashboardComparison.cshtml')
 if ($comparisonPartial -match [regex]::Escape('ComparisonPeriodIds = Model.ComparisonPeriodIds')) {
     throw 'Comparison export link must not build a static array route value; it should serialize the current form values on click.'
+}
+
+$removedTrendChecks = @(
+    @{ Path = $dtoPath; Tokens = @('DashboardTrendQueryDto') },
+    @{ Path = Join-Path $root 'Models\ViewModels\AppViewModels.cs'; Tokens = @('DashboardTrendViewModel', 'public DashboardTrendViewModel Trend') },
+    @{ Path = Join-Path $root 'Services\Dashboards\DashboardProgressComparisonService.cs'; Tokens = @('GetTrend') },
+    @{ Path = Join-Path $root 'Areas\Admin\Controllers\DashboardController.cs'; Tokens = @('ActionResult Trend', 'model.Trend', '"trend"') },
+    @{ Path = Join-Path $root 'Areas\User\Controllers\DashboardController.cs'; Tokens = @('ActionResult Trend', 'model.Trend', '"trend"') },
+    @{ Path = Join-Path $root 'Areas\Admin\Views\Dashboard\Index.cshtml'; Tokens = @('DashboardTab = "trend"', '_DashboardTrend.cshtml', 'dashboard-trend-chart', 'data-dashboard-trend-form') },
+    @{ Path = Join-Path $root 'Areas\User\Views\Dashboard\Index.cshtml'; Tokens = @('DashboardTab = "trend"', '_DashboardTrend.cshtml', 'dashboard-trend-chart', 'data-dashboard-trend-form') },
+    @{ Path = Join-Path $root 'Scripts\dashboard-analysis.js'; Tokens = @('dashboard-trend-chart', 'data-dashboard-trend-form') },
+    @{ Path = Join-Path $root 'Content\Site.css'; Tokens = @('.trend-filter', '.trend-chart-panel') },
+    @{ Path = Join-Path $root 'HospitalQualityDashboard-demo.csproj'; Tokens = @('_DashboardTrend.cshtml') }
+)
+
+foreach ($check in $removedTrendChecks) {
+    $text = Get-Content -Raw -Path $check.Path
+    foreach ($token in $check.Tokens) {
+        if ($text -match [regex]::Escape($token)) {
+            throw "Removed trend token '$token' still exists in $($check.Path)"
+        }
+    }
 }
 
 Write-Host 'Dashboard period comparison behavior verification passed.'

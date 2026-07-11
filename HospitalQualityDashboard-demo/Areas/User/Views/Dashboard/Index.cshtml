@@ -1,4 +1,4 @@
-﻿@* Mục đích: dashboard tổng hợp tiến độ báo cáo và cảnh báo thiếu/quá hạn. *@
+@* Mục đích: dashboard tổng hợp tiến độ báo cáo và cảnh báo thiếu/quá hạn. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.DashboardViewModel
 @using System.Globalization
 @using System.Linq
@@ -18,8 +18,8 @@
     var roleLabel = Model.IsAdmin ? "Admin hệ thống" : "Khoa/phòng";
     var totalMetricLabel = "Chỉ số cần nộp";
     var urgentCount = Model.OverdueMissingReportCount + Model.DueSoonReportCount;
-    var activeTab = string.IsNullOrWhiteSpace(Model.ActiveTab) ? "comparison" : Model.ActiveTab;
-    ViewBag.Title = activeTab == "comparison" ? "So sánh kỳ báo cáo" : activeTab == "trend" ? "Xu hướng" : "Tổng quan";
+    var activeTab = Model.ActiveTab == "overview" ? "overview" : "comparison";
+    ViewBag.Title = activeTab == "comparison" ? "So sánh kỳ báo cáo" : "Tổng quan";
 }
 
 <style>
@@ -171,19 +171,19 @@
         }
 
         .metric-card.is-accent {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            background: linear-gradient(135deg, #146c78, #146c78);
         }
 
         .metric-card.is-success {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, #22A06B, #22A06B);
         }
 
         .metric-card.is-warning {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
+            background: linear-gradient(135deg, #E5484D, #E5484D);
         }
 
         .metric-card.is-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
+            background: linear-gradient(135deg, #E5484D, #E5484D);
         }
 
     .metric-card-header {
@@ -311,7 +311,7 @@
     .progress-fill {
         height: 100%;
         border-radius: inherit;
-        background: linear-gradient(90deg, #146c78, #2563eb);
+        background: linear-gradient(90deg, #146c78, #146c78);
     }
 
     .dashboard-metric-modal .modal-content,
@@ -348,18 +348,18 @@
     }
 
     .dashboard-summary-strip .summary-success {
-        background: linear-gradient(135deg, #10b981, #059669) !important;
-        border-color: #10b981 !important;
+        background: linear-gradient(135deg, #22A06B, #22A06B) !important;
+        border-color: #22A06B !important;
     }
 
     .dashboard-summary-strip .summary-danger {
-        background: linear-gradient(135deg, #ef4444, #dc2626) !important;
-        border-color: #ef4444 !important;
+        background: linear-gradient(135deg, #E5484D, #E5484D) !important;
+        border-color: #E5484D !important;
     }
 
     .dashboard-summary-strip .summary-info {
-        background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-        border-color: #3b82f6 !important;
+        background: linear-gradient(135deg, #146c78, #146c78) !important;
+        border-color: #146c78 !important;
     }
 
         .dashboard-summary-strip .summary-success span,
@@ -566,11 +566,11 @@
         }
 
         .comparison-summary-grid .is-better b {
-            background: #10b981;
+            background: #22A06B;
         }
 
         .comparison-summary-grid .is-worse b {
-            background: #ef4444;
+            background: #E5484D;
         }
 
         .comparison-summary-grid .is-unchanged b {
@@ -578,17 +578,17 @@
         }
 
         .comparison-summary-grid .is-insufficient b {
-            background: #f59e0b;
+            background: #E5484D;
         }
 
         .comparison-summary-grid .is-better {
-            background: #ecfdf5;
-            border-color: #a7f3d0;
+            background: #f8fafc;
+            border-color: #d8e2ea;
         }
 
         .comparison-summary-grid .is-worse {
-            background: #fef2f2;
-            border-color: #fecaca;
+            background: #f8fafc;
+            border-color: #d8e2ea;
         }
 
         .comparison-summary-grid .is-unchanged {
@@ -597,8 +597,8 @@
         }
 
         .comparison-summary-grid .is-insufficient {
-            background: #fffbeb;
-            border-color: #fde68a;
+            background: #f8fafc;
+            border-color: #d8e2ea;
         }
 
     @@media (max-width: 992px) {
@@ -1065,7 +1065,7 @@
 
         .dashboard-metric-table tr.is-detail-active {
             background: #eaf6ff !important;
-            box-shadow: inset 4px 0 0 #2563eb;
+            box-shadow: inset 4px 0 0 #146c78;
         }
 
     @@media (max-width: 768px) {
@@ -1419,9 +1419,8 @@
 </div>
 
 <nav class="dashboard-analysis-tabs" aria-label="Phân tích Dashboard">
-    <a class="dashboard-analysis-tab @(activeTab == "overview" ? "is-active" : null)" href="@Url.Action("Index", "Dashboard", new { area = "User", DashboardTab = "overview", TanSuat = Model.SelectedTanSuat })">Tổng quan</a>
-    <a class="dashboard-analysis-tab @(activeTab == "comparison" ? "is-active" : null)" href="@Url.Action("Index", "Dashboard", new { area = "User", DashboardTab = "comparison", TanSuat = Model.SelectedTanSuat })">So sánh kỳ báo cáo</a>
-    <a class="dashboard-analysis-tab @(activeTab == "trend" ? "is-active" : null)" href="@Url.Action("Index", "Dashboard", new { area = "User", DashboardTab = "trend", TanSuat = Model.SelectedTanSuat })">Xu hướng</a>
+    <a class="dashboard-analysis-tab @(activeTab == "overview" ? "is-active" : null)" data-dashboard-tab="overview" href="@Url.Action("Index", "Dashboard", new { area = "User", DashboardTab = "overview", TanSuat = Model.SelectedTanSuat })">Tổng quan</a>
+    <a class="dashboard-analysis-tab @(activeTab == "comparison" ? "is-active" : null)" data-dashboard-tab="comparison" href="@Url.Action("Index", "Dashboard", new { area = "User", DashboardTab = "comparison", TanSuat = Model.SelectedTanSuat })">So sánh kỳ báo cáo</a>
 </nav>
 
 <div class="dashboard-tab-pane @(activeTab == "overview" ? "is-active" : null)" data-dashboard-pane="overview" @(activeTab == "overview" ? null : "hidden")>
@@ -1542,30 +1541,6 @@ else
     </div>
 }
 
-@if (activeTab == "trend")
-{
-    <div class="dashboard-tab-pane is-active"
-         data-dashboard-pane="trend"
-         data-dashboard-url="@Url.Action("Trend", "Dashboard", new { area = "User" })">
-        @if (Model.Trend != null)
-        {
-            @Html.Partial("~/Views/Shared/_DashboardTrend.cshtml", Model.Trend)
-        }
-    </div>
-}
-else
-{
-    <div class="dashboard-tab-pane"
-         data-dashboard-pane="trend"
-         data-dashboard-url="@Url.Action("Trend", "Dashboard", new { area = "User" })"
-         hidden>
-        @if (Model.Trend != null)
-        {
-            @Html.Partial("~/Views/Shared/_DashboardTrend.cshtml", Model.Trend)
-        }
-    </div>
-}
-
 <div class="modal fade" id="dashboardExportModal" tabindex="-1" aria-labelledby="dashboardExportModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow rounded-3">
@@ -1639,32 +1614,28 @@ function initializeDashboardAnalysis() {
     var charts = [];
 
     function renderCharts(container) {
-        var comparison = container.querySelector('.comparison-progress-chart');
-        if (comparison && !comparison.dataset.rendered) {
-            var metrics = JSON.parse(comparison.dataset.metrics || '[]');
-            charts.push(new Chart(comparison, { type: 'bar', data: { labels: metrics.map(function(x){ return x.TenKyBaoCao; }), datasets: [
-                { label: 'Đúng hạn', data: metrics.map(function(x){ return x.DungHan; }), backgroundColor: '#22a06b' },
-                { label: 'Nộp trễ', data: metrics.map(function(x){ return x.NopTre; }), backgroundColor: '#e5484d' },
-                { label: 'Chưa nộp', data: metrics.map(function(x){ return x.ChuaNop; }), backgroundColor: '#f0a202' },
-                { label: 'Quá hạn chưa nộp', data: metrics.map(function(x){ return x.QuaHanChuaNop; }), backgroundColor: '#9f1239' }
-            ]}, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }, plugins: { legend: { position: 'bottom' } } } }));
-            comparison.dataset.rendered = 'true';
-        }
-        var trend = container.querySelector('.dashboard-trend-chart');
-        if (trend && !trend.dataset.rendered) {
-            var trendMetrics = JSON.parse(trend.dataset.metrics || '[]');
-            charts.push(new Chart(trend, { type: 'line', data: { labels: trendMetrics.map(function(x){ return x.TenKyBaoCao; }), datasets: [
-                { label: 'Tỷ lệ hoàn thành', data: trendMetrics.map(function(x){ return x.TyLeHoanThanh; }), borderColor: '#146c78', tension: .28 },
-                { label: 'Tỷ lệ đúng hạn', data: trendMetrics.map(function(x){ return x.TyLeDungHan; }), borderColor: '#2563eb', tension: .28 },
-                { label: 'Nộp trễ', data: trendMetrics.map(function(x){ return x.NopTre; }), borderColor: '#e5484d', tension: .28, yAxisID: 'count' },
-                { label: 'Quá hạn chưa nộp', data: trendMetrics.map(function(x){ return x.QuaHanChuaNop; }), borderColor: '#f0a202', tension: .28, yAxisID: 'count' }
-            ]}, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '%' } }, count: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false } } }, plugins: { legend: { position: 'bottom' } } } }));
-            trend.dataset.rendered = 'true';
-        }
+        container.querySelectorAll('.comparison-doughnut-chart').forEach(function(chart) {
+            if (chart.dataset.rendered) return;
+            var metric = JSON.parse(chart.dataset.metric || '{}');
+            charts.push(new Chart(chart, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Đúng hạn', 'Nộp trễ', 'Chưa nộp', 'Quá hạn chưa nộp'],
+                    datasets: [{
+                        data: [metric.DungHan || 0, metric.NopTre || 0, metric.ChuaNop || 0, metric.QuaHanChuaNop || 0],
+                        backgroundColor: ['#22A06B', 'rgba(229, 72, 77, .74)', '#D8E2EA', '#E5484D'],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 3
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom' } } }
+            }));
+            chart.dataset.rendered = 'true';
+        });
     }
 
     function bindPane(pane) {
-        var forms = pane.querySelectorAll('[data-dashboard-analysis-form], [data-dashboard-trend-form]');
+        var forms = pane.querySelectorAll('[data-dashboard-analysis-form]');
         forms.forEach(function(form) {
             form.addEventListener('submit', function(event) { event.preventDefault(); loadPane(pane, new URLSearchParams(new FormData(form)).toString()); });
         });

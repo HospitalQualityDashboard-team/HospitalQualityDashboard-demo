@@ -535,6 +535,19 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int TotalPages { get; set; }
     }
 
+    public class NotificationPreviewViewModel
+    {
+        public int UnreadCount { get; set; }
+        public IList<NotificationViewModel> ImportantItems { get; set; }
+        public IList<NotificationViewModel> OtherItems { get; set; }
+
+        public NotificationPreviewViewModel()
+        {
+            ImportantItems = new List<NotificationViewModel>();
+            OtherItems = new List<NotificationViewModel>();
+        }
+    }
+
     public class NotificationDetailViewModel
     {
         public NotificationViewModel Notification { get; set; }
@@ -575,7 +588,6 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public IList<DashboardComparisonPeriodDto> ComparisonPeriods { get; set; }
         public string ActiveTab { get; set; }
         public ProgressComparisonViewModel Comparison { get; set; }
-        public DashboardTrendViewModel Trend { get; set; }
     }
 
     public class DashboardMetricDetailViewModel
@@ -790,17 +802,6 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int TotalRows { get; set; }
     }
 
-    public class DashboardTrendViewModel
-    {
-        public bool IsAdmin { get; set; }
-        public int? TanSuat { get; set; }
-        public int? KhoaPhongId { get; set; }
-        public int PeriodCount { get; set; }
-        public IList<SelectListItem> TanSuatOptions { get; set; }
-        public IList<SelectListItem> KhoaPhongOptions { get; set; }
-        public IList<ProgressPeriodMetricViewModel> Metrics { get; set; }
-    }
-
     public class DashboardReviewHistoryRow
     {
         public int STT { get; set; }
@@ -829,6 +830,40 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
     }
 
     // Kết quả sau khi import dữ liệu từ file.
+    public class SystemLogRowViewModel
+    {
+        public int NhatKyHeThongId { get; set; }
+        public int? TaiKhoanId { get; set; }
+        public string TenDangNhap { get; set; }
+        public string HoTen { get; set; }
+        public string Module { get; set; }
+        public string Action { get; set; }
+        public string DoiTuong { get; set; }
+        public int? DoiTuongId { get; set; }
+        public string NoiDung { get; set; }
+        public DateTime ThoiGian { get; set; }
+    }
+
+    public class SystemLogIndexViewModel
+    {
+        public SystemLogQueryDto Query { get; set; }
+        public IList<SystemLogRowViewModel> Items { get; set; }
+        public IList<SelectListItem> ModuleOptions { get; set; }
+        public IList<SelectListItem> ActionOptions { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalItems { get; set; }
+        public int TotalPages { get; set; }
+
+        public SystemLogIndexViewModel()
+        {
+            Query = new SystemLogQueryDto();
+            Items = new List<SystemLogRowViewModel>();
+            ModuleOptions = new List<SelectListItem>();
+            ActionOptions = new List<SelectListItem>();
+        }
+    }
+
     public class ImportResultViewModel
     {
         // Tổng số dòng dữ liệu đọc được từ file.
