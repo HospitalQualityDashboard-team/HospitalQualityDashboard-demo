@@ -52,7 +52,7 @@ Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiế
 - Ghi rõ `ConnectionStrings.config` là file local secret, không được commit.
 - Bổ sung quy trình chạy bằng Visual Studio/IIS Express, build bằng MSBuild và kiểm tra Razor bằng `aspnet_compiler`.
 - Cập nhật luồng sử dụng Admin/User, import/export, phân trang, cache dropdown, dashboard tối ưu và index Azure SQL.
-- Bổ sung mục troubleshooting cho các lỗi thường gặp: thiếu connection string, thiếu bảng, timeout Azure SQL, contributor Claude trên GitHub.
+- Bổ sung mục troubleshooting cho các lỗi thường gặp: thiếu connection string, thiếu bảng, timeout Azure SQL và contributor không mong muốn trên GitHub.
 
 ### Bảo vệ connection string thật
 
@@ -84,7 +84,7 @@ Tài liệu này ghi lại các thay đổi kỹ thuật, quyết định thiế
 - `.csproj.user`
 
 **Đối chiếu lại ngày 27/06/2026:**
-- `.claude/worktrees/`, `.superpowers/brainstorm/`, `docs/superpowers/` và `Filters/` không còn xuất hiện trong danh sách file hiện tại.
+- `.superpowers/brainstorm/`, `docs/superpowers/` và `Filters/` không còn xuất hiện trong danh sách file hiện tại.
 - `Content/` và `Scripts/` vẫn là tài nguyên frontend do project quản lý; chỉ dọn tiếp sau khi đối chiếu `.csproj` và `BundleConfig`.
 
 ## 2026-06-09

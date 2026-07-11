@@ -774,7 +774,7 @@ Mục này lưu lịch sử dọn dẹp ngày 10/06/2026. Trạng thái được
   - [Index.cshtml (Admin Dashboard)](file:///d:/Hoc_Tap/Thuc_Tap/HospitalQualityDashboard-demo/HospitalQualityDashboard-demo/Areas/Admin/Views/Dashboard/Index.cshtml): Bổ sung nút bấm và modal chọn cột.
 
 ### 18.4. Dọn dẹp Repository
-- Đã thực hiện xóa triệt để các thư mục dư thừa và tạm thời: `.claude/worktrees/`, `.superpowers/`, thư mục `docs/` ở root và `HospitalQualityDashboard-demo/docs/` để làm sạch repository.
+- Đã thực hiện xóa triệt để các thư mục dư thừa và tạm thời: `.superpowers/`, thư mục `docs/` ở root và `HospitalQualityDashboard-demo/docs/` để làm sạch repository.
 
 ### 18.5. Kiểm thử xác minh tự động
 - Thêm các tập lệnh kiểm tra chất lượng mã nguồn:

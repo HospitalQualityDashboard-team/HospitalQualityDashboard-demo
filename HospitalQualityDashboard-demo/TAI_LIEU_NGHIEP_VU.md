@@ -1069,7 +1069,7 @@ Da co ke hoach don dep va ghi nhan trong tai lieu. Hien trang thuc te van con mo
 - `HospitalQualityDashboard-demo.csproj.user` - file cau hinh VS ca nhan.
 
 **Trạng thái đối chiếu lại ngày 27/06/2026:**
-- `docs/superpowers/`, `.claude/worktrees/`, `.superpowers/brainstorm/` và `Filters/` không còn xuất hiện trong danh sách file hiện tại.
+- `docs/superpowers/`, `.superpowers/brainstorm/` và `Filters/` không còn xuất hiện trong danh sách file hiện tại.
 - `Content/` và `Scripts/` vẫn giữ các file Bootstrap, jQuery, validation, bundle/esm/slim và source map đang được project quản lý; không xem đây là tồn đọng nếu `.csproj` hoặc bundle còn tham chiếu.
 
 Khi dọn dẹp tiếp, chỉ xóa file sau khi đối chiếu `.csproj`, `BundleConfig` và nhu cầu debug frontend.
