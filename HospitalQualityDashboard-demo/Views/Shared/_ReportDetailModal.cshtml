@@ -1,0 +1,239 @@
+@* Modal chi tiet bao cao dung chung cho Admin va User. *@
+<div class="modal fade report-detail-modal" id="reportDetailModal" tabindex="-1" aria-labelledby="reportDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <span class="report-detail-eyebrow">Chi tiết báo cáo</span>
+                    <h2 class="modal-title" id="reportDetailModalLabel" data-report-field="indicator">—</h2>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <div class="report-detail-grid">
+                    <div class="report-detail-item">
+                        <span>Kỳ báo cáo</span>
+                        <strong data-report-field="period">—</strong>
+                    </div>
+                    <div class="report-detail-item">
+                        <span>Khoa/phòng thực hiện</span>
+                        <strong data-report-field="department">—</strong>
+                    </div>
+                    <div class="report-detail-item">
+                        <span>Loại công thức</span>
+                        <strong data-report-field="formula">Chưa xác định</strong>
+                    </div>
+                    <div class="report-detail-item" data-report-detail-row="numerator">
+                        <span>Tử số</span>
+                        <strong data-report-field="numerator">—</strong>
+                    </div>
+                    <div class="report-detail-item" data-report-detail-row="denominator">
+                        <span>Mẫu số</span>
+                        <strong data-report-field="denominator">—</strong>
+                    </div>
+                    <div class="report-detail-item" data-report-detail-row="inputValue">
+                        <span>Giá trị nhập</span>
+                        <strong data-report-field="inputValue">—</strong>
+                    </div>
+                    <div class="report-detail-item">
+                        <span>Kết quả</span>
+                        <strong data-report-field="result">—</strong>
+                    </div>
+                    <div class="report-detail-item">
+                        <span>Đánh giá đạt mục tiêu</span>
+                        <strong data-report-field="target">Chưa xác định</strong>
+                    </div>
+                    <div class="report-detail-item">
+                        <span>Ngày giờ nộp</span>
+                        <strong data-report-field="submittedAt">Chưa nộp</strong>
+                    </div>
+                    <div class="report-detail-item">
+                        <span>Người nộp</span>
+                        <strong data-report-field="submittedBy">Chưa nộp</strong>
+                    </div>
+                    <div class="report-detail-item">
+                        <span>Trạng thái hiện tại</span>
+                        <strong data-report-field="status">Chưa xác định</strong>
+                    </div>
+                </div>
+                <div class="report-detail-notes">
+                    <div class="report-detail-note">
+                        <span>Ghi chú</span>
+                        <p data-report-field="note">—</p>
+                    </div>
+                    <div class="report-detail-note">
+                        <span>Ý kiến phản hồi</span>
+                        <p data-report-field="feedback">—</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade report-reject-modal" id="reportRejectModal" tabindex="-1" aria-labelledby="reportRejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" data-report-reject-form>
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <div>
+                        <span class="report-detail-eyebrow">Trả về báo cáo</span>
+                        <h2 class="modal-title" id="reportRejectModalLabel">Nhập ý kiến phản hồi</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="report-reject-context">
+                        <div>
+                            <span>Chỉ số</span>
+                            <strong data-report-reject-field="indicator">—</strong>
+                        </div>
+                        <div>
+                            <span>Kỳ báo cáo</span>
+                            <strong data-report-reject-field="period">—</strong>
+                        </div>
+                        <div>
+                            <span>Khoa/phòng thực hiện</span>
+                            <strong data-report-reject-field="department">—</strong>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label" for="ReportRejectFeedback">Ý kiến phản hồi</label>
+                        <textarea class="form-control" id="ReportRejectFeedback" name="yKienPhanHoi" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-warning text-dark">Trả về</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var modal = document.getElementById('reportDetailModal');
+        var rejectModal = document.getElementById('reportRejectModal');
+
+        var formulaLabels = {
+            '1': 'Tỷ lệ (%)',
+            '2': 'Số lượng',
+            '3': 'Thời gian trung bình',
+            '4': 'Điểm trung bình',
+            '5': 'Giá trị trực tiếp',
+            '6': 'Tỷ số'
+        };
+
+        var statusLabels = {
+            '1': 'Nháp',
+            '2': 'Đã gửi chờ duyệt',
+            '3': 'Quá hạn',
+            '4': 'Đã khóa',
+            '5': 'Đã duyệt',
+            '6': 'Trả lại'
+        };
+
+        function valueOrDefault(value, fallback) {
+            return value && value.trim() ? value : fallback;
+        }
+
+        function setField(name, value, fallback) {
+            if (!modal) return;
+            var element = modal.querySelector('[data-report-field="' + name + '"]');
+            if (!element) return;
+            element.textContent = valueOrDefault(value, fallback || '—');
+        }
+
+        function setRowVisible(rowName, isVisible) {
+            if (!modal) return;
+            var row = modal.querySelector('[data-report-detail-row="' + rowName + '"]');
+            if (row) {
+                row.classList.toggle('d-none', !isVisible);
+            }
+        }
+
+        function setRejectField(name, value, fallback) {
+            if (!rejectModal) return;
+            var element = rejectModal.querySelector('[data-report-reject-field="' + name + '"]');
+            if (!element) return;
+            element.textContent = valueOrDefault(value, fallback || '—');
+        }
+
+        if (modal) {
+            modal.addEventListener('show.bs.modal', function (event) {
+                var trigger = event.relatedTarget;
+                if (!trigger) return;
+
+                var data = trigger.dataset;
+                var indicator = [data.reportIndicatorCode, data.reportIndicatorName].filter(Boolean).join(' - ');
+                var formula = data.reportFormula || '';
+                var isDirect = formula === '2' || formula === '4' || formula === '5';
+
+                setField('indicator', indicator, '—');
+                setField('period', data.reportPeriod, '—');
+                setField('department', data.reportDepartment, '—');
+                setField('formula', formulaLabels[formula], 'Chưa xác định');
+                setField('numerator', data.reportNumerator, '—');
+                setField('denominator', data.reportDenominator, '—');
+                setField('inputValue', data.reportInputValue, '—');
+                setField('result', data.reportResult, '—');
+                setField('target', data.reportTarget === 'true' ? 'Đạt' : (data.reportTarget === 'false' ? 'Không đạt' : 'Chưa xác định'), 'Chưa xác định');
+                setField('submittedAt', data.reportSubmittedAt, 'Chưa nộp');
+                setField('submittedBy', data.reportSubmittedBy, 'Chưa nộp');
+                setField('status', statusLabels[data.reportStatus], 'Chưa xác định');
+                setField('note', data.reportNote, '—');
+                setField('feedback', data.reportFeedback, '—');
+
+                setRowVisible('numerator', !isDirect);
+                setRowVisible('denominator', !isDirect);
+                setRowVisible('inputValue', isDirect);
+            });
+
+            modal.addEventListener('shown.bs.modal', function () {
+                document.body.classList.add('report-detail-modal-open');
+            });
+
+            modal.addEventListener('hidden.bs.modal', function () {
+                document.body.classList.remove('report-detail-modal-open');
+            });
+        }
+
+        if (rejectModal) {
+            rejectModal.addEventListener('show.bs.modal', function (event) {
+                var trigger = event.relatedTarget;
+                if (!trigger) return;
+
+                var data = trigger.dataset;
+                var form = rejectModal.querySelector('[data-report-reject-form]');
+                var feedback = rejectModal.querySelector('[name="yKienPhanHoi"]');
+                if (form) {
+                    form.setAttribute('action', data.reportRejectAction || '');
+                }
+                if (feedback) {
+                    feedback.value = '';
+                }
+
+                setRejectField('indicator', data.reportRejectIndicator, '—');
+                setRejectField('period', data.reportRejectPeriod, '—');
+                setRejectField('department', data.reportRejectDepartment, '—');
+            });
+
+            rejectModal.addEventListener('shown.bs.modal', function () {
+                document.body.classList.add('report-reject-modal-open');
+                var feedback = rejectModal.querySelector('[name="yKienPhanHoi"]');
+                if (feedback) {
+                    feedback.focus();
+                }
+            });
+
+            rejectModal.addEventListener('hidden.bs.modal', function () {
+                document.body.classList.remove('report-reject-modal-open');
+            });
+        }
+    })();
+</script>

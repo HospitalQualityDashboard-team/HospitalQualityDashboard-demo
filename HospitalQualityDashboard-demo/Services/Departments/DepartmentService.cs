@@ -23,7 +23,7 @@ SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong, Used, GhiChu
 FROM dbo.KhoaPhong
 WHERE (@Search IS NULL OR TenKhoaPhong LIKE @SearchLike OR CONVERT(NVARCHAR(20), IdKhoaPhongNguon) = @Search)
   AND (@IncludeInactive = 1 OR Used = 1)
-ORDER BY IdKhoaPhongNguon, TenKhoaPhong";
+ORDER BY KhoaPhongId DESC";
             return Query(sql, MapDepartment,
                 Param("@Search", string.IsNullOrWhiteSpace(search) ? null : search),
                 Param("@SearchLike", string.IsNullOrWhiteSpace(search) ? null : "%" + search + "%"),
@@ -49,7 +49,7 @@ SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong, Used, GhiChu
 FROM dbo.KhoaPhong
 WHERE (@Search IS NULL OR TenKhoaPhong LIKE @SearchLike OR CONVERT(NVARCHAR(20), IdKhoaPhongNguon) = @Search)
   AND (@IncludeInactive = 1 OR Used = 1)
-ORDER BY IdKhoaPhongNguon, TenKhoaPhong
+ORDER BY KhoaPhongId DESC
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
             return Query(sql, MapDepartment,

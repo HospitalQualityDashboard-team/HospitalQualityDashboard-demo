@@ -33,7 +33,7 @@ FROM dbo.ChiSoChatLuong cs
 INNER JOIN dbo.PhanCongChiSo pc ON pc.ChiSoChatLuongId = cs.ChiSoChatLuongId
 WHERE pc.KhoaPhongId = @KhoaPhongId AND pc.DangHoatDong = 1
   AND (@IncludeInactive = 1 OR cs.DangHoatDong = 1)
-ORDER BY ISNULL(cs.SoThuTu, 9999), cs.MaChiSo";
+ORDER BY cs.ChiSoChatLuongId DESC";
             }
             else
             {
@@ -43,7 +43,7 @@ SELECT ChiSoChatLuongId, MaChiSo, SoThuTu, TenChiSo, DinhNghia, LinhVucApDung, K
        KhoaPhongThuThapId, KhoaPhongTongHopId, GiaTriSoLieu, LoaiCongThuc, DonViTinh, DangHoatDong
 FROM dbo.ChiSoChatLuong
 WHERE (@IncludeInactive = 1 OR DangHoatDong = 1)
-ORDER BY ISNULL(SoThuTu, 9999), MaChiSo";
+ORDER BY ChiSoChatLuongId DESC";
             }
 
             var items = Query(sql, MapIndicator,
@@ -78,7 +78,7 @@ FROM dbo.ChiSoChatLuong cs
 INNER JOIN dbo.PhanCongChiSo pc ON pc.ChiSoChatLuongId = cs.ChiSoChatLuongId
 WHERE pc.KhoaPhongId = @KhoaPhongId AND pc.DangHoatDong = 1
   AND (@IncludeInactive = 1 OR cs.DangHoatDong = 1)
-ORDER BY ISNULL(cs.SoThuTu, 9999), cs.MaChiSo
+ORDER BY cs.ChiSoChatLuongId DESC
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             }
             else
@@ -94,7 +94,7 @@ SELECT ChiSoChatLuongId, MaChiSo, SoThuTu, TenChiSo, DinhNghia, LinhVucApDung, K
        KhoaPhongThuThapId, KhoaPhongTongHopId, GiaTriSoLieu, LoaiCongThuc, DonViTinh, DangHoatDong
 FROM dbo.ChiSoChatLuong
 WHERE (@IncludeInactive = 1 OR DangHoatDong = 1)
-ORDER BY ISNULL(SoThuTu, 9999), MaChiSo
+ORDER BY ChiSoChatLuongId DESC
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             }
 
@@ -145,7 +145,7 @@ WHERE ChiSoChatLuongId = @IndicatorId AND KhoaPhongId = @KhoaPhongId AND DangHoa
 SELECT ChiSoChatLuongId, MaChiSo, TenChiSo
 FROM dbo.ChiSoChatLuong
 WHERE DangHoatDong = 1
-ORDER BY ISNULL(SoThuTu, 9999), MaChiSo",
+ORDER BY ChiSoChatLuongId DESC",
                 r => new SelectListItem
                 {
                     Value = Int(r, "ChiSoChatLuongId").ToString(),

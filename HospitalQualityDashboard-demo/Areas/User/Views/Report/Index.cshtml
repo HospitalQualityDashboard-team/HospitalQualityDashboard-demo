@@ -50,6 +50,37 @@
     }
 }
 
+@helper ReportDetailButton(HospitalQualityDashboardDemo.Models.ViewModels.ReportEntryViewModel item, string resultText)
+{
+    var numerator = item.TuSo.HasValue ? item.TuSo.Value.ToString("0.####") : "";
+    var denominator = item.MauSo.HasValue ? item.MauSo.Value.ToString("0.####") : "";
+    var inputValue = item.GiaTriNhap.HasValue ? item.GiaTriNhap.Value.ToString("0.####") : "";
+    var target = item.DatMucTieu.HasValue ? (item.DatMucTieu.Value ? "true" : "false") : "";
+    var submittedAt = item.NgayGui.HasValue ? item.NgayGui.Value.ToString("dd/MM/yyyy HH:mm") : "";
+    <button type="button"
+            class="btn btn-sm btn-outline-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#reportDetailModal"
+            data-report-id="@item.BaoCaoId"
+            data-report-period="@item.TenKyBaoCao"
+            data-report-department="@item.TenKhoaPhong"
+            data-report-indicator-code="@item.MaChiSo"
+            data-report-indicator-name="@item.TenChiSo"
+            data-report-formula="@((int)item.LoaiCongThuc)"
+            data-report-numerator="@numerator"
+            data-report-denominator="@denominator"
+            data-report-input-value="@inputValue"
+            data-report-result="@resultText"
+            data-report-target="@target"
+            data-report-submitted-at="@submittedAt"
+            data-report-submitted-by="@item.TenNguoiGui"
+            data-report-status="@((int)item.TrangThai)"
+            data-report-note="@item.GhiChu"
+            data-report-feedback="@item.YKienPhanHoi">
+        Xem
+    </button>
+}
+
 <section class="report-page">
     <div class="page-header report-header">
         <div>
@@ -198,11 +229,12 @@
                     <tbody>
                     @foreach (var item in reports)
                     {
+                        var resultText = item.KetQua.HasValue ? item.KetQua.Value.ToString("0.00") : "";
                         <tr>
                             <td>@item.TenKyBaoCao</td>
                             <td>@item.TenKhoaPhong</td>
                             <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
-                            <td class="numeric-value">@(item.KetQua.HasValue ? item.KetQua.Value.ToString("0.00") : "")</td>
+                            <td class="numeric-value">@resultText</td>
                             <td>
                                 @switch (item.TrangThai)
                                 {
@@ -231,10 +263,17 @@
                             </td>
                             <td class="text-end table-actions">
                                 @{
-                                    var detailLabel = Model.IsAdmin ? "Xem" : (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai ? "Sửa" : "Xem");
+                                    var canEditReport = item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai;
                                 }
-                                @Html.ActionLink(detailLabel, "Edit", new { id = item.BaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
-                                @if (!Model.IsAdmin && (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai))
+                                @if (canEditReport)
+                                {
+                                    @Html.ActionLink("Sửa", "Edit", new { id = item.BaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
+                                }
+                                else
+                                {
+                                    @ReportDetailButton(item, resultText)
+                                }
+                                @if (!Model.IsAdmin && canEditReport)
                                 {
                                     using (Html.BeginForm("Submit", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
                                     {
@@ -264,3 +303,5 @@
         }
     </section>
 </section>
+
+@Html.Partial("_ReportDetailModal")

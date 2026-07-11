@@ -900,6 +900,79 @@ a {
         text-transform: uppercase;
     }
 
+.report-filter-combobox {
+    position: relative;
+}
+
+.report-filter-input {
+    min-height: 38px;
+    padding-right: 38px;
+}
+
+.report-filter-combobox-clear {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--app-muted);
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    line-height: 1;
+    transform: translateY(-50%);
+}
+
+    .report-filter-combobox-clear:hover,
+    .report-filter-combobox-clear:focus {
+        color: var(--app-primary-dark);
+        background: var(--app-primary-soft);
+    }
+
+.report-filter-options {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 1060;
+    display: none;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 6px;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border-strong);
+    border-radius: 8px;
+    box-shadow: var(--app-shadow);
+}
+
+.report-filter-combobox.is-open .report-filter-options {
+    display: grid;
+    gap: 3px;
+}
+
+.report-filter-option {
+    width: 100%;
+    padding: 8px 10px;
+    color: var(--app-text);
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    font: inherit;
+    line-height: 1.35;
+    text-align: left;
+}
+
+    .report-filter-option:hover,
+    .report-filter-option:focus,
+    .report-filter-option.is-selected {
+        color: var(--app-primary-dark);
+        background: var(--app-primary-soft);
+    }
+
 .filter-actions {
     display: flex;
     gap: 8px;
@@ -944,6 +1017,132 @@ a {
     .table-actions .btn {
         margin-left: 4px;
     }
+
+.report-table-compact {
+    min-width: 680px;
+}
+
+    .report-table-compact th,
+    .report-table-compact td {
+        padding-top: .48rem;
+        padding-bottom: .48rem;
+    }
+
+.report-detail-modal .modal-dialog,
+.report-reject-modal .modal-dialog {
+    max-width: 1040px;
+}
+
+.report-reject-modal .modal-dialog {
+    max-width: 640px;
+}
+
+.report-detail-modal .modal-content,
+.report-reject-modal .modal-content {
+    border: 1px solid rgba(189, 203, 215, .9);
+    border-radius: 8px;
+    box-shadow: 0 24px 60px rgba(20, 32, 51, .2);
+}
+
+.report-detail-modal .modal-header,
+.report-reject-modal .modal-header {
+    align-items: flex-start;
+    gap: 14px;
+    background: var(--app-surface-soft);
+}
+
+.report-detail-modal .modal-title,
+.report-reject-modal .modal-title {
+    margin: 3px 0 0;
+    font-size: 1.2rem;
+    font-weight: 850;
+    line-height: 1.3;
+}
+
+.report-detail-eyebrow {
+    display: block;
+    color: var(--app-muted);
+    font-size: .76rem;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.report-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.report-detail-item,
+.report-detail-note {
+    min-width: 0;
+    padding: 12px;
+    background: var(--app-surface-soft);
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+}
+
+    .report-detail-item span,
+    .report-detail-note span {
+        display: block;
+        color: var(--app-muted);
+        font-size: .76rem;
+        font-weight: 850;
+        text-transform: uppercase;
+    }
+
+    .report-detail-item strong,
+    .report-detail-note p {
+        display: block;
+        margin: 5px 0 0;
+        color: var(--app-text);
+        font-weight: 780;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+.report-detail-notes {
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.report-reject-context {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    background: var(--app-surface-soft);
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+}
+
+    .report-reject-context span {
+        display: block;
+        color: var(--app-muted);
+        font-size: .76rem;
+        font-weight: 850;
+        text-transform: uppercase;
+    }
+
+    .report-reject-context strong {
+        display: block;
+        margin-top: 3px;
+        color: var(--app-text);
+        font-weight: 780;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+body.report-detail-modal-open .app-shell,
+body.report-reject-modal-open .app-shell {
+    transition: filter 160ms ease;
+}
+
+body.report-detail-modal-open .modal-backdrop.show,
+body.report-reject-modal-open .modal-backdrop.show {
+    opacity: .62;
+    backdrop-filter: blur(3px);
+}
 
 .data-panel .table-responsive,
 .dashboard-panel .table-responsive {
@@ -1454,6 +1653,10 @@ footer {
 
     .modal-dialog {
         margin: 12px;
+    }
+
+    .report-detail-grid {
+        grid-template-columns: 1fr;
     }
 
     .modal-footer {

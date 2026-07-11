@@ -14,6 +14,129 @@
     var draftCount = reports.Count(x => x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai);
 }
 
+@section scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var activeCombobox = null;
+
+            function normalize(value) {
+                return (value || '')
+                    .toLowerCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/đ/g, 'd');
+            }
+
+            function closeActiveCombobox() {
+                if (activeCombobox) {
+                    activeCombobox.classList.remove('is-open');
+                    activeCombobox = null;
+                }
+            }
+
+            function enhanceCombobox(select) {
+                var placeholder = select.getAttribute('data-filter-placeholder') || '';
+                var wrapper = document.createElement('div');
+                var input = document.createElement('input');
+                var clear = document.createElement('button');
+                var list = document.createElement('div');
+                var options = Array.prototype.slice.call(select.options).map(function (option) {
+                    return { value: option.value, text: option.text };
+                });
+                var selected = options.find(function (option) { return option.value === select.value; });
+
+                wrapper.className = 'report-filter-combobox';
+                input.type = 'text';
+                input.className = 'form-control report-filter-input';
+                input.placeholder = placeholder;
+                input.autocomplete = 'off';
+                input.value = select.value && selected ? selected.text : '';
+                input.setAttribute('aria-haspopup', 'listbox');
+                clear.type = 'button';
+                clear.className = 'report-filter-combobox-clear';
+                clear.setAttribute('aria-label', 'Xóa lựa chọn');
+                clear.textContent = '×';
+                list.className = 'report-filter-options';
+                list.setAttribute('role', 'listbox');
+
+                select.classList.add('d-none');
+                select.insertAdjacentElement('afterend', wrapper);
+                wrapper.appendChild(input);
+                wrapper.appendChild(clear);
+                wrapper.appendChild(list);
+
+                function setValue(value, text) {
+                    select.value = value;
+                    input.value = value ? text : '';
+                    closeActiveCombobox();
+                }
+
+                function renderOptions() {
+                    var term = normalize(input.value);
+                    list.innerHTML = '';
+                    options.filter(function (option) {
+                        return !term || normalize(option.text).indexOf(term) > -1;
+                    }).forEach(function (option) {
+                        var item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'report-filter-option' + (option.value === select.value ? ' is-selected' : '');
+                        item.textContent = option.text;
+                        item.title = option.text;
+                        item.setAttribute('role', 'option');
+                        item.addEventListener('mousedown', function (event) {
+                            event.preventDefault();
+                            setValue(option.value, option.text);
+                        });
+                        list.appendChild(item);
+                    });
+                }
+
+                function openCombobox() {
+                    if (activeCombobox && activeCombobox !== wrapper) {
+                        closeActiveCombobox();
+                    }
+                    activeCombobox = wrapper;
+                    renderOptions();
+                    wrapper.classList.add('is-open');
+                }
+
+                input.addEventListener('focus', openCombobox);
+                input.addEventListener('click', openCombobox);
+                input.addEventListener('input', function () {
+                    select.value = '';
+                    openCombobox();
+                });
+                input.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        closeActiveCombobox();
+                    }
+                });
+                input.addEventListener('blur', function () {
+                    window.setTimeout(function () {
+                        if (!wrapper.contains(document.activeElement)) {
+                            if (!select.value) {
+                                input.value = '';
+                            }
+                            closeActiveCombobox();
+                        }
+                    }, 120);
+                });
+                clear.addEventListener('click', function () {
+                    setValue('', '');
+                    input.focus();
+                });
+            }
+
+            document.querySelectorAll('select[data-filter-combobox]').forEach(enhanceCombobox);
+            document.addEventListener('click', function (event) {
+                if (activeCombobox && !activeCombobox.contains(event.target)) {
+                    closeActiveCombobox();
+                }
+            });
+        });
+    </script>
+}
+
 @helper FrequencyText(HospitalQualityDashboardDemo.Models.Enums.TanSuatBaoCao frequency)
 {
     switch (frequency)
@@ -49,6 +172,52 @@
             @frequency.ToString()
             break;
     }
+}
+
+@helper ReportDetailButton(HospitalQualityDashboardDemo.Models.ViewModels.ReportEntryViewModel item, string resultText)
+{
+    var numerator = item.TuSo.HasValue ? item.TuSo.Value.ToString("0.####") : "";
+    var denominator = item.MauSo.HasValue ? item.MauSo.Value.ToString("0.####") : "";
+    var inputValue = item.GiaTriNhap.HasValue ? item.GiaTriNhap.Value.ToString("0.####") : "";
+    var target = item.DatMucTieu.HasValue ? (item.DatMucTieu.Value ? "true" : "false") : "";
+    var submittedAt = item.NgayGui.HasValue ? item.NgayGui.Value.ToString("dd/MM/yyyy HH:mm") : "";
+    <button type="button"
+            class="btn btn-sm btn-outline-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#reportDetailModal"
+            data-report-id="@item.BaoCaoId"
+            data-report-period="@item.TenKyBaoCao"
+            data-report-department="@item.TenKhoaPhong"
+            data-report-indicator-code="@item.MaChiSo"
+            data-report-indicator-name="@item.TenChiSo"
+            data-report-formula="@((int)item.LoaiCongThuc)"
+            data-report-numerator="@numerator"
+            data-report-denominator="@denominator"
+            data-report-input-value="@inputValue"
+            data-report-result="@resultText"
+            data-report-target="@target"
+            data-report-submitted-at="@submittedAt"
+            data-report-submitted-by="@item.TenNguoiGui"
+            data-report-status="@((int)item.TrangThai)"
+            data-report-note="@item.GhiChu"
+            data-report-feedback="@item.YKienPhanHoi">
+        Xem
+    </button>
+}
+
+@helper ReportRejectButton(HospitalQualityDashboardDemo.Models.ViewModels.ReportEntryViewModel item)
+{
+    var indicator = string.Join(" - ", new[] { item.MaChiSo, item.TenChiSo }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    <button type="button"
+            class="btn btn-sm btn-outline-warning"
+            data-bs-toggle="modal"
+            data-bs-target="#reportRejectModal"
+            data-report-reject-action="@Url.Action("Reject", "Report", new { id = item.BaoCaoId })"
+            data-report-reject-period="@item.TenKyBaoCao"
+            data-report-reject-department="@item.TenKhoaPhong"
+            data-report-reject-indicator="@indicator">
+        Trả về
+    </button>
 }
 
 <section class="report-page">
@@ -146,21 +315,22 @@
         {
             <div class="filter-field">
                 <label for="KyBaoCaoId">Kỳ báo cáo</label>
-                @Html.DropDownListFor(m => m.KyBaoCaoId, Model.KyBaoCaoOptions, "Tất cả kỳ đang mở", new { @class = "form-select" })
+                @Html.DropDownListFor(m => m.KyBaoCaoId, Model.KyBaoCaoOptions, "Tất cả kỳ đang mở", new { @class = "form-select report-filter-select", data_filter_combobox = "true", data_filter_placeholder = "Tất cả kỳ đang mở" })
             </div>
             if (Model.IsAdmin)
             {
                 <div class="filter-field">
                     <label for="KhoaPhongId">Khoa/phòng</label>
-                    @Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "Tất cả khoa/phòng", new { @class = "form-select" })
+                    @Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "Tất cả khoa/phòng", new { @class = "form-select report-filter-select", data_filter_combobox = "true", data_filter_placeholder = "Tất cả khoa/phòng" })
                 </div>
                 <div class="filter-field is-wide">
                     <label for="ChiSoChatLuongId">Chỉ số</label>
-                    @Html.DropDownListFor(m => m.ChiSoChatLuongId, Model.ChiSoOptions, "Tất cả chỉ số", new { @class = "form-select" })
+                    @Html.DropDownListFor(m => m.ChiSoChatLuongId, Model.ChiSoOptions, "Tất cả chỉ số", new { @class = "form-select report-filter-select", data_filter_combobox = "true", data_filter_placeholder = "Tất cả chỉ số" })
                 </div>
             }
             <div class="filter-actions">
                 <button class="btn btn-outline-primary" type="submit">Lọc</button>
+                @Html.ActionLink("Xóa lọc", "Index", "Report", null, new { @class = "btn btn-outline-secondary report-filter-clear" })
                 @if (Model.IsAdmin)
                 {
                     @Html.ActionLink("Xuất Excel", "Reports", "Export", new { kyBaoCaoId = Model.KyBaoCaoId, khoaPhongId = Model.KhoaPhongId, chiSoChatLuongId = Model.ChiSoChatLuongId }, new { @class = "btn btn-outline-secondary" })
@@ -185,27 +355,24 @@
         @if (reports.Any())
         {
             <div class="table-responsive">
-                <table class="table table-sm align-middle report-table">
+                <table class="table table-sm align-middle report-table report-table-compact">
                     <thead>
                         <tr>
                             <th>Kỳ</th>
-                            <th>Khoa/phòng</th>
                             <th>Chỉ số</th>
                             <th>Kết quả</th>
                             <th>Trạng thái</th>
-                            <th>Ngày giờ nộp</th>
-                            <th>Người nộp</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
                     @foreach (var item in reports)
                     {
+                        var resultText = item.KetQua.HasValue ? item.KetQua.Value.ToString("0.##") : "";
                         <tr>
                             <td>@item.TenKyBaoCao</td>
-                            <td>@item.TenKhoaPhong</td>
                             <td><strong>@item.MaChiSo</strong> - @item.TenChiSo</td>
-                            <td class="numeric-value">@(item.KetQua.HasValue ? item.KetQua.Value.ToString("0.##") : "")</td>
+                            <td class="numeric-value">@resultText</td>
                             <td>
                                 @switch (item.TrangThai)
                                 {
@@ -232,13 +399,8 @@
                                         break;
                                 }
                             </td>
-                            <td>@(item.NgayGui.HasValue ? item.NgayGui.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
-                            <td>@item.TenNguoiGui</td>
                             <td class="text-end table-actions">
-                                @{
-                                    var detailLabel = Model.IsAdmin ? "Xem" : (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai ? "Sửa" : "Xem");
-                                }
-                                @Html.ActionLink(detailLabel, "Edit", new { id = item.BaoCaoId }, new { @class = "btn btn-sm btn-outline-primary" })
+                                @ReportDetailButton(item, resultText)
                                 @if (!Model.IsAdmin && (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai))
                                 {
                                     using (Html.BeginForm("Submit", "Report", new { id = item.BaoCaoId }, FormMethod.Post, new { @class = "d-inline" }))
@@ -256,7 +418,7 @@
                                             @Html.AntiForgeryToken()
                                             <button class="btn btn-sm btn-outline-success" type="submit">Duyệt</button>
                                         }
-                                        @Html.ActionLink("Trả về", "Edit", new { id = item.BaoCaoId, showReject = 1 }, new { @class = "btn btn-sm btn-outline-warning" })
+                                        @ReportRejectButton(item)
                                     }
                                     if (item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui ||
                                         item.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan ||
@@ -291,3 +453,5 @@
         }
     </section>
 </section>
+
+@Html.Partial("_ReportDetailModal")
