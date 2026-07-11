@@ -25,7 +25,9 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
                 return;
             }
 
-            ViewBag.UnreadNotificationCount = _notificationService.CountUnreadForUser(CurrentTaiKhoanId.Value);
+            var notificationPreview = _notificationService.GetPreviewForAccount(CurrentTaiKhoanId.Value);
+            ViewBag.NotificationPreview = notificationPreview;
+            ViewBag.UnreadNotificationCount = notificationPreview.UnreadCount;
         }
     }
 }

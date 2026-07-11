@@ -66,6 +66,15 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return RedirectToAction("Index", new { page = page });
         }
 
+        // Đánh dấu tất cả thông báo của User hiện tại là đã đọc khi mở dropdown topbar.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult MarkAllAsRead()
+        {
+            _service.MarkAllAsReadForAccount(CurrentTaiKhoanId.Value);
+            return Json(new { success = true, unreadCount = 0 });
+        }
+
         // Đánh dấu thông báo chi tiết đã đọc sau khi người dùng mở màn hình xử lý liên quan.
         [HttpPost]
         [ValidateAntiForgeryToken]

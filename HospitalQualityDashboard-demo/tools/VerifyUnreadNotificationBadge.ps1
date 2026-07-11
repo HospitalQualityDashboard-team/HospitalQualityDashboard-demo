@@ -13,16 +13,26 @@ $checks = @(
     @{ Source = $service; Token = 'public int CountUnreadForUser(int accountId)' },
     @{ Source = $service; Token = 'COUNT(*) FROM dbo.ThongBaoNguoiNhan' },
     @{ Source = $service; Token = 'TaiKhoanId=@TaiKhoanId AND DaDoc=0' },
+    @{ Source = $service; Token = 'GetPreviewForAccount(int accountId, int maxItems = 8)' },
+    @{ Source = $service; Token = 'MarkAllAsReadForAccount(int accountId)' },
     @{ Source = $userBase; Token = 'ViewBag.UnreadNotificationCount' },
-    @{ Source = $userBase; Token = 'CountUnreadForUser(CurrentTaiKhoanId.Value)' },
-    @{ Source = $layout; Token = 'notification-nav-badge' },
+    @{ Source = $userBase; Token = 'ViewBag.NotificationPreview' },
+    @{ Source = $userBase; Token = 'notificationPreview.UnreadCount' },
+    @{ Source = $layout; Token = 'notification-icon-button' },
+    @{ Source = $layout; Token = 'notification-dropdown-badge' },
     @{ Source = $layout; Token = 'unreadNotificationCount > 0' },
+    @{ Source = $layout; Token = 'unreadNotificationDisplay' },
+    @{ Source = $layout; Token = 'data-notification-unread-count' },
+    @{ Source = $layout; Token = 'data-notification-read-form' },
+    @{ Source = $layout; Token = 'markAllAsRead()' },
+    @{ Source = $layout; Token = 'clearUnreadState()' },
     @{ Source = $view; Token = 'if (!item.DaDoc)' },
     @{ Source = $view; Token = 'Html.BeginForm("MarkAsRead"' },
     @{ Source = $view; Token = 'page = Model.Page' },
     @{ Source = $controller; Token = 'public ActionResult MarkAsRead(int id, int page = 1)' },
+    @{ Source = $controller; Token = 'public ActionResult MarkAllAsRead()' },
     @{ Source = $controller; Token = 'page = NormalizePage(page)' },
-    @{ Source = $css; Token = '.notification-nav-badge' }
+    @{ Source = $css; Token = '.notification-dropdown-badge' }
 )
 
 foreach ($check in $checks) {

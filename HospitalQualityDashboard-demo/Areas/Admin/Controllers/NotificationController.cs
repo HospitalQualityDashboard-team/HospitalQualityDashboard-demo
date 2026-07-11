@@ -89,7 +89,25 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // Đánh dấu tất cả thông báo của Admin hiện tại là đã đọc khi mở dropdown topbar.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult MarkAllAsRead()
+        {
+            _service.MarkAllAsReadForAccount(CurrentTaiKhoanId.Value);
+            return Json(new { success = true, unreadCount = 0 });
+        }
+
         // Kích hoạt tự động mở kỳ và sinh thông báo nhắc hạn/quá hạn theo lịch nghiệp vụ.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult MarkDetailAsRead(int id)
+        {
+            _service.MarkAsRead(id, CurrentTaiKhoanId.Value);
+            return RedirectToAction("Details", new { id = id });
+        }
+
+        // KÃ­ch hoáº¡t tá»± Ä‘á»™ng má»Ÿ ká»³ vÃ  sinh thÃ´ng bÃ¡o nháº¯c háº¡n/quÃ¡ háº¡n theo lá»‹ch nghiá»‡p vá»¥.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult OpenDuePeriodsAndRunAutomation()

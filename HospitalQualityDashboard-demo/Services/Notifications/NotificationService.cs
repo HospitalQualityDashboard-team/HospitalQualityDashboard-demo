@@ -29,6 +29,30 @@ WHERE TaiKhoanId=@TaiKhoanId AND DaDoc=0",
         }
 
         // Lấy thông báo dành cho tài khoản/khoa phòng hiện tại, có phân trang để tránh tải quá nhiều dữ liệu.
+        public NotificationPreviewViewModel GetPreviewForAccount(int accountId, int maxItems = 8)
+        {
+            maxItems = maxItems < 1 ? 8 : maxItems;
+            maxItems = maxItems > 20 ? 20 : maxItems;
+
+            const string sql = @"
+SELECT TOP (@MaxItems) tb.ThongBaoId, tb.TieuDe, tb.NoiDung, tb.LoaiThongBao, tb.KyBaoCaoId, tb.ChiSoChatLuongId, tb.BaoCaoId, tb.NgayTao, tbn.DaDoc
+FROM dbo.ThongBaoNguoiNhan tbn
+INNER JOIN dbo.ThongBao tb ON tb.ThongBaoId = tbn.ThongBaoId
+WHERE tbn.TaiKhoanId = @TaiKhoanId
+ORDER BY tb.NgayTao DESC";
+
+            var items = Query(sql, MapNotification,
+                Param("@TaiKhoanId", accountId),
+                Param("@MaxItems", maxItems));
+
+            return new NotificationPreviewViewModel
+            {
+                UnreadCount = CountUnreadForUser(accountId),
+                ImportantItems = items.Where(IsImportantPreviewNotification).ToList(),
+                OtherItems = items.Where(x => !IsImportantPreviewNotification(x)).ToList()
+            };
+        }
+
         public IList<NotificationViewModel> GetForUser(int accountId, bool admin, int page, int pageSize, out int totalItems)
         {
             page = NormalizePage(page);
@@ -115,6 +139,16 @@ SELECT @ThongBaoId, TaiKhoanId FROM dbo.TaiKhoan WHERE KhoaPhongId=@KhoaPhongId 
                 Param("@ThongBaoId", notificationId), Param("@TaiKhoanId", accountId));
         }
 
+        // Đánh dấu toàn bộ thông báo chưa đọc của tài khoản hiện tại khi người dùng mở dropdown nhanh.
+        public void MarkAllAsReadForAccount(int accountId)
+        {
+            Execute(@"
+UPDATE dbo.ThongBaoNguoiNhan
+SET DaDoc=1, NgayDoc=GETDATE()
+WHERE TaiKhoanId=@TaiKhoanId AND DaDoc=0",
+                Param("@TaiKhoanId", accountId));
+        }
+
         // Chuyển dữ liệu thông báo và trạng thái đọc của người nhận sang view model hiển thị.
         private static NotificationViewModel MapNotification(SqlDataReader r)
         {
@@ -133,6 +167,15 @@ SELECT @ThongBaoId, TaiKhoanId FROM dbo.TaiKhoan WHERE KhoaPhongId=@KhoaPhongId 
         }
 
         // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
+        private static bool IsImportantPreviewNotification(NotificationViewModel item)
+        {
+            return !item.DaDoc
+                || item.LoaiThongBao == LoaiThongBao.NhacHan
+                || item.LoaiThongBao == LoaiThongBao.QuaHan
+                || item.LoaiThongBao == LoaiThongBao.HanNopHomNay
+                || item.LoaiThongBao == LoaiThongBao.TongHopAdmin;
+        }
+
         private static int NormalizePage(int page)
         {
             return page < 1 ? 1 : page;

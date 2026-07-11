@@ -1,4 +1,7 @@
 @* Mục đích: layout chính gồm sidebar, topbar và render nội dung theo role. *@
+@using HospitalQualityDashboardDemo.Models.Enums
+@using HospitalQualityDashboardDemo.Models.ViewModels
+@using System.Linq
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,9 +18,13 @@
         var currentRole = Convert.ToString(Session["LoaiTaiKhoan"]);
         var isAdmin = isAuthenticated && currentRole == "Admin";
         var isUser = isAuthenticated && currentRole == "User";
+        var notificationPreview = ViewBag.NotificationPreview as NotificationPreviewViewModel ?? new NotificationPreviewViewModel();
         var unreadNotificationCount = ViewBag.UnreadNotificationCount == null
-            ? 0
+            ? notificationPreview.UnreadCount
             : Convert.ToInt32(ViewBag.UnreadNotificationCount);
+        var unreadNotificationDisplay = unreadNotificationCount > 99 ? "99+" : unreadNotificationCount.ToString();
+        var notificationArea = isAdmin ? "Admin" : "User";
+        var hasNotificationItems = notificationPreview.ImportantItems.Any() || notificationPreview.OtherItems.Any();
         var currentController = Convert.ToString(ViewContext.RouteData.Values["controller"]);
         var currentAction = Convert.ToString(ViewContext.RouteData.Values["action"]);
         Func<string, string, string> navClass = (controller, action) =>
@@ -26,7 +33,14 @@
             var actionMatches = string.IsNullOrEmpty(action) || string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase);
             return controllerMatches && actionMatches ? "nav-link active" : "nav-link";
         };
-        var userNotificationNavClass = navClass("Notification", "");
+        Func<NotificationViewModel, string> notificationStatusClass = item =>
+        {
+            if (item.LoaiThongBao == LoaiThongBao.QuaHan) return "status-danger";
+            if (item.LoaiThongBao == LoaiThongBao.HanNopHomNay) return "status-urgent";
+            if (item.LoaiThongBao == LoaiThongBao.NhacHan) return "status-warning";
+            if (item.LoaiThongBao == LoaiThongBao.TongHopAdmin) return "status-active";
+            return "status-muted";
+        };
     }
     <div class="app-shell@(isAuthenticated ? "" : " no-sidebar")">
         @if (isAuthenticated)
@@ -51,27 +65,44 @@
                     {
                         if (isAdmin)
                         {
-                            @Html.ActionLink("Tổng quan", "Index", "Dashboard", new { area = "Admin" }, new { @class = navClass("Dashboard", "Index") })
-                            @Html.ActionLink("Khoa/phòng", "Index", "Department", new { area = "Admin" }, new { @class = navClass("Department", "") })
-                            @Html.ActionLink("Nhân viên", "Index", "Employee", new { area = "Admin" }, new { @class = navClass("Employee", "") })
-                            @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "Admin" }, new { @class = navClass("Indicator", "") })
-                            @Html.ActionLink("Phân công", "Index", "Assignment", new { area = "Admin" }, new { @class = navClass("Assignment", "") })
-                            @Html.ActionLink("Kỳ báo cáo", "Index", "ReportingPeriod", new { area = "Admin" }, new { @class = navClass("ReportingPeriod", "") })
-                            @Html.ActionLink("Báo cáo", "Index", "Report", new { area = "Admin" }, new { @class = navClass("Report", "") })
-                            @Html.ActionLink("Thông báo", "Index", "Notification", new { area = "Admin" }, new { @class = navClass("Notification", "") })
+                            <div class="app-nav-section">
+                                <div class="app-nav-heading">TRANG CHỦ</div>
+                                @Html.ActionLink("Tổng quan", "Index", "Dashboard", new { area = "Admin" }, new { @class = navClass("Dashboard", "Index") })
+                            </div>
+                            <div class="app-nav-section">
+                                <div class="app-nav-heading">NGHIỆP VỤ</div>
+                                @Html.ActionLink("Phân công", "Index", "Assignment", new { area = "Admin" }, new { @class = navClass("Assignment", "") })
+                                @Html.ActionLink("Kỳ báo cáo", "Index", "ReportingPeriod", new { area = "Admin" }, new { @class = navClass("ReportingPeriod", "") })
+                            </div>
+                            <div class="app-nav-section">
+                                <div class="app-nav-heading">THỐNG KÊ</div>
+                                @Html.ActionLink("Báo cáo", "Index", "Report", new { area = "Admin" }, new { @class = navClass("Report", "") })
+                            </div>
+                            <div class="app-nav-section">
+                                <div class="app-nav-heading">DANH MỤC</div>
+                                @Html.ActionLink("Khoa/phòng", "Index", "Department", new { area = "Admin" }, new { @class = navClass("Department", "") })
+                                @Html.ActionLink("Nhân viên", "Index", "Employee", new { area = "Admin" }, new { @class = navClass("Employee", "") })
+                                @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "Admin" }, new { @class = navClass("Indicator", "") })
+                            </div>
+                            <div class="app-nav-section">
+                                <div class="app-nav-heading">HỆ THỐNG</div>
+                                @Html.ActionLink("Nhật ký thao tác", "Index", "SystemLog", new { area = "Admin" }, new { @class = navClass("SystemLog", "") })
+                            </div>
                         }
                         else if (isUser)
                         {
-                            @Html.ActionLink("Tổng quan", "Index", "Dashboard", new { area = "User" }, new { @class = navClass("Dashboard", "Index") })
-                            @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "User" }, new { @class = navClass("Indicator", "") })
-                            @Html.ActionLink("Báo cáo của tôi", "Index", "Report", new { area = "User" }, new { @class = navClass("Report", "") })
-                            <a class="@userNotificationNavClass" href="@Url.Action("Index", "Notification", new { area = "User" })">
-                                <span>Thông báo</span>
-                                @if (unreadNotificationCount > 0)
-                                {
-                                    <span class="notification-nav-badge" aria-label="@unreadNotificationCount thông báo chưa đọc">@unreadNotificationCount</span>
-                                }
-                            </a>
+                            <div class="app-nav-section">
+                                <div class="app-nav-heading">TRANG CHỦ</div>
+                                @Html.ActionLink("Tổng quan", "Index", "Dashboard", new { area = "User" }, new { @class = navClass("Dashboard", "Index") })
+                            </div>
+                            <div class="app-nav-section">
+                                <div class="app-nav-heading">NGHIỆP VỤ</div>
+                                @Html.ActionLink("Báo cáo của tôi", "Index", "Report", new { area = "User" }, new { @class = navClass("Report", "") })
+                            </div>
+                            <div class="app-nav-section">
+                                <div class="app-nav-heading">THỐNG KÊ</div>
+                                @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "User" }, new { @class = navClass("Indicator", "") })
+                            </div>
                         }
                     }
                 </nav>
@@ -95,12 +126,103 @@
                     }
                     else
                     {
+                        <div class="notification-topbar" data-notification-dropdown data-notification-unread-count="@unreadNotificationCount">
+                            @using (Html.BeginForm("MarkAllAsRead", "Notification", new { area = notificationArea }, FormMethod.Post, new { @class = "d-none", data_notification_read_form = "true" }))
+                            {
+                                @Html.AntiForgeryToken()
+                            }
+                            <button type="button"
+                                    class="notification-icon-button"
+                                    data-notification-toggle
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-label="Thông báo">
+                                <svg class="notification-bell-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                </svg>
+                                @if (unreadNotificationCount > 0)
+                                {
+                                    <span class="notification-dropdown-badge" data-notification-badge aria-label="@unreadNotificationCount thông báo chưa đọc">@unreadNotificationDisplay</span>
+                                }
+                            </button>
+                            <div class="notification-dropdown" data-notification-panel role="menu" aria-label="Thông báo nhanh">
+                                <div class="notification-dropdown-header">
+                                    <div>
+                                        <h2>Thông báo</h2>
+                                        <p data-notification-unread-summary>@unreadNotificationCount thông báo chưa đọc</p>
+                                    </div>
+                                </div>
+
+                                @if (!hasNotificationItems)
+                                {
+                                    <div class="notification-dropdown-empty">Chưa có thông báo.</div>
+                                }
+                                else
+                                {
+                                    if (notificationPreview.ImportantItems.Any())
+                                    {
+                                        <div class="notification-dropdown-group">
+                                            <div class="notification-dropdown-heading">Quan trọng</div>
+                                            @foreach (var item in notificationPreview.ImportantItems)
+                                            {
+                                                var detailUrl = Url.Action("Details", "Notification", new { area = notificationArea, id = item.ThongBaoId });
+                                                <a class="notification-dropdown-item @(item.DaDoc ? "" : "is-unread")" href="@detailUrl" role="menuitem">
+                                                    <span class="notification-dropdown-title">@item.TieuDe</span>
+                                                    <span class="notification-dropdown-body">@item.NoiDung</span>
+                                                    <span class="notification-dropdown-meta">
+                                                        <span class="status-pill @notificationStatusClass(item)">@item.LoaiThongBao</span>
+                                                        @if (!item.DaDoc)
+                                                        {
+                                                            <span class="status-pill status-unread">Chưa đọc</span>
+                                                        }
+                                                        <span>@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
+                                                    </span>
+                                                </a>
+                                            }
+                                        </div>
+                                    }
+
+                                    if (notificationPreview.OtherItems.Any())
+                                    {
+                                        <div class="notification-dropdown-group">
+                                            <div class="notification-dropdown-heading">Các thông báo khác</div>
+                                            @foreach (var item in notificationPreview.OtherItems)
+                                            {
+                                                var detailUrl = Url.Action("Details", "Notification", new { area = notificationArea, id = item.ThongBaoId });
+                                                <a class="notification-dropdown-item @(item.DaDoc ? "" : "is-unread")" href="@detailUrl" role="menuitem">
+                                                    <span class="notification-dropdown-title">@item.TieuDe</span>
+                                                    <span class="notification-dropdown-body">@item.NoiDung</span>
+                                                    <span class="notification-dropdown-meta">
+                                                        <span class="status-pill @notificationStatusClass(item)">@item.LoaiThongBao</span>
+                                                        @if (!item.DaDoc)
+                                                        {
+                                                            <span class="status-pill status-unread">Chưa đọc</span>
+                                                        }
+                                                        <span>@item.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
+                                                    </span>
+                                                </a>
+                                            }
+                                        </div>
+                                    }
+                                }
+
+                                <div class="notification-dropdown-footer">
+                                    @if (isAdmin)
+                                    {
+                                        @Html.ActionLink("Gửi thông báo", "Create", "Notification", new { area = "Admin" }, new { @class = "btn btn-sm btn-outline-primary" })
+                                    }
+                                    @Html.ActionLink("Xem tất cả", "Index", "Notification", new { area = notificationArea }, new { @class = "btn btn-sm btn-primary" })
+                                </div>
+                            </div>
+                        </div>
                         <span class="app-role-chip">@currentRole</span>
                         @Html.ActionLink("Hồ sơ", "Profile", "Account", new { area = "" }, new { @class = navClass("Account", "Profile") })
-                        Html.BeginForm("Logout", "Account", new { area = "" }, FormMethod.Post, new { @class = "d-inline" });
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-link app-topbar-link">Đăng xuất</button>
-                        Html.EndForm();
+                        using (Html.BeginForm("Logout", "Account", new { area = "" }, FormMethod.Post, new { @class = "d-inline" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-link app-topbar-link">Đăng xuất</button>
+                        }
                     }
                 </div>
             </header>
@@ -143,6 +265,101 @@
             document.addEventListener('keydown', function (event) {
                 if (event.key === 'Escape') {
                     setSidebarOpen(false);
+                }
+            });
+        })();
+
+        (function () {
+            var root = document.querySelector('[data-notification-dropdown]');
+            if (!root) return;
+
+            var toggle = root.querySelector('[data-notification-toggle]');
+            var panel = root.querySelector('[data-notification-panel]');
+            if (!toggle || !panel) return;
+
+            var readForm = root.querySelector('[data-notification-read-form]');
+            var unreadCount = parseInt(root.getAttribute('data-notification-unread-count') || '0', 10);
+            var markAllReadPending = false;
+
+            function setNotificationOpen(isOpen) {
+                root.classList.toggle('is-open', isOpen);
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            }
+
+            function clearUnreadState() {
+                root.setAttribute('data-notification-unread-count', '0');
+                unreadCount = 0;
+
+                var badge = root.querySelector('[data-notification-badge]');
+                if (badge && badge.parentNode) {
+                    badge.parentNode.removeChild(badge);
+                }
+
+                var summary = root.querySelector('[data-notification-unread-summary]');
+                if (summary) {
+                    summary.textContent = '0 thông báo chưa đọc';
+                }
+
+                root.querySelectorAll('.notification-dropdown-item.is-unread').forEach(function (item) {
+                    item.classList.remove('is-unread');
+                });
+
+                root.querySelectorAll('.notification-dropdown-meta .status-unread').forEach(function (pill) {
+                    if (pill && pill.parentNode) {
+                        pill.parentNode.removeChild(pill);
+                    }
+                });
+            }
+
+            function markAllAsRead() {
+                if (!readForm || unreadCount <= 0 || markAllReadPending) return;
+
+                markAllReadPending = true;
+                var token = readForm.querySelector('input[name="__RequestVerificationToken"]');
+                var body = token ? '__RequestVerificationToken=' + encodeURIComponent(token.value) : '';
+                var request = new XMLHttpRequest();
+
+                request.open('POST', readForm.getAttribute('action'), true);
+                request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+                request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                request.onreadystatechange = function () {
+                    if (request.readyState !== 4) return;
+
+                    markAllReadPending = false;
+                    if (request.status < 200 || request.status >= 300) return;
+
+                    try {
+                        var response = JSON.parse(request.responseText || '{}');
+                        if (response && response.success) {
+                            clearUnreadState();
+                        }
+                    } catch (error) {
+                        return;
+                    }
+                };
+                request.send(body);
+            }
+
+            toggle.addEventListener('click', function (event) {
+                event.stopPropagation();
+                var willOpen = !root.classList.contains('is-open');
+                setNotificationOpen(willOpen);
+                if (willOpen) {
+                    markAllAsRead();
+                }
+            });
+
+            panel.addEventListener('click', function (event) {
+                event.stopPropagation();
+            });
+
+            document.addEventListener('click', function () {
+                setNotificationOpen(false);
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    setNotificationOpen(false);
                 }
             });
         })();
