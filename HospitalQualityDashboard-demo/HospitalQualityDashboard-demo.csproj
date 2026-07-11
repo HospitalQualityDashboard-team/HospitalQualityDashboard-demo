@@ -163,6 +163,7 @@
     <Compile Include="Areas\Admin\Controllers\NotificationController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReportController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReportingPeriodController.cs" />
+    <Compile Include="Areas\Admin\Controllers\SystemLogController.cs" />
     <Compile Include="Areas\User\Controllers\DashboardController.cs" />
     <Compile Include="Areas\User\Controllers\ExportController.cs" />
     <Compile Include="Areas\User\Controllers\IndicatorController.cs" />
@@ -189,6 +190,7 @@
     <Compile Include="Models\DTOs\NotificationDtos.cs" />
     <Compile Include="Models\DTOs\ReportDtos.cs" />
     <Compile Include="Models\DTOs\ReportingPeriodDtos.cs" />
+    <Compile Include="Models\DTOs\SystemLogDtos.cs" />
     <Compile Include="Models\Enums\SystemEnums.cs" />
     <Compile Include="Models\ViewModels\AppViewModels.cs" />
     <Compile Include="Models\ViewModels\AuthViewModels.cs" />
@@ -241,6 +243,7 @@
     <Compile Include="Services\ReportingPeriods\ReportingPeriodService.cs" />
     <Compile Include="Services\Reports\IndicatorCalculationService.cs" />
     <Compile Include="Services\Reports\ReportService.cs" />
+    <Compile Include="Services\SystemLogs\SystemLogService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />
@@ -307,6 +310,7 @@
     <Content Include="Areas\Admin\Views\ReportingPeriod\GenerateSchedule.cshtml" />
     <Content Include="Areas\Admin\Views\ReportingPeriod\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Shared\_AdminLayout.cshtml" />
+    <Content Include="Areas\Admin\Views\SystemLog\Index.cshtml" />
     <Content Include="Areas\User\Views\Web.config" />
     <Content Include="Areas\User\Views\_ViewStart.cshtml" />
     <Content Include="Areas\User\Views\Dashboard\Index.cshtml" />
@@ -322,7 +326,6 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_DashboardComparison.cshtml" />
-    <Content Include="Views\Shared\_DashboardTrend.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_ReportDetailModal.cshtml" />
     <Content Include="Views\Account\AdminLogin.cshtml" />
@@ -346,6 +349,9 @@
     <Content Include="tools\VerifyIndicatorDeploymentLifecycle.ps1" />
     <Content Include="tools\VerifySqlMigrations.ps1" />
     <Content Include="tools\VerifyReportingPeriodMaintenance.ps1" />
+    <Content Include="tools\VerifySidebarNavigationGroups.ps1" />
+    <Content Include="tools\VerifySystemLogPage.ps1" />
+    <Content Include="tools\VerifyNotificationDropdown.ps1" />
     <Content Include="tools\VerifyUnreadNotificationBadge.ps1" />
   </ItemGroup>
   

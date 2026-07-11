@@ -1,0 +1,159 @@
+@* Mục đích: tra cứu nhật ký thao tác hệ thống của khu vực Admin. *@
+@model HospitalQualityDashboardDemo.Models.ViewModels.SystemLogIndexViewModel
+@using System.Linq
+@{
+    ViewBag.Title = "Nhật ký thao tác";
+    var items = (Model.Items ?? Enumerable.Empty<HospitalQualityDashboardDemo.Models.ViewModels.SystemLogRowViewModel>()).ToList();
+    var query = Model.Query ?? new HospitalQualityDashboardDemo.Models.DTOs.SystemLogQueryDto();
+    var fromDateValue = query.FromDate.HasValue ? query.FromDate.Value.ToString("yyyy-MM-dd") : null;
+    var toDateValue = query.ToDate.HasValue ? query.ToDate.Value.ToString("yyyy-MM-dd") : null;
+}
+
+@functions {
+    private static string SummarizeLogContent(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return "-";
+        }
+
+        var summary = content.Trim();
+        var stopTokens = new[]
+        {
+            " Dữ liệu",
+            " Trước:",
+            " Sau:",
+            "; BaoCaoId=",
+            "; KyBaoCaoId=",
+            "; KhoaPhongId=",
+            "; ChiSoChatLuongId=",
+            "; PhanCongChiSoId=",
+            "; TuSo=",
+            "; MauSo=",
+            "; GiaTriNhap=",
+            "; KetQua=",
+            "; DatMucTieu=",
+            "; GhiChu="
+        };
+
+        foreach (var token in stopTokens)
+        {
+            var index = summary.IndexOf(token, StringComparison.OrdinalIgnoreCase);
+            if (index > 0)
+            {
+                summary = summary.Substring(0, index);
+                break;
+            }
+        }
+
+        summary = summary.Trim().TrimEnd(';');
+        const int maxLength = 120;
+        return summary.Length <= maxLength
+            ? summary
+            : summary.Substring(0, maxLength - 3).TrimEnd() + "...";
+    }
+}
+
+<section class="management-page">
+    <div class="page-header">
+        <div>
+            <span class="dashboard-role">Hệ thống</span>
+            <h1>Nhật ký thao tác</h1>
+            <p>Theo dõi các thao tác đã được ghi nhận trong hệ thống phục vụ kiểm tra và truy vết vận hành.</p>
+        </div>
+    </div>
+
+    <section class="filter-panel">
+        @using (Html.BeginForm("Index", "SystemLog", FormMethod.Get, new { @class = "filter-form management-filter-form" }))
+        {
+            <div class="filter-field">
+                <label for="AccountKeyword">Tài khoản / họ tên</label>
+                <input id="AccountKeyword" name="AccountKeyword" class="form-control" value="@query.AccountKeyword" placeholder="Nhập tài khoản hoặc họ tên" />
+            </div>
+            <div class="filter-field">
+                <label for="Module">Module</label>
+                @Html.DropDownList("Module", new SelectList(Model.ModuleOptions, "Value", "Text", query.Module), "Tất cả", new { @class = "form-select", id = "Module" })
+            </div>
+            <div class="filter-field">
+                <label for="LogAction">Thao tác</label>
+                @Html.DropDownList("LogAction", new SelectList(Model.ActionOptions, "Value", "Text", query.LogAction), "Tất cả", new { @class = "form-select", id = "LogAction" })
+            </div>
+            <div class="filter-field">
+                <label for="FromDate">Từ ngày</label>
+                <input id="FromDate" name="FromDate" class="form-control" type="date" value="@fromDateValue" />
+            </div>
+            <div class="filter-field">
+                <label for="ToDate">Đến ngày</label>
+                <input id="ToDate" name="ToDate" class="form-control" type="date" value="@toDateValue" />
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-outline-primary" type="submit">Lọc dữ liệu</button>
+                @Html.ActionLink("Xóa", "Index", null, new { @class = "btn btn-outline-secondary" })
+            </div>
+        }
+    </section>
+
+    <section class="data-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Nhật ký thao tác tài khoản</h2>
+                <p>@Model.TotalItems thao tác trong bộ lọc hiện tại.</p>
+            </div>
+            <span class="status-pill status-muted">@items.Count dòng</span>
+        </div>
+
+        @if (items.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Thời gian</th>
+                            <th>Tài khoản</th>
+                            <th>Họ và tên</th>
+                            <th>Module</th>
+                            <th>Thao tác</th>
+                            <th>Đối tượng</th>
+                            <th>Mô tả</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @{ var stt = ((Model.Page < 1 ? 1 : Model.Page) - 1) * Model.PageSize + 1; }
+                    @foreach (var item in items)
+                    {
+                        var target = string.IsNullOrWhiteSpace(item.DoiTuong)
+                            ? "-"
+                            : item.DoiTuong + (item.DoiTuongId.HasValue ? " #" + item.DoiTuongId.Value : "");
+                        var descriptionSummary = SummarizeLogContent(item.NoiDung);
+                        <tr>
+                            <td>@stt</td>
+                            <td>@item.ThoiGian.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                            <td><strong>@(string.IsNullOrWhiteSpace(item.TenDangNhap) ? "Hệ thống" : item.TenDangNhap)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(item.HoTen) ? "-" : item.HoTen)</td>
+                            <td><span class="status-pill status-muted">@item.Module</span></td>
+                            <td><span class="status-pill status-active">@item.Action</span></td>
+                            <td>@target</td>
+                            <td class="system-log-description" title="@(item.NoiDung ?? "")">@descriptionSummary</td>
+                        </tr>
+                        stt++;
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">Chưa có nhật ký thao tác phù hợp với bộ lọc hiện tại.</div>
+        }
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="management-toolbar mt-3 d-flex justify-content-center align-items-center gap-3">
+                @Html.ActionLink("Trước", "Index", new { AccountKeyword = query.AccountKeyword, Module = query.Module, LogAction = query.LogAction, FromDate = fromDateValue, ToDate = toDateValue, page = Model.Page - 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page <= 1 ? "disabled" : "") })
+                <span class="status-pill status-muted">Trang @Model.Page / @Model.TotalPages</span>
+                @Html.ActionLink("Sau", "Index", new { AccountKeyword = query.AccountKeyword, Module = query.Module, LogAction = query.LogAction, FromDate = fromDateValue, ToDate = toDateValue, page = Model.Page + 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page >= Model.TotalPages ? "disabled" : "") })
+            </div>
+        }
+    </section>
+</section>
