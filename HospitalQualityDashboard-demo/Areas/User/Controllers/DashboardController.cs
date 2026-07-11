@@ -10,7 +10,6 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
     public class DashboardController : UserBaseController
     {
         private readonly DashboardService _service = new DashboardService();
-        private readonly DashboardProgressComparisonService _comparisonService = new DashboardProgressComparisonService();
         private readonly ReportingPeriodMaintenanceService _maintenance = new ReportingPeriodMaintenanceService();
 
         // Hiển thị danh sách và các bộ lọc của Dashboard chất lượng.
@@ -21,41 +20,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             query.KhoaPhongId = CurrentKhoaPhongId;
             var model = _service.GetDashboard(false, CurrentKhoaPhongId, query.TanSuat);
             _service.PrepareExportFilters(model, query, false, CurrentKhoaPhongId);
-            model.ActiveTab = NormalizeDashboardTab(query.DashboardTab);
-            if (model.ActiveTab == "comparison")
-            {
-                model.Comparison = _comparisonService.GetComparison(new DashboardAnalysisQueryDto
-                {
-                    TanSuat = query.TanSuat,
-                    KyBaoCaoId = query.KyBaoCaoId,
-                    ComparisonPeriodIds = query.ComparisonPeriodIds,
-                    KhoaPhongId = CurrentKhoaPhongId,
-                    Page = query.Page,
-                    PageSize = query.PageSize
-                }, false, CurrentKhoaPhongId);
-            }
             return View(model);
-        }
-
-        private static string NormalizeDashboardTab(string value)
-        {
-            return value == "overview" ? value : "comparison";
-        }
-
-        [HttpGet]
-        public ActionResult Comparison(DashboardAnalysisQueryDto query)
-        {
-            query = query ?? new DashboardAnalysisQueryDto();
-            query.KhoaPhongId = CurrentKhoaPhongId;
-            try
-            {
-                var model = _comparisonService.GetComparison(query, false, CurrentKhoaPhongId);
-                return PartialView("~/Views/Shared/_DashboardComparison.cshtml", model);
-            }
-            catch (InvalidOperationException exception)
-            {
-                return new HttpStatusCodeResult(400, exception.Message);
-            }
         }
 
         private void RunReportingPeriodMaintenance()

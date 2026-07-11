@@ -1,11 +1,13 @@
 function initializeDashboardAnalysis() {
     var tabs = document.querySelectorAll('[data-dashboard-tab]');
     var panes = document.querySelectorAll('[data-dashboard-pane]');
+    var statusCodes = ['OnTime', 'Late', 'Missing', 'OverdueMissing'];
 
     function renderCharts(container) {
         container.querySelectorAll('.comparison-doughnut-chart').forEach(function (chart) {
             if (chart.dataset.rendered) return;
             var metric = JSON.parse(chart.dataset.metric || '{}');
+            var form = container.querySelector('[data-dashboard-analysis-form]');
             new Chart(chart, {
                 type: 'doughnut',
                 data: {
@@ -21,7 +23,18 @@ function initializeDashboardAnalysis() {
                     responsive: true,
                     maintainAspectRatio: false,
                     cutout: '62%',
-                    plugins: { legend: { position: 'bottom' } }
+                    plugins: { legend: { position: 'bottom' } },
+                    onClick: function (event, elements) {
+                        if (!elements.length || !form) return;
+                        var statusInput = form.querySelector('[name=ProgressStatus]');
+                        var periodInput = form.querySelector('[name=StatusPeriodId]');
+                        var pageInput = form.querySelector('[name=Page]');
+                        if (!statusInput || !periodInput) return;
+                        statusInput.value = statusCodes[elements[0].index] || '';
+                        periodInput.value = metric.KyBaoCaoId || chart.dataset.periodId || '';
+                        if (pageInput) pageInput.value = '1';
+                        form.dispatchEvent(new Event('submit'));
+                    }
                 }
             });
             chart.dataset.rendered = 'true';
@@ -37,6 +50,26 @@ function initializeDashboardAnalysis() {
                 pane.innerHTML = '<div class="alert alert-danger">Không thể tải dữ liệu. <button type="button" class="btn btn-sm btn-outline-danger" data-analysis-retry>Thử lại</button></div>';
                 pane.querySelector('[data-analysis-retry]').addEventListener('click', function () { loadPane(pane, query); });
             });
+    }
+
+    function clearStatusFilter(form) {
+        if (!form) return;
+        var statusInput = form.querySelector('[name=ProgressStatus]');
+        var periodInput = form.querySelector('[name=StatusPeriodId]');
+        var pageInput = form.querySelector('[name=Page]');
+        if (statusInput) statusInput.value = '';
+        if (periodInput) periodInput.value = '';
+        if (pageInput) pageInput.value = '1';
+    }
+
+    function openAutoStatusModal(pane) {
+        var modal = pane.querySelector('#comparisonStatusDetailModal[data-auto-open="true"]');
+        if (!modal || !window.bootstrap || !window.bootstrap.Modal) return;
+        modal.addEventListener('hidden.bs.modal', function () {
+            modal.removeAttribute('data-auto-open');
+            clearStatusFilter(pane.querySelector('[data-dashboard-analysis-form]'));
+        }, { once: true });
+        window.bootstrap.Modal.getOrCreateInstance(modal).show();
     }
 
     function refreshPeriodPicker(pane) {
@@ -57,7 +90,25 @@ function initializeDashboardAnalysis() {
         pane.querySelectorAll('[data-dashboard-analysis-form]').forEach(function (form) {
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
+                if (form.dataset.clearStatusOnSubmit === 'true') {
+                    clearStatusFilter(form);
+                    delete form.dataset.clearStatusOnSubmit;
+                }
                 loadPane(pane, new URLSearchParams(new FormData(form)).toString());
+            });
+        });
+        pane.querySelectorAll('[data-analysis-clear-status]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var form = pane.querySelector('[data-dashboard-analysis-form]');
+                if (!form) return;
+                clearStatusFilter(form);
+                form.dispatchEvent(new Event('submit'));
+            });
+        });
+        pane.querySelectorAll('.analysis-submit').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var form = button.closest('form');
+                if (form) form.dataset.clearStatusOnSubmit = 'true';
             });
         });
         pane.querySelectorAll('[data-analysis-export]').forEach(function (link) {
@@ -70,6 +121,15 @@ function initializeDashboardAnalysis() {
                 parameters.delete('PageSize');
                 var exportUrl = link.dataset.exportUrl || link.getAttribute('href');
                 window.location.href = exportUrl + (parameters.toString() ? '?' + parameters.toString() : '');
+            });
+        });
+        pane.querySelectorAll('[data-analysis-page]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var form = pane.querySelector('[data-dashboard-analysis-form]');
+                var pageInput = form ? form.querySelector('[name=Page]') : null;
+                if (!form || !pageInput || button.disabled) return;
+                pageInput.value = button.dataset.analysisPage;
+                form.dispatchEvent(new Event('submit'));
             });
         });
         var picker = pane.querySelector('[data-period-picker]');
@@ -90,11 +150,17 @@ function initializeDashboardAnalysis() {
             });
             var frequency = pane.querySelector('[name=TanSuat]');
             var primary = pane.querySelector('[name=KyBaoCaoId]');
-            if (frequency) frequency.addEventListener('change', function () { pane.querySelector('[data-dashboard-analysis-form]').dispatchEvent(new Event('submit')); });
+            if (frequency) frequency.addEventListener('change', function () {
+                var form = pane.querySelector('[data-dashboard-analysis-form]');
+                if (!form) return;
+                clearStatusFilter(form);
+                form.dispatchEvent(new Event('submit'));
+            });
             if (primary) primary.addEventListener('change', function () { refreshPeriodPicker(pane); });
             refreshPeriodPicker(pane);
         }
         renderCharts(pane);
+        openAutoStatusModal(pane);
     }
 
     panes.forEach(function (pane) { if (!pane.hidden) bindPane(pane); });

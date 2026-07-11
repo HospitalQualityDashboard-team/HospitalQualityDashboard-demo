@@ -287,6 +287,7 @@
     </Content>
     <Content Include="Areas\Admin\Views\Web.config" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Admin\Views\Dashboard\PeriodComparison.cshtml" />
     <Content Include="Areas\Admin\Views\Assignment\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Assignment\_DepartmentView.cshtml" />
     <Content Include="Areas\Admin\Views\Assignment\_IndicatorView.cshtml" />

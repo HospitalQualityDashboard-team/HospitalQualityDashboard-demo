@@ -473,6 +473,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public string TenChiSo { get; set; }
         public LoaiCongThuc LoaiCongThuc { get; set; }
         public bool TuSoKhongVuotMauSo { get; set; }
+        public TrangThaiKyBaoCao TrangThaiKyBaoCao { get; set; }
         public TrangThaiBaoCao TrangThai { get; set; }
         [Display(Name = "Tử số")]
         public decimal? TuSo { get; set; }
@@ -787,6 +788,8 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int? KyBaoCaoId { get; set; }
         public int? KhoaPhongId { get; set; }
         public int[] ComparisonPeriodIds { get; set; }
+        public int? StatusPeriodId { get; set; }
+        public string ProgressStatus { get; set; }
         public IList<SelectListItem> TanSuatOptions { get; set; }
         public IList<SelectListItem> KyBaoCaoOptions { get; set; }
         public IList<SelectListItem> KhoaPhongOptions { get; set; }

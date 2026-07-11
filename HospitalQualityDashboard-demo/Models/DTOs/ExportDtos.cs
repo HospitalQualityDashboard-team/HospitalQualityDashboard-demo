@@ -60,6 +60,8 @@ namespace HospitalQualityDashboardDemo.Models.DTOs
         public int? KyBaoCaoId { get; set; }
         public int[] ComparisonPeriodIds { get; set; }
         public int? KhoaPhongId { get; set; }
+        public int? StatusPeriodId { get; set; }
+        public string ProgressStatus { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }
     }

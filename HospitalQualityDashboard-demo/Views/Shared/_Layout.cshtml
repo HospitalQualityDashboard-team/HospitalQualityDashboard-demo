@@ -77,6 +77,7 @@
                             <div class="app-nav-section">
                                 <div class="app-nav-heading">THỐNG KÊ</div>
                                 @Html.ActionLink("Báo cáo", "Index", "Report", new { area = "Admin" }, new { @class = navClass("Report", "") })
+                                @Html.ActionLink("So sánh kỳ báo cáo", "PeriodComparison", "Dashboard", new { area = "Admin" }, new { @class = navClass("Dashboard", "PeriodComparison") })
                             </div>
                             <div class="app-nav-section">
                                 <div class="app-nav-heading">DANH MỤC</div>

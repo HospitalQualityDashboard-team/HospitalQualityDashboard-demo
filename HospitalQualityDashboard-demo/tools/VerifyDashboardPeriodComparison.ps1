@@ -123,16 +123,16 @@ Assert-Equal 'Worse' ([HospitalQualityDashboardDemo.Services.DashboardProgressCo
 Assert-Equal 'Insufficient' ([HospitalQualityDashboardDemo.Services.DashboardProgressComparisonBuilder]::Compare('Missing', 'OnTime')) 'An open missing submission should not be judged early'
 
 $integrationChecks = @(
-    @{ Path = $dtoPath; Tokens = @('ComparisonPeriodIds', 'DashboardComparisonPeriodDto', 'DashboardAnalysisQueryDto', 'DashboardTab') },
-    @{ Path = Join-Path $root 'Services\Dashboards\DashboardProgressComparisonService.cs'; Tokens = @('GetComparison', 'CurrentDepartmentId', 'ROW_NUMBER') },
-    @{ Path = Join-Path $root 'Areas\Admin\Controllers\DashboardController.cs'; Tokens = @('ActionResult Comparison', '? value : "comparison"') },
-    @{ Path = Join-Path $root 'Areas\User\Controllers\DashboardController.cs'; Tokens = @('query.KhoaPhongId = CurrentKhoaPhongId', 'ActionResult Comparison', '? value : "comparison"') },
+    @{ Path = $dtoPath; Tokens = @('ComparisonPeriodIds', 'DashboardComparisonPeriodDto', 'DashboardAnalysisQueryDto', 'StatusPeriodId', 'ProgressStatus') },
+    @{ Path = Join-Path $root 'Models\ViewModels\AppViewModels.cs'; Tokens = @('public int? StatusPeriodId', 'public string ProgressStatus') },
+    @{ Path = Join-Path $root 'Services\Dashboards\DashboardProgressComparisonService.cs'; Tokens = @('GetComparison', 'CurrentDepartmentId', 'StatusPeriodId', 'ProgressStatus', 'FilterRowsByStatus') },
+    @{ Path = Join-Path $root 'Areas\Admin\Controllers\DashboardController.cs'; Tokens = @('ActionResult PeriodComparison', 'ActionResult Comparison') },
     @{ Path = Join-Path $root 'Services\Dashboards\Export\DashboardExcelExportService.Comparison.cs'; Tokens = @('SoSanhTongQuan', 'SoSanhChiSo', 'SubmittedLate', 'OverdueMissing', 'DashboardProgressComparisonBuilder.Compare', 'ProgressStatus') },
-    @{ Path = Join-Path $root 'Areas\Admin\Views\Dashboard\Index.cshtml'; Tokens = @('dashboard-analysis-tabs', 'Model.Comparison', 'DashboardTab = "comparison"', 'comparison-doughnut-chart') },
-    @{ Path = Join-Path $root 'Areas\User\Views\Dashboard\Index.cshtml'; Tokens = @('dashboard-analysis-tabs', 'Model.Comparison', 'DashboardTab = "comparison"', 'comparison-doughnut-chart') },
-    @{ Path = Join-Path $root 'Views\Shared\_DashboardComparison.cshtml'; Tokens = @('data-analysis-export', 'data-export-url', 'comparison-doughnut-grid', 'comparison-doughnut-chart') },
-    @{ Path = Join-Path $root 'Scripts\dashboard-analysis.js'; Tokens = @('[data-analysis-export]', 'new URLSearchParams(new FormData(form))', "parameters.delete('Page')", 'window.location.href = exportUrl', "type: 'doughnut'") },
-    @{ Path = Join-Path $root 'HospitalQualityDashboard-demo.csproj'; Tokens = @('DashboardProgressComparisonBuilder.cs', 'DashboardProgressComparisonService.cs', 'VerifyDashboardPeriodComparison.ps1') }
+    @{ Path = Join-Path $root 'Areas\Admin\Views\Dashboard\PeriodComparison.cshtml'; Tokens = @('_DashboardComparison.cshtml', 'data-dashboard-pane="comparison"', 'dashboard-analysis.js') },
+    @{ Path = Join-Path $root 'Views\Shared\_DashboardComparison.cshtml'; Tokens = @('StatusPeriodId', 'ProgressStatus', 'comparisonStatusDetailModal', 'data-auto-open', 'modal-xl', 'modal-dialog-scrollable', 'comparison-detail-table', 'comparison-doughnut-chart') },
+    @{ Path = Join-Path $root 'Scripts\dashboard-analysis.js'; Tokens = @('[data-analysis-export]', 'new URLSearchParams(new FormData(form))', "parameters.delete('Page')", 'window.location.href = exportUrl', "type: 'doughnut'", 'onClick', 'statusCodes', 'StatusPeriodId', 'ProgressStatus', 'bootstrap.Modal', 'hidden.bs.modal', 'data-analysis-page') },
+    @{ Path = Join-Path $root 'Views\Shared\_Layout.cshtml'; Tokens = @('So sánh kỳ báo cáo', 'PeriodComparison') },
+    @{ Path = Join-Path $root 'HospitalQualityDashboard-demo.csproj'; Tokens = @('DashboardProgressComparisonBuilder.cs', 'DashboardProgressComparisonService.cs', 'Areas\Admin\Views\Dashboard\PeriodComparison.cshtml', 'VerifyDashboardPeriodComparison.ps1') }
 )
 
 foreach ($check in $integrationChecks) {
@@ -147,6 +147,67 @@ foreach ($check in $integrationChecks) {
 $comparisonPartial = Get-Content -Raw -Path (Join-Path $root 'Views\Shared\_DashboardComparison.cshtml')
 if ($comparisonPartial -match [regex]::Escape('ComparisonPeriodIds = Model.ComparisonPeriodIds')) {
     throw 'Comparison export link must not build a static array route value; it should serialize the current form values on click.'
+}
+if ($comparisonPartial -match [regex]::Escape('@if (selectedStatusPeriod')) {
+    throw 'Nested selectedStatusPeriod filter is already inside a Razor code block; use if (...) without @ to avoid HttpParseException.'
+}
+if ($comparisonPartial -match [regex]::Escape('comparison-detail-section')) {
+    throw 'Status detail table must be rendered in a modal, not inline as comparison-detail-section.'
+}
+
+$adminComparisonPage = Get-Content -Raw -Path (Join-Path $root 'Areas\Admin\Views\Dashboard\PeriodComparison.cshtml')
+$forbiddenAdminComparisonTokens = @('dashboard-hero', 'dashboard-summary-strip', 'metric-grid')
+foreach ($token in $forbiddenAdminComparisonTokens) {
+    if ($adminComparisonPage -match [regex]::Escape($token)) {
+        throw "Admin period comparison page must not include overview token '$token'."
+    }
+}
+if ($adminComparisonPage -match [regex]::Escape('.comparison-detail-section')) {
+    throw 'Admin period comparison styles must not include inline comparison-detail-section.'
+}
+$adminModalStyleTokens = @('.comparison-status-modal', '.comparison-modal-table-wrap', '.comparison-detail-table')
+foreach ($token in $adminModalStyleTokens) {
+    if ($adminComparisonPage -notmatch [regex]::Escape($token)) {
+        throw "Admin period comparison page must include modal style token '$token'."
+    }
+}
+
+$userController = Get-Content -Raw -Path (Join-Path $root 'Areas\User\Controllers\DashboardController.cs')
+$forbiddenUserControllerTokens = @('ActionResult Comparison', 'PeriodComparison', 'NormalizeDashboardTab', 'model.Comparison', 'DashboardTab')
+foreach ($token in $forbiddenUserControllerTokens) {
+    if ($userController -match [regex]::Escape($token)) {
+        throw "User dashboard controller must not include comparison token '$token'."
+    }
+}
+
+$userDashboard = Get-Content -Raw -Path (Join-Path $root 'Areas\User\Views\Dashboard\Index.cshtml')
+$forbiddenUserDashboardTokens = @('DashboardTab', 'comparison-doughnut-chart')
+foreach ($token in $forbiddenUserDashboardTokens) {
+    if ($userDashboard -match [regex]::Escape($token)) {
+        throw "User dashboard page must not include comparison token '$token'."
+    }
+}
+if ($userDashboard -match 'Model\.Comparison(?!Periods)') {
+    throw "User dashboard page must not include comparison token 'Model.Comparison'."
+}
+
+$layout = Get-Content -Raw -Path (Join-Path $root 'Views\Shared\_Layout.cshtml')
+$adminComparisonLinkPattern = 'ActionLink\(.*"PeriodComparison",\s*"Dashboard",\s*new\s*\{\s*area\s*=\s*"Admin"\s*\}'
+if ($layout -notmatch $adminComparisonLinkPattern) {
+    throw 'Admin sidebar must include a PeriodComparison link.'
+}
+$userComparisonLinkPattern = 'ActionLink\(.*"PeriodComparison",\s*"Dashboard",\s*new\s*\{\s*area\s*=\s*"User"\s*\}'
+if ($layout -match $userComparisonLinkPattern) {
+    throw 'User sidebar must not include a PeriodComparison link.'
+}
+$adminComparisonIndex = $layout.IndexOf('PeriodComparison')
+$adminReportIndex = $layout.IndexOf('", "Report"')
+$adminDepartmentIndex = $layout.IndexOf('", "Department"')
+if ($adminComparisonIndex -lt 0 -or $adminReportIndex -lt 0 -or $adminDepartmentIndex -lt 0) {
+    throw 'Could not locate Admin sidebar ordering anchors.'
+}
+if ($adminComparisonIndex -lt $adminReportIndex -or $adminComparisonIndex -gt $adminDepartmentIndex) {
+    throw 'Admin PeriodComparison link must live in the THONG KE section, after Report and before Department.'
 }
 
 $removedTrendChecks = @(

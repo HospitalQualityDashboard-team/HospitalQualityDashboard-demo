@@ -23,25 +23,15 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             query = query ?? new DashboardExcelExportQueryDto();
             var model = _service.GetDashboard(true, null, query.TanSuat);
             _service.PrepareExportFilters(model, query, true, null);
-            model.ActiveTab = NormalizeDashboardTab(query.DashboardTab);
-            if (model.ActiveTab == "comparison")
-            {
-                model.Comparison = _comparisonService.GetComparison(new DashboardAnalysisQueryDto
-                {
-                    TanSuat = query.TanSuat,
-                    KyBaoCaoId = query.KyBaoCaoId,
-                    ComparisonPeriodIds = query.ComparisonPeriodIds,
-                    KhoaPhongId = query.KhoaPhongId,
-                    Page = query.Page,
-                    PageSize = query.PageSize
-                }, true, null);
-            }
             return View(model);
         }
 
-        private static string NormalizeDashboardTab(string value)
+        [HttpGet]
+        public ActionResult PeriodComparison(DashboardAnalysisQueryDto query)
         {
-            return value == "overview" ? value : "comparison";
+            RunReportingPeriodMaintenance();
+            var model = _comparisonService.GetComparison(query, true, null);
+            return View(model);
         }
 
         [HttpGet]

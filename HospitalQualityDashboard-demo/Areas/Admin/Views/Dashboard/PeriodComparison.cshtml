@@ -1,0 +1,227 @@
+@model HospitalQualityDashboardDemo.Models.ViewModels.ProgressComparisonViewModel
+@{
+    ViewBag.Title = "So sánh kỳ báo cáo";
+}
+
+<style>
+    .comparison-page-header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+        .comparison-page-header h1 {
+            margin: 0 0 6px;
+            color: #10223a;
+            font-size: clamp(1.55rem, 2vw, 2.05rem);
+            font-weight: 950;
+        }
+
+        .comparison-page-header p {
+            max-width: 720px;
+            margin: 0;
+            color: #64748b;
+            font-size: .92rem;
+        }
+
+    .analysis-panel {
+        padding: 24px !important;
+        border-radius: 26px !important;
+        background: rgba(255, 255, 255, .96) !important;
+    }
+
+    .analysis-filter {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(220px, 1fr)) auto auto;
+        gap: 14px;
+        align-items: end;
+        padding: 18px;
+        margin-bottom: 18px;
+        background: linear-gradient(135deg, #f8fbff, #eef7fb);
+        border: 1px solid #d8e2ea;
+        border-radius: 20px;
+    }
+
+    .analysis-filter-field label {
+        display: block;
+        margin-bottom: 6px;
+        color: #526174;
+        font-size: .76rem;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .analysis-filter .form-select,
+    .analysis-submit,
+    .analysis-export {
+        min-height: 42px;
+        border-radius: 13px !important;
+        font-weight: 800;
+    }
+
+    .analysis-period-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .analysis-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 0 12px;
+        color: #526174;
+        background: #f8fafc;
+        border: 1px solid #d8e2ea;
+        border-radius: 999px;
+        font-size: .82rem;
+        font-weight: 850;
+    }
+
+    .analysis-chart-summary-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(280px, .55fr);
+        gap: 18px;
+        margin-top: 18px;
+    }
+
+    .analysis-inner-panel,
+    .analysis-table-card {
+        padding: 24px !important;
+        border-radius: 26px !important;
+        background: #fff !important;
+        border: 1px solid #d8e2ea !important;
+        box-shadow: 0 16px 38px rgba(20,32,51,.08) !important;
+    }
+
+    .comparison-doughnut-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(260px, 1fr));
+        gap: 16px;
+    }
+
+    .comparison-doughnut-card {
+        padding: 18px;
+        border: 1px solid #d8e2ea;
+        border-radius: 18px;
+        background: #fff;
+    }
+
+        .comparison-doughnut-card h4 {
+            margin: 0 0 10px;
+            color: #10223a;
+            font-size: 1rem;
+            font-weight: 950;
+        }
+
+    .comparison-doughnut-shell {
+        min-height: 250px;
+    }
+
+    .comparison-summary-grid {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+        .comparison-summary-grid span {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 54px;
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            background: #f8fafc;
+            color: #526174;
+            font-size: .85rem;
+            font-weight: 850;
+        }
+
+        .comparison-summary-grid b {
+            min-width: 38px;
+            color: #10223a;
+            font-size: 1.1rem;
+            font-weight: 950;
+        }
+
+    .comparison-status-modal .modal-content {
+        border: 0;
+        border-radius: 22px;
+        box-shadow: 0 26px 72px rgba(20,32,51,.22);
+    }
+
+    .comparison-status-modal .modal-header,
+    .comparison-status-modal .modal-footer {
+        border-color: #e2e8f0;
+    }
+
+    .comparison-modal-table-wrap {
+        border: 1px solid #d8e2ea;
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .comparison-detail-table thead th {
+        background: #f8fbff !important;
+        color: #10223a !important;
+        font-size: .74rem;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .comparison-detail-table tbody td {
+        padding: 13px 12px;
+        vertical-align: middle;
+    }
+
+    .analysis-pagination {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        color: #64748b;
+        font-weight: 800;
+    }
+
+    @@media (max-width: 992px) {
+        .analysis-filter,
+        .analysis-chart-summary-grid,
+        .comparison-doughnut-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .analysis-submit,
+        .analysis-export {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="comparison-page-header">
+    <div>
+        <h1>So sánh kỳ báo cáo</h1>
+        <p>Đối chiếu trạng thái nộp báo cáo giữa kỳ chính và các kỳ trước; click vào biểu đồ để xem danh sách chỉ số theo từng trạng thái.</p>
+    </div>
+</section>
+
+<div class="dashboard-tab-pane is-active"
+     data-dashboard-pane="comparison"
+     data-dashboard-url="@Url.Action("Comparison", "Dashboard", new { area = "Admin" })">
+    @Html.Partial("~/Views/Shared/_DashboardComparison.cshtml", Model)
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="@Url.Content("~/Scripts/dashboard-analysis.js")"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeDashboardAnalysis();
+        });
+    </script>
+}

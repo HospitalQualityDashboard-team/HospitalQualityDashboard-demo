@@ -13,6 +13,13 @@ namespace HospitalQualityDashboardDemo.Services
     public class DashboardProgressComparisonService : DbServiceBase
     {
         private static readonly int[] SupportedFrequencies = { 3, 4, 5, 9, 6 };
+        private static readonly string[] SupportedProgressStatuses =
+        {
+            DashboardProgressComparisonBuilder.OnTime,
+            DashboardProgressComparisonBuilder.Late,
+            DashboardProgressComparisonBuilder.Missing,
+            DashboardProgressComparisonBuilder.OverdueMissing
+        };
 
         public DashboardProgressComparisonService()
             : base(DatabaseConfiguration.GetConnectionString(), 60)
@@ -52,7 +59,10 @@ namespace HospitalQualityDashboardDemo.Services
                 .ThenBy(x => x.TenKhoaPhong)
                 .ThenBy(x => x.MaChiSo)
                 .ToList();
-            var totalPages = orderedRows.Count == 0 ? 0 : (int)Math.Ceiling(orderedRows.Count / (decimal)query.PageSize);
+            var statusPeriodId = NormalizeStatusPeriodId(query.StatusPeriodId, selected);
+            var progressStatus = NormalizeProgressStatus(query.ProgressStatus);
+            var detailRows = FilterRowsByStatus(orderedRows, statusPeriodId, progressStatus).ToList();
+            var totalPages = detailRows.Count == 0 ? 0 : (int)Math.Ceiling(detailRows.Count / (decimal)query.PageSize);
 
             return new ProgressComparisonViewModel
             {
@@ -61,20 +71,59 @@ namespace HospitalQualityDashboardDemo.Services
                 KyBaoCaoId = primaryId,
                 KhoaPhongId = query.KhoaPhongId,
                 ComparisonPeriodIds = query.ComparisonPeriodIds ?? new int[0],
+                StatusPeriodId = statusPeriodId,
+                ProgressStatus = progressStatus,
                 TanSuatOptions = BuildFrequencyOptions(frequency),
                 KyBaoCaoOptions = BuildPeriodOptions(eligible, primaryId),
                 KhoaPhongOptions = isAdmin ? BuildDepartmentOptions(query.KhoaPhongId) : new List<SelectListItem>(),
                 AvailablePeriods = periods,
                 Metrics = metrics,
-                Rows = orderedRows.Skip((query.Page - 1) * query.PageSize).Take(query.PageSize).ToList(),
+                Rows = detailRows.Skip((query.Page - 1) * query.PageSize).Take(query.PageSize).ToList(),
                 BetterCount = orderedRows.Count(x => x.OverallChangeCode == "Better"),
                 WorseCount = orderedRows.Count(x => x.OverallChangeCode == "Worse"),
                 UnchangedCount = orderedRows.Count(x => x.OverallChangeCode == "Unchanged"),
                 InsufficientCount = orderedRows.Count(x => x.OverallChangeCode == "Insufficient"),
                 CurrentPage = query.Page,
                 TotalPages = totalPages,
-                TotalRows = orderedRows.Count
+                TotalRows = detailRows.Count
             };
+        }
+
+        private static int? NormalizeStatusPeriodId(
+            int? requestedStatusPeriodId,
+            IEnumerable<DashboardComparisonPeriodDto> selectedPeriods)
+        {
+            if (!requestedStatusPeriodId.HasValue)
+            {
+                return null;
+            }
+
+            return (selectedPeriods ?? Enumerable.Empty<DashboardComparisonPeriodDto>())
+                .Any(x => x.KyBaoCaoId == requestedStatusPeriodId.Value)
+                    ? requestedStatusPeriodId
+                    : null;
+        }
+
+        private static string NormalizeProgressStatus(string requestedProgressStatus)
+        {
+            return SupportedProgressStatuses.Contains(requestedProgressStatus)
+                ? requestedProgressStatus
+                : null;
+        }
+
+        private static IEnumerable<ProgressComparisonRowViewModel> FilterRowsByStatus(
+            IEnumerable<ProgressComparisonRowViewModel> rows,
+            int? statusPeriodId,
+            string progressStatus)
+        {
+            if (!statusPeriodId.HasValue || string.IsNullOrWhiteSpace(progressStatus))
+            {
+                return rows;
+            }
+
+            return rows.Where(row => row.Periods != null && row.Periods.Any(period =>
+                period.KyBaoCaoId == statusPeriodId.Value
+                && string.Equals(period.StatusCode, progressStatus, StringComparison.Ordinal)));
         }
 
         private static int? NormalizePrimaryPeriodId(

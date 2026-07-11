@@ -1,5 +1,6 @@
 @* Mục đích: hiển thị bảng và biểu đồ so sánh dashboard giữa kỳ hiện tại với các kỳ trước. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.ProgressComparisonViewModel
+@using System.Globalization
 @using System.Linq
 @using Newtonsoft.Json
 @{
@@ -9,6 +10,42 @@
 
     var primaryPeriod = Model.AvailablePeriods
                              .FirstOrDefault(x => x.KyBaoCaoId == Model.KyBaoCaoId);
+    var selectedStatusPeriod = Model.StatusPeriodId.HasValue
+        ? Model.Metrics.FirstOrDefault(x => x.KyBaoCaoId == Model.StatusPeriodId.Value)
+        : null;
+    Func<string, string> statusLabel = status =>
+    {
+        switch (status)
+        {
+            case "OnTime": return "Đúng hạn";
+            case "Late": return "Nộp trễ";
+            case "Missing": return "Chưa nộp";
+            case "OverdueMissing": return "Quá hạn chưa nộp";
+            default: return "Không xác định";
+        }
+    };
+    Func<string, string> statusClass = status =>
+    {
+        switch (status)
+        {
+            case "OnTime": return "status-success";
+            case "Late": return "status-warning";
+            case "OverdueMissing": return "status-danger";
+            case "Missing": return "status-muted";
+            default: return "status-muted";
+        }
+    };
+    Func<string, string> changeLabel = change =>
+    {
+        switch (change)
+        {
+            case "Better": return "Tốt hơn";
+            case "Worse": return "Xấu hơn";
+            case "Unchanged": return "Không đổi";
+            case "Insufficient": return "Chưa đủ dữ liệu";
+            default: return "-";
+        }
+    };
 }
 
 <section class="dashboard-panel analysis-panel">
@@ -20,7 +57,9 @@
     </div>
 
     <form class="analysis-filter" data-dashboard-analysis-form data-url="@Url.Action("Comparison", "Dashboard", new { area = areaName })">
-        <input type="hidden" name="DashboardTab" value="comparison" />
+        <input type="hidden" name="StatusPeriodId" value="@Model.StatusPeriodId" />
+        <input type="hidden" name="ProgressStatus" value="@Model.ProgressStatus" />
+        <input type="hidden" name="Page" value="@Model.CurrentPage" />
         <div class="analysis-filter-field">
             <label for="comparison-frequency">Tần suất</label>
             @Html.DropDownList("TanSuat", Model.TanSuatOptions, new { id = "comparison-frequency", @class = "form-select form-select-sm" })
@@ -73,7 +112,6 @@
                 <span class="analysis-chip">@metric.TenKyBaoCao</span>
             }
         </div>
-
         <div class="analysis-chart-summary-grid">
             <div class="dashboard-panel analysis-inner-panel">
                 <div class="panel-header"><div><h3>Trạng thái nộp báo cáo theo kỳ</h3><p>Số lượng báo cáo trong từng trạng thái.</p></div></div>
@@ -83,7 +121,7 @@
                         <article class="comparison-doughnut-card">
                             <h4>@metric.TenKyBaoCao</h4>
                             <div class="comparison-doughnut-shell">
-                                <canvas class="comparison-doughnut-chart" data-metric='@Html.Raw(JsonConvert.SerializeObject(metric))' height="180"></canvas>
+                                <canvas class="comparison-doughnut-chart" data-metric='@Html.Raw(JsonConvert.SerializeObject(metric))' data-period-id="@metric.KyBaoCaoId" height="180"></canvas>
                             </div>
                         </article>
                     }
@@ -99,6 +137,87 @@
                 </div>
             </div>
         </div>
+
+        if (selectedStatusPeriod != null && !string.IsNullOrWhiteSpace(Model.ProgressStatus))
+        {
+            <div class="modal fade comparison-status-modal"
+                 id="comparisonStatusDetailModal"
+                 tabindex="-1"
+                 aria-labelledby="comparisonStatusDetailTitle"
+                 aria-hidden="true"
+                 data-auto-open="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div>
+                                <h2 class="modal-title fs-5" id="comparisonStatusDetailTitle">
+                                    Chi tiết chỉ số: @selectedStatusPeriod.TenKyBaoCao - @statusLabel(Model.ProgressStatus)
+                                </h2>
+                                <p class="text-muted small mb-0">Danh sách chỉ số thuộc trạng thái đã chọn trên biểu đồ.</p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="status-pill status-muted">@Model.TotalRows dòng</span>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                            </div>
+                        </div>
+                        <div class="modal-body">
+                            <div class="comparison-modal-table-wrap">
+                                <table class="table table-sm align-middle mb-0 analysis-table comparison-detail-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Khoa/phòng</th>
+                                            <th>Mã chỉ số</th>
+                                            <th>Tên chỉ số</th>
+                                            <th>Kỳ được lọc</th>
+                                            <th>Trạng thái</th>
+                                            <th>Ngày gửi</th>
+                                            <th>Đánh giá thay đổi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.Rows.Any())
+                                        {
+                                            foreach (var row in Model.Rows)
+                                            {
+                                                var period = Model.StatusPeriodId.HasValue
+                                                    ? row.Periods.FirstOrDefault(x => x.KyBaoCaoId == Model.StatusPeriodId.Value)
+                                                    : row.Periods.FirstOrDefault();
+                                                <tr>
+                                                    <td>@row.TenKhoaPhong</td>
+                                                    <td><span class="metric-code">@row.MaChiSo</span></td>
+                                                    <td>@row.TenChiSo</td>
+                                                    <td>@(period == null ? "-" : period.TenKyBaoCao)</td>
+                                                    <td><span class="status-pill @statusClass(period == null ? null : period.StatusCode)">@(period == null ? "-" : statusLabel(period.StatusCode))</span></td>
+                                                    <td>@(period != null && period.NgayGui.HasValue ? period.NgayGui.Value.ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN")) : "-")</td>
+                                                    <td>@changeLabel(period == null ? null : period.ChangeCode)</td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="7" class="empty-state">Không có chỉ số phù hợp với trạng thái đã chọn.</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            @if (Model.TotalPages > 1)
+                            {
+                                <div class="analysis-pagination me-auto">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-analysis-page="@(Model.CurrentPage - 1)" @(Model.CurrentPage <= 1 ? "disabled" : null)>Trước</button>
+                                    <span>Trang @Model.CurrentPage/@Model.TotalPages</span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-analysis-page="@(Model.CurrentPage + 1)" @(Model.CurrentPage >= Model.TotalPages ? "disabled" : null)>Sau</button>
+                                </div>
+                            }
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
 
     }
     else
