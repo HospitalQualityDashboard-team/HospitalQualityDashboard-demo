@@ -1,8 +1,16 @@
 ﻿@* Mục đích: hiển thị thông tin hồ sơ và khu vực đổi mật khẩu của người dùng. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.UserProfileViewModel
+@using System
+@using System.Collections.Generic
+@using System.Web.Mvc
 
 @{
     ViewBag.Title = "Hồ sơ cá nhân";
+    var genderOptions = new List<SelectListItem>
+    {
+        new SelectListItem { Text = "Nam", Value = "Nam", Selected = string.Equals(Model.GioiTinh, "Nam", StringComparison.OrdinalIgnoreCase) },
+        new SelectListItem { Text = "Nữ", Value = "Nữ", Selected = string.Equals(Model.GioiTinh, "Nữ", StringComparison.OrdinalIgnoreCase) }
+    };
 }
 
 <main class="app-responsive-page profile-page">
@@ -119,11 +127,21 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 @Html.Label("NgaySinh", "Ngày sinh", new { @class = "form-label" })
-                                @Html.TextBox("NgaySinh", Model.NgaySinh?.ToString("yyyy-MM-dd"), new { @class = "form-control", type = "date" })
+                                <div class="app-date-picker">
+                                    @Html.TextBox("NgaySinh", Model.NgaySinh?.ToString("dd/MM/yyyy"), new { @class = "form-control app-date-input", placeholder = "dd/MM/yyyy", inputmode = "numeric", pattern = "\\d{1,2}/\\d{1,2}/\\d{4}", maxlength = "10", autocomplete = "off", data_date_input = "", data_date_picker_id = "ProfileNgaySinhPicker", data_date_invalid_message = "Ngày sinh không hợp lệ. Vui lòng nhập đúng định dạng dd/MM/yyyy." })
+                                    <button class="app-date-trigger" type="button" title="Chọn ngày sinh" aria-label="Chọn ngày sinh" data-date-picker-trigger="ProfileNgaySinhPicker">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                            <rect x="3" y="4" width="18" height="17" rx="2"></rect>
+                                            <path d="M8 2v4M16 2v4M3 10h18"></path>
+                                        </svg>
+                                    </button>
+                                    <input id="ProfileNgaySinhPicker" class="app-date-native" type="date" value="@(Model.NgaySinh.HasValue ? Model.NgaySinh.Value.ToString("yyyy-MM-dd") : null)" tabindex="-1" aria-hidden="true" data-date-picker data-date-display-id="NgaySinh" />
+                                </div>
+                                @Html.ValidationMessage("NgaySinh", "", new { @class = "text-danger small" })
                             </div>
                             <div class="col-md-6">
                                 @Html.Label("GioiTinh", "Giới tính", new { @class = "form-label" })
-                                @Html.TextBox("GioiTinh", Model.GioiTinh, new { @class = "form-control" })
+                                @Html.DropDownList("GioiTinh", genderOptions, "-- Chọn giới tính --", new { @class = "form-select" })
                             </div>
                         </div>
 

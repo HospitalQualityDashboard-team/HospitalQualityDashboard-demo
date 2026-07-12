@@ -4,6 +4,7 @@ using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using HospitalQualityDashboardDemo.Services;
+using System.Globalization;
 using System.Web.Mvc;
 
 namespace HospitalQualityDashboardDemo.Controllers
@@ -221,6 +222,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             }
 
             var taiKhoanId = SessionUserAccessor.GetInt(Session, SessionUserAccessor.TaiKhoanIdKey).Value;
+            NormalizeProfileUpdateDate(model);
 
             if (!ModelState.IsValid)
             {
@@ -261,6 +263,40 @@ namespace HospitalQualityDashboardDemo.Controllers
             }
 
             return RedirectToAction("Profile");
+        }
+
+        private void NormalizeProfileUpdateDate(ProfileUpdateDto model)
+        {
+            if (model == null)
+            {
+                return;
+            }
+
+            var rawNgaySinh = Request.Form["NgaySinh"];
+            if (string.IsNullOrWhiteSpace(rawNgaySinh))
+            {
+                ModelState.Remove("NgaySinh");
+                model.NgaySinh = null;
+                return;
+            }
+
+            DateTime parsedDate;
+            var formats = new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd" };
+            if (DateTime.TryParseExact(
+                rawNgaySinh.Trim(),
+                formats,
+                CultureInfo.GetCultureInfo("vi-VN"),
+                DateTimeStyles.None,
+                out parsedDate))
+            {
+                ModelState.Remove("NgaySinh");
+                model.NgaySinh = parsedDate.Date;
+                return;
+            }
+
+            ModelState.Remove("NgaySinh");
+            ModelState.AddModelError("NgaySinh", "Ngày sinh không hợp lệ. Vui lòng nhập đúng định dạng dd/MM/yyyy.");
+            model.NgaySinh = null;
         }
     }
 }
