@@ -61,7 +61,8 @@ Assert-Contains $report "data_filter_combobox\s*=\s*""true""" "Report filters mu
 Assert-Contains $assignment "data_filter_combobox\s*=\s*""true""" "Assignment select filters must use searchable comboboxes."
 Assert-Contains $assignment "data_filter_placeholder\s*=\s*""[^""]*khoa/phòng""" "Assignment department filter must have the expected placeholder."
 Assert-Contains $assignment "data_filter_placeholder\s*=\s*""[^""]*chỉ số""" "Assignment indicator filter must have the expected placeholder."
-Assert-Contains $assignment "data-filter-combobox" "Assignment status filters must use searchable comboboxes."
+Assert-Contains $assignment "name\s*=\s*""trangThai""[^>]*class\s*=\s*""[^""]*form-select" "Assignment status filter must remain a native select."
+Assert-NotContains $assignment "name\s*=\s*""trangThai""[^>]*data-filter-combobox" "Assignment status filter must remain a native select."
 Assert-NotContains $assignment "name\s*=\s*""search""" "Assignment filter form must not include the general search box."
 Assert-NotContains $assignment "name\s*=\s*""trangThaiPhanCong""[^>]*data-filter-combobox" "Assignment indicator assignment-status filter must remain a native select."
 
