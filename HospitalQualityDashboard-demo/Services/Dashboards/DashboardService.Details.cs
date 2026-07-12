@@ -29,7 +29,7 @@ namespace HospitalQualityDashboardDemo.Services
             const string sql = @"
 WITH ExpectedSlots AS
 (
-    SELECT DISTINCT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.TuNgay, ky.HanNop,
+    SELECT DISTINCT ky.KyBaoCaoId, ky.TenKyBaoCao, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay, ky.HanNop,
            ky.TrangThai AS TrangThaiKyBaoCao,
            pc.KhoaPhongId, kp.TenKhoaPhong, pc.ChiSoChatLuongId,
            cs.MaChiSo, cs.TenChiSo
@@ -47,7 +47,7 @@ WITH ExpectedSlots AS
       AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 )
 SELECT es.KyBaoCaoId, es.KhoaPhongId, es.ChiSoChatLuongId,
-       es.TenKyBaoCao, es.HanNop, es.TrangThaiKyBaoCao, es.TenKhoaPhong,
+       es.TenKyBaoCao, es.LoaiKyBaoCao, es.TuNgay, es.DenNgay, es.HanNop, es.TrangThaiKyBaoCao, es.TenKhoaPhong,
        es.MaChiSo, es.TenChiSo, bc.BaoCaoId, bc.TrangThai,
        ct.KetQua, ct.DatMucTieu,
        COALESCE(mt.ToanTuSoSanh, mtFallback.ToanTuSoSanh) AS ToanTuSoSanh,
@@ -110,6 +110,9 @@ ORDER BY es.HanNop, es.TenKhoaPhong, es.MaChiSo";
                         ? (int?)null
                         : Int(reader, "BaoCaoId"),
                     TenKyBaoCao = String(reader, "TenKyBaoCao"),
+                    LoaiKyBaoCao = (TanSuatBaoCao)Convert.ToByte(reader["LoaiKyBaoCao"]),
+                    TuNgay = reader.GetDateTime(reader.GetOrdinal("TuNgay")),
+                    DenNgay = reader.GetDateTime(reader.GetOrdinal("DenNgay")),
                     HanNop = reader.GetDateTime(reader.GetOrdinal("HanNop")),
                     TenKhoaPhong = String(reader, "TenKhoaPhong"),
                     MaChiSo = String(reader, "MaChiSo"),

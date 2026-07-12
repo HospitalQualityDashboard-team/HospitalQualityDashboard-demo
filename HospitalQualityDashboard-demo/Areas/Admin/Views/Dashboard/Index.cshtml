@@ -1584,6 +1584,12 @@
                             <option value="locked">Kỳ đã khóa</option>
                         </select>
                     </div>
+                    <div class="analysis-filter-field">
+                        <label for="dashboard-report-period-filter">Kỳ báo cáo</label>
+                        <select id="dashboard-report-period-filter" class="form-select form-select-sm" data-report-period-filter>
+                            <option value="all">Tất cả kỳ</option>
+                        </select>
+                    </div>
                 </div>
                 <section class="indicator-detail-panel" id="dashboardIndicatorDetailPanel" data-indicator-detail-panel hidden aria-live="polite">
                     <span class="indicator-detail-kicker">Chi tiết chỉ số</span>
@@ -1679,7 +1685,7 @@
                                         : item.DatMucTieu == false ? "Chưa đạt" : "Chưa đánh giá";
                                 var targetText = string.IsNullOrWhiteSpace(item.MucTieu) ? "Chưa cấu hình mục tiêu" : item.MucTieu;
                                 var periodStateValue = item.IsReportingPeriodLocked ? "locked" : "open";
-                                <tr data-metric-groups="@groups" data-period-state="@periodStateValue">
+                                <tr data-metric-groups="@groups" data-period-state="@periodStateValue" data-period-id="@item.KyBaoCaoId" data-period-frequency="@((int)item.LoaiKyBaoCao)" data-period-start="@item.TuNgay.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" data-period-end="@item.DenNgay.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
                                     <td class="metric-select-cell">
                                         @if (item.CanSendWarning)
                                         {
@@ -1800,6 +1806,13 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                <div class="metric-pagination" data-metric-pagination hidden>
+                    <span class="metric-pagination-summary" data-metric-page-summary>Trang 1/1</span>
+                    <div class="metric-pagination-actions">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-metric-prev-page>Trước</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-metric-next-page>Sau</button>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -2099,8 +2112,16 @@ if (metricDetailModal) {
     var warningSelectAll = metricDetailModal.querySelector('[data-warning-select-all]');
     var warningBulkSubmit = metricDetailModal.querySelector('[data-warning-bulk-submit]');
     var periodStateFilter = metricDetailModal.querySelector('[data-period-state-filter]');
+    var reportPeriodFilter = metricDetailModal.querySelector('[data-report-period-filter]');
     var indicatorDetailPanel = metricDetailModal.querySelector('[data-indicator-detail-panel]');
     var indicatorDetailTriggers = Array.from(metricDetailModal.querySelectorAll('[data-indicator-detail-trigger]'));
+    var metricRows = Array.from(metricDetailModal.querySelectorAll('tbody tr[data-metric-groups]'));
+    var metricPageSize = 10;
+    var metricCurrentPage = 1;
+    var metricPagination = metricDetailModal.querySelector('[data-metric-pagination]');
+    var metricPageSummary = metricDetailModal.querySelector('[data-metric-page-summary]');
+    var metricPrevPage = metricDetailModal.querySelector('[data-metric-prev-page]');
+    var metricNextPage = metricDetailModal.querySelector('[data-metric-next-page]');
     var activeMetric = 'total';
 
     function setIndicatorDetail(target) {
@@ -2146,7 +2167,7 @@ if (metricDetailModal) {
     function getVisibleWarningTargets() {
         return Array.from(metricDetailModal.querySelectorAll('[data-warning-target]')).filter(function(target) {
             var row = target.closest('tr[data-metric-groups]');
-            return row && !row.hidden && !target.disabled;
+            return row && !row.hidden && row.getAttribute('data-filter-match') === 'true' && !target.disabled;
         });
     }
 
@@ -2181,23 +2202,117 @@ if (metricDetailModal) {
         }
     }
 
+    function getRowPeriodName(row) {
+        var trigger = row.querySelector('[data-indicator-detail-trigger]');
+        return trigger ? trigger.getAttribute('data-detail-period') || '' : '';
+    }
+
+    function populateReportPeriodFilter() {
+        if (!reportPeriodFilter) return;
+
+        var existingValue = reportPeriodFilter.value || 'all';
+        var periods = [];
+        var seen = {};
+        metricRows.forEach(function(row) {
+            var id = row.getAttribute('data-period-id');
+            if (!id || seen[id]) return;
+            seen[id] = true;
+            periods.push({
+                id: id,
+                name: getRowPeriodName(row),
+                start: row.getAttribute('data-period-start') || '',
+                end: row.getAttribute('data-period-end') || '',
+                frequency: row.getAttribute('data-period-frequency') || ''
+            });
+        });
+
+        periods.sort(function(a, b) {
+            return b.start.localeCompare(a.start);
+        });
+
+        reportPeriodFilter.innerHTML = '';
+        reportPeriodFilter.add(new Option('Tất cả kỳ', 'all'));
+        periods.forEach(function(period) {
+            var option = new Option(period.name || ('Kỳ #' + period.id), period.id);
+            option.setAttribute('data-period-start', period.start);
+            option.setAttribute('data-period-end', period.end);
+            option.setAttribute('data-period-frequency', period.frequency);
+            reportPeriodFilter.add(option);
+        });
+
+        reportPeriodFilter.value = Array.from(reportPeriodFilter.options).some(function(option) {
+            return option.value === existingValue;
+        }) ? existingValue : 'all';
+    }
+
+    function selectCurrentMonthlyPeriod() {
+        if (!reportPeriodFilter) return;
+
+        var today = new Date();
+        var currentYear = today.getFullYear();
+        var currentMonth = today.getMonth();
+        var currentOption = Array.from(reportPeriodFilter.options).find(function(option) {
+            if (option.value === 'all') return false;
+            if (option.getAttribute('data-period-frequency') !== '3') return false;
+            var start = new Date(option.getAttribute('data-period-start') + 'T00:00:00');
+            var end = new Date(option.getAttribute('data-period-end') + 'T00:00:00');
+            if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
+            return start.getFullYear() === currentYear
+                && start.getMonth() === currentMonth
+                && end.getFullYear() === currentYear
+                && end.getMonth() === currentMonth;
+        });
+
+        reportPeriodFilter.value = currentOption ? currentOption.value : 'all';
+    }
+
+    function setMetricPage(page, totalPages) {
+        metricCurrentPage = Math.min(Math.max(page, 1), Math.max(totalPages, 1));
+    }
+
     function applyMetricFilters(metric) {
         if (metric) activeMetric = metric;
         var selectedPeriodState = periodStateFilter ? periodStateFilter.value : 'all';
-        var visibleCount = 0;
+        var selectedPeriodId = reportPeriodFilter ? reportPeriodFilter.value : 'all';
+        var matchedRows = [];
 
-        metricDetailModal.querySelectorAll('tbody tr[data-metric-groups]').forEach(function(row) {
+        metricRows.forEach(function(row) {
             var groups = (row.getAttribute('data-metric-groups') || '').split(' ');
             var periodState = row.getAttribute('data-period-state') || 'open';
+            var periodId = row.getAttribute('data-period-id') || '';
             var matchesMetric = groups.indexOf(activeMetric) >= 0;
             var matchesPeriodState = selectedPeriodState === 'all' || periodState === selectedPeriodState;
-            var visible = matchesMetric && matchesPeriodState;
-            row.hidden = !visible;
-            if (visible) visibleCount += 1;
+            var matchesReportPeriod = selectedPeriodId === 'all' || periodId === selectedPeriodId;
+            var matches = matchesMetric && matchesPeriodState && matchesReportPeriod;
+            row.setAttribute('data-filter-match', matches ? 'true' : 'false');
+            if (matches) matchedRows.push(row);
+        });
+
+        var visibleCount = matchedRows.length;
+        var totalPages = Math.max(Math.ceil(visibleCount / metricPageSize), 1);
+        setMetricPage(metricCurrentPage, totalPages);
+        metricRows.forEach(function(row) {
+            row.hidden = true;
+        });
+        matchedRows.forEach(function(row, index) {
+            var pageIndex = Math.floor(index / metricPageSize) + 1;
+            row.hidden = pageIndex !== metricCurrentPage;
         });
 
         metricDetailModal.querySelector('[data-metric-count]').textContent = visibleCount + ' dòng';
         metricDetailModal.querySelector('[data-metric-empty]').hidden = visibleCount !== 0;
+        if (metricPagination) {
+            metricPagination.hidden = visibleCount <= metricPageSize;
+        }
+        if (metricPageSummary) {
+            metricPageSummary.textContent = 'Trang ' + (visibleCount === 0 ? 0 : metricCurrentPage) + '/' + (visibleCount === 0 ? 0 : totalPages);
+        }
+        if (metricPrevPage) {
+            metricPrevPage.disabled = metricCurrentPage <= 1 || visibleCount === 0;
+        }
+        if (metricNextPage) {
+            metricNextPage.disabled = metricCurrentPage >= totalPages || visibleCount === 0;
+        }
         updateWarningBulkControls();
     }
 
@@ -2210,6 +2325,9 @@ if (metricDetailModal) {
         resetIndicatorDetail();
         clearWarningSelections();
         forceOpenPeriodOnly(metric);
+        populateReportPeriodFilter();
+        selectCurrentMonthlyPeriod();
+        metricCurrentPage = 1;
         applyMetricFilters(metric);
     });
 
@@ -2217,6 +2335,34 @@ if (metricDetailModal) {
         periodStateFilter.addEventListener('change', function() {
             resetIndicatorDetail();
             clearWarningSelections();
+            metricCurrentPage = 1;
+            applyMetricFilters();
+        });
+    }
+
+    if (reportPeriodFilter) {
+        reportPeriodFilter.addEventListener('change', function() {
+            resetIndicatorDetail();
+            clearWarningSelections();
+            metricCurrentPage = 1;
+            applyMetricFilters();
+        });
+    }
+
+    if (metricPrevPage) {
+        metricPrevPage.addEventListener('click', function() {
+            resetIndicatorDetail();
+            clearWarningSelections();
+            metricCurrentPage -= 1;
+            applyMetricFilters();
+        });
+    }
+
+    if (metricNextPage) {
+        metricNextPage.addEventListener('click', function() {
+            resetIndicatorDetail();
+            clearWarningSelections();
+            metricCurrentPage += 1;
             applyMetricFilters();
         });
     }
