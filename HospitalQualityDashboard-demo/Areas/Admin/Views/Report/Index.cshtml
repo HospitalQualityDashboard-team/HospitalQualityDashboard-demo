@@ -14,7 +14,7 @@
     var draftCount = reports.Count(x => x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap || x.TrangThai == HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai);
 }
 
-@section scripts {
+@* Combobox filters moved to Scripts/filter-combobox.js.
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var activeCombobox = null;
@@ -135,7 +135,7 @@
             });
         });
     </script>
-}
+*@
 
 @helper FrequencyText(HospitalQualityDashboardDemo.Models.Enums.TanSuatBaoCao frequency)
 {

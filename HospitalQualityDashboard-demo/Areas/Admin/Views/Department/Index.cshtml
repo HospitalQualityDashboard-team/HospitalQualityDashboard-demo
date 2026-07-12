@@ -4,6 +4,7 @@
 @{
     ViewBag.Title = "Khoa/phòng";
     var items = (Model.Items ?? new System.Collections.Generic.List<HospitalQualityDashboardDemo.Models.ViewModels.KhoaPhongViewModel>()).ToList();
+    var departmentOptions = Model.KhoaPhongOptions ?? new System.Collections.Generic.List<System.Web.Mvc.SelectListItem>();
 }
 
 <section class="management-page">
@@ -24,7 +25,13 @@
         {
             <div class="filter-field">
                 <label for="Search">Tìm kiếm</label>
-                @Html.TextBoxFor(m => m.Search, new { @class = "form-control", placeholder = "Tìm tên hoặc mã khoa/phòng" })
+                @Html.TextBoxFor(m => m.Search, new { @class = "form-control", placeholder = "Tìm tên hoặc mã khoa/phòng", data_filter_text_combobox = "true", data_filter_options_source = "DepartmentSearchOptions" })
+                <div id="DepartmentSearchOptions" hidden>
+                    @foreach (var option in departmentOptions)
+                    {
+                        <span data-filter-option data-text="@option.Text"></span>
+                    }
+                </div>
             </div>
             <div class="filter-actions">
                 <button class="btn btn-outline-primary" type="submit">Lọc</button>

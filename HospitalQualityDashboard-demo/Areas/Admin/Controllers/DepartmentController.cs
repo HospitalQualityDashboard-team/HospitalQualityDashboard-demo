@@ -20,6 +20,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             {
                 Search = search,
                 Items = items,
+                KhoaPhongOptions = _service.GetOptions(),
                 Page = NormalizePage(page),
                 PageSize = DefaultPageSize,
                 TotalItems = totalItems,
@@ -101,6 +102,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return View("Index", new KhoaPhongIndexViewModel
             {
                 Items = items,
+                KhoaPhongOptions = _service.GetOptions(),
                 ImportResult = result,
                 Page = 1,
                 PageSize = DefaultPageSize,

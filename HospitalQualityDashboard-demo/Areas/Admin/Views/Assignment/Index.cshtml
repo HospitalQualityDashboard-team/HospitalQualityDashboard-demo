@@ -246,23 +246,15 @@
             {
                 <input type="hidden" name="viewMode" id="filterViewMode" value="@Model.ViewMode" />
                 <div class="row g-3 align-items-end">
-                    @* Tìm theo tên khoa/phòng, mã hoặc tên chỉ số. *@
-                    <div class="col-lg-3 col-md-6 col-sm-12">
-                        <label class="form-label text-muted small fw-semibold mb-1">Tìm kiếm</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
-                            <input type="text" name="search" class="form-control bg-light border-start-0 shadow-none" placeholder="Tên khoa, mã/tên chỉ số..." value="@Model.Search" />
-                        </div>
-                    </div>
                     @* Lọc phạm vi phân công theo khoa/phòng. *@
                     <div class="col-lg-2 col-md-6 col-sm-12">
                         <label class="form-label text-muted small fw-semibold mb-1">Khoa / Phòng</label>
-                        @Html.DropDownList("khoaPhongId", new SelectList(Model.KhoaPhongOptions, "Value", "Text", Model.FilterKhoaPhongId), "Tất cả khoa/phòng", new { @class = "form-select form-select-sm bg-light shadow-none" })
+                        @Html.DropDownList("khoaPhongId", new SelectList(Model.KhoaPhongOptions, "Value", "Text", Model.FilterKhoaPhongId), "Tất cả khoa/phòng", new { @class = "form-select form-select-sm bg-light shadow-none", data_filter_combobox = "true", data_filter_placeholder = "Tất cả khoa/phòng" })
                     </div>
                     @* Lọc phân công theo chỉ số chất lượng. *@
                     <div class="col-lg-2 col-md-6 col-sm-12">
                         <label class="form-label text-muted small fw-semibold mb-1">Chỉ số chất lượng</label>
-                        @Html.DropDownList("chiSoId", new SelectList(Model.ChiSoOptions, "Value", "Text", Model.FilterChiSoId), "Tất cả chỉ số", new { @class = "form-select form-select-sm bg-light shadow-none" })
+                        @Html.DropDownList("chiSoId", new SelectList(Model.ChiSoOptions, "Value", "Text", Model.FilterChiSoId), "Tất cả chỉ số", new { @class = "form-select form-select-sm bg-light shadow-none", data_filter_combobox = "true", data_filter_placeholder = "Tất cả chỉ số" })
                     </div>
                     @* Lọc phân công đang hoạt động hoặc tạm dừng. *@
                     <div class="col-lg-2 col-md-6 col-sm-12">
@@ -342,8 +334,8 @@
             <ul class="pagination pagination-sm shadow-sm rounded-pill p-1 bg-white border">
                 @if (Model.CurrentPage > 1)
                 {
-                    <li class="page-item"><a class="page-link rounded-circle border-0 text-primary px-3" href="@Url.Action("Index", new { page = 1, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, trangThaiPhanCong = Model.FilterTrangThaiPhanCong, search = Model.Search })">«</a></li>
-                    <li class="page-item"><a class="page-link rounded-circle border-0 text-primary px-3" href="@Url.Action("Index", new { page = Model.CurrentPage - 1, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, trangThaiPhanCong = Model.FilterTrangThaiPhanCong, search = Model.Search })">‹</a></li>
+                    <li class="page-item"><a class="page-link rounded-circle border-0 text-primary px-3" href="@Url.Action("Index", new { page = 1, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, trangThaiPhanCong = Model.FilterTrangThaiPhanCong })">«</a></li>
+                    <li class="page-item"><a class="page-link rounded-circle border-0 text-primary px-3" href="@Url.Action("Index", new { page = Model.CurrentPage - 1, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, trangThaiPhanCong = Model.FilterTrangThaiPhanCong })">‹</a></li>
                 }
                 else
                 {
@@ -355,8 +347,8 @@
 
                 @if (Model.CurrentPage < Model.TotalPages)
                 {
-                    <li class="page-item"><a class="page-link rounded-circle border-0 text-primary px-3" href="@Url.Action("Index", new { page = Model.CurrentPage + 1, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, trangThaiPhanCong = Model.FilterTrangThaiPhanCong, search = Model.Search })">›</a></li>
-                    <li class="page-item"><a class="page-link rounded-circle border-0 text-primary px-3" href="@Url.Action("Index", new { page = Model.TotalPages, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, trangThaiPhanCong = Model.FilterTrangThaiPhanCong, search = Model.Search })">»</a></li>
+                    <li class="page-item"><a class="page-link rounded-circle border-0 text-primary px-3" href="@Url.Action("Index", new { page = Model.CurrentPage + 1, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, trangThaiPhanCong = Model.FilterTrangThaiPhanCong })">›</a></li>
+                    <li class="page-item"><a class="page-link rounded-circle border-0 text-primary px-3" href="@Url.Action("Index", new { page = Model.TotalPages, viewMode = Model.ViewMode, khoaPhongId = Model.FilterKhoaPhongId, chiSoId = Model.FilterChiSoId, trangThai = Model.FilterTrangThai, trangThaiPhanCong = Model.FilterTrangThaiPhanCong })">»</a></li>
                 }
                 else
                 {
@@ -385,7 +377,6 @@
                     <input type="hidden" name="chiSoId" value="@Model.FilterChiSoId" />
                     <input type="hidden" name="trangThai" value="@Model.FilterTrangThai" />
                     <input type="hidden" name="trangThaiPhanCong" value="@Model.FilterTrangThaiPhanCong" />
-                    <input type="hidden" name="search" value="@Model.Search" />
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted small fw-semibold">Cột xuất file</span>

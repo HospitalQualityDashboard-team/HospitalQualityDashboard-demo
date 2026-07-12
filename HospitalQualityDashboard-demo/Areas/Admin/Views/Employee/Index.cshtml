@@ -27,7 +27,7 @@
         {
             <div class="filter-field">
                 <label for="KhoaPhongId">Khoa/phòng</label>
-                @Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "Tất cả khoa/phòng", new { @class = "form-select" })
+                @Html.DropDownListFor(m => m.KhoaPhongId, Model.KhoaPhongOptions, "Tất cả khoa/phòng", new { @class = "form-select", data_filter_combobox = "true", data_filter_placeholder = "Tất cả khoa/phòng" })
             </div>
             <div class="filter-actions">
                 <button class="btn btn-outline-primary" type="submit">Lọc</button>

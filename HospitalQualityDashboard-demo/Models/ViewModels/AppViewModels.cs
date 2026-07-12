@@ -31,6 +31,7 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
     {
         public string Search { get; set; }
         public IList<KhoaPhongViewModel> Items { get; set; }
+        public IList<SelectListItem> KhoaPhongOptions { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }
         public int TotalItems { get; set; }
@@ -598,6 +599,9 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int ChiSoChatLuongId { get; set; }
         public int? BaoCaoId { get; set; }
         public string TenKyBaoCao { get; set; }
+        public TanSuatBaoCao LoaiKyBaoCao { get; set; }
+        public DateTime TuNgay { get; set; }
+        public DateTime DenNgay { get; set; }
         public DateTime HanNop { get; set; }
         public string TenKhoaPhong { get; set; }
         public string MaChiSo { get; set; }
