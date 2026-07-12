@@ -6,7 +6,7 @@
 
 ### Admin
 
-- Quản lý danh mục khoa/phòng, nhân viên và tài khoản User.
+- Quản lý danh mục khoa/phòng, nhân viên và tài khoản User; khi tạo nhân viên mới, hệ thống tự tạo tài khoản User theo mã nhân viên.
 - Quản lý định nghĩa chỉ số chất lượng: mã chỉ số, tên, định nghĩa, công thức, đơn vị tính, nguồn số liệu, tần suất và mục tiêu.
 - Import dữ liệu từ Excel/Word cho khoa/phòng, nhân viên, chỉ số và phân công.
 - Triển khai hoặc ngừng triển khai chỉ số theo vòng đời áp dụng; các kỳ đã có dữ liệu vẫn giữ lịch sử.
@@ -20,7 +20,7 @@
 
 ### User khoa/phòng
 
-- Đăng nhập bằng tài khoản do Admin tạo từ hồ sơ nhân viên.
+- Đăng nhập bằng tài khoản được tạo từ hồ sơ nhân viên, với tên đăng nhập và mật khẩu ban đầu theo mã nhân viên.
 - Xem Dashboard chỉ trong phạm vi khoa/phòng của tài khoản.
 - Xem các chỉ số được phân công và kỳ báo cáo đang mở.
 - Nhập số liệu theo công thức chỉ số, lưu nháp và gửi báo cáo.
@@ -60,7 +60,7 @@ HospitalQualityDashboard-demo/
     ├── Content/                      CSS và hình ảnh
     ├── Controllers/                  Home, Account, base auth, maintenance
     ├── Models/                       Entity, enum, DTO, ViewModel
-    ├── Scripts/                      JavaScript vendor và dashboard-analysis.js
+    ├── Scripts/                      JavaScript vendor, dashboard-analysis.js, date-input.js
     ├── Services/                     Nghiệp vụ và truy cập database
     ├── Tai_Lieu/                     Tài liệu nghiệp vụ/file mẫu
     ├── tools/                        Script PowerShell verify
@@ -171,6 +171,10 @@ Chỉ bật bootstrap có kiểm soát ở dev/test hoặc khi cần nâng cấp
 /Maintenance/RunReportingPeriodAutomation  Endpoint POST bảo trì, yêu cầu token
 ```
 
+Ghi chú giao diện: `/Admin/SystemLog` mặc định lọc ngày hiện tại cho cả "Từ ngày" và "Đến ngày"; hai trường này hiển thị theo định dạng `dd-MM-yyyy`, cho phép nhập trực tiếp và click icon lịch trong ô để mở date picker của trình duyệt.
+
+Ghi chú giao diện: `/Account/Profile` và form nhân viên Admin hiển thị/cập nhật ngày sinh theo định dạng `dd/MM/yyyy`; người dùng có thể nhập số để tự động chèn dấu `/` hoặc click icon lịch trong ô để chọn ngày. Các ô ngày custom kiểm tra ngày/tháng/năm hợp lệ theo lịch, bao gồm số ngày từng tháng và năm nhuận. Trường giới tính dùng danh sách chọn Nam/Nữ.
+
 ## Kiểm thử và verify
 
 Hiện repo chưa có test project riêng. Khi sửa code, tối thiểu cần build project và compile Razor nếu thay đổi view. Các script kiểm tra bổ sung nằm trong `HospitalQualityDashboard-demo/tools/`, ví dụ:
@@ -179,6 +183,7 @@ Hiện repo chưa có test project riêng. Khi sửa code, tối thiểu cần b
 - `VerifyDashboardExcelDetailedExport.ps1`
 - `VerifyDashboardPeriodComparison.ps1`
 - `VerifyIndicatorDeploymentLifecycle.ps1`
+- `VerifyProfileUpdate.ps1`
 - `VerifyReportingPeriodMaintenance.ps1`
 - `VerifyReportDetailModal.ps1`
 - `VerifySystemLogPage.ps1`

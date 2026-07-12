@@ -5,8 +5,10 @@
     ViewBag.Title = "Nhật ký thao tác";
     var items = (Model.Items ?? Enumerable.Empty<HospitalQualityDashboardDemo.Models.ViewModels.SystemLogRowViewModel>()).ToList();
     var query = Model.Query ?? new HospitalQualityDashboardDemo.Models.DTOs.SystemLogQueryDto();
-    var fromDateValue = query.FromDate.HasValue ? query.FromDate.Value.ToString("yyyy-MM-dd") : null;
-    var toDateValue = query.ToDate.HasValue ? query.ToDate.Value.ToString("yyyy-MM-dd") : null;
+    var fromDateValue = query.FromDate.HasValue ? query.FromDate.Value.ToString("dd-MM-yyyy") : null;
+    var toDateValue = query.ToDate.HasValue ? query.ToDate.Value.ToString("dd-MM-yyyy") : null;
+    var fromDatePickerValue = query.FromDate.HasValue ? query.FromDate.Value.ToString("yyyy-MM-dd") : null;
+    var toDatePickerValue = query.ToDate.HasValue ? query.ToDate.Value.ToString("yyyy-MM-dd") : null;
 }
 
 @functions {
@@ -80,16 +82,36 @@
             </div>
             <div class="filter-field">
                 <label for="FromDate">Từ ngày</label>
-                <input id="FromDate" name="FromDate" class="form-control" type="date" value="@fromDateValue" />
+                <div class="system-log-date-picker">
+                    <input id="FromDate" name="FromDate" class="form-control system-log-date-display" type="text" value="@fromDateValue" placeholder="dd-MM-yyyy" inputmode="numeric" pattern="\d{1,2}-\d{1,2}-\d{4}" maxlength="10" autocomplete="off" data-date-input data-date-picker-id="FromDatePicker" data-date-separator="-" data-date-invalid-message="Ngày không hợp lệ. Vui lòng nhập đúng định dạng dd-MM-yyyy." />
+                    <button class="system-log-date-trigger" type="button" title="Chọn từ ngày" aria-label="Chọn từ ngày" data-date-picker-trigger="FromDatePicker">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <rect x="3" y="4" width="18" height="17" rx="2"></rect>
+                            <path d="M8 2v4M16 2v4M3 10h18"></path>
+                        </svg>
+                    </button>
+                    <input id="FromDatePicker" class="system-log-date-native" type="date" value="@fromDatePickerValue" tabindex="-1" aria-hidden="true" data-date-picker data-date-display-id="FromDate" />
+                </div>
             </div>
             <div class="filter-field">
                 <label for="ToDate">Đến ngày</label>
-                <input id="ToDate" name="ToDate" class="form-control" type="date" value="@toDateValue" />
+                <div class="system-log-date-picker">
+                    <input id="ToDate" name="ToDate" class="form-control system-log-date-display" type="text" value="@toDateValue" placeholder="dd-MM-yyyy" inputmode="numeric" pattern="\d{1,2}-\d{1,2}-\d{4}" maxlength="10" autocomplete="off" data-date-input data-date-picker-id="ToDatePicker" data-date-separator="-" data-date-invalid-message="Ngày không hợp lệ. Vui lòng nhập đúng định dạng dd-MM-yyyy." />
+                    <button class="system-log-date-trigger" type="button" title="Chọn đến ngày" aria-label="Chọn đến ngày" data-date-picker-trigger="ToDatePicker">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <rect x="3" y="4" width="18" height="17" rx="2"></rect>
+                            <path d="M8 2v4M16 2v4M3 10h18"></path>
+                        </svg>
+                    </button>
+                    <input id="ToDatePicker" class="system-log-date-native" type="date" value="@toDatePickerValue" tabindex="-1" aria-hidden="true" data-date-picker data-date-display-id="ToDate" />
+                </div>
             </div>
             <div class="filter-actions">
                 <button class="btn btn-outline-primary" type="submit">Lọc dữ liệu</button>
                 @Html.ActionLink("Xóa", "Index", null, new { @class = "btn btn-outline-secondary" })
             </div>
+
+
         }
     </section>
 

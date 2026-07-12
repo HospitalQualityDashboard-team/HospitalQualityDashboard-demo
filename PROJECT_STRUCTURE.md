@@ -288,6 +288,7 @@ flowchart LR
 | `Content/bootstrap*.css`, `Scripts/bootstrap*.js` | Bootstrap vendor từ NuGet. |
 | `Scripts/jquery-3.7.0*`, `Scripts/jquery.validate*` | jQuery và validation vendor. |
 | `Scripts/modernizr-2.8.3.js` | Modernizr vendor. |
+| `Scripts/date-input.js` | JavaScript định dạng ngày `dd/MM/yyyy` và mở date picker qua icon lịch. |
 | `Scripts/dashboard-analysis.js` | JavaScript tự viết cho dashboard comparison/trend, fetch partial và render chart. |
 | `Scripts/*.map`, `Content/*.map` | Source map vendor. |
 
@@ -321,6 +322,7 @@ flowchart LR
 | `tools/VerifyIndicatorWarnings.ps1` | Kiểm migration, automation, dedup và UI cảnh báo chỉ số. |
 | `tools/VerifyManagementPaging.ps1` | Kiểm phân trang quản lý kỳ, chỉ số và notification. |
 | `tools/VerifyNotificationDropdown.ps1` | Kiểm dropdown thông báo trên layout. |
+| `tools/VerifyProfileUpdate.ps1` | Kiểm form cập nhật hồ sơ cá nhân. |
 | `tools/VerifyReportDetailModal.ps1` | Kiểm modal chi tiết báo cáo. |
 | `tools/VerifyReportingPeriodMaintenance.ps1` | Kiểm bảo trì kỳ báo cáo, notification automation và endpoint liên quan. |
 | `tools/VerifyReportResultAndExcelTime.ps1` | Kiểm kết quả báo cáo, làm tròn và thời gian Excel/audit. |

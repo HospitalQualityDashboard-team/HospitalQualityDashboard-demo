@@ -97,7 +97,7 @@ Admin có quyền:
 - Đăng nhập qua trang Admin.
 - Quản lý khoa/phòng.
 - Quản lý nhân viên.
-- Tạo tài khoản User cho nhân viên. (có thể thêm chức năng Import dữ liệu nhân viên và khi Import tự động tạo tài khoản User cho nhân viên tài khoản mật khẩu được tạo theo mã nhân viên và nhân viên đó sẽ được phân theo Khoa/Phòng dựa trên cột khoa Phòng)
+- Tạo tài khoản User cho nhân viên. Khi Admin tạo mới hoặc import nhân viên, hệ thống tự tạo tài khoản User với tên đăng nhập và mật khẩu ban đầu theo mã nhân viên; nhân viên được gắn khoa/phòng theo hồ sơ hoặc cột khoa/phòng trong file import.
 - Quản lý danh mục chỉ số.
 - Import chỉ số từ file nguồn.
 - Triển khai/ngừng triển khai chỉ số; khi ngừng triển khai, dữ liệu lịch sử vẫn giữ nguyên nhưng các kỳ ngoài khoảng hiệu lực không còn tính chỉ số đó vào Dashboard, nhắc hạn, báo cáo cần nộp hoặc export.
