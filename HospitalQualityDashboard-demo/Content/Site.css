@@ -727,6 +727,22 @@ a {
     vertical-align: middle;
 }
 
+.metric-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 2px 0;
+    color: var(--app-muted);
+    font-size: .86rem;
+    font-weight: 750;
+}
+
+.metric-pagination-actions {
+    display: inline-flex;
+    gap: 8px;
+}
+
 .dashboard-warning-action {
     min-width: 190px;
 }
@@ -1092,6 +1108,105 @@ a {
 .filter-field {
     display: grid;
     gap: 6px;
+}
+
+.system-log-date-picker {
+    position: relative;
+}
+
+.system-log-date-display {
+    background-color: #fff;
+    padding-right: 42px;
+}
+
+.system-log-date-native {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.system-log-date-trigger {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    display: inline-flex;
+    width: 38px;
+    align-items: center;
+    justify-content: center;
+    color: #111827;
+    background: #fff;
+    border: 0;
+    border-left: 1px solid var(--app-border);
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+}
+
+.system-log-date-trigger svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.system-log-date-trigger:hover,
+.system-log-date-trigger:focus {
+    background: #f8fafc;
+    color: var(--app-primary);
+}
+
+.app-date-picker {
+    position: relative;
+}
+
+.app-date-input {
+    padding-right: 42px;
+}
+
+.app-date-native {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.app-date-trigger {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    display: inline-flex;
+    width: 38px;
+    align-items: center;
+    justify-content: center;
+    color: #111827;
+    background: #fff;
+    border: 0;
+    border-left: 1px solid var(--app-border);
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+}
+
+.app-date-trigger svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.app-date-trigger:hover,
+.app-date-trigger:focus {
+    background: #f8fafc;
+    color: var(--app-primary);
 }
 
     .filter-field label,
@@ -2821,6 +2936,10 @@ footer {
     padding: 24px;
     background: #fff;
     box-shadow: 0 15px 40px rgba(0,0,0,.06);
+}
+
+.department-picker {
+    position: relative;
 }
 
 .employee-status-box {

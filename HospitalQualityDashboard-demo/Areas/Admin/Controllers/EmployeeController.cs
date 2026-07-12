@@ -2,6 +2,8 @@
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using HospitalQualityDashboardDemo.Services;
+using System;
+using System.Globalization;
 using System.Web.Mvc;
 
 namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
@@ -156,7 +158,14 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         // Lưu hồ sơ nhân viên theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         private ActionResult Save(NhanVienViewModel model)
         {
+            NormalizeEmployeeBirthDate(model);
             if (!ModelState.IsValid) return View("Edit", Prepare(model));
+            if (model.NhanVienId == 0 && _service.IsUsernameExists(model.MaNhanVien))
+            {
+                ModelState.AddModelError("MaNhanVien", "Mã nhân viên đã tồn tại.");
+                return View("Edit", Prepare(model));
+            }
+
             _service.Save(new EmployeeSaveDto
             {
                 NhanVienId = model.NhanVienId,
@@ -171,6 +180,40 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
                 DangHoatDong = model.DangHoatDong
             });
             return RedirectToAction("Index");
+        }
+
+        private void NormalizeEmployeeBirthDate(NhanVienViewModel model)
+        {
+            if (model == null)
+            {
+                return;
+            }
+
+            var rawNgaySinh = Request.Form["NgaySinh"];
+            if (string.IsNullOrWhiteSpace(rawNgaySinh))
+            {
+                ModelState.Remove("NgaySinh");
+                model.NgaySinh = null;
+                return;
+            }
+
+            DateTime parsedDate;
+            var formats = new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd" };
+            if (DateTime.TryParseExact(
+                rawNgaySinh.Trim(),
+                formats,
+                CultureInfo.GetCultureInfo("vi-VN"),
+                DateTimeStyles.None,
+                out parsedDate))
+            {
+                ModelState.Remove("NgaySinh");
+                model.NgaySinh = parsedDate.Date;
+                return;
+            }
+
+            ModelState.Remove("NgaySinh");
+            ModelState.AddModelError("NgaySinh", "Ngày sinh không hợp lệ. Vui lòng nhập đúng định dạng dd/MM/yyyy.");
+            model.NgaySinh = null;
         }
 
         // Nạp dropdown khoa/phòng và giữ dữ liệu nhân viên hiện tại khi form cần hiển thị lại.

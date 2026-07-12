@@ -265,6 +265,8 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\dashboard-analysis.js" />
+    <Content Include="Scripts\date-input.js" />
+    <Content Include="Scripts\filter-combobox.js" />
     <Content Include="Areas\Admin\Views\Dashboard\Index.cshtml" />
     <Content Include="ConnectionStrings.example.config" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
@@ -336,6 +338,8 @@
     <Content Include="tools\GetServicePublicApi.ps1" />
     <Content Include="tools\ServiceSourceReader.ps1" />
     <Content Include="tools\VerifyDashboardAdminSummary.ps1" />
+    <Content Include="tools\VerifyAdminFilterComboboxes.ps1" />
+    <Content Include="tools\VerifyEmployeeAutoAccountAndFormControls.ps1" />
     <Content Include="tools\VerifyEmployeeOrder.ps1" />
     <Content Include="tools\VerifyReportResultAndExcelTime.ps1" />
     <Content Include="tools\VerifyDashboardExcelDetailedExport.ps1" />
@@ -351,6 +355,7 @@
     <Content Include="tools\VerifySqlMigrations.ps1" />
     <Content Include="tools\VerifyReportingPeriodMaintenance.ps1" />
     <Content Include="tools\VerifySidebarNavigationGroups.ps1" />
+    <Content Include="tools\VerifyProfileUpdate.ps1" />
     <Content Include="tools\VerifySystemLogPage.ps1" />
     <Content Include="tools\VerifyNotificationDropdown.ps1" />
     <Content Include="tools\VerifyUnreadNotificationBadge.ps1" />

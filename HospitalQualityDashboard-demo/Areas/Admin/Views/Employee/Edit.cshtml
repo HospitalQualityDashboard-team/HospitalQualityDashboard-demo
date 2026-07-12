@@ -1,8 +1,19 @@
 @* Mục đích: form Admin cập nhật hồ sơ nhân viên và thông tin tài khoản liên quan. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.NhanVienViewModel
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using System.Web.Mvc
 
 @{
     ViewBag.Title = Model.NhanVienId == 0 ? "Thêm nhân viên" : "Sửa nhân viên";
+    var departmentOptions = Model.KhoaPhongOptions ?? new List<SelectListItem>();
+    var selectedDepartment = departmentOptions.FirstOrDefault(x => x.Value == Model.KhoaPhongId.ToString());
+    var genderOptions = new List<SelectListItem>
+    {
+        new SelectListItem { Text = "Nam", Value = "Nam", Selected = string.Equals(Model.GioiTinh, "Nam", StringComparison.OrdinalIgnoreCase) },
+        new SelectListItem { Text = "Nữ", Value = "Nữ", Selected = string.Equals(Model.GioiTinh, "Nữ", StringComparison.OrdinalIgnoreCase) }
+    };
 }
 
 <div class="form-page employee-form-page">
@@ -56,6 +67,10 @@
                             @class = "form-control",
                             placeholder = "Ví dụ: NV001"
                         })
+                    @Html.ValidationMessageFor(
+                        m => m.MaNhanVien,
+                        "",
+                        new { @class = "text-danger small" })
                 </div>
 
                 <div class="col-md-8">
@@ -78,11 +93,89 @@
                         "Khoa/phòng",
                         new { @class = "form-label fw-semibold" })
 
-                    @Html.DropDownListFor(
+                    <div class="department-picker report-filter-combobox">
+                        @Html.HiddenFor(
+                            m => m.KhoaPhongId,
+                            new { id = "KhoaPhongId" })
+
+                        <input type="text"
+                               id="KhoaPhongSearch"
+                               class="form-control report-filter-input"
+                               value="@(selectedDepartment == null ? string.Empty : selectedDepartment.Text)"
+                               placeholder="Nhập tên khoa/phòng để tìm"
+                               autocomplete="off"
+                               data-department-picker />
+
+                        <div class="department-picker-menu report-filter-options"
+                             data-department-menu
+                             role="listbox">
+                            @foreach (var option in departmentOptions)
+                            {
+                                <button type="button"
+                                        class="department-picker-option report-filter-option"
+                                        data-department-option
+                                        data-id="@option.Value"
+                                        data-name="@option.Text"
+                                        role="option">
+                                    @option.Text
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    @Html.ValidationMessageFor(
                         m => m.KhoaPhongId,
-                        Model.KhoaPhongOptions,
-                        "-- Chọn khoa/phòng --",
-                        new { @class = "form-select" })
+                        "",
+                        new { @class = "text-danger small" })
+                </div>
+
+                <div class="col-md-4">
+                    @Html.LabelFor(
+                        m => m.NgaySinh,
+                        new { @class = "form-label fw-semibold" })
+
+                    <div class="app-date-picker">
+                        @Html.TextBox(
+                            "NgaySinh",
+                            Model.NgaySinh.HasValue ? Model.NgaySinh.Value.ToString("dd/MM/yyyy") : string.Empty,
+                            new
+                            {
+                                @class = "form-control app-date-input",
+                                placeholder = "dd/MM/yyyy",
+                                inputmode = "numeric",
+                                pattern = "\\d{1,2}/\\d{1,2}/\\d{4}",
+                                maxlength = "10",
+                                autocomplete = "off",
+                                data_date_input = "",
+                                data_date_picker_id = "EmployeeNgaySinhPicker",
+                                data_date_invalid_message = "Ngày sinh không hợp lệ. Vui lòng nhập đúng định dạng dd/MM/yyyy."
+                            })
+
+                        <button class="app-date-trigger"
+                                type="button"
+                                title="Chọn ngày sinh"
+                                aria-label="Chọn ngày sinh"
+                                data-date-picker-trigger="EmployeeNgaySinhPicker">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <rect x="3" y="4" width="18" height="17" rx="2"></rect>
+                                <path d="M8 2v4M16 2v4M3 10h18"></path>
+                            </svg>
+                        </button>
+
+                        <input id="EmployeeNgaySinhPicker"
+                               class="app-date-native"
+                               type="date"
+                               value="@(Model.NgaySinh.HasValue ? Model.NgaySinh.Value.ToString("yyyy-MM-dd") : null)"
+                               tabindex="-1"
+                               aria-hidden="true"
+                               data-date-picker
+                               data-date-display-id="NgaySinh" />
+                    </div>
+
+                    @Html.ValidationMessageFor(
+                        m => m.NgaySinh,
+                        "",
+                        new { @class = "text-danger small" })
                 </div>
 
                 <div class="col-md-4">
@@ -104,12 +197,13 @@
                         m => m.GioiTinh,
                         new { @class = "form-label fw-semibold" })
 
-                    @Html.TextBoxFor(
+                    @Html.DropDownListFor(
                         m => m.GioiTinh,
+                        genderOptions,
+                        "-- Chọn giới tính --",
                         new
                         {
-                            @class = "form-control",
-                            placeholder = "Nam / Nữ"
+                            @class = "form-select"
                         })
                 </div>
 
@@ -196,3 +290,91 @@
     </div>
 
 </div>
+
+@section scripts {
+    <script>
+        (function () {
+            var input = document.querySelector("[data-department-picker]");
+            var wrapper = input ? input.closest(".report-filter-combobox") : null;
+            var hidden = document.getElementById("KhoaPhongId");
+            var menu = document.querySelector("[data-department-menu]");
+
+            if (!input || !wrapper || !hidden || !menu) {
+                return;
+            }
+
+            var maxVisibleDepartments = 5;
+            var options = Array.prototype.slice.call(menu.querySelectorAll("[data-department-option]"));
+
+            function normalizeDepartmentName(value) {
+                return (value || "").trim().toLocaleLowerCase("vi-VN");
+            }
+
+            function getMatches(ignoreQuery) {
+                var query = ignoreQuery ? "" : normalizeDepartmentName(input.value);
+                return options.filter(function (option) {
+                    var name = normalizeDepartmentName(option.getAttribute("data-name"));
+                    return !query || name.indexOf(query) >= 0;
+                });
+            }
+
+            function renderDepartmentOptions(ignoreQuery) {
+                var matches = getMatches(ignoreQuery).slice(0, maxVisibleDepartments);
+
+                options.forEach(function (option) {
+                    option.hidden = matches.indexOf(option) < 0;
+                });
+
+                if (matches.length > 0) {
+                    wrapper.classList.add("is-open");
+                } else {
+                    wrapper.classList.remove("is-open");
+                }
+            }
+
+            function hideDepartmentOptions() {
+                wrapper.classList.remove("is-open");
+            }
+
+            function updateDepartmentSelection() {
+                var selectedName = normalizeDepartmentName(input.value);
+                var selected = options.filter(function (option) {
+                    return normalizeDepartmentName(option.getAttribute("data-name")) === selectedName;
+                })[0];
+
+                hidden.value = selected ? selected.getAttribute("data-id") : "";
+            }
+
+            input.addEventListener("focus", function () {
+                renderDepartmentOptions(true);
+            });
+            input.addEventListener("click", function () {
+                renderDepartmentOptions(true);
+            });
+            input.addEventListener("input", function () {
+                updateDepartmentSelection();
+                renderDepartmentOptions();
+            });
+
+            menu.addEventListener("mousedown", function (event) {
+                var option = event.target.closest("[data-department-option]");
+                if (!option) {
+                    return;
+                }
+
+                input.value = option.getAttribute("data-name");
+                hidden.value = option.getAttribute("data-id");
+                hideDepartmentOptions();
+                event.preventDefault();
+            });
+
+            input.addEventListener("blur", function () {
+                window.setTimeout(hideDepartmentOptions, 120);
+            });
+
+            if (input.form) {
+                input.form.addEventListener("submit", updateDepartmentSelection);
+            }
+        })();
+    </script>
+}

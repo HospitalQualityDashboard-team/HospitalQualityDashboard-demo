@@ -109,9 +109,21 @@ WHERE nv.NhanVienId = @Id";
             if (model.NhanVienId == 0)
             {
                 // NhanVienId = 0 nghĩa là thêm nhân viên mới.
-                Execute(@"INSERT INTO dbo.NhanVien(MaNhanVien, HoTen, NgaySinh, GioiTinh, ChucVu, Email, SoDienThoai, KhoaPhongId, DangHoatDong)
+                ExecuteInTransaction((conn, trans) =>
+                {
+                    var newId = Scalar(conn, trans, @"INSERT INTO dbo.NhanVien(MaNhanVien, HoTen, NgaySinh, GioiTinh, ChucVu, Email, SoDienThoai, KhoaPhongId, DangHoatDong)
+OUTPUT INSERTED.NhanVienId
 VALUES(@MaNhanVien, @HoTen, @NgaySinh, @GioiTinh, @ChucVu, @Email, @SoDienThoai, @KhoaPhongId, @DangHoatDong)",
-                    EmployeeParams(model));
+                        EmployeeParams(model));
+
+                    Execute(conn, trans, @"INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, LoaiTaiKhoan, NhanVienId, KhoaPhongId, DangHoatDong)
+VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)",
+                        Param("@TenDangNhap", model.MaNhanVien),
+                        Param("@MatKhauHash", PasswordHasher.Hash(model.MaNhanVien)),
+                        Param("@LoaiTaiKhoan", (byte)LoaiTaiKhoan.User),
+                        Param("@NhanVienId", Convert.ToInt32(newId)),
+                        Param("@KhoaPhongId", model.KhoaPhongId));
+                });
                 return;
             }
 
