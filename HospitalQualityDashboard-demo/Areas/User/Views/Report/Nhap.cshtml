@@ -1,27 +1,96 @@
-﻿@* Mục đích: màn hình chọn báo cáo cần nhập cho một kỳ báo cáo. *@
+@* Mục đích: màn hình chọn báo cáo cần nhập cho một kỳ báo cáo. *@
 @model IEnumerable<HospitalQualityDashboardDemo.Models.ViewModels.ReportEntryViewModel>
+@using System.Linq
 @{
     ViewBag.Title = "Nhập báo cáo";
+    var items = (Model ?? Enumerable.Empty<HospitalQualityDashboardDemo.Models.ViewModels.ReportEntryViewModel>()).ToList();
 }
-<div class="page-header">
-    <div>
-        <h1>Nhập báo cáo</h1>
-        <p>Danh sách chỉ số được phân công cho khoa/phòng của bạn.</p>
+
+@helper ReportStatusClass(HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao status)
+{
+    switch (status)
+    {
+        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.Nhap:
+            @:status-muted
+            break;
+        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaGui:
+            @:status-warning
+            break;
+        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.QuaHan:
+            @:status-danger
+            break;
+        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaKhoa:
+            @:status-muted
+            break;
+        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.DaDuyet:
+            @:status-active
+            break;
+        case HospitalQualityDashboardDemo.Models.Enums.TrangThaiBaoCao.TraLai:
+            @:status-urgent
+            break;
+        default:
+            @:status-muted
+            break;
+    }
+}
+
+<section class="report-page">
+    <div class="page-header report-header">
+        <div>
+            <span class="dashboard-role">Báo cáo khoa/phòng</span>
+            <h1>Nhập báo cáo</h1>
+            <p>Danh sách chỉ số được phân công cho khoa/phòng của bạn.</p>
+        </div>
+        <div class="management-toolbar">
+            @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn btn-outline-secondary" })
+        </div>
     </div>
-</div>
-<table class="table table-striped table-sm">
-    <thead><tr><th>Chỉ số</th><th>Công thức</th><th>Kết quả</th><th>Trạng thái</th><th></th></tr></thead>
-    <tbody>
-        @foreach (var item in Model)
+
+    <section class="data-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Chỉ số cần nhập</h2>
+                <p>@items.Count chỉ số trong kỳ báo cáo hiện tại.</p>
+            </div>
+            <span class="status-pill status-muted">@items.Count dòng</span>
+        </div>
+
+        @if (items.Any())
         {
-            <tr>
-                <td>@item.MaChiSo - @item.TenChiSo</td>
-                <td>@item.LoaiCongThuc</td>
-                <td>@(item.KetQua.HasValue ? item.KetQua.Value.ToString("0.00") : "")</td>
-                <td>@item.TrangThai</td>
-                <td class="text-end">@Html.ActionLink("Nhập", "Edit", new { id = item.BaoCaoId, kyBaoCaoId = item.KyBaoCaoId, khoaPhongId = item.KhoaPhongId, chiSoChatLuongId = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-primary" })</td>
-            </tr>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle data-table report-table-compact">
+                    <thead>
+                        <tr>
+                            <th>Chỉ số</th>
+                            <th>Công thức</th>
+                            <th>Kết quả</th>
+                            <th>Trạng thái</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in items)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@item.MaChiSo</strong>
+                                    <div class="text-muted small">@item.TenChiSo</div>
+                                </td>
+                                <td>@item.LoaiCongThuc</td>
+                                <td>@(item.KetQua.HasValue ? item.KetQua.Value.ToString("0.00") : "Chưa có")</td>
+                                <td><span class="status-pill @ReportStatusClass(item.TrangThai)">@item.TrangThai</span></td>
+                                <td class="text-end table-actions">
+                                    @Html.ActionLink("Nhập", "Edit", new { id = item.BaoCaoId, kyBaoCaoId = item.KyBaoCaoId, khoaPhongId = item.KhoaPhongId, chiSoChatLuongId = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-primary" })
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
-        @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn btn-outline-secondary" })
-    </tbody>
-</table>
+        else
+        {
+            <div class="empty-state">Không có chỉ số cần nhập trong kỳ báo cáo này.</div>
+        }
+    </section>
+</section>
