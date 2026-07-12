@@ -329,6 +329,8 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_DashboardComparison.cshtml" />
+    <Content Include="Views\Shared\_IndicatorDetailContent.cshtml" />
+    <Content Include="Views\Shared\_IndicatorDetailModal.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_ReportDetailModal.cshtml" />
     <Content Include="Views\Account\AdminLogin.cshtml" />
@@ -351,6 +353,7 @@
     <Content Include="tools\VerifyManagementPaging.ps1" />
     <Content Include="tools\VerifyReportSubmissionNavigationAndAdminAudit.ps1" />
     <Content Include="tools\VerifyReportDetailModal.ps1" />
+    <Content Include="tools\VerifyIndicatorDetailModal.ps1" />
     <Content Include="tools\VerifyIndicatorDeploymentLifecycle.ps1" />
     <Content Include="tools\VerifySqlMigrations.ps1" />
     <Content Include="tools\VerifyReportingPeriodMaintenance.ps1" />

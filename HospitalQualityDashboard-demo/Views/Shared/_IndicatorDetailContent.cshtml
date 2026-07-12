@@ -1,0 +1,43 @@
+@* Shared readonly indicator detail content for full pages and modal bodies. *@
+@model HospitalQualityDashboardDemo.Models.ViewModels.ChiSoViewModel
+
+@helper DetailItem(string label, string value)
+{
+    <div class="indicator-detail-item">
+        <span>@label</span>
+        <strong>@(string.IsNullOrWhiteSpace(value) ? "Chưa cập nhật" : value)</strong>
+    </div>
+}
+
+<div class="indicator-detail-content">
+    <div class="indicator-detail-heading">
+        <span class="status-pill @(Model.DangHoatDong ? "status-active" : "status-muted")">@(Model.DangHoatDong ? "Đang triển khai" : "Ngừng triển khai")</span>
+        <h3>@Model.MaChiSo - @Model.TenChiSo</h3>
+    </div>
+
+    <div class="indicator-detail-grid">
+        @DetailItem("Mã chỉ số", Model.MaChiSo)
+        @DetailItem("Tên chỉ số", Model.TenChiSo)
+        @DetailItem("Tần suất", Model.TanSuatBaoCaoText)
+        @DetailItem("Công thức", Model.LoaiCongThuc.ToString())
+        @DetailItem("Đơn vị tính", Model.DonViTinh)
+        @DetailItem("Mục tiêu", Model.MucTieuHienThi)
+    </div>
+
+    <div class="indicator-detail-section">
+        <span>Định nghĩa</span>
+        <p>@(string.IsNullOrWhiteSpace(Model.DinhNghia) ? "Chưa cập nhật" : Model.DinhNghia)</p>
+    </div>
+
+    <div class="indicator-detail-section">
+        <span>Phương pháp tính</span>
+        <p>@(string.IsNullOrWhiteSpace(Model.PhuongPhapTinh) ? "Chưa cập nhật" : Model.PhuongPhapTinh)</p>
+    </div>
+
+    <div class="indicator-detail-grid">
+        @DetailItem("Tử số", Model.TuSoMoTa)
+        @DetailItem("Mẫu số", Model.MauSoMoTa)
+        @DetailItem("Nguồn số liệu", Model.NguonSoLieu)
+        @DetailItem("Thu thập/tổng hợp", Model.ThuThapTongHop)
+    </div>
+</div>

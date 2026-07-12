@@ -88,7 +88,12 @@
                             <td>@item.LoaiCongThuc</td>
                             <td><span class="status-pill @(item.DangHoatDong ? "status-active" : "status-muted")">@(item.DangHoatDong ? "Đang triển khai" : "Ngừng triển khai")</span></td>
                             <td class="text-end table-actions">
-                                @Html.ActionLink("Chi tiết", "Details", new { id = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-outline-secondary" })
+                                <a href="@Url.Action("Details", new { id = item.ChiSoChatLuongId })"
+                                   class="btn btn-sm btn-outline-secondary"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#indicatorDetailModal"
+                                   data-indicator-title="@item.MaChiSo - @item.TenChiSo"
+                                   data-indicator-detail-url="@Url.Action("DetailsPartial", new { id = item.ChiSoChatLuongId })">Chi tiết</a>
                                 @if (isAdmin)
                                 {
                                     @Html.ActionLink("Sửa", "Edit", new { id = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-outline-primary" })
@@ -125,3 +130,5 @@
     }
 </section>
 </section>
+
+@Html.Partial("_IndicatorDetailModal")

@@ -42,6 +42,23 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             return View(model);
         }
 
+        // Tải nội dung chi tiết chỉ số cho modal danh sách, vẫn giữ kiểm tra scope khoa/phòng của User.
+        public ActionResult DetailsPartial(int id)
+        {
+            var model = _service.Get(id);
+            if (model == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!CurrentKhoaPhongId.HasValue || !_service.IsAssigned(id, CurrentKhoaPhongId.Value))
+            {
+                return new HttpUnauthorizedResult("Bạn không có quyền xem chi tiết chỉ số này.");
+            }
+
+            return PartialView("~/Views/Shared/_IndicatorDetailContent.cshtml", model);
+        }
+
         // Chuẩn hóa số trang để tránh page âm/0 làm sai truy vấn phân trang.
         private static int NormalizePage(int page)
         {

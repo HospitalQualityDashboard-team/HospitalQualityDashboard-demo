@@ -1345,6 +1345,7 @@ a {
         padding-bottom: .48rem;
     }
 
+.indicator-detail-modal .modal-dialog,
 .report-detail-modal .modal-dialog,
 .report-reject-modal .modal-dialog {
     max-width: 1040px;
@@ -1354,6 +1355,7 @@ a {
     max-width: 640px;
 }
 
+.indicator-detail-modal .modal-content,
 .report-detail-modal .modal-content,
 .report-reject-modal .modal-content {
     border: 1px solid rgba(189, 203, 215, .9);
@@ -1361,6 +1363,7 @@ a {
     box-shadow: 0 24px 60px rgba(20, 32, 51, .2);
 }
 
+.indicator-detail-modal .modal-header,
 .report-detail-modal .modal-header,
 .report-reject-modal .modal-header {
     align-items: flex-start;
@@ -1368,6 +1371,7 @@ a {
     background: var(--app-surface-soft);
 }
 
+.indicator-detail-modal .modal-title,
 .report-detail-modal .modal-title,
 .report-reject-modal .modal-title {
     margin: 3px 0 0;
@@ -1424,6 +1428,70 @@ a {
     margin-top: 12px;
 }
 
+.indicator-detail-content {
+    display: grid;
+    gap: 12px;
+}
+
+.indicator-detail-heading {
+    display: grid;
+    gap: 8px;
+    padding-bottom: 4px;
+}
+
+    .indicator-detail-heading h3 {
+        margin: 0;
+        color: var(--app-text);
+        font-size: 1.15rem;
+        font-weight: 850;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+.indicator-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.indicator-detail-item,
+.indicator-detail-section {
+    min-width: 0;
+    padding: 12px;
+    background: var(--app-surface-soft);
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+}
+
+    .indicator-detail-item span,
+    .indicator-detail-section span {
+        display: block;
+        color: var(--app-muted);
+        font-size: .76rem;
+        font-weight: 850;
+        text-transform: uppercase;
+    }
+
+    .indicator-detail-item strong,
+    .indicator-detail-section p {
+        display: block;
+        margin: 5px 0 0;
+        color: var(--app-text);
+        font-weight: 780;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+.indicator-detail-loading {
+    padding: 18px;
+    color: var(--app-muted);
+    font-weight: 750;
+    text-align: center;
+    background: var(--app-surface-soft);
+    border: 1px dashed var(--app-border);
+    border-radius: 8px;
+}
+
 .report-reject-context {
     display: grid;
     gap: 10px;
@@ -1450,11 +1518,13 @@ a {
         overflow-wrap: anywhere;
     }
 
+body.indicator-detail-modal-open .app-shell,
 body.report-detail-modal-open .app-shell,
 body.report-reject-modal-open .app-shell {
     transition: filter 160ms ease;
 }
 
+body.indicator-detail-modal-open .modal-backdrop.show,
 body.report-detail-modal-open .modal-backdrop.show,
 body.report-reject-modal-open .modal-backdrop.show {
     opacity: .62;
@@ -1977,6 +2047,7 @@ footer {
         margin: 12px;
     }
 
+    .indicator-detail-grid,
     .report-detail-grid {
         grid-template-columns: 1fr;
     }

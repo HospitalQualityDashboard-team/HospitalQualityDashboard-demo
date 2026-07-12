@@ -28,6 +28,13 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
             return model == null ? (ActionResult)HttpNotFound() : View(model);
         }
 
+        // Tải nội dung chi tiết chỉ số cho modal danh sách, dùng chung partial với trang chi tiết đầy đủ.
+        public ActionResult DetailsPartial(int id)
+        {
+            var model = _service.Get(id);
+            return model == null ? (ActionResult)HttpNotFound() : PartialView("~/Views/Shared/_IndicatorDetailContent.cshtml", model);
+        }
+
         // Khởi tạo dữ liệu cho màn hình tạo mới chỉ số chất lượng.
         public ActionResult Create()
         {
