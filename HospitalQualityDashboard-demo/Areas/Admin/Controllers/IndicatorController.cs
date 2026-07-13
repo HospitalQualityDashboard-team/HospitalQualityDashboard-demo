@@ -3,6 +3,7 @@ using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using HospitalQualityDashboardDemo.Services;
+using System.Data.SqlClient;
 using System.Web.Mvc;
 
 namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
@@ -121,37 +122,59 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         // Lưu chỉ số chất lượng theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         private ActionResult Save(ChiSoViewModel model)
         {
+            model.DonViTinh = IndicatorFormulaDisplay.GetUnit(model.LoaiCongThuc);
             if (!ModelState.IsValid) return View("Edit", Prepare(model));
-            _service.Save(new IndicatorSaveDto
+
+            if (_service.IsCodeExists(model.MaChiSo, model.ChiSoChatLuongId))
             {
-                ChiSoChatLuongId = model.ChiSoChatLuongId,
-                MaChiSo = model.MaChiSo,
-                SoThuTu = model.SoThuTu,
-                TenChiSo = model.TenChiSo,
-                DinhNghia = model.DinhNghia,
-                LinhVucApDung = model.LinhVucApDung,
-                KhiaCanhChatLuong = model.KhiaCanhChatLuong,
-                ThanhToChatLuong = model.ThanhToChatLuong,
-                LyDoLuaChon = model.LyDoLuaChon,
-                PhuongPhapTinh = model.PhuongPhapTinh,
-                TuSoMoTa = model.TuSoMoTa,
-                MauSoMoTa = model.MauSoMoTa,
-                NguonSoLieu = model.NguonSoLieu,
-                ThuThapTongHop = model.ThuThapTongHop,
-                KhoaPhongThuThapId = model.KhoaPhongThuThapId,
-                KhoaPhongTongHopId = model.KhoaPhongTongHopId,
-                GiaTriSoLieu = model.GiaTriSoLieu,
-                TanSuatBaoCao = model.TanSuatBaoCao,
-                SelectedTanSuatBaoCaoValues = model.SelectedTanSuatBaoCaoValues,
-                TanSuatBaoCaos = model.TanSuatBaoCaos,
-                LoaiCongThuc = model.LoaiCongThuc,
-                DonViTinh = model.DonViTinh,
-                DangHoatDong = model.DangHoatDong,
-                NamMucTieu = model.NamMucTieu,
-                ToanTuSoSanh = model.ToanTuSoSanh,
-                GiaTriMucTieu = model.GiaTriMucTieu,
-                MoTaMucTieu = model.MoTaMucTieu
-            });
+                ModelState.AddModelError("MaChiSo", "Mã chỉ số đã tồn tại, vui lòng nhập mã khác.");
+                return View("Edit", Prepare(model));
+            }
+
+            try
+            {
+                _service.Save(new IndicatorSaveDto
+                {
+                    ChiSoChatLuongId = model.ChiSoChatLuongId,
+                    MaChiSo = model.MaChiSo,
+                    SoThuTu = model.SoThuTu,
+                    TenChiSo = model.TenChiSo,
+                    DinhNghia = model.DinhNghia,
+                    LinhVucApDung = model.LinhVucApDung,
+                    KhiaCanhChatLuong = model.KhiaCanhChatLuong,
+                    ThanhToChatLuong = model.ThanhToChatLuong,
+                    LyDoLuaChon = model.LyDoLuaChon,
+                    PhuongPhapTinh = model.PhuongPhapTinh,
+                    TuSoMoTa = model.TuSoMoTa,
+                    MauSoMoTa = model.MauSoMoTa,
+                    NguonSoLieu = model.NguonSoLieu,
+                    ThuThapTongHop = model.ThuThapTongHop,
+                    KhoaPhongThuThapId = model.KhoaPhongThuThapId,
+                    KhoaPhongTongHopId = model.KhoaPhongTongHopId,
+                    GiaTriSoLieu = model.GiaTriSoLieu,
+                    TanSuatBaoCao = model.TanSuatBaoCao,
+                    SelectedTanSuatBaoCaoValues = model.SelectedTanSuatBaoCaoValues,
+                    TanSuatBaoCaos = model.TanSuatBaoCaos,
+                    LoaiCongThuc = model.LoaiCongThuc,
+                    DonViTinh = model.DonViTinh,
+                    DangHoatDong = model.DangHoatDong,
+                    NamMucTieu = model.NamMucTieu,
+                    ToanTuSoSanh = model.ToanTuSoSanh,
+                    GiaTriMucTieu = model.GiaTriMucTieu,
+                    MoTaMucTieu = model.MoTaMucTieu
+                });
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Number == 2601 || ex.Number == 2627)
+                {
+                    ModelState.AddModelError("MaChiSo", "Mã chỉ số đã tồn tại, vui lòng nhập mã khác.");
+                    return View("Edit", Prepare(model));
+                }
+
+                throw;
+            }
+
             return RedirectToAction("Index");
         }
 
@@ -159,6 +182,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         private ChiSoViewModel Prepare(ChiSoViewModel model)
         {
             model.TanSuatBaoCaoOptions = FrequencyHelper.GetFrequencyOptions(model.TanSuatBaoCaos ?? new[] { model.TanSuatBaoCao });
+            model.DonViTinh = IndicatorFormulaDisplay.GetUnit(model.LoaiCongThuc);
             return model;
         }
 

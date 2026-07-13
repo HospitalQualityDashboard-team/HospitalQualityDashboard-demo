@@ -223,6 +223,7 @@
     <Compile Include="Services\Indicators\AssignmentService.Commands.cs" />
     <Compile Include="Services\Indicators\AssignmentService.Groups.cs" />
     <Compile Include="Services\Indicators\AssignmentService.Queries.cs" />
+    <Compile Include="Services\Indicators\IndicatorFormulaDisplay.cs" />
     <Compile Include="Services\Indicators\IndicatorService.cs" />
     <Compile Include="Services\Indicators\IndicatorService.Deployment.cs" />
     <Compile Include="Services\Indicators\IndicatorService.Departments.cs" />
@@ -349,6 +350,7 @@
     <Content Include="tools\VerifyDashboardPeriodComparison.ps1" />
     <Content Include="tools\VerifyDashboardMetricDetails.ps1" />
     <Content Include="tools\VerifyIndicatorWarningMessages.ps1" />
+    <Content Include="tools\VerifyIndicatorFormulaUnitsAndSpecificErrors.ps1" />
     <Content Include="tools\VerifyIndicatorWarnings.ps1" />
     <Content Include="tools\VerifyManagementPaging.ps1" />
     <Content Include="tools\VerifyReportSubmissionNavigationAndAdminAudit.ps1" />

@@ -159,6 +159,18 @@ ORDER BY ChiSoChatLuongId DESC",
             return Get(id, null);
         }
 
+        public bool IsCodeExists(string code, int excludingIndicatorId)
+        {
+            var count = Convert.ToInt32(Scalar(@"
+SELECT COUNT(*)
+FROM dbo.ChiSoChatLuong
+WHERE MaChiSo = @MaChiSo
+  AND ChiSoChatLuongId <> @ChiSoChatLuongId",
+                Param("@MaChiSo", code),
+                Param("@ChiSoChatLuongId", excludingIndicatorId)));
+            return count > 0;
+        }
+
         // Lấy một bản ghi chỉ số chất lượng theo khóa chính; trả null khi không tìm thấy để tầng gọi xử lý 404/empty state.
         public ChiSoViewModel Get(int id, int? targetYear)
         {
@@ -286,21 +298,47 @@ WHERE ChiSoChatLuongId=@ChiSoChatLuongId", parameters);
         // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của danh mục chỉ số chất lượng.
         public void Delete(int id)
         {
-            ExecuteInTransaction((conn, trans) =>
+            try
             {
-                var reportCount = Convert.ToInt32(Scalar(conn, trans, "SELECT COUNT(*) FROM dbo.BaoCao WHERE ChiSoChatLuongId=@Id", Param("@Id", id)));
-                if (reportCount > 0)
+                ExecuteInTransaction((conn, trans) =>
                 {
-                    throw new InvalidOperationException("Chỉ số đã có báo cáo, vui lòng khóa thay vì xóa.");
-                }
+                    var reportCount = Convert.ToInt32(Scalar(conn, trans, "SELECT COUNT(*) FROM dbo.BaoCao WHERE ChiSoChatLuongId=@Id", Param("@Id", id)));
+                    if (reportCount > 0)
+                    {
+                        throw new InvalidOperationException("Không thể xóa vì chỉ số đã phát sinh báo cáo. Vui lòng ngừng triển khai thay vì xóa.");
+                    }
 
-                Execute(conn, trans, "DELETE FROM dbo.ChiSoTanSuatBaoCao WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
-                Execute(conn, trans, "DELETE FROM dbo.PhanCongChiSo WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
-                Execute(conn, trans, "DELETE FROM dbo.ChiSoMucTieu WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
-                Execute(conn, trans, "IF OBJECT_ID('dbo.LichSuTrienKhaiChiSo', 'U') IS NOT NULL DELETE FROM dbo.LichSuTrienKhaiChiSo WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
-                Execute(conn, trans, "DELETE FROM dbo.ChiSoChatLuong WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
-            });
-            DropdownCache.Remove("dropdown:indicators");
+                    var assignmentCount = Convert.ToInt32(Scalar(conn, trans, "SELECT COUNT(*) FROM dbo.PhanCongChiSo WHERE ChiSoChatLuongId=@Id", Param("@Id", id)));
+                    if (assignmentCount > 0)
+                    {
+                        throw new InvalidOperationException("Không thể xóa vì chỉ số đang được phân công cho khoa/phòng.");
+                    }
+
+                    var notificationCount = Convert.ToInt32(Scalar(conn, trans, @"
+SELECT
+    (SELECT COUNT(*) FROM dbo.ThongBao WHERE ChiSoChatLuongId=@Id) +
+    (SELECT COUNT(*) FROM dbo.ThongBaoTuDongLog WHERE ChiSoChatLuongId=@Id)",
+                        Param("@Id", id)));
+                    if (notificationCount > 0)
+                    {
+                        throw new InvalidOperationException("Không thể xóa vì chỉ số đã có thông báo hoặc cảnh báo liên quan.");
+                    }
+
+                    Execute(conn, trans, "DELETE FROM dbo.ChiSoTanSuatBaoCao WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
+                    Execute(conn, trans, "DELETE FROM dbo.ChiSoMucTieu WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
+                    Execute(conn, trans, "IF OBJECT_ID('dbo.LichSuTrienKhaiChiSo', 'U') IS NOT NULL DELETE FROM dbo.LichSuTrienKhaiChiSo WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
+                    Execute(conn, trans, "DELETE FROM dbo.ChiSoChatLuong WHERE ChiSoChatLuongId=@Id", Param("@Id", id));
+                });
+                DropdownCache.Remove("dropdown:indicators");
+            }
+            catch (InvalidOperationException)
+            {
+                throw;
+            }
+            catch (SqlException ex)
+            {
+                throw new InvalidOperationException("Dữ liệu đã được sử dụng, không thể xóa.", ex);
+            }
         }
 
         // Đọc, kiểm tra và nhập dữ liệu từ tệp tải lên.

@@ -2,6 +2,7 @@
 using HospitalQualityDashboardDemo.Models.DTOs;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using HospitalQualityDashboardDemo.Services;
+using System.Data.SqlClient;
 using System.Web.Mvc;
 
 namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
@@ -115,14 +116,34 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         private ActionResult Save(KhoaPhongViewModel model)
         {
             if (!ModelState.IsValid) return View("Edit", model);
-            _service.Save(new DepartmentSaveDto
+            if (_service.IsSourceIdExists(model.IdKhoaPhongNguon, model.KhoaPhongId))
             {
-                KhoaPhongId = model.KhoaPhongId,
-                IdKhoaPhongNguon = model.IdKhoaPhongNguon,
-                TenKhoaPhong = model.TenKhoaPhong,
-                Used = model.Used,
-                GhiChu = model.GhiChu
-            });
+                ModelState.AddModelError("IdKhoaPhongNguon", "Mã khoa/phòng nguồn đã tồn tại, vui lòng nhập mã khác.");
+                return View("Edit", model);
+            }
+
+            try
+            {
+                _service.Save(new DepartmentSaveDto
+                {
+                    KhoaPhongId = model.KhoaPhongId,
+                    IdKhoaPhongNguon = model.IdKhoaPhongNguon,
+                    TenKhoaPhong = model.TenKhoaPhong,
+                    Used = model.Used,
+                    GhiChu = model.GhiChu
+                });
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Number == 2601 || ex.Number == 2627)
+                {
+                    ModelState.AddModelError("IdKhoaPhongNguon", "Mã khoa/phòng nguồn đã tồn tại, vui lòng nhập mã khác.");
+                    return View("Edit", model);
+                }
+
+                throw;
+            }
+
             return RedirectToAction("Index");
         }
 

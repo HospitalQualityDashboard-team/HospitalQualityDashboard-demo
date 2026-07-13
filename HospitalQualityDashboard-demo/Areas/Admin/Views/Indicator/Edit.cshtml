@@ -1,8 +1,10 @@
 ﻿@* Mục đích: form thêm mới hoặc cập nhật chỉ số chất lượng. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.ChiSoViewModel
 @using HospitalQualityDashboardDemo.Models.Enums
+@using HospitalQualityDashboardDemo.Services
 @{
     ViewBag.Title = Model.ChiSoChatLuongId == 0 ? "Thêm chỉ số" : "Sửa chỉ số";
+    Model.DonViTinh = IndicatorFormulaDisplay.GetUnit(Model.LoaiCongThuc);
 }
 
 <div class="form-page indicator-form-page hospital-blue-form">
@@ -79,14 +81,19 @@
                     <div class="col-md-4">
                         <label class="form-label" for="LoaiCongThuc">Loại công thức <span class="text-danger">*</span></label>
                         <span class="form-text d-block mb-1">Quyết định cách tính kết quả</span>
-                        @Html.DropDownListFor(m => m.LoaiCongThuc, new SelectList(Enum.GetValues(typeof(LoaiCongThuc)), Model.LoaiCongThuc), new { @class = "form-select indicator-input" })
+                        @Html.DropDownListFor(m => m.LoaiCongThuc, new SelectList(IndicatorFormulaDisplay.GetFormulaLabels(), "Key", "Value", Model.LoaiCongThuc.ToString()), new { @class = "form-select indicator-input" })
                         @Html.ValidationMessageFor(m => m.LoaiCongThuc, "", new { @class = "text-danger small" })
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label" for="DonViTinh">Đơn vị tính</label>
-                        <span class="form-text d-block mb-1">Ví dụ: %, lượt, ngày, điểm...</span>
-                        @Html.TextBoxFor(m => m.DonViTinh, new { @class = "form-control indicator-input", placeholder = "Ví dụ: %" })
+                        <span class="form-text d-block mb-1">Tự động theo loại công thức</span>
+                        <div class="form-control indicator-input bg-light indicator-unit-display"
+                             aria-live="polite"
+                             data-formula-units='@Html.Raw(IndicatorFormulaDisplay.GetUnitMapJson())'>
+                            @Model.DonViTinh
+                        </div>
+                        @Html.HiddenFor(m => m.DonViTinh)
                         @Html.ValidationMessageFor(m => m.DonViTinh, "", new { @class = "text-danger small" })
                     </div>
                 </div>
@@ -189,4 +196,31 @@
 
 @section scripts {
     @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        (function () {
+            var formulaSelect = document.getElementById('LoaiCongThuc');
+            var unitInput = document.getElementById('DonViTinh');
+            var unitDisplay = document.querySelector('[data-formula-units]');
+
+            if (!formulaSelect || !unitInput || !unitDisplay) {
+                return;
+            }
+
+            var units = {};
+            try {
+                units = JSON.parse(unitDisplay.getAttribute('data-formula-units') || '{}');
+            } catch (error) {
+                units = {};
+            }
+
+            function syncUnit() {
+                var unit = units[formulaSelect.value] || '';
+                unitInput.value = unit;
+                unitDisplay.textContent = unit || 'Chưa xác định';
+            }
+
+            formulaSelect.addEventListener('change', syncUnit);
+            syncUnit();
+        })();
+    </script>
 }

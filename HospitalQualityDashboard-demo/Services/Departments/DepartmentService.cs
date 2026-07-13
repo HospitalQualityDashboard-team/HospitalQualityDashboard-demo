@@ -67,6 +67,18 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
                 MapDepartment, Param("@Id", id));
         }
 
+        public bool IsSourceIdExists(int sourceId, int excludingDepartmentId)
+        {
+            var count = Convert.ToInt32(Scalar(@"
+SELECT COUNT(*)
+FROM dbo.KhoaPhong
+WHERE IdKhoaPhongNguon = @IdKhoaPhongNguon
+  AND KhoaPhongId <> @KhoaPhongId",
+                Param("@IdKhoaPhongNguon", sourceId),
+                Param("@KhoaPhongId", excludingDepartmentId)));
+            return count > 0;
+        }
+
         // Dựng danh sách lựa chọn danh mục khoa/phòng cho dropdown, chỉ gồm các bản ghi phù hợp với trạng thái sử dụng.
         public IList<SelectListItem> GetOptions()
         {
@@ -131,20 +143,50 @@ WHERE KhoaPhongId = @KhoaPhongId",
         // Xóa bản ghi được chọn sau khi áp dụng các ràng buộc của danh mục khoa/phòng.
         public void Delete(int id)
         {
-            var dependentCount = Convert.ToInt32(Scalar(@"
-SELECT
-    (SELECT COUNT(*) FROM dbo.NhanVien WHERE KhoaPhongId=@Id) +
-    (SELECT COUNT(*) FROM dbo.TaiKhoan WHERE KhoaPhongId=@Id) +
-    (SELECT COUNT(*) FROM dbo.PhanCongChiSo WHERE KhoaPhongId=@Id) +
-    (SELECT COUNT(*) FROM dbo.BaoCao WHERE KhoaPhongId=@Id)",
-                Param("@Id", id)));
-            if (dependentCount > 0)
+            try
             {
-                throw new InvalidOperationException("Khoa/phòng đã có dữ liệu liên quan, vui lòng khóa thay vì xóa.");
-            }
+                if (HasDepartmentDependency("SELECT COUNT(*) FROM dbo.NhanVien WHERE KhoaPhongId=@Id", id))
+                {
+                    throw new InvalidOperationException("Không thể xóa vì khoa/phòng đang có nhân viên. Vui lòng khóa khoa/phòng thay vì xóa.");
+                }
 
-            Execute("DELETE FROM dbo.KhoaPhong WHERE KhoaPhongId=@Id", Param("@Id", id));
-            DropdownCache.Remove("dropdown:departments");
+                if (HasDepartmentDependency("SELECT COUNT(*) FROM dbo.TaiKhoan WHERE KhoaPhongId=@Id", id))
+                {
+                    throw new InvalidOperationException("Không thể xóa vì khoa/phòng đang có tài khoản người dùng.");
+                }
+
+                if (HasDepartmentDependency("SELECT COUNT(*) FROM dbo.PhanCongChiSo WHERE KhoaPhongId=@Id", id))
+                {
+                    throw new InvalidOperationException("Không thể xóa vì khoa/phòng đang được phân công chỉ số. Vui lòng tạm dừng phân công hoặc khóa khoa/phòng.");
+                }
+
+                if (HasDepartmentDependency("SELECT COUNT(*) FROM dbo.BaoCao WHERE KhoaPhongId=@Id", id))
+                {
+                    throw new InvalidOperationException("Không thể xóa vì khoa/phòng đã phát sinh báo cáo. Vui lòng khóa khoa/phòng thay vì xóa.");
+                }
+
+                if (HasDepartmentDependency("SELECT COUNT(*) FROM dbo.ChiSoChatLuong WHERE KhoaPhongThuThapId=@Id OR KhoaPhongTongHopId=@Id", id))
+                {
+                    throw new InvalidOperationException("Không thể xóa vì khoa/phòng đang được gắn làm đơn vị thu thập/tổng hợp chỉ số.");
+                }
+
+                Execute("DELETE FROM dbo.KhoaPhong WHERE KhoaPhongId=@Id", Param("@Id", id));
+                DropdownCache.Remove("dropdown:departments");
+            }
+            catch (InvalidOperationException)
+            {
+                throw;
+            }
+            catch (SqlException ex)
+            {
+                throw new InvalidOperationException("Dữ liệu đã được sử dụng, không thể xóa.", ex);
+            }
+        }
+
+        private bool HasDepartmentDependency(string sql, int id)
+        {
+            var count = Convert.ToInt32(Scalar(sql, Param("@Id", id)));
+            return count > 0;
         }
 
         // Đọc, kiểm tra và nhập dữ liệu từ tệp tải lên.
