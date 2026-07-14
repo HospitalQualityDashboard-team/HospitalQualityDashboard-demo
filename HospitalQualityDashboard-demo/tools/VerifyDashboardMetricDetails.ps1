@@ -17,7 +17,7 @@ $checks = @(
     @{ Source = $viewModel; Token = 'public bool CanSendWarning { get; set; }' },
     @{ Source = $service; Token = 'GetAdminMetricDetails' },
     @{ Source = $service; Token = 'GetUserMetricDetails' },
-    @{ Source = $service; Token = 'model.MetricDetails = GetUserMetricDetails(departmentId.Value, tanSuatFilter)' },
+    @{ Source = $service; Token = 'model.MetricDetails = GetUserMetricDetails(departmentId.Value, tanSuatFilter, "active")' },
     @{ Source = $service; Token = 'pc.KhoaPhongId = @KhoaPhongId' },
     @{ Source = $service; Token = 'ky.TrangThai AS TrangThaiKyBaoCao' },
     @{ Source = $service; Token = 'TrangThaiKyBaoCao.Khoa' },
