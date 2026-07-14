@@ -78,6 +78,7 @@ namespace HospitalQualityDashboardDemo.Services
                 TrangThaiNhapLieu = query.TrangThaiNhapLieu,
                 TrangThaiDuyet = query.TrangThaiDuyet,
                 DatMucTieu = query.DatMucTieu,
+                DepartmentStatusFilter = userContext.IsAdmin ? NormalizeDepartmentStatusFilter(query.DepartmentStatusFilter) : "active",
                 ComparisonPeriodIds = query.ComparisonPeriodIds == null
                     ? new int[0]
                     : query.ComparisonPeriodIds.Where(x => x > 0).Distinct().ToArray()
@@ -96,6 +97,13 @@ namespace HospitalQualityDashboardDemo.Services
             }
 
             return normalized;
+        }
+
+        private static string NormalizeDepartmentStatusFilter(string statusFilter)
+        {
+            if (string.Equals(statusFilter, "locked", StringComparison.OrdinalIgnoreCase)) return "locked";
+            if (string.Equals(statusFilter, "all", StringComparison.OrdinalIgnoreCase)) return "all";
+            return "active";
         }
     }
 }

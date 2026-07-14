@@ -13,13 +13,16 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         private readonly DepartmentService _service = new DepartmentService();
 
         // Hiển thị danh sách và các bộ lọc của danh mục khoa/phòng.
-        public ActionResult Index(string search, int page = 1)
+        public ActionResult Index(string search, string statusFilter = "all", int page = 1)
         {
+            statusFilter = DepartmentService.NormalizeStatusFilter(statusFilter);
             int totalItems;
-            var items = _service.GetAll(search, page, DefaultPageSize, out totalItems);
+            var items = _service.GetAll(search, statusFilter, page, DefaultPageSize, out totalItems);
             return View(new KhoaPhongIndexViewModel
             {
                 Search = search,
+                StatusFilter = statusFilter,
+                StatusOptions = _service.GetStatusOptions(statusFilter),
                 Items = items,
                 KhoaPhongOptions = _service.GetOptions(),
                 Page = NormalizePage(page),
@@ -99,9 +102,12 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         {
             var result = _service.Import(model.File, CurrentTaiKhoanId.Value);
             int totalItems;
-            var items = _service.GetAll(null, 1, DefaultPageSize, out totalItems);
+            var statusFilter = "all";
+            var items = _service.GetAll(null, statusFilter, 1, DefaultPageSize, out totalItems);
             return View("Index", new KhoaPhongIndexViewModel
             {
+                StatusFilter = statusFilter,
+                StatusOptions = _service.GetStatusOptions(statusFilter),
                 Items = items,
                 KhoaPhongOptions = _service.GetOptions(),
                 ImportResult = result,

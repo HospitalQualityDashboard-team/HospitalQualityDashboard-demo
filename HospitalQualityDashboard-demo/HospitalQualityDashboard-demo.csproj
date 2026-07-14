@@ -352,6 +352,7 @@
     <Content Include="tools\VerifyIndicatorWarningMessages.ps1" />
     <Content Include="tools\VerifyIndicatorFormulaUnitsAndSpecificErrors.ps1" />
     <Content Include="tools\VerifyIndicatorWarnings.ps1" />
+    <Content Include="tools\VerifyLockedDepartmentLifecycle.ps1" />
     <Content Include="tools\VerifyManagementPaging.ps1" />
     <Content Include="tools\VerifyReportSubmissionNavigationAndAdminAudit.ps1" />
     <Content Include="tools\VerifyReportDetailModal.ps1" />

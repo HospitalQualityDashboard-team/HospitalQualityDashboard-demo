@@ -44,6 +44,7 @@ LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
     AND bc.TrangThai IN (@DaGui, @QuaHan, @DaKhoa, @DaDuyet)
 WHERE ky.TrangThai = @Mo
   AND pc.KhoaPhongId = @KhoaPhongId
+  AND EXISTS (SELECT 1 FROM dbo.KhoaPhong kp WHERE kp.KhoaPhongId = pc.KhoaPhongId AND kp.Used = 1)
   AND (@KyBaoCaoId IS NULL OR ky.KyBaoCaoId = @KyBaoCaoId)
   AND (@ChiSoChatLuongId IS NULL OR cs.ChiSoChatLuongId = @ChiSoChatLuongId)
   AND (@OverdueOnly = 0 OR DATEDIFF(day, @Today, ky.HanNop) < 0)

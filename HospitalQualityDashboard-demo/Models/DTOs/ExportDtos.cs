@@ -39,6 +39,7 @@ namespace HospitalQualityDashboardDemo.Models.DTOs
         public int? TrangThaiNhapLieu { get; set; }
         public int? TrangThaiDuyet { get; set; }
         public bool? DatMucTieu { get; set; }
+        public string DepartmentStatusFilter { get; set; }
         public int[] ComparisonPeriodIds { get; set; }
         public string DashboardTab { get; set; }
         public int Page { get; set; }

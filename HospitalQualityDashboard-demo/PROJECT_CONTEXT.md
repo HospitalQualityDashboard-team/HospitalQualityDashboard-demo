@@ -16,6 +16,7 @@ Người dùng chính:
 ### Danh mục nền
 
 - Khoa/phòng có trạng thái sử dụng để lọc dropdown và phân quyền scope.
+- Khoa/phòng bị khóa/ngưng sử dụng vẫn giữ dữ liệu lịch sử, nhưng không được phát sinh phân công, nhân viên, tài khoản, báo cáo, nhắc hạn hoặc cảnh báo mới.
 - Nhân viên liên kết khoa/phòng; Admin có thể tạo tài khoản User từ nhân viên.
 - Tài khoản có hai vai trò chính: Admin và User.
 - User có thể cập nhật hồ sơ cá nhân và đổi mật khẩu.
@@ -47,6 +48,7 @@ Người dùng chính:
 
 - Dashboard Admin tổng hợp toàn viện; Dashboard User luôn bị giới hạn theo khoa/phòng trong session.
 - Các KPI chính dựa trên slot cần nộp `(kỳ, khoa/phòng, chỉ số)`.
+- Dashboard tiến độ hiện tại mặc định chỉ tính khoa/phòng đang hoạt động; dữ liệu lịch sử vẫn có thể lọc/xuất theo trạng thái khoa/phòng khi Admin cần tra cứu.
 - Dashboard có drill-down theo metric, cảnh báo chỉ số chưa nộp, so sánh tiến độ nhiều kỳ và xu hướng.
 - Export Excel gồm danh sách nghiệp vụ, Dashboard tiến độ và Dashboard chi tiết nhiều sheet.
 - Mỗi lần xuất Dashboard chi tiết được ghi vào `LichSuXuatBaoCao` để audit.
@@ -145,6 +147,7 @@ Các script SQL:
 
 - Admin được xem và thao tác dữ liệu toàn viện.
 - User chỉ được xem dữ liệu thuộc `KhoaPhongId` trong session.
+- User thuộc khoa/phòng đã khóa bị chặn đăng nhập/session và không được thao tác nghiệp vụ báo cáo.
 - `AdminBaseController` và `UserBaseController` ép role ở server-side.
 - Service nhận context/scope từ controller, đặc biệt trong Dashboard, Report, Export và Notification.
 - UI có thể ẩn nút theo vai trò, nhưng kiểm quyền bắt buộc nằm ở controller/service.

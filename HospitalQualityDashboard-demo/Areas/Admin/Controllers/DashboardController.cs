@@ -21,7 +21,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
         {
             RunReportingPeriodMaintenance();
             query = query ?? new DashboardExcelExportQueryDto();
-            var model = _service.GetDashboard(true, null, query.TanSuat);
+            var model = _service.GetDashboard(true, null, query.TanSuat, query.DepartmentStatusFilter);
             _service.PrepareExportFilters(model, query, true, null);
             return View(model);
         }

@@ -66,11 +66,11 @@ if ($viewModel -notmatch 'KhoaPhongIndexViewModel[\s\S]*PageSize[\s\S]*TotalItem
     throw 'Department view model must expose paging metadata.'
 }
 
-if ($departmentController -notmatch 'ActionResult Index\(string search, int page = 1\)') {
+if ($departmentController -notmatch 'ActionResult Index\(string search, string statusFilter = "all", int page = 1\)') {
     throw 'Department Index must accept a page parameter.'
 }
 
-if ($departmentController -notmatch 'GetAll\(search, page, DefaultPageSize, out totalItems\)') {
+if ($departmentController -notmatch 'GetAll\(search, statusFilter, page, DefaultPageSize, out totalItems\)') {
     throw 'Department Index must request one page from the service.'
 }
 

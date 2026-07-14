@@ -80,6 +80,7 @@ FROM dbo.KyBaoCao",
                 TrangThaiNhapLieu = source.TrangThaiNhapLieu,
                 TrangThaiDuyet = source.TrangThaiDuyet,
                 DatMucTieu = source.DatMucTieu,
+                DepartmentStatusFilter = source.DepartmentStatusFilter,
                 ComparisonPeriodIds = new int[0]
             };
         }

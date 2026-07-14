@@ -52,7 +52,7 @@ namespace HospitalQualityDashboardDemo.Services
                 indPlaceholders.Add(paramName);
             }
 
-            var depts = Query("SELECT KhoaPhongId, TenKhoaPhong FROM dbo.KhoaPhong WHERE KhoaPhongId IN (" + string.Join(",", deptPlaceholders) + ")",
+            var depts = Query("SELECT KhoaPhongId, TenKhoaPhong FROM dbo.KhoaPhong WHERE Used = 1 AND KhoaPhongId IN (" + string.Join(",", deptPlaceholders) + ")",
                 r => new { Id = Int(r, "KhoaPhongId"), Name = String(r, "TenKhoaPhong") },
                 deptParams.ToArray());
 
@@ -97,6 +97,8 @@ WHERE KhoaPhongId = @KhoaPhongId AND ChiSoChatLuongId = @ChiSoId AND DangHoatDon
 
             foreach (var departmentId in departments)
             {
+                _departments.RequireActiveDepartment(departmentId);
+
                 foreach (var indicatorId in indicators)
                 {
                     Execute(@"
@@ -169,6 +171,13 @@ ELSE
         // Kích hoạt lại một hoặc nhiều phân công chỉ số đã chọn.
         public void Activate(int id)
         {
+            var departmentId = Scalar("SELECT KhoaPhongId FROM dbo.PhanCongChiSo WHERE PhanCongChiSoId = @Id", Param("@Id", id));
+            if (departmentId == null)
+            {
+                return;
+            }
+
+            _departments.RequireActiveDepartment(Convert.ToInt32(departmentId));
             Execute("UPDATE dbo.PhanCongChiSo SET DangHoatDong = 1 WHERE PhanCongChiSoId = @Id", Param("@Id", id));
         }
 
@@ -187,6 +196,17 @@ ELSE
             if (ids == null || ids.Length == 0) return;
             var parameters = ids.Select((id, i) => Param("@Id" + i, id)).ToArray();
             var placeholders = string.Join(",", parameters.Select(p => p.ParameterName));
+            var lockedCount = Convert.ToInt32(Scalar(@"
+SELECT COUNT(*)
+FROM dbo.PhanCongChiSo pc
+INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
+WHERE pc.PhanCongChiSoId IN (" + placeholders + @")
+  AND kp.Used = 0", parameters));
+            if (lockedCount > 0)
+            {
+                throw new InvalidOperationException("Không thể kích hoạt phân công thuộc khoa/phòng đã khóa.");
+            }
+
             Execute("UPDATE dbo.PhanCongChiSo SET DangHoatDong = 1 WHERE PhanCongChiSoId IN (" + placeholders + ")", parameters);
         }
 

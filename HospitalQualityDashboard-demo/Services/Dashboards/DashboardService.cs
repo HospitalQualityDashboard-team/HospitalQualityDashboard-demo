@@ -22,9 +22,9 @@ namespace HospitalQualityDashboardDemo.Services
 
         #pragma warning disable 0162
         // Tổng hợp số liệu dashboard theo role, khoa/phòng và tần suất để tránh lộ dữ liệu ngoài phạm vi.
-        public DashboardViewModel GetDashboard(bool admin, int? departmentId, int? tanSuatFilter = null)
+        public DashboardViewModel GetDashboard(bool admin, int? departmentId, int? tanSuatFilter = null, string departmentStatusFilter = "active")
         {
-            return GetDashboardOptimized(admin, departmentId, tanSuatFilter);
+            return GetDashboardOptimized(admin, departmentId, tanSuatFilter, NormalizeDepartmentStatusFilter(departmentStatusFilter));
 
             var model = new DashboardViewModel
             {

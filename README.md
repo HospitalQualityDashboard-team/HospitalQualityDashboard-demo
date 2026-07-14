@@ -7,6 +7,7 @@
 ### Admin
 
 - Quản lý danh mục khoa/phòng, nhân viên và tài khoản User; khi tạo nhân viên mới, hệ thống tự tạo tài khoản User theo mã nhân viên.
+- Khóa/ngưng sử dụng khoa/phòng mà không xóa dữ liệu lịch sử; khoa/phòng bị khóa không phát sinh phân công, nhân viên, tài khoản, báo cáo, nhắc hạn hoặc cảnh báo mới.
 - Quản lý định nghĩa chỉ số chất lượng: mã chỉ số, tên, định nghĩa, công thức, đơn vị tính, nguồn số liệu, tần suất và mục tiêu.
 - Import dữ liệu từ Excel/Word cho khoa/phòng, nhân viên, chỉ số và phân công.
 - Triển khai hoặc ngừng triển khai chỉ số theo vòng đời áp dụng; các kỳ đã có dữ liệu vẫn giữ lịch sử.
@@ -27,6 +28,7 @@
 - Xem thông báo, nhắc hạn, báo cáo còn thiếu/quá hạn.
 - Xuất báo cáo và Dashboard chi tiết theo scope khoa/phòng.
 - Cập nhật hồ sơ cá nhân và đổi mật khẩu.
+- User thuộc khoa/phòng đã khóa bị chặn đăng nhập/thao tác nghiệp vụ và cần liên hệ Admin để xử lý.
 
 ## Công nghệ
 
@@ -183,6 +185,7 @@ Hiện repo chưa có test project riêng. Khi sửa code, tối thiểu cần b
 - `VerifyDashboardExcelDetailedExport.ps1`
 - `VerifyDashboardPeriodComparison.ps1`
 - `VerifyIndicatorDeploymentLifecycle.ps1`
+- `VerifyLockedDepartmentLifecycle.ps1`
 - `VerifyProfileUpdate.ps1`
 - `VerifyReportingPeriodMaintenance.ps1`
 - `VerifyReportDetailModal.ps1`

@@ -14,18 +14,19 @@ namespace HospitalQualityDashboardDemo.Services
 {
     public partial class DashboardService
     {
-        private IList<DashboardMetricDetailViewModel> GetAdminMetricDetails(int? tanSuatFilter)
+        private IList<DashboardMetricDetailViewModel> GetAdminMetricDetails(int? tanSuatFilter, string DepartmentStatusFilter)
         {
-            return GetMetricDetails(null, tanSuatFilter);
+            return GetMetricDetails(null, tanSuatFilter, DepartmentStatusFilter);
         }
 
-        private IList<DashboardMetricDetailViewModel> GetUserMetricDetails(int departmentId, int? tanSuatFilter)
+        private IList<DashboardMetricDetailViewModel> GetUserMetricDetails(int departmentId, int? tanSuatFilter, string DepartmentStatusFilter)
         {
-            return GetMetricDetails(departmentId, tanSuatFilter);
+            return GetMetricDetails(departmentId, tanSuatFilter, DepartmentStatusFilter);
         }
 
-        private IList<DashboardMetricDetailViewModel> GetMetricDetails(int? departmentId, int? tanSuatFilter)
+        private IList<DashboardMetricDetailViewModel> GetMetricDetails(int? departmentId, int? tanSuatFilter, string DepartmentStatusFilter)
         {
+            DepartmentStatusFilter = NormalizeDepartmentStatusFilter(DepartmentStatusFilter);
             const string sql = @"
 WITH ExpectedSlots AS
 (
@@ -44,6 +45,9 @@ WITH ExpectedSlots AS
     WHERE ky.TrangThai <> @DraftPeriodStatus
       AND (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
       AND (@KhoaPhongId IS NULL OR pc.KhoaPhongId = @KhoaPhongId)
+      AND (@DepartmentStatusFilter = N'all'
+           OR (@DepartmentStatusFilter = N'active' AND kp.Used = 1)
+           OR (@DepartmentStatusFilter = N'locked' AND kp.Used = 0))
       AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 )
 SELECT es.KyBaoCaoId, es.KhoaPhongId, es.ChiSoChatLuongId,
@@ -138,6 +142,7 @@ ORDER BY es.HanNop, es.TenKhoaPhong, es.MaChiSo";
             },
                 Param("@KhoaPhongId", departmentId),
                 Param("@TanSuat", tanSuatFilter),
+                Param("@DepartmentStatusFilter", DepartmentStatusFilter),
                 Param("@Today", GetVietnamLocalNow().Date),
                 Param("@DraftPeriodStatus", (byte)TrangThaiKyBaoCao.Nhap),
                 Param("@DaGuiStatus", (byte)TrangThaiBaoCao.DaGui),

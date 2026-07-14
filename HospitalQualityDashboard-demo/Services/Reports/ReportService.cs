@@ -16,6 +16,7 @@ namespace HospitalQualityDashboardDemo.Services
     {
         private readonly IndicatorService _indicators = new IndicatorService();
         private readonly IndicatorCalculationService _calculator = new IndicatorCalculationService();
+        private readonly DepartmentService _departments = new DepartmentService();
 
         // Lấy danh sách báo cáo định kỳ theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<ReportEntryViewModel> GetAll(ReportListQueryDto dto)
@@ -158,6 +159,7 @@ LEFT JOIN dbo.BaoCaoChiTiet ct ON ct.BaoCaoId = bc.BaoCaoId
 LEFT JOIN dbo.TaiKhoan nguoiGui ON nguoiGui.TaiKhoanId = bc.NguoiGuiId
 LEFT JOIN dbo.NhanVien nvNguoiGui ON nvNguoiGui.NhanVienId = nguoiGui.NhanVienId
 WHERE pc.DangHoatDong = 1 AND pc.KhoaPhongId = @KhoaPhongId
+AND kp.Used = 1
 AND ky.TrangThai = @Mo
 AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 ORDER BY cs.MaChiSo";
@@ -231,6 +233,9 @@ WHERE bc.BaoCaoId=@Id";
                 model.PhanCongChiSoId = existingReport.PhanCongChiSoId;
             }
 
+            _departments.RequireActiveDepartment(model.KhoaPhongId);
+            RequireEditableReportScope(model);
+
             var targetYear = GetReportingYear(model.KyBaoCaoId);
             var indicator = _indicators.Get(model.ChiSoChatLuongId, targetYear);
             _calculator.Calculate(model, indicator);
@@ -241,13 +246,19 @@ WHERE bc.BaoCaoId=@Id";
             {
                 if (isNewReport)
                 {
-                    var assignmentId = model.PhanCongChiSoId > 0
-                        ? model.PhanCongChiSoId
-                        : Convert.ToInt32(Scalar(conn, trans, @"SELECT TOP 1 PhanCongChiSoId FROM dbo.PhanCongChiSo
-WHERE KhoaPhongId=@KhoaPhongId AND ChiSoChatLuongId=@ChiSoChatLuongId
-ORDER BY DangHoatDong DESC, PhanCongChiSoId",
+                    var assignmentIdValue = model.PhanCongChiSoId > 0
+                        ? (object)model.PhanCongChiSoId
+                        : Scalar(conn, trans, @"SELECT TOP 1 PhanCongChiSoId FROM dbo.PhanCongChiSo
+WHERE KhoaPhongId=@KhoaPhongId AND ChiSoChatLuongId=@ChiSoChatLuongId AND DangHoatDong = 1
+ORDER BY PhanCongChiSoId",
                             Param("@KhoaPhongId", model.KhoaPhongId),
-                            Param("@ChiSoChatLuongId", model.ChiSoChatLuongId)));
+                            Param("@ChiSoChatLuongId", model.ChiSoChatLuongId));
+                    if (assignmentIdValue == null)
+                    {
+                        throw new InvalidOperationException("Chỉ số chưa được phân công hoạt động cho khoa/phòng này.");
+                    }
+
+                    var assignmentId = Convert.ToInt32(assignmentIdValue);
 
                     model.BaoCaoId = Convert.ToInt32(Scalar(conn, trans, @"INSERT INTO dbo.BaoCao(KyBaoCaoId, KhoaPhongId, ChiSoChatLuongId, PhanCongChiSoId, TrangThai, NguoiTaoId, NgayTao, NgayCapNhat)
 OUTPUT INSERTED.BaoCaoId VALUES(@KyBaoCaoId, @KhoaPhongId, @ChiSoChatLuongId, @PhanCongChiSoId, @TrangThai, @NguoiTaoId, @Now, @Now)",
@@ -297,6 +308,33 @@ ELSE
             return model.BaoCaoId;
         }
 
+        private void RequireEditableReportScope(ReportEntryViewModel model)
+        {
+            var periodIsOpen = Convert.ToInt32(Scalar(
+                "SELECT COUNT(*) FROM dbo.KyBaoCao WHERE KyBaoCaoId=@KyBaoCaoId AND TrangThai=@Mo",
+                Param("@KyBaoCaoId", model.KyBaoCaoId),
+                Param("@Mo", (byte)TrangThaiKyBaoCao.Mo))) > 0;
+            if (!periodIsOpen)
+            {
+                throw new InvalidOperationException("Kỳ báo cáo không còn mở để nhập liệu.");
+            }
+
+            var assignmentIsActive = Convert.ToInt32(Scalar(@"
+SELECT COUNT(*)
+FROM dbo.PhanCongChiSo
+WHERE KhoaPhongId=@KhoaPhongId
+  AND ChiSoChatLuongId=@ChiSoChatLuongId
+  AND DangHoatDong = 1
+  AND (@PhanCongChiSoId = 0 OR PhanCongChiSoId=@PhanCongChiSoId)",
+                Param("@KhoaPhongId", model.KhoaPhongId),
+                Param("@ChiSoChatLuongId", model.ChiSoChatLuongId),
+                Param("@PhanCongChiSoId", model.PhanCongChiSoId))) > 0;
+            if (!assignmentIsActive)
+            {
+                throw new InvalidOperationException("Chỉ số không còn được phân công hoạt động cho khoa/phòng này.");
+            }
+        }
+
         // Xử lý chức năng báo cáo định kỳ của method GetReportingYear, giữ logic nghiệp vụ tập trung trong tầng phù hợp.
         private int? GetReportingYear(int reportingPeriodId)
         {
@@ -316,13 +354,18 @@ SET TrangThai=CASE WHEN CAST(@Now AS date) > ky.HanNop THEN @QuaHan ELSE @DaGui 
     NgayCapNhat=@Now
 FROM dbo.BaoCao bc
 INNER JOIN dbo.KyBaoCao ky ON ky.KyBaoCaoId = bc.KyBaoCaoId
-WHERE bc.BaoCaoId=@Id AND bc.TrangThai IN (@Nhap, @TraLai)",
+INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = bc.KhoaPhongId
+WHERE bc.BaoCaoId=@Id
+  AND bc.TrangThai IN (@Nhap, @TraLai)
+  AND ky.TrangThai = @Mo
+  AND kp.Used = 1",
                 Param("@DaGui", (byte)TrangThaiBaoCao.DaGui),
                 Param("@QuaHan", (byte)TrangThaiBaoCao.QuaHan),
                 Param("@NguoiGuiId", userId),
                 Param("@Id", id),
                 Param("@Nhap", (byte)TrangThaiBaoCao.Nhap),
                 Param("@TraLai", (byte)TrangThaiBaoCao.TraLai),
+                Param("@Mo", (byte)TrangThaiKyBaoCao.Mo),
                 Param("@Now", now));
 
             if (affectedRows > 0)

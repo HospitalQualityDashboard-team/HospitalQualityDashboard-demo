@@ -18,7 +18,8 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
             RunReportingPeriodMaintenance();
             query = query ?? new DashboardExcelExportQueryDto();
             query.KhoaPhongId = CurrentKhoaPhongId;
-            var model = _service.GetDashboard(false, CurrentKhoaPhongId, query.TanSuat);
+            query.DepartmentStatusFilter = "active";
+            var model = _service.GetDashboard(false, CurrentKhoaPhongId, query.TanSuat, query.DepartmentStatusFilter);
             _service.PrepareExportFilters(model, query, false, CurrentKhoaPhongId);
             return View(model);
         }

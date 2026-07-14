@@ -70,6 +70,9 @@ WHERE (@NamBaoCao IS NULL OR DATEPART(YEAR, ky.TuNgay) = @NamBaoCao)
   AND (@TrangThaiNhapLieu IS NULL OR (@TrangThaiNhapLieu > 0 AND bc.TrangThai = @TrangThaiNhapLieu))
   AND (@TrangThaiDuyet IS NULL OR bc.TrangThai = @TrangThaiDuyet)
   AND (@DatMucTieu IS NULL OR ct.DatMucTieu = @DatMucTieu)
+  AND (@DepartmentStatusFilter = N'all'
+       OR (@DepartmentStatusFilter = N'active' AND kp.Used = 1)
+       OR (@DepartmentStatusFilter = N'locked' AND kp.Used = 0))
 ORDER BY kp.TenKhoaPhong, ky.TuNgay DESC, cs.MaChiSo";
 
             var rows = Query(sql, reader => new DashboardExcelDetailRow
@@ -136,6 +139,7 @@ LEFT JOIN dbo.BaoCao bc ON bc.KyBaoCaoId = ky.KyBaoCaoId
     AND bc.ChiSoChatLuongId = pc.ChiSoChatLuongId
     AND bc.TrangThai IN (@DaGui, @QuaHan, @DaKhoa, @DaDuyet)
 WHERE ky.TrangThai <> @DraftPeriodStatus
+  AND kp.Used = 1
   AND bc.BaoCaoId IS NULL
   AND (@NamBaoCao IS NULL OR DATEPART(YEAR, ky.TuNgay) = @NamBaoCao)
   AND (@KyBaoCaoId IS NULL OR ky.KyBaoCaoId = @KyBaoCaoId)
@@ -206,6 +210,9 @@ WHERE (log.HanhDong LIKE N'%Duyet%' OR log.HanhDong LIKE N'%TraLai%' OR bc.Trang
   AND (@DatMucTieu IS NULL OR EXISTS (
       SELECT 1 FROM dbo.BaoCaoChiTiet ct WHERE ct.BaoCaoId = bc.BaoCaoId AND ct.DatMucTieu = @DatMucTieu
   ))
+  AND (@DepartmentStatusFilter = N'all'
+       OR (@DepartmentStatusFilter = N'active' AND kp.Used = 1)
+       OR (@DepartmentStatusFilter = N'locked' AND kp.Used = 0))
 ORDER BY log.ThoiGian DESC";
 
             var rows = Query(sql, reader => new DashboardReviewHistoryRow
@@ -238,6 +245,7 @@ ORDER BY log.ThoiGian DESC";
                 Param("@KyBaoCaoId", query.KyBaoCaoId.HasValue ? (object)query.KyBaoCaoId.Value : null),
                 Param("@TanSuat", query.TanSuat.HasValue ? (object)query.TanSuat.Value : null),
                 Param("@KhoaPhongId", query.KhoaPhongId.HasValue ? (object)query.KhoaPhongId.Value : null),
+                Param("@DepartmentStatusFilter", NormalizeDepartmentStatusFilter(query.DepartmentStatusFilter)),
                 Param("@LinhVuc", string.IsNullOrWhiteSpace(query.LinhVuc) ? null : query.LinhVuc),
                 Param("@TrangThaiNhapLieu", query.TrangThaiNhapLieu.HasValue ? (object)query.TrangThaiNhapLieu.Value : null),
                 Param("@TrangThaiDuyet", query.TrangThaiDuyet.HasValue ? (object)query.TrangThaiDuyet.Value : null),

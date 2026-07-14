@@ -31,6 +31,24 @@ namespace HospitalQualityDashboardDemo.Services
             };
         }
 
+        private static string NormalizeDepartmentStatusFilter(string statusFilter)
+        {
+            if (string.Equals(statusFilter, "locked", StringComparison.OrdinalIgnoreCase)) return "locked";
+            if (string.Equals(statusFilter, "all", StringComparison.OrdinalIgnoreCase)) return "all";
+            return "active";
+        }
+
+        private static IList<SelectListItem> BuildDepartmentStatusOptions(string selectedStatus)
+        {
+            selectedStatus = NormalizeDepartmentStatusFilter(selectedStatus);
+            return new List<SelectListItem>
+            {
+                new SelectListItem { Value = "active", Text = "Đang hoạt động", Selected = selectedStatus == "active" },
+                new SelectListItem { Value = "locked", Text = "Đã khóa", Selected = selectedStatus == "locked" },
+                new SelectListItem { Value = "all", Text = "Tất cả", Selected = selectedStatus == "all" }
+            };
+        }
+
         // Chuẩn bị các tùy chọn bộ lọc và phạm vi dữ liệu cho màn hình xuất.
         public void PrepareExportFilters(DashboardViewModel model, DashboardExcelExportQueryDto query, bool admin, int? departmentId)
         {
@@ -47,6 +65,8 @@ namespace HospitalQualityDashboardDemo.Services
             model.TrangThaiNhapLieu = query.TrangThaiNhapLieu;
             model.TrangThaiDuyet = query.TrangThaiDuyet;
             model.DatMucTieu = query.DatMucTieu;
+            model.DepartmentStatusFilter = NormalizeDepartmentStatusFilter(query.DepartmentStatusFilter);
+            query.DepartmentStatusFilter = model.DepartmentStatusFilter;
             model.SelectedTanSuat = query.TanSuat ?? model.SelectedTanSuat;
 
             model.NamBaoCaoOptions = BuildYearOptions(model.NamBaoCao);
@@ -54,6 +74,7 @@ namespace HospitalQualityDashboardDemo.Services
             model.KhoaPhongOptions = admin
                 ? BuildDepartmentOptions(model.KhoaPhongId)
                 : BuildCurrentDepartmentOptions(departmentId);
+            model.DepartmentStatusOptions = BuildDepartmentStatusOptions(model.DepartmentStatusFilter);
             model.LinhVucOptions = BuildFieldOptions(model.LinhVuc);
             model.TrangThaiNhapLieuOptions = BuildInputStatusOptions(model.TrangThaiNhapLieu);
             model.TrangThaiDuyetOptions = BuildReviewStatusOptions(model.TrangThaiDuyet);
@@ -121,7 +142,7 @@ ORDER BY TuNgay DESC",
         // Tạo bộ lọc khoa/phòng toàn viện dành cho admin khi xem dashboard tổng hợp.
         private IList<SelectListItem> BuildDepartmentOptions(int? selectedDepartmentId)
         {
-            var departments = Query("SELECT KhoaPhongId, TenKhoaPhong FROM dbo.KhoaPhong ORDER BY TenKhoaPhong",
+            var departments = Query("SELECT KhoaPhongId, TenKhoaPhong FROM dbo.KhoaPhong WHERE Used = 1 ORDER BY TenKhoaPhong",
                 r => new SelectListItem
                 {
                     Value = Int(r, "KhoaPhongId").ToString(),

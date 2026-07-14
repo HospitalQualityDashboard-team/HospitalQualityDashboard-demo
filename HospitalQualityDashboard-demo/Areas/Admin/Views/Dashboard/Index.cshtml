@@ -1860,6 +1860,7 @@
                     @using (Html.BeginForm("Index", "Dashboard", FormMethod.Get, new { id = "dashboardFilterForm", @class = "d-flex align-items-center gap-2" }))
                     {
                         @Html.DropDownList("tanSuat", Model.TanSuatOptions, new { @class = "form-select form-select-sm border rounded-pill px-3", onchange = "this.form.submit();" })
+                        @Html.DropDownList("DepartmentStatusFilter", Model.DepartmentStatusOptions, new { @class = "form-select form-select-sm border rounded-pill px-3", onchange = "this.form.submit();" })
                     }
                     @if (progressItems.Any())
                     {
@@ -1945,6 +1946,10 @@
                         <div class="col-md-6">
                             <label class="form-label" for="KhoaPhongId">Khoa/phòng</label>
                             @Html.DropDownList("KhoaPhongId", Model.KhoaPhongOptions, new { @class = "form-select form-select-sm" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="DepartmentStatusFilter">Trạng thái khoa/phòng</label>
+                            @Html.DropDownList("DepartmentStatusFilter", Model.DepartmentStatusOptions, new { @class = "form-select form-select-sm" })
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="LinhVuc">Lĩnh vực</label>

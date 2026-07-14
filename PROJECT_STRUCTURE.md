@@ -320,6 +320,7 @@ flowchart LR
 | `tools/VerifyIndicatorDeploymentLifecycle.ps1` | Kiểm vòng đời triển khai/ngừng triển khai chỉ số. |
 | `tools/VerifyIndicatorWarningMessages.ps1` | Kiểm nội dung Unicode của cảnh báo chỉ số. |
 | `tools/VerifyIndicatorWarnings.ps1` | Kiểm migration, automation, dedup và UI cảnh báo chỉ số. |
+| `tools/VerifyLockedDepartmentLifecycle.ps1` | Kiểm khóa/ngưng sử dụng khoa/phòng không xóa lịch sử và không phát sinh dữ liệu mới. |
 | `tools/VerifyManagementPaging.ps1` | Kiểm phân trang quản lý kỳ, chỉ số và notification. |
 | `tools/VerifyNotificationDropdown.ps1` | Kiểm dropdown thông báo trên layout. |
 | `tools/VerifyProfileUpdate.ps1` | Kiểm form cập nhật hồ sơ cá nhân. |

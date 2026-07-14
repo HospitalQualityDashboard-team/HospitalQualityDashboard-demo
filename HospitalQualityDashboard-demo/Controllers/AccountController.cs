@@ -11,6 +11,7 @@ namespace HospitalQualityDashboardDemo.Controllers
 {
     public class AccountController : Controller
     {
+        private const string LockedDepartmentMessage = "Khoa/phòng của tài khoản đã bị khóa, vui lòng liên hệ Admin.";
         private readonly AuthService _authService;
 
         // Khởi tạo controller với AuthService mặc định cho luồng đăng nhập thực tế.
@@ -86,7 +87,9 @@ namespace HospitalQualityDashboardDemo.Controllers
 
             if (user.IsLocked)
             {
-                ModelState.AddModelError("", "Tài khoản của bạn đã bị khóa");
+                ModelState.AddModelError("", user.IsDepartmentLocked
+                    ? LockedDepartmentMessage
+                    : "Tài khoản của bạn đã bị khóa");
                 return View(viewName, model);
             }
 

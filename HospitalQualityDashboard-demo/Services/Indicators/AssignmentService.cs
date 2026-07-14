@@ -17,6 +17,8 @@ namespace HospitalQualityDashboardDemo.Services
 {
     public partial class AssignmentService : DbServiceBase
     {
+        private readonly DepartmentService _departments = new DepartmentService();
+
         // Định dạng giá trị theo quy ước hiển thị của phân công chỉ số.
         public static string FormatFrequencies(IEnumerable<TanSuatBaoCao> frequencies)
         {

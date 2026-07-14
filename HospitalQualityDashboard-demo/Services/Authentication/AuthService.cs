@@ -16,6 +16,7 @@ namespace HospitalQualityDashboardDemo.Services
         public int? KhoaPhongId { get; set; }
         public string TenKhoaPhong { get; set; }
         public bool IsLocked { get; set; }
+        public bool IsDepartmentLocked { get; set; }
         public int FailedLoginCount { get; set; }
         public DateTime? LockoutUntil { get; set; }
     }
@@ -58,7 +59,8 @@ SELECT TOP 1
     tk.FailedLoginCount,
     tk.LockoutUntil,
     nv.DangHoatDong AS NhanVienDangHoatDong,
-    kp.TenKhoaPhong
+    kp.TenKhoaPhong,
+    kp.Used AS KhoaPhongUsed
 FROM dbo.TaiKhoan tk
 LEFT JOIN dbo.NhanVien nv ON nv.NhanVienId = tk.NhanVienId
 LEFT JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = tk.KhoaPhongId
@@ -108,7 +110,8 @@ SELECT TOP 1
     tk.FailedLoginCount,
     tk.LockoutUntil,
     nv.DangHoatDong AS NhanVienDangHoatDong,
-    kp.TenKhoaPhong
+    kp.TenKhoaPhong,
+    kp.Used AS KhoaPhongUsed
 FROM dbo.TaiKhoan tk
 LEFT JOIN dbo.NhanVien nv ON nv.NhanVienId = tk.NhanVienId
 LEFT JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = tk.KhoaPhongId
@@ -353,9 +356,16 @@ WHERE NhanVienId = @NhanVienId";
             return !reader.IsDBNull(ordinal) && !reader.GetBoolean(ordinal);
         }
 
+        private static bool IsDepartmentLocked(SqlDataReader reader)
+        {
+            var ordinal = reader.GetOrdinal("KhoaPhongUsed");
+            return !reader.IsDBNull(ordinal) && !reader.GetBoolean(ordinal);
+        }
+
         // Chuyển dữ liệu tài khoản, role, khóa tạm và khoa/phòng thành ngữ cảnh đăng nhập dùng trong session.
         private static AuthenticatedUser MapAuthenticatedUser(SqlDataReader reader, bool isTemporarilyLocked)
         {
+            var isDepartmentLocked = IsDepartmentLocked(reader);
             return new AuthenticatedUser
             {
                 TaiKhoanId = reader.GetInt32(reader.GetOrdinal("TaiKhoanId")),
@@ -366,7 +376,8 @@ WHERE NhanVienId = @NhanVienId";
                 TenKhoaPhong = ReadNullableString(reader, "TenKhoaPhong"),
                 FailedLoginCount = reader.IsDBNull(reader.GetOrdinal("FailedLoginCount")) ? 0 : reader.GetInt32(reader.GetOrdinal("FailedLoginCount")),
                 LockoutUntil = ReadNullableDateTime(reader, "LockoutUntil"),
-                IsLocked = isTemporarilyLocked || !reader.GetBoolean(reader.GetOrdinal("TaiKhoanDangHoatDong")) || IsEmployeeLocked(reader)
+                IsDepartmentLocked = isDepartmentLocked,
+                IsLocked = isTemporarilyLocked || !reader.GetBoolean(reader.GetOrdinal("TaiKhoanDangHoatDong")) || IsEmployeeLocked(reader) || isDepartmentLocked
             };
         }
     }

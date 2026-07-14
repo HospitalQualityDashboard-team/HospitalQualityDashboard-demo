@@ -30,6 +30,8 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
     public class KhoaPhongIndexViewModel
     {
         public string Search { get; set; }
+        public string StatusFilter { get; set; }
+        public IList<SelectListItem> StatusOptions { get; set; }
         public IList<KhoaPhongViewModel> Items { get; set; }
         public IList<SelectListItem> KhoaPhongOptions { get; set; }
         public int Page { get; set; }
@@ -580,9 +582,11 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public int? TrangThaiNhapLieu { get; set; }
         public int? TrangThaiDuyet { get; set; }
         public bool? DatMucTieu { get; set; }
+        public string DepartmentStatusFilter { get; set; }
         public IList<SelectListItem> NamBaoCaoOptions { get; set; }
         public IList<SelectListItem> KyBaoCaoOptions { get; set; }
         public IList<SelectListItem> KhoaPhongOptions { get; set; }
+        public IList<SelectListItem> DepartmentStatusOptions { get; set; }
         public IList<SelectListItem> LinhVucOptions { get; set; }
         public IList<SelectListItem> TrangThaiNhapLieuOptions { get; set; }
         public IList<SelectListItem> TrangThaiDuyetOptions { get; set; }

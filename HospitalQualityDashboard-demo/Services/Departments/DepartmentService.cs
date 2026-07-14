@@ -18,44 +18,61 @@ namespace HospitalQualityDashboardDemo.Services
         // Lấy danh sách danh mục khoa/phòng theo bộ lọc, trạng thái hoạt động và phạm vi quyền đang áp dụng.
         public IList<KhoaPhongViewModel> GetAll(string search = null, bool includeInactive = true)
         {
+            return GetAll(search, includeInactive ? "all" : "active");
+        }
+
+        public IList<KhoaPhongViewModel> GetAll(string search, string statusFilter)
+        {
             const string sql = @"
 SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong, Used, GhiChu
 FROM dbo.KhoaPhong
 WHERE (@Search IS NULL OR TenKhoaPhong LIKE @SearchLike OR CONVERT(NVARCHAR(20), IdKhoaPhongNguon) = @Search)
-  AND (@IncludeInactive = 1 OR Used = 1)
+  AND (@StatusFilter = N'all'
+       OR (@StatusFilter = N'active' AND Used = 1)
+       OR (@StatusFilter = N'locked' AND Used = 0))
 ORDER BY KhoaPhongId DESC";
             return Query(sql, MapDepartment,
                 Param("@Search", string.IsNullOrWhiteSpace(search) ? null : search),
                 Param("@SearchLike", string.IsNullOrWhiteSpace(search) ? null : "%" + search + "%"),
-                Param("@IncludeInactive", includeInactive));
+                Param("@StatusFilter", NormalizeStatusFilter(statusFilter)));
         }
 
         // Lay danh sach khoa/phong theo trang de man hinh quan ly khong tai qua nhieu dong mot luc.
         public IList<KhoaPhongViewModel> GetAll(string search, int page, int pageSize, out int totalItems, bool includeInactive = true)
         {
+            return GetAll(search, includeInactive ? "all" : "active", page, pageSize, out totalItems);
+        }
+
+        public IList<KhoaPhongViewModel> GetAll(string search, string statusFilter, int page, int pageSize, out int totalItems)
+        {
             page = NormalizePage(page);
             pageSize = NormalizePageSize(pageSize);
+            var normalizedStatusFilter = NormalizeStatusFilter(statusFilter);
             totalItems = Convert.ToInt32(Scalar(@"
 SELECT COUNT(*)
 FROM dbo.KhoaPhong
 WHERE (@Search IS NULL OR TenKhoaPhong LIKE @SearchLike OR CONVERT(NVARCHAR(20), IdKhoaPhongNguon) = @Search)
-  AND (@IncludeInactive = 1 OR Used = 1)",
+  AND (@StatusFilter = N'all'
+       OR (@StatusFilter = N'active' AND Used = 1)
+       OR (@StatusFilter = N'locked' AND Used = 0))",
                 Param("@Search", string.IsNullOrWhiteSpace(search) ? null : search),
                 Param("@SearchLike", string.IsNullOrWhiteSpace(search) ? null : "%" + search + "%"),
-                Param("@IncludeInactive", includeInactive)));
+                Param("@StatusFilter", normalizedStatusFilter)));
 
             const string sql = @"
 SELECT KhoaPhongId, IdKhoaPhongNguon, TenKhoaPhong, Used, GhiChu
 FROM dbo.KhoaPhong
 WHERE (@Search IS NULL OR TenKhoaPhong LIKE @SearchLike OR CONVERT(NVARCHAR(20), IdKhoaPhongNguon) = @Search)
-  AND (@IncludeInactive = 1 OR Used = 1)
+  AND (@StatusFilter = N'all'
+       OR (@StatusFilter = N'active' AND Used = 1)
+       OR (@StatusFilter = N'locked' AND Used = 0))
 ORDER BY KhoaPhongId DESC
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
             return Query(sql, MapDepartment,
                 Param("@Search", string.IsNullOrWhiteSpace(search) ? null : search),
                 Param("@SearchLike", string.IsNullOrWhiteSpace(search) ? null : "%" + search + "%"),
-                Param("@IncludeInactive", includeInactive),
+                Param("@StatusFilter", normalizedStatusFilter),
                 Param("@Offset", (page - 1) * pageSize),
                 Param("@PageSize", pageSize));
         }
@@ -92,6 +109,31 @@ ORDER BY TenKhoaPhong",
                     Value = Int(r, "KhoaPhongId").ToString(),
                     Text = String(r, "TenKhoaPhong")
                 }).ToList());
+        }
+
+        public IList<SelectListItem> GetStatusOptions(string selectedStatus)
+        {
+            selectedStatus = NormalizeStatusFilter(selectedStatus);
+            return new List<SelectListItem>
+            {
+                new SelectListItem { Value = "all", Text = "Tất cả", Selected = selectedStatus == "all" },
+                new SelectListItem { Value = "active", Text = "Đang hoạt động", Selected = selectedStatus == "active" },
+                new SelectListItem { Value = "locked", Text = "Đã khóa", Selected = selectedStatus == "locked" }
+            };
+        }
+
+        public bool IsActiveDepartment(int departmentId)
+        {
+            var result = Scalar("SELECT Used FROM dbo.KhoaPhong WHERE KhoaPhongId=@KhoaPhongId", Param("@KhoaPhongId", departmentId));
+            return result != null && result != DBNull.Value && Convert.ToBoolean(result);
+        }
+
+        public void RequireActiveDepartment(int departmentId)
+        {
+            if (!IsActiveDepartment(departmentId))
+            {
+                throw new InvalidOperationException("Khoa/phòng đã bị khóa, không thể phát sinh dữ liệu mới.");
+            }
         }
 
         // Lưu danh mục khoa/phòng theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
@@ -278,6 +320,13 @@ VALUES(@LoaiImport, @TenFile, @TongSoDong, @SoDongThanhCong, @SoDongLoi, @NguoiI
         {
             if (pageSize < 1) return 10;
             return pageSize > 100 ? 100 : pageSize;
+        }
+
+        public static string NormalizeStatusFilter(string statusFilter)
+        {
+            if (string.Equals(statusFilter, "active", StringComparison.OrdinalIgnoreCase)) return "active";
+            if (string.Equals(statusFilter, "locked", StringComparison.OrdinalIgnoreCase)) return "locked";
+            return "all";
         }
 
         // Chuyen mot dong khoa/phong tu database sang view model quan tri danh muc.

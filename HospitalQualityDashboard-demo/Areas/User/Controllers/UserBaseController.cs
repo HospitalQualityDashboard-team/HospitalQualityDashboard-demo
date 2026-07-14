@@ -8,6 +8,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
 {
     public abstract class UserBaseController : PageController
     {
+        private readonly AuthService _authService = new AuthService();
         private readonly NotificationService _notificationService = new NotificationService();
 
         // Kiểm tra session và quyền truy cập trước khi action được thực thi.
@@ -24,6 +25,16 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
                 filterContext.Result = new HttpUnauthorizedResult();
                 return;
             }
+
+            var refreshedUser = _authService.GetAuthenticatedUser(CurrentTaiKhoanId.Value);
+            if (refreshedUser == null || refreshedUser.IsLocked || refreshedUser.LoaiTaiKhoan != LoaiTaiKhoan.User || !refreshedUser.KhoaPhongId.HasValue)
+            {
+                SessionUserAccessor.ClearLoginSession(Session);
+                filterContext.Result = RedirectToAction("UserLogin", "Account", new { area = "" });
+                return;
+            }
+
+            SessionUserAccessor.SetLoginSession(Session, refreshedUser);
 
             var notificationPreview = _notificationService.GetPreviewForAccount(CurrentTaiKhoanId.Value);
             ViewBag.NotificationPreview = notificationPreview;

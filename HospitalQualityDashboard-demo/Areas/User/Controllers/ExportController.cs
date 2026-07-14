@@ -29,6 +29,7 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
         {
             query = query ?? new DashboardExcelExportQueryDto();
             query.KhoaPhongId = CurrentKhoaPhongId;
+            query.DepartmentStatusFilter = "active";
 
             try
             {

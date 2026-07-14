@@ -26,7 +26,7 @@ namespace HospitalQualityDashboardDemo.Services
         }
 
         // Tổng hợp số liệu dashboard theo role, khoa/phòng và tần suất để tránh lộ dữ liệu ngoài phạm vi.
-        private DashboardViewModel GetDashboardOptimized(bool admin, int? departmentId, int? tanSuatFilter)
+        private DashboardViewModel GetDashboardOptimized(bool admin, int? departmentId, int? tanSuatFilter, string DepartmentStatusFilter)
         {
             var model = new DashboardViewModel
             {
@@ -35,6 +35,7 @@ namespace HospitalQualityDashboardDemo.Services
                 MissingReports = new List<MissingReportAlertViewModel>(),
                 MetricDetails = new List<DashboardMetricDetailViewModel>(),
                 SelectedTanSuat = tanSuatFilter,
+                DepartmentStatusFilter = DepartmentStatusFilter,
                 TanSuatOptions = BuildDashboardFrequencyOptions(tanSuatFilter)
             };
 
@@ -43,11 +44,11 @@ namespace HospitalQualityDashboardDemo.Services
 
             if (admin)
             {
-                model.MetricDetails = GetAdminMetricDetails(tanSuatFilter);
+                model.MetricDetails = GetAdminMetricDetails(tanSuatFilter, DepartmentStatusFilter);
             }
             else if (departmentId.HasValue)
             {
-                model.MetricDetails = GetUserMetricDetails(departmentId.Value, tanSuatFilter);
+                model.MetricDetails = GetUserMetricDetails(departmentId.Value, tanSuatFilter, "active");
                 model.MissingReports = GetMissingReportsForDepartment(departmentId.Value);
                 model.BaoCaoThieu = model.MissingReports.Count;
                 model.DueSoonReportCount = model.MissingReports.Count(x => x.IsDueSoon);
@@ -66,11 +67,13 @@ WITH ExpectedSlots AS
     SELECT DISTINCT ky.KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, ky.HanNop, ky.TrangThai AS TrangThaiKyBaoCao
     FROM dbo.KyBaoCao ky
     INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
+    INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
     INNER JOIN dbo.ChiSoChatLuong cs ON cs.ChiSoChatLuongId = pc.ChiSoChatLuongId
     INNER JOIN dbo.ChiSoTanSuatBaoCao ts
         ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId
        AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
     WHERE ky.TrangThai <> @DraftPeriodStatus
+      AND kp.Used = 1
       AND (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
       AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
 ),
@@ -86,8 +89,10 @@ SELECT
     ISNULL(SUM(CASE WHEN completed.KyBaoCaoId IS NOT NULL THEN 1 ELSE 0 END), 0) AS BaoCaoDaGui,
     (SELECT COUNT(DISTINCT pc.PhanCongChiSoId)
      FROM dbo.PhanCongChiSo pc
+     INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
      LEFT JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId
      WHERE pc.DangHoatDong = 1
+       AND kp.Used = 1
        AND (@TanSuat IS NULL OR ts.TanSuatBaoCao = @TanSuat)) AS ChiSoDuocPhanCong,
     (SELECT COUNT(DISTINCT cs.ChiSoChatLuongId)
      FROM dbo.ChiSoChatLuong cs
@@ -110,9 +115,11 @@ SELECT
          SELECT DISTINCT ky.KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId
          FROM dbo.KyBaoCao ky
          INNER JOIN dbo.PhanCongChiSo pc ON pc.DangHoatDong = 1
+         INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
          INNER JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId AND ts.TanSuatBaoCao = ky.LoaiKyBaoCao
          WHERE ky.TrangThai = @OpenPeriodStatus
            AND pc.KhoaPhongId = @KhoaPhongId
+           AND kp.Used = 1
            AND (@TanSuat IS NULL OR ky.LoaiKyBaoCao = @TanSuat)
            AND dbo.fn_ChiSoDuocTrienKhaiTrongKy(pc.ChiSoChatLuongId, ky.LoaiKyBaoCao, ky.TuNgay, ky.DenNgay) = 1
      ) openSlots) AS TongBaoCaoCanNopKyDangMo,
@@ -124,15 +131,19 @@ SELECT
        AND (@TanSuat IS NULL OR ts.TanSuatBaoCao = @TanSuat)) AS BaoCaoDaGui,
     (SELECT COUNT(DISTINCT pc.PhanCongChiSoId)
      FROM dbo.PhanCongChiSo pc
+     INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
      LEFT JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId
      WHERE pc.DangHoatDong = 1
        AND pc.KhoaPhongId = @KhoaPhongId
+       AND kp.Used = 1
        AND (@TanSuat IS NULL OR ts.TanSuatBaoCao = @TanSuat)) AS ChiSoDuocPhanCong,
     (SELECT COUNT(DISTINCT pc.PhanCongChiSoId)
      FROM dbo.PhanCongChiSo pc
+     INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = pc.KhoaPhongId
      LEFT JOIN dbo.ChiSoTanSuatBaoCao ts ON ts.ChiSoChatLuongId = pc.ChiSoChatLuongId
      WHERE pc.DangHoatDong = 1
        AND pc.KhoaPhongId = @KhoaPhongId
+       AND kp.Used = 1
        AND (@TanSuat IS NULL OR ts.TanSuatBaoCao = @TanSuat)) AS TongChiSo,
     (SELECT COUNT(DISTINCT bc.BaoCaoId)
      FROM dbo.BaoCao bc
@@ -213,7 +224,8 @@ SELECT
 FROM dbo.KhoaPhong kp
 LEFT JOIN AssignmentFrequency af ON af.KhoaPhongId = kp.KhoaPhongId
 LEFT JOIN ReportByIndicator rb ON rb.KhoaPhongId = af.KhoaPhongId AND rb.ChiSoChatLuongId = af.ChiSoChatLuongId
-WHERE @KhoaPhongId IS NULL OR kp.KhoaPhongId = @KhoaPhongId
+WHERE kp.Used = 1
+  AND (@KhoaPhongId IS NULL OR kp.KhoaPhongId = @KhoaPhongId)
 GROUP BY kp.TenKhoaPhong
 ORDER BY kp.TenKhoaPhong";
 

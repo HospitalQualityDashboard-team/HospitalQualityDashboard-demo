@@ -16,6 +16,7 @@ namespace HospitalQualityDashboardDemo.Services
     {
         // Service đọc file Excel/CSV import.
         private readonly ExcelImportExportService _excel = new ExcelImportExportService();
+        private readonly DepartmentService _departments = new DepartmentService();
 
         // Lấy danh sách nhân viên, có thể lọc theo khoa/phòng.
         public IList<NhanVienViewModel> GetAll(int? khoaPhongId)
@@ -106,6 +107,8 @@ WHERE nv.NhanVienId = @Id";
         // Lưu hồ sơ nhân viên theo model/dto đã validate, bao gồm cả nhánh thêm mới và cập nhật.
         public void Save(NhanVienViewModel model)
         {
+            _departments.RequireActiveDepartment(model.KhoaPhongId);
+
             if (model.NhanVienId == 0)
             {
                 // NhanVienId = 0 nghĩa là thêm nhân viên mới.
@@ -175,6 +178,7 @@ WHERE tk.NhanVienId = nv.NhanVienId OR tk.TenDangNhap = nv.MaNhanVien;",
         public void CreateUserAccount(CreateUserAccountViewModel model)
         {
             var employee = Get(model.NhanVienId);
+            _departments.RequireActiveDepartment(employee.KhoaPhongId);
             // Lưu mật khẩu đã hash, không lưu mật khẩu gốc.
             Execute(@"INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, LoaiTaiKhoan, NhanVienId, KhoaPhongId, DangHoatDong)
 VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)",
@@ -234,6 +238,13 @@ VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)"
                     if (selectedKhoaPhongId.HasValue)
                     {
                         // Nếu đang lọc theo khoa/phòng thì import vào khoa/phòng đó.
+                        if (!_departments.IsActiveDepartment(selectedKhoaPhongId.Value))
+                        {
+                            result.Errors.Add("Dong " + rowNumber + ": khoa/phong da bi khoa, khong the tao nhan vien moi.");
+                            result.SoDongLoi++;
+                            continue;
+                        }
+
                         model.KhoaPhongId = selectedKhoaPhongId.Value;
                     }
                     else
@@ -248,11 +259,11 @@ VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)"
                             continue;
                         }
 
-                        var khoaPhongId = Scalar(conn, trans, "SELECT KhoaPhongId FROM dbo.KhoaPhong WHERE IdKhoaPhongNguon = @SourceId", Param("@SourceId", sourceId));
+                        var khoaPhongId = Scalar(conn, trans, "SELECT KhoaPhongId FROM dbo.KhoaPhong WHERE IdKhoaPhongNguon = @SourceId AND Used = 1", Param("@SourceId", sourceId));
                         if (khoaPhongId == null)
                         {
                             // Bỏ qua dòng nếu khoa/phòng trong file không có trong hệ thống.
-                            result.Errors.Add("Dong " + rowNumber + ": khoa/phong khong ton tai.");
+                            result.Errors.Add("Dong " + rowNumber + ": khoa/phong khong ton tai hoac da bi khoa.");
                             result.SoDongLoi++;
                             continue;
                         }

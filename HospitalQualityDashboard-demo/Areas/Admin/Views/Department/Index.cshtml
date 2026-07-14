@@ -5,6 +5,7 @@
     ViewBag.Title = "Khoa/phòng";
     var items = (Model.Items ?? new System.Collections.Generic.List<HospitalQualityDashboardDemo.Models.ViewModels.KhoaPhongViewModel>()).ToList();
     var departmentOptions = Model.KhoaPhongOptions ?? new System.Collections.Generic.List<System.Web.Mvc.SelectListItem>();
+    var statusOptions = Model.StatusOptions ?? new System.Collections.Generic.List<System.Web.Mvc.SelectListItem>();
 }
 
 <section class="management-page">
@@ -32,6 +33,10 @@
                         <span data-filter-option data-text="@option.Text"></span>
                     }
                 </div>
+            </div>
+            <div class="filter-field">
+                <label for="StatusFilter">Trạng thái</label>
+                @Html.DropDownListFor(m => m.StatusFilter, statusOptions, new { @class = "form-select" })
             </div>
             <div class="filter-actions">
                 <button class="btn btn-outline-primary" type="submit">Lọc</button>
@@ -123,9 +128,9 @@
         @if (Model.TotalPages > 1)
         {
             <div class="management-toolbar mt-3 d-flex justify-content-center align-items-center gap-3">
-                @Html.ActionLink("Trước", "Index", new { search = Model.Search, page = Model.Page - 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page <= 1 ? "disabled" : "") })
+                @Html.ActionLink("Trước", "Index", new { search = Model.Search, statusFilter = Model.StatusFilter, page = Model.Page - 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page <= 1 ? "disabled" : "") })
                 <span class="status-pill status-muted">Trang @Model.Page / @Model.TotalPages</span>
-                @Html.ActionLink("Sau", "Index", new { search = Model.Search, page = Model.Page + 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page >= Model.TotalPages ? "disabled" : "") })
+                @Html.ActionLink("Sau", "Index", new { search = Model.Search, statusFilter = Model.StatusFilter, page = Model.Page + 1 }, new { @class = "btn btn-outline-secondary " + (Model.Page >= Model.TotalPages ? "disabled" : "") })
             </div>
         }
     </section>
