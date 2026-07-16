@@ -8,6 +8,15 @@ namespace HospitalQualityDashboardDemo.Controllers
         // Hiển thị danh sách và các bộ lọc của trang chủ ứng dụng.
         public ActionResult Index()
         {
+            var user = new HospitalQualityDashboardDemo.Services.AuthService().TryAutoLogin(Request, Session);
+            if (user != null)
+            {
+                if (user.LoaiTaiKhoan == HospitalQualityDashboardDemo.Models.Enums.LoaiTaiKhoan.Admin)
+                {
+                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                }
+                return RedirectToAction("Index", "Dashboard", new { area = "User" });
+            }
             return View();
         }
     }

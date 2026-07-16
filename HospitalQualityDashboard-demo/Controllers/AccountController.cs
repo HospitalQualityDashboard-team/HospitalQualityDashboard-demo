@@ -37,6 +37,12 @@ namespace HospitalQualityDashboardDemo.Controllers
         [HttpGet]
         public ActionResult AdminLogin()
         {
+            var user = _authService.TryAutoLogin(Request, Session);
+            if (user != null)
+            {
+                if (user.LoaiTaiKhoan == LoaiTaiKhoan.Admin) return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                return RedirectToAction("Index", "Dashboard", new { area = "User" });
+            }
             return View(new LoginViewModel());
         }
 
@@ -52,6 +58,12 @@ namespace HospitalQualityDashboardDemo.Controllers
         [HttpGet]
         public ActionResult UserLogin()
         {
+            var user = _authService.TryAutoLogin(Request, Session);
+            if (user != null)
+            {
+                if (user.LoaiTaiKhoan == LoaiTaiKhoan.Admin) return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                return RedirectToAction("Index", "Dashboard", new { area = "User" });
+            }
             return View(new LoginViewModel());
         }
 
@@ -95,6 +107,18 @@ namespace HospitalQualityDashboardDemo.Controllers
 
             SessionUserAccessor.SetLoginSession(Session, user);
 
+            if (model.RememberMe)
+            {
+                var token = _authService.CreatePersistentToken(user.TaiKhoanId);
+                var cookie = new System.Web.HttpCookie("HQD_AuthToken", token)
+                {
+                    HttpOnly = true,
+                    Expires = DateTime.Now.AddDays(30),
+                    Path = "/"
+                };
+                Response.Cookies.Add(cookie);
+            }
+
             _authService.ResetFailedLogin(user.TaiKhoanId);
             _authService.UpdateLastLogin(user.TaiKhoanId);
 
@@ -111,6 +135,19 @@ namespace HospitalQualityDashboardDemo.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Logout()
         {
+            var cookie = Request.Cookies["HQD_AuthToken"];
+            if (cookie != null)
+            {
+                var parts = cookie.Value.Split('|');
+                if (parts.Length == 2 && int.TryParse(parts[0], out int taiKhoanId))
+                {
+                    _authService.RevokeToken(taiKhoanId);
+                }
+                cookie.Expires = DateTime.Now.AddDays(-1);
+                cookie.Path = "/";
+                Response.Cookies.Add(cookie);
+            }
+
             SessionUserAccessor.ClearLoginSession(Session);
             return RedirectToAction("UserLogin");
         }

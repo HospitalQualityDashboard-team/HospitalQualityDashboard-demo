@@ -15,6 +15,9 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         [DataType(DataType.Password)]
         [Display(Name = "Mật khẩu")]
         public string MatKhau { get; set; }
+
+        [Display(Name = "Ghi nhớ đăng nhập")]
+        public bool RememberMe { get; set; }
     }
 
     public class ChangePasswordViewModel

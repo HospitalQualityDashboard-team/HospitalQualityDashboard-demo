@@ -53,8 +53,16 @@ namespace HospitalQualityDashboardDemo.Controllers
         // Kiểm tra session và quyền truy cập trước khi action được thực thi.
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            if (!SessionUserAccessor.IsAuthenticated(Session))
+            var user = new AuthService().TryAutoLogin(filterContext.HttpContext.Request, filterContext.HttpContext.Session);
+            if (user == null)
             {
+                var cookie = filterContext.HttpContext.Request.Cookies["HQD_AuthToken"];
+                if (cookie != null)
+                {
+                    cookie.Expires = DateTime.Now.AddDays(-1);
+                    cookie.Path = "/";
+                    filterContext.HttpContext.Response.Cookies.Add(cookie);
+                }
                 filterContext.Result = RedirectToAction("UserLogin", "Account", new { area = "" });
                 return;
             }
