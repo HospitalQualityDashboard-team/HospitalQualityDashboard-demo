@@ -4,6 +4,7 @@ using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using System;
 using System.Data.SqlClient;
+using System.Web;
 
 namespace HospitalQualityDashboardDemo.Services
 {
@@ -360,6 +361,103 @@ WHERE NhanVienId = @NhanVienId";
         {
             var ordinal = reader.GetOrdinal("KhoaPhongUsed");
             return !reader.IsDBNull(ordinal) && !reader.GetBoolean(ordinal);
+        }
+
+        // Khởi tạo token ghi nhớ đăng nhập an toàn, lưu hash vào DB và trả về cookie value
+        public string CreatePersistentToken(int taiKhoanId)
+        {
+            var randomToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+            var tokenHash = PasswordHasher.Hash(randomToken);
+            var expiry = DateTime.Now.AddDays(30);
+
+            ExecuteNonQuery(
+                "UPDATE dbo.TaiKhoan SET RememberTokenHash = @Hash, RememberTokenExpiry = @Expiry, NgayCapNhat = GETDATE() WHERE TaiKhoanId = @Id",
+                new SqlParameter("@Hash", tokenHash),
+                new SqlParameter("@Expiry", expiry),
+                new SqlParameter("@Id", taiKhoanId));
+
+            return $"{taiKhoanId}|{randomToken}";
+        }
+
+        // Xác thực token từ cookie, nếu hợp lệ thì trả về AuthenticatedUser
+        public AuthenticatedUser ValidatePersistentToken(string cookieValue)
+        {
+            if (string.IsNullOrWhiteSpace(cookieValue)) return null;
+
+            var parts = cookieValue.Split('|');
+            if (parts.Length != 2) return null;
+
+            if (!int.TryParse(parts[0], out int taiKhoanId)) return null;
+            var randomToken = parts[1];
+
+            const string sql = @"
+SELECT TOP 1
+    tk.TaiKhoanId, tk.TenDangNhap, tk.LoaiTaiKhoan, tk.NhanVienId, tk.KhoaPhongId, 
+    tk.DangHoatDong AS TaiKhoanDangHoatDong, tk.FailedLoginCount, tk.LockoutUntil, 
+    tk.RememberTokenHash, tk.RememberTokenExpiry,
+    nv.DangHoatDong AS NhanVienDangHoatDong, kp.TenKhoaPhong, kp.Used AS KhoaPhongUsed
+FROM dbo.TaiKhoan tk
+LEFT JOIN dbo.NhanVien nv ON nv.NhanVienId = tk.NhanVienId
+LEFT JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = tk.KhoaPhongId
+WHERE tk.TaiKhoanId = @TaiKhoanId";
+
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@TaiKhoanId", taiKhoanId);
+                connection.Open();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    if (!reader.Read()) return null;
+
+                    var expiry = ReadNullableDateTime(reader, "RememberTokenExpiry");
+                    if (!expiry.HasValue || expiry.Value <= DateTime.Now) return null;
+
+                    var storedHash = ReadNullableString(reader, "RememberTokenHash");
+                    if (string.IsNullOrEmpty(storedHash) || !PasswordHasher.Verify(randomToken, storedHash)) return null;
+
+                    var lockoutUntil = ReadNullableDateTime(reader, "LockoutUntil");
+                    var user = MapAuthenticatedUser(reader, lockoutUntil.HasValue && lockoutUntil.Value > DateTime.Now);
+                    
+                    if (user.IsLocked) return null;
+
+                    return user;
+                }
+            }
+        }
+
+        // Tự động khôi phục session từ cookie hoặc trả về user hiện tại
+        public AuthenticatedUser TryAutoLogin(HttpRequestBase request, HttpSessionStateBase session)
+        {
+            if (SessionUserAccessor.IsAuthenticated(session))
+            {
+                var taiKhoanId = SessionUserAccessor.GetInt(session, SessionUserAccessor.TaiKhoanIdKey).Value;
+                var user = GetAuthenticatedUser(taiKhoanId);
+                if (user != null && !user.IsLocked) return user;
+            }
+
+            var cookie = request.Cookies["HQD_AuthToken"];
+            if (cookie != null && !string.IsNullOrWhiteSpace(cookie.Value))
+            {
+                var authUser = ValidatePersistentToken(cookie.Value);
+                if (authUser != null)
+                {
+                    SessionUserAccessor.SetLoginSession(session, authUser);
+                    UpdateLastLogin(authUser.TaiKhoanId);
+                    return authUser;
+                }
+            }
+
+            return null;
+        }
+
+        // Hủy token khi người dùng đăng xuất
+        public void RevokeToken(int taiKhoanId)
+        {
+            ExecuteNonQuery(
+                "UPDATE dbo.TaiKhoan SET RememberTokenHash = NULL, RememberTokenExpiry = NULL, NgayCapNhat = GETDATE() WHERE TaiKhoanId = @TaiKhoanId",
+                new SqlParameter("@TaiKhoanId", taiKhoanId));
         }
 
         // Chuyển dữ liệu tài khoản, role, khóa tạm và khoa/phòng thành ngữ cảnh đăng nhập dùng trong session.

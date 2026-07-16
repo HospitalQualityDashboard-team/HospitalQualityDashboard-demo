@@ -137,6 +137,8 @@ namespace HospitalQualityDashboardDemo.Services
                 RunOptionalScript(connection, scriptDirectory, "003_AddExportHistory.sql");
                 RunOptionalScript(connection, scriptDirectory, "004_AddIndicatorWarning.sql");
                 RunOptionalScript(connection, scriptDirectory, "005_AddIndicatorDeploymentHistory.sql");
+                RunOptionalScript(connection, scriptDirectory, "006_AddRememberToken.sql");
+
             }
         }
 
