@@ -19,7 +19,7 @@
         @DetailItem("Mã chỉ số", Model.MaChiSo)
         @DetailItem("Tên chỉ số", Model.TenChiSo)
         @DetailItem("Tần suất", Model.TanSuatBaoCaoText)
-        @DetailItem("Công thức", Model.LoaiCongThuc.ToString())
+        @DetailItem("Công thức", HospitalQualityDashboardDemo.Services.IndicatorFormulaDisplay.GetLabel(Model.LoaiCongThuc))
         @DetailItem("Đơn vị tính", Model.DonViTinh)
         @DetailItem("Mục tiêu", Model.MucTieuHienThi)
     </div>

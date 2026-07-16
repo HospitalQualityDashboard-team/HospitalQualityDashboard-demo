@@ -76,7 +76,7 @@
                                     <strong>@item.MaChiSo</strong>
                                     <div class="text-muted small">@item.TenChiSo</div>
                                 </td>
-                                <td>@item.LoaiCongThuc</td>
+                                <td>@HospitalQualityDashboardDemo.Services.IndicatorFormulaDisplay.GetLabel(item.LoaiCongThuc)</td>
                                 <td>@(item.KetQua.HasValue ? item.KetQua.Value.ToString("0.00") : "Chưa có")</td>
                                 <td><span class="status-pill @ReportStatusClass(item.TrangThai)">@item.TrangThai</span></td>
                                 <td class="text-end table-actions">

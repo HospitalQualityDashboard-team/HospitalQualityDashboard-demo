@@ -1,4 +1,4 @@
-﻿@* Mục đích: màn hình chọn báo cáo cần nhập cho một kỳ báo cáo. *@
+@* Mục đích: màn hình chọn báo cáo cần nhập cho một kỳ báo cáo. *@
 @model IEnumerable<HospitalQualityDashboardDemo.Models.ViewModels.ReportEntryViewModel>
 @{
     ViewBag.Title = "Nhập báo cáo";
@@ -16,7 +16,7 @@
         {
             <tr>
                 <td>@item.MaChiSo - @item.TenChiSo</td>
-                <td>@item.LoaiCongThuc</td>
+                <td>@HospitalQualityDashboardDemo.Services.IndicatorFormulaDisplay.GetLabel(item.LoaiCongThuc)</td>
                 <td>@item.KetQua</td>
                 <td>@item.TrangThai</td>
                 <td class="text-end">@Html.ActionLink("Nhập", "Edit", new { id = item.BaoCaoId, kyBaoCaoId = item.KyBaoCaoId, khoaPhongId = item.KhoaPhongId, chiSoChatLuongId = item.ChiSoChatLuongId }, new { @class = "btn btn-sm btn-primary" })</td>

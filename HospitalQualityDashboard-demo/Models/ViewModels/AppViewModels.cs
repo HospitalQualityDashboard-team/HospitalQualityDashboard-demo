@@ -490,6 +490,9 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
         public string YKienPhanHoi { get; set; }
         public DateTime? NgayGui { get; set; }
         public string TenNguoiGui { get; set; }
+        public string TuSoMoTa { get; set; }
+        public string MauSoMoTa { get; set; }
+        public string PhuongPhapTinh { get; set; }
     }
 
     public class ReportListViewModel

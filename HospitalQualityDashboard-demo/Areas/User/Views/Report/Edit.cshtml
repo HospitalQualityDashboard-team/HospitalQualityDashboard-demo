@@ -165,23 +165,35 @@
                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                         <div class="row g-3">
-                            <div class="col-md-6" style="@(isDirect ? "display:none;" : "")">
-                                @Html.LabelFor(m => m.TuSo, new { @class = "form-label fw-semibold text-secondary" })
-                                @Html.TextBoxFor(m => m.TuSo, "{0:0.####}", tuSoAttributes)
-                                @Html.ValidationMessageFor(m => m.TuSo, "", new { @class = "text-danger" })
-                                <span id="tu-so-mau-so-client-error" class="text-danger d-none">Tử số không được lớn hơn mẫu số</span>
+                            <div class="col-md-6 d-flex flex-column" style="@(isDirect ? "display:none !important;" : "")">
+                                <label class="form-label fw-semibold text-secondary" for="TuSo">
+                                    @(string.IsNullOrWhiteSpace(Model.TuSoMoTa) ? "Tử số" : Model.TuSoMoTa)
+                                </label>
+                                <div class="mt-auto">
+                                    @Html.TextBoxFor(m => m.TuSo, "{0:0.####}", tuSoAttributes)
+                                    @Html.ValidationMessageFor(m => m.TuSo, "", new { @class = "text-danger" })
+                                    <span id="tu-so-mau-so-client-error" class="text-danger d-none">Tử số không được lớn hơn mẫu số</span>
+                                </div>
                             </div>
                             
-                            <div class="col-md-6" style="@(isDirect ? "display:none;" : "")">
-                                @Html.LabelFor(m => m.MauSo, new { @class = "form-label fw-semibold text-secondary" })
-                                @Html.TextBoxFor(m => m.MauSo, "{0:0.####}", mauSoAttributes)
-                                @Html.ValidationMessageFor(m => m.MauSo, "", new { @class = "text-danger" })
+                            <div class="col-md-6 d-flex flex-column" style="@(isDirect ? "display:none !important;" : "")">
+                                <label class="form-label fw-semibold text-secondary" for="MauSo">
+                                    @(string.IsNullOrWhiteSpace(Model.MauSoMoTa) ? "Mẫu số" : Model.MauSoMoTa)
+                                </label>
+                                <div class="mt-auto">
+                                    @Html.TextBoxFor(m => m.MauSo, "{0:0.####}", mauSoAttributes)
+                                    @Html.ValidationMessageFor(m => m.MauSo, "", new { @class = "text-danger" })
+                                </div>
                             </div>
                             
-                            <div class="col-md-12" style="@(!isDirect ? "display:none;" : "")">
-                                @Html.LabelFor(m => m.GiaTriNhap, new { @class = "form-label fw-semibold text-secondary" })
-                                @Html.TextBoxFor(m => m.GiaTriNhap, "{0:0.####}", numberAttributes)
-                                @Html.ValidationMessageFor(m => m.GiaTriNhap, "", new { @class = "text-danger" })
+                            <div class="col-md-12 d-flex flex-column" style="@(!isDirect ? "display:none !important;" : "")">
+                                <label class="form-label fw-semibold text-secondary" for="GiaTriNhap">
+                                    @(string.IsNullOrWhiteSpace(Model.PhuongPhapTinh) ? "Giá trị nhập" : Model.PhuongPhapTinh)
+                                </label>
+                                <div class="mt-auto">
+                                    @Html.TextBoxFor(m => m.GiaTriNhap, "{0:0.####}", numberAttributes)
+                                    @Html.ValidationMessageFor(m => m.GiaTriNhap, "", new { @class = "text-danger" })
+                                </div>
                             </div>
                         </div>
 

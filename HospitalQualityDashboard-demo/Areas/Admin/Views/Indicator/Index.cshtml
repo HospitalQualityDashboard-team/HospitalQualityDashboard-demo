@@ -1,4 +1,4 @@
-﻿@* Mục đích: danh sách chỉ số chất lượng theo quyền Admin/User. *@
+@* Mục đích: danh sách chỉ số chất lượng theo quyền Admin/User. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.ChiSoIndexViewModel
 @using System.Linq
 @{
@@ -85,7 +85,7 @@
                             <td><strong>@item.MaChiSo</strong></td>
                             <td>@item.TenChiSo</td>
                             <td>@item.TanSuatBaoCaoText</td>
-                            <td>@item.LoaiCongThuc</td>
+                            <td>@HospitalQualityDashboardDemo.Services.IndicatorFormulaDisplay.GetLabel(item.LoaiCongThuc)</td>
                             <td><span class="status-pill @(item.DangHoatDong ? "status-active" : "status-muted")">@(item.DangHoatDong ? "Đang triển khai" : "Ngừng triển khai")</span></td>
                             <td class="text-end table-actions">
                                 <a href="@Url.Action("Details", new { id = item.ChiSoChatLuongId })"

@@ -46,7 +46,7 @@ WHERE (@KyBaoCaoId IS NULL OR bc.KyBaoCaoId = @KyBaoCaoId)
 
             const string sql = @"
 SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, ky.TrangThai AS TrangThaiKyBaoCao, kp.TenKhoaPhong,
-       cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, bc.TrangThai, bc.YKienPhanHoi,
+       cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, cs.TuSoMoTa, cs.MauSoMoTa, cs.PhuongPhapTinh, bc.TrangThai, bc.YKienPhanHoi,
        ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
        bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
 FROM dbo.BaoCao bc
@@ -109,7 +109,7 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
         {
             const string sql = @"
 SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, ky.TrangThai AS TrangThaiKyBaoCao, kp.TenKhoaPhong,
-       cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, bc.TrangThai, bc.YKienPhanHoi,
+       cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, cs.TuSoMoTa, cs.MauSoMoTa, cs.PhuongPhapTinh, bc.TrangThai, bc.YKienPhanHoi,
        ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
        bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
 FROM dbo.BaoCao bc
@@ -145,7 +145,7 @@ ORDER BY ky.TuNgay DESC, kp.TenKhoaPhong, cs.MaChiSo";
         {
             const string sql = @"
 SELECT ISNULL(bc.BaoCaoId, 0) AS BaoCaoId, @KyBaoCaoId AS KyBaoCaoId, pc.KhoaPhongId, pc.ChiSoChatLuongId, pc.PhanCongChiSoId,
-       ky.TenKyBaoCao, ky.TrangThai AS TrangThaiKyBaoCao, kp.TenKhoaPhong, cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc,
+       ky.TenKyBaoCao, ky.TrangThai AS TrangThaiKyBaoCao, kp.TenKhoaPhong, cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, cs.TuSoMoTa, cs.MauSoMoTa, cs.PhuongPhapTinh,
        ISNULL(bc.TrangThai, 1) AS TrangThai, bc.YKienPhanHoi,
        ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
        bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
@@ -174,7 +174,7 @@ ORDER BY cs.MaChiSo";
         {
             const string sql = @"
 SELECT bc.BaoCaoId, bc.KyBaoCaoId, bc.KhoaPhongId, bc.ChiSoChatLuongId, ISNULL(bc.PhanCongChiSoId, 0) AS PhanCongChiSoId, ky.TenKyBaoCao, ky.TrangThai AS TrangThaiKyBaoCao, kp.TenKhoaPhong,
-       cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, bc.TrangThai, bc.YKienPhanHoi,
+       cs.MaChiSo, cs.TenChiSo, cs.LoaiCongThuc, cs.TuSoMoTa, cs.MauSoMoTa, cs.PhuongPhapTinh, bc.TrangThai, bc.YKienPhanHoi,
        ct.TuSo, ct.MauSo, ct.GiaTriNhap, ct.KetQua, ct.DatMucTieu, ct.GhiChu,
        bc.NgayGui, COALESCE(nvNguoiGui.HoTen, nguoiGui.TenDangNhap) AS TenNguoiGui
 FROM dbo.BaoCao bc
@@ -470,7 +470,10 @@ WHERE BaoCaoId=@Id AND TrangThai=@DaGui",
                 GhiChu = String(reader, "GhiChu"),
                 YKienPhanHoi = String(reader, "YKienPhanHoi"),
                 NgayGui = NullableDateTime(reader, "NgayGui"),
-                TenNguoiGui = String(reader, "TenNguoiGui")
+                TenNguoiGui = String(reader, "TenNguoiGui"),
+                TuSoMoTa = String(reader, "TuSoMoTa"),
+                MauSoMoTa = String(reader, "MauSoMoTa"),
+                PhuongPhapTinh = String(reader, "PhuongPhapTinh")
             };
         }
 
