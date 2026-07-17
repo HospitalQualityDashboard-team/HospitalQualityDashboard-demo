@@ -57,6 +57,9 @@
     var inputValue = item.GiaTriNhap.HasValue ? item.GiaTriNhap.Value.ToString("0.####") : "";
     var target = item.DatMucTieu.HasValue ? (item.DatMucTieu.Value ? "true" : "false") : "";
     var submittedAt = item.NgayGui.HasValue ? item.NgayGui.Value.ToString("dd/MM/yyyy HH:mm") : "";
+    var numeratorLabel = string.IsNullOrWhiteSpace(item.TuSoMoTa) ? "Tử số" : item.TuSoMoTa;
+    var denominatorLabel = string.IsNullOrWhiteSpace(item.MauSoMoTa) ? "Mẫu số" : item.MauSoMoTa;
+    var inputValueLabel = string.IsNullOrWhiteSpace(item.PhuongPhapTinh) ? "Giá trị nhập" : item.PhuongPhapTinh;
     <button type="button"
             class="btn btn-sm btn-outline-primary"
             data-bs-toggle="modal"
@@ -67,8 +70,11 @@
             data-report-indicator-code="@item.MaChiSo"
             data-report-indicator-name="@item.TenChiSo"
             data-report-formula="@((int)item.LoaiCongThuc)"
+            data-report-numerator-label="@numeratorLabel"
             data-report-numerator="@numerator"
+            data-report-denominator-label="@denominatorLabel"
             data-report-denominator="@denominator"
+            data-report-input-value-label="@inputValueLabel"
             data-report-input-value="@inputValue"
             data-report-result="@resultText"
             data-report-target="@target"

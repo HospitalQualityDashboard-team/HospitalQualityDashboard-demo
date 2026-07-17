@@ -24,15 +24,15 @@
                         <strong data-report-field="formula">Chưa xác định</strong>
                     </div>
                     <div class="report-detail-item" data-report-detail-row="numerator">
-                        <span>Tử số</span>
+                        <span data-report-field="numeratorLabel">Tử số</span>
                         <strong data-report-field="numerator">—</strong>
                     </div>
                     <div class="report-detail-item" data-report-detail-row="denominator">
-                        <span>Mẫu số</span>
+                        <span data-report-field="denominatorLabel">Mẫu số</span>
                         <strong data-report-field="denominator">—</strong>
                     </div>
                     <div class="report-detail-item" data-report-detail-row="inputValue">
-                        <span>Giá trị nhập</span>
+                        <span data-report-field="inputValueLabel">Giá trị nhập</span>
                         <strong data-report-field="inputValue">—</strong>
                     </div>
                     <div class="report-detail-item">
@@ -178,8 +178,11 @@
                 setField('period', data.reportPeriod, '—');
                 setField('department', data.reportDepartment, '—');
                 setField('formula', formulaLabels[formula], 'Chưa xác định');
+                setField('numeratorLabel', data.reportNumeratorLabel, 'Tử số');
                 setField('numerator', data.reportNumerator, '—');
+                setField('denominatorLabel', data.reportDenominatorLabel, 'Mẫu số');
                 setField('denominator', data.reportDenominator, '—');
+                setField('inputValueLabel', data.reportInputValueLabel, 'Giá trị nhập');
                 setField('inputValue', data.reportInputValue, '—');
                 setField('result', data.reportResult, '—');
                 setField('target', data.reportTarget === 'true' ? 'Đạt' : (data.reportTarget === 'false' ? 'Không đạt' : 'Chưa xác định'), 'Chưa xác định');
