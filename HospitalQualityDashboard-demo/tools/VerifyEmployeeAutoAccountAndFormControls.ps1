@@ -50,7 +50,7 @@ Assert-Contains $controller 'ModelState\.AddModelError\("NgaySinh"' "Employee bi
 
 Assert-Contains $service "ExecuteInTransaction\(\(conn,\s*trans\)\s*=>" "New employee save must run employee and account inserts in one transaction."
 Assert-Contains $service "OUTPUT INSERTED\.NhanVienId" "New employee save must capture the inserted employee id."
-Assert-Contains $service "INSERT INTO dbo\.TaiKhoan\(TenDangNhap,\s*MatKhauHash,\s*LoaiTaiKhoan,\s*NhanVienId,\s*KhoaPhongId,\s*DangHoatDong\)" "New employee save must create the linked user account."
+Assert-Contains $service "INSERT INTO dbo\.TaiKhoan\(TenDangNhap,\s*MatKhauHash,\s*RoleId,\s*NhanVienId,\s*KhoaPhongId,\s*DangHoatDong\)" "New employee save must create the linked user account."
 Assert-Contains $service "PasswordHasher\.Hash\(model\.MaNhanVien\)" "Default account password must be the employee code, stored as a hash."
 
 Assert-Contains $view "DropDownListFor\(\s*m => m\.GioiTinh" "Gender must be a select control."
