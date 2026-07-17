@@ -11,7 +11,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             var user = new HospitalQualityDashboardDemo.Services.AuthService().TryAutoLogin(Request, Session);
             if (user != null)
             {
-                if (user.LoaiTaiKhoan == HospitalQualityDashboardDemo.Models.Enums.LoaiTaiKhoan.Admin)
+                if (user.RoleName == "Admin" || user.RoleName == "BoardOfDirectors")
                 {
                     return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
                 }

@@ -1,5 +1,5 @@
 // Mục đích: view model cho đăng nhập, đổi mật khẩu và hồ sơ người dùng.
-using HospitalQualityDashboardDemo.Models.Enums;
+
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -44,10 +44,15 @@ namespace HospitalQualityDashboardDemo.Models.ViewModels
     {
         public int TaiKhoanId { get; set; }
         public string TenDangNhap { get; set; }
-        public LoaiTaiKhoan LoaiTaiKhoan { get; set; }
+        public string RoleName { get; set; }
         public string LoaiTaiKhoanText
         {
-            get { return LoaiTaiKhoan == LoaiTaiKhoan.Admin ? "Admin" : "User"; }
+            get 
+            { 
+                if (RoleName == "Admin") return "Quản trị viên";
+                if (RoleName == "BoardOfDirectors") return "Ban giám đốc";
+                return "Nhân viên";
+            }
         }
 
         public int? NhanVienId { get; set; }

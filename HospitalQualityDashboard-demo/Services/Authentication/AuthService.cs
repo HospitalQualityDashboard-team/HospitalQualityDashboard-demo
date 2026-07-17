@@ -1,6 +1,5 @@
 // Mục đích: xử lý xác thực, đổi mật khẩu và truy vấn hồ sơ tài khoản.
 using HospitalQualityDashboardDemo.Models.DTOs;
-using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using System;
 using System.Data.SqlClient;
@@ -12,7 +11,7 @@ namespace HospitalQualityDashboardDemo.Services
     {
         public int TaiKhoanId { get; set; }
         public string TenDangNhap { get; set; }
-        public LoaiTaiKhoan LoaiTaiKhoan { get; set; }
+        public string RoleName { get; set; }
         public int? NhanVienId { get; set; }
         public int? KhoaPhongId { get; set; }
         public string TenKhoaPhong { get; set; }
@@ -53,7 +52,7 @@ SELECT TOP 1
     tk.TaiKhoanId,
     tk.TenDangNhap,
     tk.MatKhauHash,
-    tk.LoaiTaiKhoan,
+    r.RoleName,
     tk.NhanVienId,
     tk.KhoaPhongId,
     tk.DangHoatDong AS TaiKhoanDangHoatDong,
@@ -63,6 +62,7 @@ SELECT TOP 1
     kp.TenKhoaPhong,
     kp.Used AS KhoaPhongUsed
 FROM dbo.TaiKhoan tk
+INNER JOIN dbo.Role r ON r.RoleId = tk.RoleId
 LEFT JOIN dbo.NhanVien nv ON nv.NhanVienId = tk.NhanVienId
 LEFT JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = tk.KhoaPhongId
 WHERE tk.TenDangNhap = @TenDangNhap";
@@ -104,7 +104,7 @@ WHERE tk.TenDangNhap = @TenDangNhap";
 SELECT TOP 1
     tk.TaiKhoanId,
     tk.TenDangNhap,
-    tk.LoaiTaiKhoan,
+    r.RoleName,
     tk.NhanVienId,
     tk.KhoaPhongId,
     tk.DangHoatDong AS TaiKhoanDangHoatDong,
@@ -114,6 +114,7 @@ SELECT TOP 1
     kp.TenKhoaPhong,
     kp.Used AS KhoaPhongUsed
 FROM dbo.TaiKhoan tk
+INNER JOIN dbo.Role r ON r.RoleId = tk.RoleId
 LEFT JOIN dbo.NhanVien nv ON nv.NhanVienId = tk.NhanVienId
 LEFT JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = tk.KhoaPhongId
 WHERE tk.TaiKhoanId = @TaiKhoanId";
@@ -191,7 +192,7 @@ WHERE TenDangNhap = @TenDangNhap",
 SELECT TOP 1
     tk.TaiKhoanId,
     tk.TenDangNhap,
-    tk.LoaiTaiKhoan,
+    r.RoleName,
     tk.NhanVienId,
     tk.KhoaPhongId AS TaiKhoanKhoaPhongId,
     tk.DangHoatDong AS TaiKhoanDangHoatDong,
@@ -207,6 +208,7 @@ SELECT TOP 1
     nv.DangHoatDong AS NhanVienDangHoatDong,
     kp.TenKhoaPhong
 FROM dbo.TaiKhoan tk
+INNER JOIN dbo.Role r ON r.RoleId = tk.RoleId
 LEFT JOIN dbo.NhanVien nv ON nv.NhanVienId = tk.NhanVienId
 LEFT JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = ISNULL(tk.KhoaPhongId, nv.KhoaPhongId)
 WHERE tk.TaiKhoanId = @TaiKhoanId";
@@ -228,7 +230,7 @@ WHERE tk.TaiKhoanId = @TaiKhoanId";
                     {
                         TaiKhoanId = reader.GetInt32(reader.GetOrdinal("TaiKhoanId")),
                         TenDangNhap = reader.GetString(reader.GetOrdinal("TenDangNhap")),
-                        LoaiTaiKhoan = (LoaiTaiKhoan)reader.GetByte(reader.GetOrdinal("LoaiTaiKhoan")),
+                        RoleName = reader.GetString(reader.GetOrdinal("RoleName")),
                         NhanVienId = ReadNullableInt(reader, "NhanVienId"),
                         MaNhanVien = ReadNullableString(reader, "MaNhanVien"),
                         HoTen = ReadNullableString(reader, "HoTen"),
@@ -391,12 +393,13 @@ WHERE NhanVienId = @NhanVienId";
             var randomToken = parts[1];
 
             const string sql = @"
-SELECT TOP 1
-    tk.TaiKhoanId, tk.TenDangNhap, tk.LoaiTaiKhoan, tk.NhanVienId, tk.KhoaPhongId, 
+ SELECT TOP 1
+    tk.TaiKhoanId, tk.TenDangNhap, r.RoleName, tk.NhanVienId, tk.KhoaPhongId, 
     tk.DangHoatDong AS TaiKhoanDangHoatDong, tk.FailedLoginCount, tk.LockoutUntil, 
     tk.RememberTokenHash, tk.RememberTokenExpiry,
     nv.DangHoatDong AS NhanVienDangHoatDong, kp.TenKhoaPhong, kp.Used AS KhoaPhongUsed
 FROM dbo.TaiKhoan tk
+INNER JOIN dbo.Role r ON r.RoleId = tk.RoleId
 LEFT JOIN dbo.NhanVien nv ON nv.NhanVienId = tk.NhanVienId
 LEFT JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = tk.KhoaPhongId
 WHERE tk.TaiKhoanId = @TaiKhoanId";
@@ -468,7 +471,7 @@ WHERE tk.TaiKhoanId = @TaiKhoanId";
             {
                 TaiKhoanId = reader.GetInt32(reader.GetOrdinal("TaiKhoanId")),
                 TenDangNhap = reader.GetString(reader.GetOrdinal("TenDangNhap")),
-                LoaiTaiKhoan = (LoaiTaiKhoan)reader.GetByte(reader.GetOrdinal("LoaiTaiKhoan")),
+                RoleName = reader.GetString(reader.GetOrdinal("RoleName")),
                 NhanVienId = ReadNullableInt(reader, "NhanVienId"),
                 KhoaPhongId = ReadNullableInt(reader, "KhoaPhongId"),
                 TenKhoaPhong = ReadNullableString(reader, "TenKhoaPhong"),

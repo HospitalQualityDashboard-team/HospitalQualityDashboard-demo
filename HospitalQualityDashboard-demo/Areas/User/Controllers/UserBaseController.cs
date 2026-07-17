@@ -1,6 +1,6 @@
 // Mục đích: áp dụng kiểm tra đăng nhập, vai trò User và khoa/phòng hợp lệ cho các controller người dùng.
 using HospitalQualityDashboardDemo.Controllers;
-using HospitalQualityDashboardDemo.Models.Enums;
+
 using HospitalQualityDashboardDemo.Services;
 using System.Web.Mvc;
 
@@ -20,14 +20,14 @@ namespace HospitalQualityDashboardDemo.Areas.User.Controllers
                 return;
             }
 
-            if (CurrentLoaiTaiKhoan != LoaiTaiKhoan.User || !CurrentKhoaPhongId.HasValue)
+            if (CurrentRoleName != "User" || !CurrentKhoaPhongId.HasValue)
             {
                 filterContext.Result = new HttpUnauthorizedResult();
                 return;
             }
 
             var refreshedUser = _authService.GetAuthenticatedUser(CurrentTaiKhoanId.Value);
-            if (refreshedUser == null || refreshedUser.IsLocked || refreshedUser.LoaiTaiKhoan != LoaiTaiKhoan.User || !refreshedUser.KhoaPhongId.HasValue)
+            if (refreshedUser == null || refreshedUser.IsLocked || refreshedUser.RoleName != "User" || !refreshedUser.KhoaPhongId.HasValue)
             {
                 SessionUserAccessor.ClearLoginSession(Session);
                 filterContext.Result = RedirectToAction("UserLogin", "Account", new { area = "" });

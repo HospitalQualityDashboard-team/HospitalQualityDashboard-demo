@@ -15,15 +15,18 @@
 <body>
     @{
         var isAuthenticated = Session["TaiKhoanId"] != null;
-        var currentRole = Convert.ToString(Session["LoaiTaiKhoan"]);
+        var currentRole = Convert.ToString(Session["RoleName"]);
+        var currentRoleText = currentRole == "Admin" ? "Quản trị viên" : 
+                             currentRole == "BoardOfDirectors" ? "Ban giám đốc" : "Nhân viên";
         var isAdmin = isAuthenticated && currentRole == "Admin";
         var isUser = isAuthenticated && currentRole == "User";
+        var isBanGiamDoc = isAuthenticated && currentRole == "BoardOfDirectors";
         var notificationPreview = ViewBag.NotificationPreview as NotificationPreviewViewModel ?? new NotificationPreviewViewModel();
         var unreadNotificationCount = ViewBag.UnreadNotificationCount == null
             ? notificationPreview.UnreadCount
             : Convert.ToInt32(ViewBag.UnreadNotificationCount);
         var unreadNotificationDisplay = unreadNotificationCount > 99 ? "99+" : unreadNotificationCount.ToString();
-        var notificationArea = isAdmin ? "Admin" : "User";
+        var notificationArea = (isAdmin || isBanGiamDoc) ? "Admin" : "User";
         var hasNotificationItems = notificationPreview.ImportantItems.Any() || notificationPreview.OtherItems.Any();
         var currentController = Convert.ToString(ViewContext.RouteData.Values["controller"]);
         var currentAction = Convert.ToString(ViewContext.RouteData.Values["action"]);
@@ -47,7 +50,7 @@
         {
             <aside class="app-sidebar" id="appSidebar">
                 <div class="app-sidebar-brand hospital-brand">
-                    <a href="@Url.Action("Index", "Dashboard", new { area = isAdmin ? "Admin" : "User" })"
+                    <a href="@Url.Action("Index", "Dashboard", new { area = (isAdmin || isBanGiamDoc) ? "Admin" : "User" })"
                        class="hospital-brand-link">
                         <img src="@Url.Content("~/Content/images/logo-ungbuou.png")"
                              alt="Bệnh viện Ung Bướu"
@@ -103,6 +106,18 @@
                             <div class="app-nav-section">
                                 <div class="app-nav-heading">THỐNG KÊ</div>
                                 @Html.ActionLink("Chỉ số", "Index", "Indicator", new { area = "User" }, new { @class = navClass("Indicator", "") })
+                            </div>
+                        }
+                        else if (isBanGiamDoc)
+                        {
+                            <div class="app-nav-section">
+                                <div class="app-nav-heading">TRANG CHỦ</div>
+                                @Html.ActionLink("Tổng quan", "Index", "Dashboard", new { area = "Admin" }, new { @class = navClass("Dashboard", "Index") })
+                            </div>
+                            <div class="app-nav-section">
+                                <div class="app-nav-heading">THỐNG KÊ</div>
+                                @Html.ActionLink("Báo cáo", "Index", "Report", new { area = "Admin" }, new { @class = navClass("Report", "") })
+                                @Html.ActionLink("So sánh kỳ báo cáo", "PeriodComparison", "Dashboard", new { area = "Admin" }, new { @class = navClass("Dashboard", "PeriodComparison") })
                             </div>
                         }
                     }
@@ -217,7 +232,7 @@
                                 </div>
                             </div>
                         </div>
-                        <span class="app-role-chip">@currentRole</span>
+                        <span class="app-role-chip">@currentRoleText</span>
                         @Html.ActionLink("Hồ sơ", "Profile", "Account", new { area = "" }, new { @class = navClass("Account", "Profile") })
                         using (Html.BeginForm("Logout", "Account", new { area = "" }, FormMethod.Post, new { @class = "d-inline" }))
                         {

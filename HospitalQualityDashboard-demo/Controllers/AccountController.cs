@@ -1,7 +1,6 @@
 // Mục đích: xử lý đăng nhập, đăng xuất, hồ sơ và đổi mật khẩu người dùng.
 using System;
 using HospitalQualityDashboardDemo.Models.DTOs;
-using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Models.ViewModels;
 using HospitalQualityDashboardDemo.Services;
 using System.Globalization;
@@ -40,7 +39,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             var user = _authService.TryAutoLogin(Request, Session);
             if (user != null)
             {
-                if (user.LoaiTaiKhoan == LoaiTaiKhoan.Admin) return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                if (user.RoleName == "Admin" || user.RoleName == "BoardOfDirectors") return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
                 return RedirectToAction("Index", "Dashboard", new { area = "User" });
             }
             return View(new LoginViewModel());
@@ -51,7 +50,7 @@ namespace HospitalQualityDashboardDemo.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult AdminLogin(LoginViewModel model)
         {
-            return LoginForRole(model, LoaiTaiKhoan.Admin, "AdminLogin", "Tài khoản này không phải tài khoản Admin.");
+            return LoginForRole(model, "Admin", "AdminLogin", "Tài khoản này không phải tài khoản Admin.");
         }
 
         // Hiển thị biểu mẫu đăng nhập dành cho User.
@@ -61,7 +60,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             var user = _authService.TryAutoLogin(Request, Session);
             if (user != null)
             {
-                if (user.LoaiTaiKhoan == LoaiTaiKhoan.Admin) return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                if (user.RoleName == "Admin" || user.RoleName == "BoardOfDirectors") return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
                 return RedirectToAction("Index", "Dashboard", new { area = "User" });
             }
             return View(new LoginViewModel());
@@ -72,11 +71,11 @@ namespace HospitalQualityDashboardDemo.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult UserLogin(LoginViewModel model)
         {
-            return LoginForRole(model, LoaiTaiKhoan.User, "UserLogin", "Tài khoản này không phải tài khoản User.");
+            return LoginForRole(model, "User", "UserLogin", "Tài khoản này không phải tài khoản User.");
         }
 
         // Dùng chung quy trình xác thực và từ chối tài khoản sai vai trò.
-        private ActionResult LoginForRole(LoginViewModel model, LoaiTaiKhoan expectedRole, string viewName, string wrongRoleMessage)
+        private ActionResult LoginForRole(LoginViewModel model, string expectedRole, string viewName, string wrongRoleMessage)
         {
             if (!ModelState.IsValid)
             {
@@ -91,7 +90,12 @@ namespace HospitalQualityDashboardDemo.Controllers
                 return View(viewName, model);
             }
 
-            if (user.LoaiTaiKhoan != expectedRole)
+            // Admin login chấp nhận cả Admin và BoardOfDirectors
+            bool roleMatch = expectedRole == "Admin"
+                ? (user.RoleName == "Admin" || user.RoleName == "BoardOfDirectors")
+                : user.RoleName == expectedRole;
+
+            if (!roleMatch)
             {
                 ModelState.AddModelError("", wrongRoleMessage);
                 return View(viewName, model);
@@ -122,7 +126,7 @@ namespace HospitalQualityDashboardDemo.Controllers
             _authService.ResetFailedLogin(user.TaiKhoanId);
             _authService.UpdateLastLogin(user.TaiKhoanId);
 
-            if (user.LoaiTaiKhoan == LoaiTaiKhoan.Admin)
+            if (user.RoleName == "Admin" || user.RoleName == "BoardOfDirectors")
             {
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             }

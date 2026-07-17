@@ -119,11 +119,20 @@ OUTPUT INSERTED.NhanVienId
 VALUES(@MaNhanVien, @HoTen, @NgaySinh, @GioiTinh, @ChucVu, @Email, @SoDienThoai, @KhoaPhongId, @DangHoatDong)",
                         EmployeeParams(model));
 
-                    Execute(conn, trans, @"INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, LoaiTaiKhoan, NhanVienId, KhoaPhongId, DangHoatDong)
-VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)",
+                    Execute(conn, trans, @"
+DECLARE @TargetRoleId INT;
+SELECT @TargetRoleId = r.RoleId 
+FROM dbo.Role r
+WHERE r.RoleName = CASE 
+    WHEN EXISTS (SELECT 1 FROM dbo.KhoaPhong kp WHERE kp.KhoaPhongId = @KhoaPhongId AND (kp.TenKhoaPhong LIKE N'%Ban Giám Đốc%' OR kp.TenKhoaPhong = N'Ban Giám Đốc')) 
+    THEN N'BoardOfDirectors' 
+    ELSE N'User' 
+END;
+
+INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, RoleId, NhanVienId, KhoaPhongId, DangHoatDong)
+VALUES(@TenDangNhap, @MatKhauHash, @TargetRoleId, @NhanVienId, @KhoaPhongId, 1)",
                         Param("@TenDangNhap", model.MaNhanVien),
                         Param("@MatKhauHash", PasswordHasher.Hash(model.MaNhanVien)),
-                        Param("@LoaiTaiKhoan", (byte)LoaiTaiKhoan.User),
                         Param("@NhanVienId", Convert.ToInt32(newId)),
                         Param("@KhoaPhongId", model.KhoaPhongId));
                 });
@@ -180,11 +189,20 @@ WHERE tk.NhanVienId = nv.NhanVienId OR tk.TenDangNhap = nv.MaNhanVien;",
             var employee = Get(model.NhanVienId);
             _departments.RequireActiveDepartment(employee.KhoaPhongId);
             // Lưu mật khẩu đã hash, không lưu mật khẩu gốc.
-            Execute(@"INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, LoaiTaiKhoan, NhanVienId, KhoaPhongId, DangHoatDong)
-VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)",
+            Execute(@"
+DECLARE @TargetRoleId INT;
+SELECT @TargetRoleId = r.RoleId 
+FROM dbo.Role r
+WHERE r.RoleName = CASE 
+    WHEN EXISTS (SELECT 1 FROM dbo.KhoaPhong kp WHERE kp.KhoaPhongId = @KhoaPhongId AND (kp.TenKhoaPhong LIKE N'%Ban Giám Đốc%' OR kp.TenKhoaPhong = N'Ban Giám Đốc')) 
+    THEN N'BoardOfDirectors' 
+    ELSE N'User' 
+END;
+
+INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, RoleId, NhanVienId, KhoaPhongId, DangHoatDong)
+VALUES(@TenDangNhap, @MatKhauHash, @TargetRoleId, @NhanVienId, @KhoaPhongId, 1)",
                 Param("@TenDangNhap", model.TenDangNhap),
                 Param("@MatKhauHash", PasswordHasher.Hash(model.MatKhau)),
-                Param("@LoaiTaiKhoan", (byte)LoaiTaiKhoan.User),
                 Param("@NhanVienId", model.NhanVienId),
                 Param("@KhoaPhongId", employee.KhoaPhongId));
         }
@@ -294,11 +312,20 @@ END", EmployeeParams(model));
                     if (hasAccount == null)
                     {
                         // Mật khẩu mặc định bằng mã nhân viên và được hash trước khi lưu.
-                        Execute(conn, trans, @"INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, LoaiTaiKhoan, NhanVienId, KhoaPhongId, DangHoatDong)
-VALUES(@TenDangNhap, @MatKhauHash, @LoaiTaiKhoan, @NhanVienId, @KhoaPhongId, 1)",
+                        Execute(conn, trans, @"
+DECLARE @TargetRoleId INT;
+SELECT @TargetRoleId = r.RoleId 
+FROM dbo.Role r
+WHERE r.RoleName = CASE 
+    WHEN EXISTS (SELECT 1 FROM dbo.KhoaPhong kp WHERE kp.KhoaPhongId = @KhoaPhongId AND (kp.TenKhoaPhong LIKE N'%Ban Giám Đốc%' OR kp.TenKhoaPhong = N'Ban Giám Đốc')) 
+    THEN N'BoardOfDirectors' 
+    ELSE N'User' 
+END;
+
+INSERT INTO dbo.TaiKhoan(TenDangNhap, MatKhauHash, RoleId, NhanVienId, KhoaPhongId, DangHoatDong)
+VALUES(@TenDangNhap, @MatKhauHash, @TargetRoleId, @NhanVienId, @KhoaPhongId, 1)",
                             Param("@TenDangNhap", model.MaNhanVien),
                             Param("@MatKhauHash", PasswordHasher.Hash(model.MaNhanVien)),
-                            Param("@LoaiTaiKhoan", (byte)LoaiTaiKhoan.User),
                             Param("@NhanVienId", employeeId),
                             Param("@KhoaPhongId", model.KhoaPhongId));
                     }

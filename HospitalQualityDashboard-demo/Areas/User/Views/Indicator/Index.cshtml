@@ -3,7 +3,7 @@
 @using System.Linq
 @{
     ViewBag.Title = "Chỉ số chất lượng";
-    var isAdmin = Convert.ToString(Session["LoaiTaiKhoan"]) == "Admin";
+    var isAdmin = Convert.ToString(Session["RoleName"]) == "Admin";
     var items = (Model.Items ?? new System.Collections.Generic.List<HospitalQualityDashboardDemo.Models.ViewModels.ChiSoViewModel>()).ToList();
 }
 

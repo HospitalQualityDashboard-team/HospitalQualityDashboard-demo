@@ -1,4 +1,4 @@
-﻿@* Mục đích: trang đầu vào điều hướng người dùng theo trạng thái đăng nhập - Glassmorphism style. *@
+@* Mục đích: trang đầu vào điều hướng người dùng theo trạng thái đăng nhập - Glassmorphism style. *@
 @{
     ViewBag.Title = "Trang chủ";
     Layout = null;
@@ -224,7 +224,8 @@
             }
             else
             {
-                var area = Convert.ToString(Session["LoaiTaiKhoan"]) == "Admin" ? "Admin" : "User";
+                var currentRole = Convert.ToString(Session["RoleName"]);
+                var area = (currentRole == "Admin" || currentRole == "BoardOfDirectors") ? "Admin" : "User";
                 <div class="glass-btn-group">
                     @Html.ActionLink("Vào tổng quan", "Index", "Dashboard", new { area }, new { @class = "btn-glass-primary" })
                 </div>

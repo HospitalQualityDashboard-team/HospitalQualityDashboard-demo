@@ -1,5 +1,4 @@
 // Mục đích: controller nền tập trung kiểm tra session, role và phạm vi khoa/phòng.
-using HospitalQualityDashboardDemo.Models.Enums;
 using HospitalQualityDashboardDemo.Services;
 using System;
 using System.Web.Mvc;
@@ -20,9 +19,9 @@ namespace HospitalQualityDashboardDemo.Controllers
             get { return SessionUserAccessor.GetString(Session, SessionUserAccessor.TenDangNhapKey); }
         }
 
-        protected LoaiTaiKhoan? CurrentLoaiTaiKhoan
+        protected string CurrentRoleName
         {
-            get { return SessionUserAccessor.GetLoaiTaiKhoan(Session); }
+            get { return SessionUserAccessor.GetRoleName(Session); }
         }
 
         protected int? CurrentNhanVienId
@@ -42,12 +41,17 @@ namespace HospitalQualityDashboardDemo.Controllers
 
         protected bool IsAdmin
         {
-            get { return CurrentLoaiTaiKhoan == LoaiTaiKhoan.Admin; }
+            get { return CurrentRoleName == "Admin"; }
         }
 
         protected bool IsUser
         {
-            get { return CurrentLoaiTaiKhoan == LoaiTaiKhoan.User; }
+            get { return CurrentRoleName == "User"; }
+        }
+
+        protected bool IsBanGiamDoc
+        {
+            get { return CurrentRoleName == "BoardOfDirectors"; }
         }
 
         // Kiểm tra session và quyền truy cập trước khi action được thực thi.
@@ -106,12 +110,12 @@ namespace HospitalQualityDashboardDemo.Controllers
         // Kiểm tra session có đủ role, tên đăng nhập và phạm vi khoa/phòng trước khi cho request đi tiếp.
         private bool HasRequiredSessionData()
         {
-            if (!CurrentLoaiTaiKhoan.HasValue || string.IsNullOrWhiteSpace(CurrentTenDangNhap))
+            if (string.IsNullOrWhiteSpace(CurrentRoleName) || string.IsNullOrWhiteSpace(CurrentTenDangNhap))
             {
                 return false;
             }
 
-            return IsAdmin || CurrentKhoaPhongId.HasValue;
+            return IsAdmin || IsBanGiamDoc || CurrentKhoaPhongId.HasValue;
         }
 
         // Tránh kiểm tra session bằng database quá dày; chỉ revalidate sau khoảng thời gian cấu hình.
@@ -127,10 +131,16 @@ namespace HospitalQualityDashboardDemo.Controllers
             return IsAdmin ? null : new HttpUnauthorizedResult();
         }
 
-        // Chặn người dùng thường thao tác dữ liệu của khoa/phòng khác; admin được bỏ qua ràng buộc này.
+        // Bảo vệ action dành cho Admin hoặc Ban Giám Đốc; tài khoản User thường sẽ bị từ chối.
+        protected ActionResult RequireAdminOrBanGiamDoc()
+        {
+            return (IsAdmin || IsBanGiamDoc) ? null : new HttpUnauthorizedResult();
+        }
+
+        // Chặn người dùng thường thao tác dữ liệu của khoa/phòng khác; admin và ban giám đốc được bỏ qua ràng buộc này.
         protected ActionResult EnsureUserDepartment(int khoaPhongId)
         {
-            if (IsAdmin)
+            if (IsAdmin || IsBanGiamDoc)
             {
                 return null;
             }

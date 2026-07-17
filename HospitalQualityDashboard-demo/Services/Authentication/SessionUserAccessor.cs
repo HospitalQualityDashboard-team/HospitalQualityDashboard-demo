@@ -1,5 +1,4 @@
 // Mục đích: chuẩn hóa các key và thao tác đọc/ghi session đăng nhập.
-using HospitalQualityDashboardDemo.Models.Enums;
 using System;
 using System.Web;
 using System.Web.SessionState;
@@ -10,7 +9,7 @@ namespace HospitalQualityDashboardDemo.Services
     {
         public const string TaiKhoanIdKey = "TaiKhoanId";
         public const string TenDangNhapKey = "TenDangNhap";
-        public const string LoaiTaiKhoanKey = "LoaiTaiKhoan";
+        public const string RoleNameKey = "RoleName";
         public const string NhanVienIdKey = "NhanVienId";
         public const string KhoaPhongIdKey = "KhoaPhongId";
         public const string TenKhoaPhongKey = "TenKhoaPhong";
@@ -39,15 +38,15 @@ namespace HospitalQualityDashboardDemo.Services
             return session == null ? null : session[key] as string;
         }
 
-        // Chuyển role đã lưu trong session về enum để các controller kiểm tra quyền nhất quán.
-        public static LoaiTaiKhoan? GetLoaiTaiKhoan(HttpSessionStateBase session)
+        // Lấy tên vai trò (RoleName) từ session để các controller kiểm tra quyền nhất quán.
+        public static string GetRoleName(HttpSessionStateBase session)
         {
-            if (session == null || session[LoaiTaiKhoanKey] == null)
+            if (session == null || session[RoleNameKey] == null)
             {
                 return null;
             }
 
-            return (LoaiTaiKhoan)session[LoaiTaiKhoanKey];
+            return session[RoleNameKey] as string;
         }
 
         // Đọc mốc thời gian session như lần revalidate gần nhất, trả null nếu chưa từng ghi.
@@ -71,7 +70,7 @@ namespace HospitalQualityDashboardDemo.Services
 
             session[TaiKhoanIdKey] = user.TaiKhoanId;
             session[TenDangNhapKey] = user.TenDangNhap;
-            session[LoaiTaiKhoanKey] = user.LoaiTaiKhoan;
+            session[RoleNameKey] = user.RoleName;
             session[NhanVienIdKey] = user.NhanVienId;
             session[KhoaPhongIdKey] = user.KhoaPhongId;
             session[TenKhoaPhongKey] = user.TenKhoaPhong;
@@ -100,7 +99,7 @@ namespace HospitalQualityDashboardDemo.Services
 
             session[TaiKhoanIdKey] = user.TaiKhoanId;
             session[TenDangNhapKey] = user.TenDangNhap;
-            session[LoaiTaiKhoanKey] = user.LoaiTaiKhoan;
+            session[RoleNameKey] = user.RoleName;
             session[NhanVienIdKey] = user.NhanVienId;
             session[KhoaPhongIdKey] = user.KhoaPhongId;
             session[TenKhoaPhongKey] = user.TenKhoaPhong;
