@@ -442,7 +442,7 @@ SELECT @ThongBaoId, tk.TaiKhoanId
 FROM dbo.TaiKhoan tk
 INNER JOIN dbo.KhoaPhong kp ON kp.KhoaPhongId = tk.KhoaPhongId
 WHERE tk.KhoaPhongId=@KhoaPhongId
-  AND tk.LoaiTaiKhoan=@UserType
+  AND EXISTS (SELECT 1 FROM dbo.Role r WHERE r.RoleId = tk.RoleId AND r.RoleName = @RoleName)
   AND tk.DangHoatDong=1
   AND kp.Used = 1
   AND NOT EXISTS (
@@ -451,7 +451,7 @@ WHERE tk.KhoaPhongId=@KhoaPhongId
   )",
                 Param("@ThongBaoId", notificationId),
                 Param("@KhoaPhongId", departmentId),
-                Param("@UserType", (byte)LoaiTaiKhoan.User));
+                Param("@RoleName", "User"));
         }
 
         // Thêm Admin làm người nhận khi thông báo cần theo dõi hoặc phối hợp xử lý toàn viện.
@@ -466,17 +466,14 @@ WHERE tk.KhoaPhongId=@KhoaPhongId
 INSERT INTO dbo.ThongBaoNguoiNhan(ThongBaoId, TaiKhoanId)
 SELECT @ThongBaoId, tk.TaiKhoanId
 FROM dbo.TaiKhoan tk
-WHERE tk.LoaiTaiKhoan=@AdminType
+WHERE EXISTS (SELECT 1 FROM dbo.Role r WHERE r.RoleId = tk.RoleId AND r.RoleName IN (N'Admin', N'BoardOfDirectors'))
   AND tk.DangHoatDong=1
   AND NOT EXISTS (
       SELECT 1 FROM dbo.ThongBaoNguoiNhan existing
       WHERE existing.ThongBaoId=@ThongBaoId AND existing.TaiKhoanId=tk.TaiKhoanId
   )",
-                Param("@ThongBaoId", notificationId),
-                Param("@AdminType", (byte)LoaiTaiKhoan.Admin));
+                Param("@ThongBaoId", notificationId));
         }
-
-        // Chuyển dữ liệu kỳ báo cáo/khoa phòng cần nhắc việc thành dòng xử lý thông báo tự động.
         private static AutomationNotificationRow MapAutomationRow(System.Data.SqlClient.SqlDataReader reader)
         {
             return new AutomationNotificationRow

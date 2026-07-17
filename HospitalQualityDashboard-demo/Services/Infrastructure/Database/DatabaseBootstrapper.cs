@@ -130,7 +130,6 @@ namespace HospitalQualityDashboardDemo.Services
                 if (!ObjectExists(connection, "dbo.KhoaPhong"))
                 {
                     RunScript(connection, scriptDirectory, "001_CreateSchema.sql");
-                    SeedAdminAccount(connection);
                 }
 
                 RunOptionalScript(connection, scriptDirectory, "002_PerformanceIndexes.sql");
@@ -138,7 +137,10 @@ namespace HospitalQualityDashboardDemo.Services
                 RunOptionalScript(connection, scriptDirectory, "004_AddIndicatorWarning.sql");
                 RunOptionalScript(connection, scriptDirectory, "005_AddIndicatorDeploymentHistory.sql");
                 RunOptionalScript(connection, scriptDirectory, "006_AddRememberToken.sql");
+                RunOptionalScript(connection, scriptDirectory, "007_AddRoleTable.sql");
 
+                // Seed tài khoản Admin sau khi toàn bộ cấu trúc DB và các Role đã được tạo
+                SeedAdminAccount(connection);
             }
         }
 
@@ -148,8 +150,13 @@ namespace HospitalQualityDashboardDemo.Services
             const string sql = @"
 IF NOT EXISTS (SELECT 1 FROM dbo.TaiKhoan WHERE TenDangNhap = N'admin')
 BEGIN
-    INSERT INTO dbo.TaiKhoan (TenDangNhap, MatKhauHash, LoaiTaiKhoan)
-    VALUES (N'admin', N'10000:lkAriw5t2BuUCTmEysNbHQ==:BwV/toyAETuBIEzF32EYnWtAlExo4zo54sHjHE4/tds=', 1);
+    DECLARE @AdminRoleId INT;
+    SELECT @AdminRoleId = RoleId FROM dbo.Role WHERE RoleName = N'Admin';
+    IF @AdminRoleId IS NOT NULL
+    BEGIN
+        INSERT INTO dbo.TaiKhoan (TenDangNhap, MatKhauHash, RoleId)
+        VALUES (N'admin', N'10000:lkAriw5t2BuUCTmEysNbHQ==:BwV/toyAETuBIEzF32EYnWtAlExo4zo54sHjHE4/tds=', @AdminRoleId);
+    END
 END";
             ExecuteNonQuery(connection, sql);
         }

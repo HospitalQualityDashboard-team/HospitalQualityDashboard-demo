@@ -1,10 +1,12 @@
 // Mục đích: khai báo enum dùng chung cho role, trạng thái, tần suất và loại nghiệp vụ.
 namespace HospitalQualityDashboardDemo.Models.Enums
 {
-    public enum LoaiTaiKhoan : byte
+    // Vai trò người dùng trong hệ thống (RBAC). Giá trị phải khớp với RoleId trong bảng dbo.Role.
+    public enum AppRole : int
     {
         Admin = 1,
-        User = 2
+        User = 2,
+        BoardOfDirectors = 3
     }
 
     public enum LoaiCongThuc : byte

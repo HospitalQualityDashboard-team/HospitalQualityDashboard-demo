@@ -1,9 +1,9 @@
-﻿@* Mục đích: danh sách thông báo của người dùng và thao tác tự động của Admin. *@
+@* Mục đích: danh sách thông báo của người dùng và thao tác tự động của Admin. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.NotificationIndexViewModel
 @using System.Linq
 @{
     ViewBag.Title = "Thông báo";
-    var isAdmin = Convert.ToString(Session["LoaiTaiKhoan"]) == "Admin";
+    var isAdmin = Convert.ToString(Session["RoleName"]) == "Admin";
     var notifications = (Model.Items ?? Enumerable.Empty<HospitalQualityDashboardDemo.Models.ViewModels.NotificationViewModel>()).ToList();
     var unreadCount = notifications.Count(x => !x.DaDoc);
 }

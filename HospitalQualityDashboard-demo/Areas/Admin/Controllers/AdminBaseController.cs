@@ -18,7 +18,7 @@ namespace HospitalQualityDashboardDemo.Areas.Admin.Controllers
                 return;
             }
 
-            var admin = RequireAdmin();
+            var admin = RequireAdminOrBanGiamDoc();
             if (admin != null)
             {
                 filterContext.Result = admin;

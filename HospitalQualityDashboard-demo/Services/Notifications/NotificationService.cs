@@ -125,10 +125,11 @@ OUTPUT INSERTED.ThongBaoId VALUES(@TieuDe, @NoiDung, @LoaiThongBao, @KyBaoCaoId,
             foreach (var departmentId in model.SelectedKhoaPhongIds ?? new int[0])
             {
                 Execute(@"INSERT INTO dbo.ThongBaoNguoiNhan(ThongBaoId, TaiKhoanId)
-SELECT @ThongBaoId, TaiKhoanId FROM dbo.TaiKhoan WHERE KhoaPhongId=@KhoaPhongId AND LoaiTaiKhoan=@UserType AND DangHoatDong=1",
+SELECT @ThongBaoId, tk.TaiKhoanId FROM dbo.TaiKhoan tk
+INNER JOIN dbo.Role r ON r.RoleId = tk.RoleId
+WHERE tk.KhoaPhongId=@KhoaPhongId AND r.RoleName=N'User' AND tk.DangHoatDong=1",
                     Param("@ThongBaoId", notificationId),
-                    Param("@KhoaPhongId", departmentId),
-                    Param("@UserType", (byte)LoaiTaiKhoan.User));
+                    Param("@KhoaPhongId", departmentId));
             }
         }
 
