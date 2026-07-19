@@ -1,7 +1,7 @@
 @* Mục đích: màn hình đăng nhập riêng cho tài khoản Admin - Glassmorphism style. *@
 @model HospitalQualityDashboardDemo.Models.ViewModels.LoginViewModel
 @{
-    ViewBag.Title = "Đăng nhập Admin";
+    ViewBag.Title = "Đăng nhập quản trị";
     Layout = null;
 }
 
@@ -270,7 +270,7 @@
                 </div>
             </div>
 
-            <h2>Đăng nhập Admin</h2>
+            <h2>Đăng nhập Quản trị viên</h2>
             <p class="glass-sub">Màn hình dành riêng cho tài khoản quản trị hệ thống.</p>
 
             @using (Html.BeginForm("AdminLogin", "Account", FormMethod.Post))
@@ -295,11 +295,11 @@
                     <label for="RememberMe" class="form-label" style="margin-bottom: 0; font-weight: normal;">Ghi nhớ đăng nhập</label>
                 </div>
 
-                <button type="submit" class="btn-glass-dark">ĐĂNG NHẬP ADMIN</button>
+                <button type="submit" class="btn-glass-dark">ĐĂNG NHẬP QUẢN TRỊ VIÊN</button>
             }
 
             <div class="glass-footer">
-                @Html.ActionLink("Đăng nhập User", "UserLogin", "Account")
+                @Html.ActionLink("Đăng nhập Nhân viên", "UserLogin", "Account")
             </div>
         </div>
     </div>

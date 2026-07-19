@@ -258,6 +258,8 @@
     <Content Include="App_Data\Sql\003_AddExportHistory.sql" />
     <Content Include="App_Data\Sql\004_AddIndicatorWarning.sql" />
     <Content Include="App_Data\Sql\005_AddIndicatorDeploymentHistory.sql" />
+    <Content Include="App_Data\Sql\006_AddRememberToken.sql" />
+    <Content Include="App_Data\Sql\007_AddRoleTable.sql" />
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />

@@ -218,8 +218,8 @@
             @if (Session["TaiKhoanId"] == null)
             {
                 <div class="glass-btn-group">
-                    @Html.ActionLink("Đăng nhập User", "UserLogin", "Account", null, new { @class = "btn-glass-primary" })
-                    @Html.ActionLink("Đăng nhập Admin", "AdminLogin", "Account", null, new { @class = "btn-glass-outline" })
+                    @Html.ActionLink("Đăng nhập Nhân viên", "UserLogin", "Account", null, new { @class = "btn-glass-primary" })
+                    @Html.ActionLink("Đăng nhập Quản trị viên", "AdminLogin", "Account", null, new { @class = "btn-glass-outline" })
                 </div>
             }
             else
